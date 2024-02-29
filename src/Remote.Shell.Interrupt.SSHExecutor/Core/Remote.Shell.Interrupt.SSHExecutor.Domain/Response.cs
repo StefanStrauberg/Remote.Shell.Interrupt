@@ -1,13 +1,13 @@
 namespace Remote.Shell.Interrupt.SSHExecutor.Domain;
 
 /// <summary>
-/// Command that should be executing on remote server
+/// Response from Server after executing command
 /// </summary>
-public class Command
+public class Response
 {
     /// <summary>
-    /// Command that should be executing
+    /// Response message from server
     /// </summary>
-    /// <value>Commnd or default</value>
+    /// <value>Recieve string from server or default</value>
     public string Line { get; set; } = string.Empty;
 }
