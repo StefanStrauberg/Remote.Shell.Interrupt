@@ -12,9 +12,14 @@ internal class ExecuteOneCommandHandler(IAppLogger<ExecuteOneCommandHandler> log
     readonly ICommandExecutor executor = executor
         ?? throw new ArgumentNullException(nameof(executor));
 
-    Task<Response> IRequestHandler<ExecuteOneCommand, Response>.Handle(ExecuteOneCommand request,
-                                                                       CancellationToken cancellationToken)
+    async Task<Response> IRequestHandler<ExecuteOneCommand, Response>.Handle(ExecuteOneCommand request,
+                                                                             CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var response = await executor.ExecuteCommand(request.ServerParams,
+                                                     request.Command);
+        logger.LogInformation($"{DateTime.Now} - " +
+                              $"{request.ServerParams.UserName}@{request.ServerParams.HostName} " +
+                              $"executed: {request.Command.Line}");
+        return response;
     }
 }
