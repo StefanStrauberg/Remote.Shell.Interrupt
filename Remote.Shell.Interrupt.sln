@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.Domain", "src\Remote.Shell.Interrupt.SSHExecutor\Core\Remote.Shell.Interrupt.SSHExecutor.Domain\Remote.Shell.Interrupt.SSHExecutor.Domain.csproj", "{7231951A-411D-4481-87ED-7EC1B7A51A44}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DBF64DD2-3225-4A1C-A832-27C24D66DA42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.Logger", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.Logger\Remote.Shell.Interrupt.SSHExecutor.Logger.csproj", "{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.CommandExecutor", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor.csproj", "{34001749-2CA9-4CDA-B679-B247FDACF29D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,11 +36,22 @@ Global
 		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{02DA29EE-927C-4ABE-91ED-558323B060B5} = {253AD285-28DB-426D-A33C-915B9E287976}
 		{B37F044A-831F-435F-ABA8-E8147964432B} = {02DA29EE-927C-4ABE-91ED-558323B060B5}
 		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D} = {B37F044A-831F-435F-ABA8-E8147964432B}
 		{7231951A-411D-4481-87ED-7EC1B7A51A44} = {B37F044A-831F-435F-ABA8-E8147964432B}
+		{DBF64DD2-3225-4A1C-A832-27C24D66DA42} = {02DA29EE-927C-4ABE-91ED-558323B060B5}
+		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1} = {DBF64DD2-3225-4A1C-A832-27C24D66DA42}
+		{34001749-2CA9-4CDA-B679-B247FDACF29D} = {DBF64DD2-3225-4A1C-A832-27C24D66DA42}
 	EndGlobalSection
 EndGlobal
