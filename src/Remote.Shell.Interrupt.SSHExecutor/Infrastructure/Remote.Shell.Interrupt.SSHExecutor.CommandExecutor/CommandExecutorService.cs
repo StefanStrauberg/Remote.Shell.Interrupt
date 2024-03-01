@@ -9,12 +9,10 @@ public static class CommandExecutorService
     /// Adding command executing features to the application
     /// </summary>
     /// <param name="services">IServiceCollection services</param>
-    /// <param name="configuration">IConfiguration configurations</param>
     /// <returns>IServiceCollection</returns>
-    public static IServiceCollection AddLoggerServices(this IServiceCollection services,
-                                                       IConfiguration configuration)
+    public static IServiceCollection AddCommandExecutorServices(this IServiceCollection services)
     {
-        services.AddScoped<ICommandExecutor, CommandExecutor>();
+        services.AddTransient<ICommandExecutor, CommandExecutor>();
         return services;
     }
 }

@@ -5,3 +5,4 @@ global using MediatR;
 global using Remote.Shell.Interrupt.SSHExecutor.Application.Contracts.Messaging;
 global using Remote.Shell.Interrupt.SSHExecutor.Application.Contracts.CommandExecutor;
 global using Remote.Shell.Interrupt.SSHExecutor.Application.Contracts.Logger;
+global using Remote.Shell.Interrupt.SSHExecutor.Application;

@@ -11,6 +11,11 @@ public class ServerParams
     /// <value></value>
     public string HostName { get; set; } = string.Empty;
     /// <summary>
+    /// Remote port for connection
+    /// </summary>
+    /// <value></value>
+    public int Port { get; set; } = 22;
+    /// <summary>
     /// User name for connection to server
     /// </summary>
     /// <value></value>

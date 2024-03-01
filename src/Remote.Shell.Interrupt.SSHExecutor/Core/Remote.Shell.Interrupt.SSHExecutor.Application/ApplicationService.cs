@@ -16,7 +16,6 @@ public static class ApplicationService
         {
             src.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
-        //services.AddValidatorsFromAssemblyContaining<UserValidator>();
         return services;
     }
 }

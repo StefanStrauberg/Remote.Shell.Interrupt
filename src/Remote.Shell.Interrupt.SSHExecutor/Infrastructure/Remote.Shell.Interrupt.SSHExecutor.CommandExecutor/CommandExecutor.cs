@@ -21,10 +21,11 @@ internal class CommandExecutor : ICommandExecutor
                                                          CancellationToken cancellationToken)
     {
         using var client = new SshClient(serverParams.HostName,
+                                         serverParams.Port,
                                          serverParams.UserName,
                                          serverParams.Password);
 
-        await client.ConnectAsync(cancellationToken);
+        client.Connect();
 
         var result = client.RunCommand(command.Line);
 
@@ -52,6 +53,7 @@ internal class CommandExecutor : ICommandExecutor
                                                           CancellationToken cancellationToken)
     {
         using var client = new SshClient(serverParams.HostName,
+                                         serverParams.Port,
                                          serverParams.UserName,
                                          serverParams.Password);
 
