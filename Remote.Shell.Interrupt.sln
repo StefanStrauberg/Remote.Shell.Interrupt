@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DBF64DD2-3225-4A1C-A832-27C24D66DA42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.Logger", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.Logger\Remote.Shell.Interrupt.SSHExecutor.Logger.csproj", "{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.AppLogger", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.AppLogger\Remote.Shell.Interrupt.SSHExecutor.AppLogger.csproj", "{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.CommandExecutor", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor.csproj", "{34001749-2CA9-4CDA-B679-B247FDACF29D}"
 EndProject

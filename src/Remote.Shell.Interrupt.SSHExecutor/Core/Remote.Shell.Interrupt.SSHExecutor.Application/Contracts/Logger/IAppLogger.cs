@@ -20,4 +20,12 @@ public interface IAppLogger<T>
     /// <param name="args">Arguments of message</param>
     void LogWarning(string message, 
                     params object[] args);
+    
+    /// <summary>
+    /// Error log
+    /// </summary>
+    /// <param name="message">Message log</param>
+    /// <param name="args">Arguments of message</param>
+    void LogError(string message,
+                  params object[] args);
 }

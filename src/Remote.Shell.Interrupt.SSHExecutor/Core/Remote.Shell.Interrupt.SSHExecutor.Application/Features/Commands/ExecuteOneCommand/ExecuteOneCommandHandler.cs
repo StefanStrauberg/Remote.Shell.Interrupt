@@ -1,11 +1,12 @@
 namespace Remote.Shell.Interrupt.SSHExecutor.Application.Features.Commands.ExecuteOneCommand;
 
 /// <summary>
-/// CQRS command handler to execut command on remote server
+/// CQRS command handler implemented business logic of executing command on remote server
 /// </summary>
 /// <typeparam name="ExecuteOneCommandHandler"></typeparam>
 internal class ExecuteOneCommandHandler(IAppLogger<ExecuteOneCommandHandler> logger,
-                                        ICommandExecutor executor) : ICommandHandler<ExecuteOneCommand, Response>
+                                        ICommandExecutor executor) 
+    : ICommandHandler<ExecuteOneCommand, Response>
 {
     readonly IAppLogger<ExecuteOneCommandHandler> logger = logger
         ?? throw new ArgumentNullException(nameof(logger));
@@ -15,11 +16,10 @@ internal class ExecuteOneCommandHandler(IAppLogger<ExecuteOneCommandHandler> log
     async Task<Response> IRequestHandler<ExecuteOneCommand, Response>.Handle(ExecuteOneCommand request,
                                                                              CancellationToken cancellationToken)
     {
+        executor.Notify += logger.LogInformation;
         var response = await executor.ExecuteCommand(request.ServerParams,
-                                                     request.Command);
-        logger.LogInformation($"{DateTime.Now} - " +
-                              $"{request.ServerParams.UserName}@{request.ServerParams.HostName} " +
-                              $"executed: {request.Command.Line}");
+                                                     request.Command,
+                                                     cancellationToken);
         return response;
     }
 }
