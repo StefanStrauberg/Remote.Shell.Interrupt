@@ -1,4 +1,4 @@
 namespace Remote.Shell.Interrupt.SSHExecutor.Application.DTOs;
 
 public record class CompositeSrvPrmsAndCmds(ServerParams ServerParams,
-                                            List<Command> Command);
+                                            List<string> Commands);

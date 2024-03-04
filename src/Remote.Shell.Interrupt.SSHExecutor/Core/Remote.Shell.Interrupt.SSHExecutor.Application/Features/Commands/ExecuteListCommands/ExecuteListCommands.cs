@@ -4,5 +4,5 @@ namespace Remote.Shell.Interrupt.SSHExecutor.Application.Features.Commands.Execu
 /// CQRS command to execut commands on remote server
 /// </summary>
 public record class ExecuteListCommands(ServerParams ServerParams,
-                                        List<Command> Commands) 
-    : ICommand<Response>;
+                                        List<string> Commands) 
+    : ICommand<string>;

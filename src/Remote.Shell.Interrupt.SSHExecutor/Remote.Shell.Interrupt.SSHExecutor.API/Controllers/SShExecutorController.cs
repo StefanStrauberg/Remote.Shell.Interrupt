@@ -8,15 +8,9 @@ public class SShExecutorController(IMediator mediator)
     readonly IMediator _mediator = mediator
         ?? throw new ArgumentNullException(nameof(mediator));
 
-    [HttpPost("ExecuteCommand")]
+    [HttpPost]
     [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<IActionResult> ExecuteCommand([FromBody] CompositeSrvPrmsAndCmd prmsAndCmd)
-        => Ok(await _mediator.Send(new ExecuteOneCommand(prmsAndCmd.ServerParams,
-                                                         prmsAndCmd.Command)));
-
-    [HttpPost("ExecuteCommands")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<IActionResult> ExecuteCommands([FromBody] CompositeSrvPrmsAndCmds prmsAndCmds)
+    public async Task<IActionResult> Execute([FromBody] CompositeSrvPrmsAndCmds prmsAndCmds)
         => Ok(await _mediator.Send(new ExecuteListCommands(prmsAndCmds.ServerParams,
-                                                           prmsAndCmds.Command)));
+                                                           prmsAndCmds.Commands)));
 }

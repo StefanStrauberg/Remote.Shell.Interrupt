@@ -6,15 +6,15 @@ namespace Remote.Shell.Interrupt.SSHExecutor.Application.Features.Commands.Execu
 /// <typeparam name="ExecuteListCommandsHandler"></typeparam>
 internal class ExecuteListCommandsHandler(IAppLogger<ExecuteListCommandsHandler> logger,
                                           ICommandExecutor executor) 
-    : ICommandHandler<ExecuteListCommands, Response>
+    : ICommandHandler<ExecuteListCommands, string>
 {
     readonly IAppLogger<ExecuteListCommandsHandler> logger = logger
         ?? throw new ArgumentNullException(nameof(logger));
     readonly ICommandExecutor executor = executor
         ?? throw new ArgumentNullException(nameof(executor));
 
-    async Task<Response> IRequestHandler<ExecuteListCommands, Response>.Handle(ExecuteListCommands request,
-                                                                               CancellationToken cancellationToken)
+    async Task<string> IRequestHandler<ExecuteListCommands, string>.Handle(ExecuteListCommands request,
+                                                                           CancellationToken cancellationToken)
     {
         executor.Notify += logger.LogInformation;
         var response = await executor.ExecuteCommands(request.ServerParams,

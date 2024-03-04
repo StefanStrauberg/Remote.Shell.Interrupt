@@ -17,23 +17,13 @@ public interface ICommandExecutor
     public event CommandExecutorHandler? Notify;
 
     /// <summary>
-    /// Execut one command on remote server
-    /// </summary>
-    /// <param name="serverParams">Parameters of connection to server</param>
-    /// <param name="command">Executable command</param>
-    /// <param name="token">CancellationToken</param>
-    /// <returns>Response - Response from remote server</returns>
-    Task<Response> ExecuteCommand(ServerParams serverParams,
-                                  Command command,
-                                  CancellationToken cancellationToken);
-    /// <summary>
-    /// Execut many commands on remote server
+    /// Execut commands on remote server
     /// </summary>
     /// <param name="serverParams">Parameters of connection to server</param>
     /// <param name="commands">Executable command</param>
     /// <param name="token">CancellationToken</param>
     /// <returns>Response - Response from remote server</returns>
-    Task<Response> ExecuteCommands(ServerParams serverParams,
-                                   List<Command> commands,
-                                   CancellationToken cancellationToken);
+    Task<string> ExecuteCommands(ServerParams serverParams,
+                                 List<string> commands,
+                                 CancellationToken cancellationToken);
 }

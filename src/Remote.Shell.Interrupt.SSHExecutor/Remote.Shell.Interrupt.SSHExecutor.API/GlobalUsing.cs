@@ -1,6 +1,5 @@
 global using Microsoft.AspNetCore.Mvc;
 global using MediatR;
-global using Remote.Shell.Interrupt.SSHExecutor.Application.Features.Commands.ExecuteOneCommand;
 global using Remote.Shell.Interrupt.SSHExecutor.AppLogger;
 global using Remote.Shell.Interrupt.SSHExecutor.CommandExecutor;
 global using Remote.Shell.Interrupt.SSHExecutor.Application;
