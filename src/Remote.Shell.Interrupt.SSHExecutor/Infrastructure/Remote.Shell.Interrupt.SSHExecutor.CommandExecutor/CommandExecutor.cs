@@ -25,7 +25,7 @@ internal class CommandExecutor : ICommandExecutor
                                          serverParams.UserName,
                                          serverParams.Password);
 
-        client.Connect();
+        await client.ConnectAsync(cancellationToken);
 
         var result = client.RunCommand(command.Line);
 
