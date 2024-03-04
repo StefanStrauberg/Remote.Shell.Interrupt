@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.SSHExecutor.CommandExecutor;
 /// <summary>
 /// Dependency Injection of SSH Executor CommandExecutor Service
 /// </summary>
-public static class CommandExecutorService
+public static class SSHCommandExecutorService
 {
     /// <summary>
     /// Adding command executing features to the application
@@ -12,7 +12,7 @@ public static class CommandExecutorService
     /// <returns>IServiceCollection</returns>
     public static IServiceCollection AddCommandExecutorServices(this IServiceCollection services)
     {
-        services.AddTransient<ICommandExecutor, CommandExecutor>();
+        services.AddTransient<ISSHCommandExecutor, SSHCommandExecutor>();
         return services;
     }
 }

@@ -1,9 +1,9 @@
 namespace Remote.Shell.Interrupt.SSHExecutor.Application.Contracts.CommandExecutor;
 
 /// <summary>
-/// Command Executor of SSH Executor Application Service
+/// Interface for executing commands on remote network device
 /// </summary>
-public interface ICommandExecutor
+public interface ISNMPCommandExecutor
 {
     /// <summary>
     /// Delegate for logging of executed command
@@ -17,13 +17,13 @@ public interface ICommandExecutor
     public event CommandExecutorHandler? Notify;
 
     /// <summary>
-    /// Execut commands on remote server
+    /// Execut commands on remote network device
     /// </summary>
-    /// <param name="serverParams">Parameters of connection to server</param>
+    /// <param name="serverParams">Parameters of connection to network device</param>
     /// <param name="commands">Executable command</param>
     /// <param name="token">CancellationToken</param>
-    /// <returns>Response - Response from remote server</returns>
-    Task<string> ExecuteCommands(ServerParams serverParams,
-                                 List<string> commands,
+    /// <returns>Responses from remote network device after executing each command</returns>
+    Task<string> ExecuteCommands(SNMPParams snmpParams,
+                                 List<string> oids,
                                  CancellationToken cancellationToken);
 }

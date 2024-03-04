@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.SSHExecutor.Application\Remote.Shell.Interrupt.SSHExecutor.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.AppLogger\Remote.Shell.Interrupt.SSHExecutor.AppLogger.csproj" />
-    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor\Remote.Shell.Interrupt.SSHExecutor.CommandExecutor.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Executor.AppLogger\Remote.Shell.Interrupt.SSHExecutor.AppLogger.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Executor.SSHCommandExecutor\Remote.Shell.Interrupt.Executor.SSHCommandExecutor.csproj" />
   </ItemGroup>
 
 </Project>

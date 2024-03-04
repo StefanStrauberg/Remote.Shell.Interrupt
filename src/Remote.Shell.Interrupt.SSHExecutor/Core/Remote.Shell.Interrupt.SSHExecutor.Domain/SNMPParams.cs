@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.SSHExecutor.Domain;
 /// <summary>
 /// Parameters of connection to server
 /// </summary>
-public class ServerParams
+public class SNMPParams
 {
     /// <summary>
     /// Hostname or IP Addrer of server
@@ -14,12 +14,7 @@ public class ServerParams
     /// Remote port for connection
     /// </summary>
     /// <value></value>
-    public int Port { get; set; } = 22;
-    /// <summary>
-    /// User name for connection to server
-    /// </summary>
-    /// <value></value>
-    public string UserName { get; set; } = string.Empty;
+    public int Port { get; set; } = 161;
     /// <summary>
     /// Password of user
     /// </summary>

@@ -1,29 +1,27 @@
-using System.Text;
-
 namespace Remote.Shell.Interrupt.SSHExecutor.CommandExecutor;
 
 /// <summary>
 /// Implementation of business logic of command executing 
 /// </summary>
-internal class CommandExecutor : ICommandExecutor
+internal class SSHCommandExecutor : ISSHCommandExecutor
 {
-    public event ICommandExecutor.CommandExecutorHandler? Notify;
+    public event ISSHCommandExecutor.CommandExecutorHandler? Notify;
 
     /// <summary>
     /// Executing commands on remote server
     /// </summary>
-    /// <param name="serverParams"></param>
+    /// <param name="sshParams"></param>
     /// <param name="commands"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    async Task<string> ICommandExecutor.ExecuteCommands(ServerParams serverParams,
+    async Task<string> ISSHCommandExecutor.ExecuteCommands(SSHParams sshParams,
                                                         List<string> commands,
                                                         CancellationToken cancellationToken)
     {
-        using var client = new SshClient(serverParams.HostName,
-                                         serverParams.Port,
-                                         serverParams.UserName,
-                                         serverParams.Password);
+        using var client = new SshClient(sshParams.HostName,
+                                         sshParams.Port,
+                                         sshParams.UserName,
+                                         sshParams.Password);
 
         await client.ConnectAsync(cancellationToken);
 
@@ -33,9 +31,9 @@ internal class CommandExecutor : ICommandExecutor
         {
             var result = client.RunCommand(command);
 
-            sb.Append(serverParams.UserName);
+            sb.Append(sshParams.UserName);
             sb.Append('@');
-            sb.Append(serverParams.HostName + ' ');
+            sb.Append(sshParams.HostName + ' ');
             sb.Append("Command: ");
             sb.Append(command + ' ');
             sb.Append("Result: ");

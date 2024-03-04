@@ -5,5 +5,5 @@ global using Remote.Shell.Interrupt.SSHExecutor.CommandExecutor;
 global using Remote.Shell.Interrupt.SSHExecutor.Application;
 global using Serilog;
 global using System.Net;
-global using Remote.Shell.Interrupt.SSHExecutor.Application.Features.Commands.ExecuteListCommands;
+global using Remote.Shell.Interrupt.SSHExecutor.Application.Features.SSHExecutor.Commands;
 global using Remote.Shell.Interrupt.SSHExecutor.Application.DTOs;
