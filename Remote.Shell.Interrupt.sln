@@ -3,25 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{253AD285-28DB-426D-A33C-915B9E287976}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C149A62E-BA32-43E1-86F9-F45ED6DB1B66}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.SSHExecutor", "Remote.Shell.Interrupt.SSHExecutor", "{02DA29EE-927C-4ABE-91ED-558323B060B5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.SNMPExecutor", "Remote.Shell.Interrupt.SNMPExecutor", "{DC597FCA-A704-4F7E-99A9-F396C52766C0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B37F044A-831F-435F-ABA8-E8147964432B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.Application", "src\Remote.Shell.Interrupt.SSHExecutor\Core\Remote.Shell.Interrupt.SSHExecutor.Application\Remote.Shell.Interrupt.SSHExecutor.Application.csproj", "{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Domain", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj", "{085FC1C6-8788-4A35-AB57-AE23A087DB99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.Domain", "src\Remote.Shell.Interrupt.SSHExecutor\Core\Remote.Shell.Interrupt.SSHExecutor.Domain\Remote.Shell.Interrupt.SSHExecutor.Domain.csproj", "{7231951A-411D-4481-87ED-7EC1B7A51A44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Application", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Application\Remote.Shell.Interrupt.SNMPExecutor.Application.csproj", "{8980A587-0242-40B8-9654-F87FA95851C5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DBF64DD2-3225-4A1C-A832-27C24D66DA42}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Executor.AppLogger", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.Executor.AppLogger\Remote.Shell.Interrupt.SSHExecutor.AppLogger.csproj", "{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.AppLogger", "src\Remote.Shell.Interrupt.SNMPExecutor\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.AppLogger\Remote.Shell.Interrupt.SNMPExecutor.AppLogger.csproj", "{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Executor.SSHCommandExecutor", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.Executor.SSHCommandExecutor\Remote.Shell.Interrupt.Executor.SSHCommandExecutor.csproj", "{34001749-2CA9-4CDA-B679-B247FDACF29D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor", "src\Remote.Shell.Interrupt.SNMPExecutor\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor.csproj", "{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SSHExecutor.API", "src\Remote.Shell.Interrupt.SSHExecutor\Remote.Shell.Interrupt.SSHExecutor.API\Remote.Shell.Interrupt.SSHExecutor.API.csproj", "{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Executor.SNMPExecutor", "src\Remote.Shell.Interrupt.SSHExecutor\Infrastructure\Remote.Shell.Interrupt.Executor.SNMPExecutor\Remote.Shell.Interrupt.Executor.SNMPExecutor.csproj", "{8774532B-30B6-403A-A3D1-4B6F39E8201D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.API", "src\Remote.Shell.Interrupt.SNMPExecutor\Remote.Shell.Interrupt.SNMPExecutor.API\Remote.Shell.Interrupt.SNMPExecutor.API.csproj", "{F45EBEEC-3163-4D9A-8094-08566E831A7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,40 +30,35 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7231951A-411D-4481-87ED-7EC1B7A51A44}.Release|Any CPU.Build.0 = Release|Any CPU
-		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34001749-2CA9-4CDA-B679-B247FDACF29D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8774532B-30B6-403A-A3D1-4B6F39E8201D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8774532B-30B6-403A-A3D1-4B6F39E8201D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8774532B-30B6-403A-A3D1-4B6F39E8201D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8774532B-30B6-403A-A3D1-4B6F39E8201D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{02DA29EE-927C-4ABE-91ED-558323B060B5} = {253AD285-28DB-426D-A33C-915B9E287976}
-		{B37F044A-831F-435F-ABA8-E8147964432B} = {02DA29EE-927C-4ABE-91ED-558323B060B5}
-		{C5231D50-39BB-4ADA-9DA4-5E6C89E4B53D} = {B37F044A-831F-435F-ABA8-E8147964432B}
-		{7231951A-411D-4481-87ED-7EC1B7A51A44} = {B37F044A-831F-435F-ABA8-E8147964432B}
-		{DBF64DD2-3225-4A1C-A832-27C24D66DA42} = {02DA29EE-927C-4ABE-91ED-558323B060B5}
-		{38F78CCD-DCAE-48C2-B9B2-3D0D0762E3B1} = {DBF64DD2-3225-4A1C-A832-27C24D66DA42}
-		{34001749-2CA9-4CDA-B679-B247FDACF29D} = {DBF64DD2-3225-4A1C-A832-27C24D66DA42}
-		{CB3C4D2E-AF85-44E9-BEA8-EBC2008F2807} = {02DA29EE-927C-4ABE-91ED-558323B060B5}
-		{8774532B-30B6-403A-A3D1-4B6F39E8201D} = {DBF64DD2-3225-4A1C-A832-27C24D66DA42}
+		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
+		{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
+		{085FC1C6-8788-4A35-AB57-AE23A087DB99} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
+		{8980A587-0242-40B8-9654-F87FA95851C5} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
+		{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
+		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
+		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
+		{F45EBEEC-3163-4D9A-8094-08566E831A7E} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 	EndGlobalSection
 EndGlobal
