@@ -44,7 +44,6 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
                 {
                     sb.Append($"Error in SNMP reply. Error {result.Pdu.ErrorStatus} index {result.Pdu.ErrorIndex}");
                     Notify?.Invoke(sb.ToString());
-                    lastOid = null;
                     break;
                 }
                 else
