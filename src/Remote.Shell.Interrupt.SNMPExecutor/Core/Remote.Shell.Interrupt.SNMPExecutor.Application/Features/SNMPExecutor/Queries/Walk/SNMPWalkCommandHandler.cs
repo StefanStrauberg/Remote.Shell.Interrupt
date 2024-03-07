@@ -1,9 +1,15 @@
-namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Commands;
+namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Walk;
 
 /// <summary>
-/// CQRS command handler implemented business logic of executing snmp commands on remote network device
+/// CQRS Command - SNMP Walk
 /// </summary>
-/// <typeparam name="SNMPExecuteCommandsHandler"></typeparam>
+public record class SNMPWalkCommand(SNMPParams SNMPParams,
+                                    string Oid) 
+    : ICommand<string>;
+
+/// <summary>
+/// CQRS command handler implemented business logic of executing snmp Walk command on remote network device
+/// </summary>
 internal class SNMPWalkCommandHandler(IAppLogger<SNMPWalkCommandHandler> logger,
                                       ISNMPCommandExecutor executor) 
     : ICommandHandler<SNMPWalkCommand, string>
@@ -18,8 +24,8 @@ internal class SNMPWalkCommandHandler(IAppLogger<SNMPWalkCommandHandler> logger,
     {
         executor.Notify += logger.LogInformation;
         var response = await executor.WalkCommand(request.SNMPParams,
-                                                  request.Command,
+                                                  request.Oid,
                                                   cancellationToken);
-        return response;
+        return Helper.Helper.DictionaryToJson(response);
     }
 }

@@ -17,13 +17,24 @@ public interface ISNMPCommandExecutor
     public event CommandExecutorHandler? Notify;
 
     /// <summary>
-    /// Execut commands on remote network device
+    /// Execut Walk command on remote network device
     /// </summary>
-    /// <param name="serverParams">Parameters of connection to network device</param>
-    /// <param name="commands">Executable command</param>
-    /// <param name="token">CancellationToken</param>
-    /// <returns>Responses from remote network device after executing each command</returns>
-    Task<string> WalkCommand(SNMPParams snmpParams,
-                             string oids,
-                             CancellationToken cancellationToken);
+    /// <param name="snmpParams">Parameters of connection to network device</param>
+    /// <param name="oid">Executable command</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>Responses from remote network device after executing command</returns>
+    Task<Dictionary<string, List<string>>> WalkCommand(SNMPParams sNMPParams,
+                                                       string oid,
+                                                       CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Execut Get command on remote network device
+    /// </summary>
+    /// <param name="sNMPParams">Parameters of connection to network device</param>
+    /// <param name="oid">Executable command</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>Responses from remote network device after executing command</returns>
+    Task<Dictionary<string, List<string>>> GetCommand(SNMPParams sNMPParams,
+                                                      string oid,
+                                                      CancellationToken cancellationToken);
 }

@@ -4,18 +4,18 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
 {
     public event ISNMPCommandExecutor.CommandExecutorHandler? Notify;
 
-    async Task<string> ISNMPCommandExecutor.WalkCommand(SNMPParams snmpParams,
-                                                        string oid,
-                                                        CancellationToken cancellationToken)
+    async Task<Dictionary<string, List<string>>> ISNMPCommandExecutor.WalkCommand(SNMPParams sNMPParams,
+                                                                                  string oid,
+                                                                                  CancellationToken cancellationToken)
     {
-        var community = new OctetString(snmpParams.Community);
+        var community = new OctetString(sNMPParams.Community);
         var param = new AgentParameters(community)
         {
             Version = SnmpVersion.Ver2
         };
-        var agent = new IpAddress(snmpParams.Host);
+        var agent = new IpAddress(sNMPParams.Host);
         var target = new UdpTarget((IPAddress)agent,
-                                   snmpParams.Port,
+                                   161,
                                    2000,
                                    1);
 
@@ -27,7 +27,7 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
             MaxRepetitions = 5
         };
 
-        var sb = new StringBuilder();
+        Dictionary<string, List<string>> response = [];
 
         while (lastOid != null)
         {
@@ -42,8 +42,9 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
             {
                 if (result.Pdu.ErrorStatus != 0)
                 {
-                    sb.Append($"Error in SNMP reply. Error {result.Pdu.ErrorStatus} index {result.Pdu.ErrorIndex}");
-                    Notify?.Invoke(sb.ToString());
+                    Notify?.Invoke("Error in SNMP reply. Error {0} index {1}",
+                                   result.Pdu.ErrorStatus,
+                                   result.Pdu.ErrorIndex);
                     break;
                 }
                 else
@@ -52,7 +53,9 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
                     {
                         if (rootOid.IsRootOf(v.Oid))
                         {
-                            sb.Append($"{v.Oid.ToString()} ({SnmpConstants.GetTypeName(v.Value.Type)}): {v.Value.ToString()}");
+                            response.Add(v.Oid.ToString(),
+                                         [SnmpConstants.GetTypeName(v.Value.Type), 
+                                          v.Value.ToString()]);
                             if (v.Value.Type == SnmpConstants.SMI_ENDOFMIBVIEW)
                                 lastOid = null;
                             else
@@ -64,13 +67,52 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
                 }
             }
             else
-            {
-                sb.Append("No response received from SNMP agent.");
-                Notify?.Invoke(sb.ToString());
-            }
+                Notify?.Invoke("No response received from SNMP agent.");
         }
+        
         target.Close();
+        return await Task.FromResult(response);
+    }
 
-        return await Task.FromResult(sb.ToString());
+    public Task<Dictionary<string, List<string>>> GetCommand(SNMPParams sNMPParams,
+                                                             string oid,
+                                                             CancellationToken cancellationToken)
+    {
+        var community = new OctetString(sNMPParams.Community);
+        var param = new AgentParameters(community)
+        {
+            Version = SnmpVersion.Ver2
+        };
+        var agent = new IpAddress(sNMPParams.Host);
+        var target = new UdpTarget((IPAddress)agent,
+                                   161,
+                                   2000,
+                                   1);
+
+        var pdu = new Pdu(PduType.Get);
+
+        pdu.VbList.Add(oid);
+
+        var sb = new StringBuilder();
+        Dictionary<string, List<string>> response = [];
+
+        SnmpV2Packet result = (SnmpV2Packet)target.Request(pdu, param);
+
+        if (result != null)
+            {
+                if (result.Pdu.ErrorStatus != 0)
+                    Notify?.Invoke("Error in SNMP reply. Error {0} index {1}",
+                                   result.Pdu.ErrorStatus,
+                                   result.Pdu.ErrorIndex);
+                else
+                    response.Add(result.Pdu.VbList[0].Oid.ToString(),
+                                 [SnmpConstants.GetTypeName(result.Pdu.VbList[0].Value.Type), 
+                                  result.Pdu.VbList[0].Value.ToString()]);
+            }
+            else
+                Notify?.Invoke("No response received from SNMP agent.");
+            
+            target.Close();
+            return Task.FromResult(response);
     }
 }
