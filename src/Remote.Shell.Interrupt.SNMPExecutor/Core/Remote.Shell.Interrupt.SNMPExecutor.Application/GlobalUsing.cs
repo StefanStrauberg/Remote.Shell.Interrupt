@@ -5,4 +5,4 @@ global using MediatR;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.Messaging;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.CommandExecutor;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.Logger;
-global using System.Text.Json.Nodes;
+global using Remote.Shell.Interrupt.SNMPExecutor.Application.Helper;

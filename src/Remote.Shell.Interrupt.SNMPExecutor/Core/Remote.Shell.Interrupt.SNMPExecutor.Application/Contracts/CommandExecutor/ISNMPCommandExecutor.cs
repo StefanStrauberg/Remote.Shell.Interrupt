@@ -23,9 +23,9 @@ public interface ISNMPCommandExecutor
     /// <param name="oid">Executable command</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Responses from remote network device after executing command</returns>
-    Task<Dictionary<string, List<string>>> WalkCommand(SNMPParams sNMPParams,
-                                                       string oid,
-                                                       CancellationToken cancellationToken);
+    Task<IList<Response>> WalkCommand(SNMPParams sNMPParams,
+                                      string oid,
+                                      CancellationToken cancellationToken);
 
     /// <summary>
     /// Execut Get command on remote network device
@@ -34,7 +34,7 @@ public interface ISNMPCommandExecutor
     /// <param name="oid">Executable command</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Responses from remote network device after executing command</returns>
-    Task<Dictionary<string, List<string>>> GetCommand(SNMPParams sNMPParams,
-                                                      string oid,
-                                                      CancellationToken cancellationToken);
+    Task<IList<Response>> GetCommand(SNMPParams sNMPParams,
+                                     string oid,
+                                     CancellationToken cancellationToken);
 }
