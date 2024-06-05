@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMP
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.AppLogger", "src\Remote.Shell.Interrupt.SNMPExecutor\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.AppLogger\Remote.Shell.Interrupt.SNMPExecutor.AppLogger.csproj", "{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor", "src\Remote.Shell.Interrupt.SNMPExecutor\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor.csproj", "{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.API", "src\Remote.Shell.Interrupt.SNMPExecutor\Remote.Shell.Interrupt.SNMPExecutor.API\Remote.Shell.Interrupt.SNMPExecutor.API.csproj", "{F45EBEEC-3163-4D9A-8094-08566E831A7E}"
@@ -35,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.BuildingBlocks", "src\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj", "{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.AppLogger", "src\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj", "{497D5FDA-6FD8-4614-8101-A6D539B2348A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,10 +52,6 @@ Global
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -80,6 +76,10 @@ Global
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -87,7 +87,6 @@ Global
 		{085FC1C6-8788-4A35-AB57-AE23A087DB99} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
 		{8980A587-0242-40B8-9654-F87FA95851C5} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
 		{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
-		{33C7E1DA-1242-4EEB-B7F9-AA8A4C9B7CBE} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
 		{F45EBEEC-3163-4D9A-8094-08566E831A7E} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 		{38E26EA7-51FF-4D81-BB36-732B7D8D09BF} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -97,5 +96,6 @@ Global
 		{8812A68B-94E3-4CAD-BD27-37AA1B21A461} = {7E4D4C8C-1F1B-4BA7-A3CA-3DFA3AD9CECF}
 		{1A76D11A-2F7A-46F4-ACF5-7B562675F621} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
+		{497D5FDA-6FD8-4614-8101-A6D539B2348A} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
 	EndGlobalSection
 EndGlobal

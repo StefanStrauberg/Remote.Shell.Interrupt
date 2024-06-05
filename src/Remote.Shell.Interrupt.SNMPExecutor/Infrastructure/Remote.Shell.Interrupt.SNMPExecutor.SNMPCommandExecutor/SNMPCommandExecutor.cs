@@ -2,16 +2,13 @@ namespace Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor;
 
 internal class SNMPCommandExecutor : ISNMPCommandExecutor
 {
-    public event ISNMPCommandExecutor.CommandExecutorHandler? Notify;
-
-    async Task<IList<Response>> ISNMPCommandExecutor.WalkCommand(SNMPParams sNMPParams,
+    async Task<IList<Response>> ISNMPCommandExecutor.WalkCommand(string host,
+                                                                 string community,
                                                                  string oid,
                                                                  CancellationToken cancellationToken)
     {
         IList<Response> response = [];
-        var snmpHelper = new SnmpHelper(sNMPParams.Host,
-                                        161,
-                                        sNMPParams.Community);
+        var snmpHelper = new SnmpHelper(host, 161, community);
         try
         {
             IList<Variable> result = await snmpHelper.WalkRequestAsync(oid);
@@ -22,28 +19,27 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         }
         catch (EonaCat.Snmp.Exceptions.TimeoutException ex)
         {
-            Notify?.Invoke($"SNMP request timed out: {ex.Message}");
+            //Notify?.Invoke($"SNMP request timed out: {ex.Message}");
         }
         catch (EonaCat.Snmp.Exceptions.SnmpException ex)
         {
-            Notify?.Invoke($"SNMP error: {ex.Message}");
+            //Notify?.Invoke($"SNMP error: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Notify?.Invoke($"An error occurred: {ex.Message}");
+            //Notify?.Invoke($"An error occurred: {ex.Message}");
         }
 
         return response;
     }
 
-    async Task<IList<Response>> ISNMPCommandExecutor.GetCommand(SNMPParams sNMPParams,
+    async Task<IList<Response>> ISNMPCommandExecutor.GetCommand(string host,
+                                                                string community,
                                                                 string oid,
                                                                 CancellationToken cancellationToken)
     {
         IList<Response> response = [];
-        var snmpHelper = new SnmpHelper(sNMPParams.Host,
-                                        161,
-                                        sNMPParams.Community);
+        var snmpHelper = new SnmpHelper(host, 161, community);
         try
         {
             IList<Variable> result = await snmpHelper.GetRequestAsync(oid);
@@ -54,15 +50,15 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         }
         catch (EonaCat.Snmp.Exceptions.TimeoutException ex)
         {
-            Notify?.Invoke($"SNMP request timed out: {ex.Message}");
+            //Notify?.Invoke($"SNMP request timed out: {ex.Message}");
         }
         catch (EonaCat.Snmp.Exceptions.SnmpException ex)
         {
-            Notify?.Invoke($"SNMP error: {ex.Message}");
+            //Notify?.Invoke($"SNMP error: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Notify?.Invoke($"An error occurred: {ex.Message}");
+            //Notify?.Invoke($"An error occurred: {ex.Message}");
         }
 
         return response;
