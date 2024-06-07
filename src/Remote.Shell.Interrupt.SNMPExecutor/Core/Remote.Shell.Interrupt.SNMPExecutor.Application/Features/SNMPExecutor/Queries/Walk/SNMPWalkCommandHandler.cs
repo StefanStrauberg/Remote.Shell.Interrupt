@@ -2,22 +2,20 @@ namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.
 
 public record class SNMPWalkCommand(string Host,
                                     string Community,
-                                    string Oid)
-    : IRequest<IList<Response>>;
+                                    string Oid) : IRequest<JObject>;
 
-internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor)
-    : IRequestHandler<SNMPWalkCommand, IList<Response>>
+internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestHandler<SNMPWalkCommand, JObject>
 {
-    readonly ISNMPCommandExecutor executor = executor
+    readonly ISNMPCommandExecutor _executor = executor
         ?? throw new ArgumentNullException(nameof(executor));
 
-    async Task<IList<Response>> IRequestHandler<SNMPWalkCommand, IList<Response>>.Handle(SNMPWalkCommand request,
-                                                                                         CancellationToken cancellationToken)
+    async Task<JObject> IRequestHandler<SNMPWalkCommand, JObject>.Handle(SNMPWalkCommand request,
+                                                                         CancellationToken cancellationToken)
     {
-        var response = await executor.WalkCommand(request.Host,
-                                                  request.Community,
-                                                  request.Oid,
-                                                  cancellationToken);
+        var response = await _executor.WalkCommand(request.Host,
+                                                   request.Community,
+                                                   request.Oid,
+                                                   cancellationToken);
         return response;
     }
 }

@@ -2,13 +2,13 @@ namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.CommandExecu
 
 public interface ISNMPCommandExecutor
 {
-    Task<IList<Response>> WalkCommand(string host,
-                                      string community,
-                                      string oid,
-                                      CancellationToken cancellationToken);
+    Task<JObject> WalkCommand(string host,
+                              string community,
+                              string oid,
+                              CancellationToken cancellationToken);
 
-    Task<IList<Response>> GetCommand(string host,
-                                     string community,
-                                     string oid,
-                                     CancellationToken cancellationToken);
+    Task<JObject> GetCommand(string host,
+                             string community,
+                             string oid,
+                             CancellationToken cancellationToken);
 }

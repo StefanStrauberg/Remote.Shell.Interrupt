@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.AppLogger;
 
-internal class AppLogger<T>(ILoggerFactory loggerFactory)
-    : IAppLogger<T>
+internal class AppLogger<T>(ILoggerFactory loggerFactory) : IAppLogger<T>
 {
     readonly ILogger<T> _logger = loggerFactory.CreateLogger<T>()
         ?? throw new ArgumentNullException(nameof(loggerFactory));

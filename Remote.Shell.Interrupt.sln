@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.SNMP
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Domain", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj", "{085FC1C6-8788-4A35-AB57-AE23A087DB99}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Application", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Application\Remote.Shell.Interrupt.SNMPExecutor.Application.csproj", "{8980A587-0242-40B8-9654-F87FA95851C5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}"
@@ -44,10 +42,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{085FC1C6-8788-4A35-AB57-AE23A087DB99}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -84,7 +78,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
 		{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
-		{085FC1C6-8788-4A35-AB57-AE23A087DB99} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
 		{8980A587-0242-40B8-9654-F87FA95851C5} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
 		{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}

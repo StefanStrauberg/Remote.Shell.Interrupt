@@ -6,3 +6,4 @@ global using Mapster;
 global using MediatR;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Get;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Walk;
+global using FluentValidation;

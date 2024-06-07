@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.BuildingBlocks.Behaviors;
 
-public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRequest, TResponse>> logger)
-  : IPipelineBehavior<TRequest, TResponse>
+public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
   where TRequest : notnull, IRequest<TResponse>
   where TResponse : notnull
 {
