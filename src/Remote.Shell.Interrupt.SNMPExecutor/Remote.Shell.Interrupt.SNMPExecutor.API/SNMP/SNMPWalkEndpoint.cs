@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.SNMPExecutor.API.SNMP;
+namespace Remote.Shell.Interrupt.SNMPExecutor.API.SNMP.SNMP;
 
 public class SNMPWalkEndpoint : ICarterModule
 {

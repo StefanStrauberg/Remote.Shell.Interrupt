@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.SNMPExecutor.Application\Remote.Shell.Interrupt.SNMPExecutor.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj" />
   </ItemGroup>
 
 </Project>

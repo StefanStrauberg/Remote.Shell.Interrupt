@@ -4,11 +4,15 @@ public class SNMPGetEndpoint : ICarterModule
 {
   public void AddRoutes(IEndpointRouteBuilder app)
   {
-    app.MapGet("/executor/get", async (SNMPGetWalkRequest request, ISender sender) =>
+    app.MapGet("/executor/get", async (req) =>
     {
-      var command = request.Adapt<SNMPGetCommand>();
+      var sender = req.RequestServices.GetRequiredService<ISender>();
+
+      var command = req.Adapt<SNMPGetCommand>();
+
       var result = await sender.Send(command);
       var response = result.Adapt<SNMPGetWalkResponse>();
+
       return Results.Ok(response);
     }).WithName("SNMPGet")
       .Produces<SNMPGetWalkResponse>(StatusCodes.Status200OK)
