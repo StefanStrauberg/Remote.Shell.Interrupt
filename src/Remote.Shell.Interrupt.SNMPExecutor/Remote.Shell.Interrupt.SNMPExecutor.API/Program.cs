@@ -11,6 +11,7 @@ try
 
     var app = builder.Build();
 
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.MapCarter();
     app.Run();
 }

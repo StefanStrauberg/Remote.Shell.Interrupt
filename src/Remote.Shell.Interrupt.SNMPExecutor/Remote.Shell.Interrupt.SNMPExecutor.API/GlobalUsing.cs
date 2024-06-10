@@ -7,3 +7,5 @@ global using MediatR;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Get;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Walk;
 global using FluentValidation;
+global using Remote.Shell.Interrupt.BuildingBlocks.Middleware;
+global using Remote.Shell.Interrupt.SNMPExecutor.API.SNMP;

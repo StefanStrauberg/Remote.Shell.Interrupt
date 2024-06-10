@@ -18,8 +18,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
     }
   }
 
-  static async Task HandleExceptionAsync(HttpContext httpContext,
-                                         Exception exception)
+  static async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
   {
     var statusCode = GetStatusCode(exception);
     var response = new
@@ -39,21 +38,21 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
       {
         BadRequestException => StatusCodes.Status400BadRequest,
         NotFoundException => StatusCodes.Status404NotFound,
-        Exceptions.ValidationException => StatusCodes.Status422UnprocessableEntity,
+        ValidationException => StatusCodes.Status422UnprocessableEntity,
         _ => StatusCodes.Status500InternalServerError
       };
 
   static string GetTitle(Exception exception) =>
       exception switch
       {
-        Exceptions.ApplicationException applicationException => applicationException.Title,
+        ApplicationException applicationException => applicationException.Title,
         _ => "Server Error"
       };
 
   static IReadOnlyDictionary<string, IEnumerable<string>>? GetErrors(Exception exception)
   {
     IReadOnlyDictionary<string, IEnumerable<string>>? errors = null;
-    if (exception is Exceptions.ValidationException validationException)
+    if (exception is ValidationException validationException)
     {
       errors = validationException.ErrorsDictionary;
     }

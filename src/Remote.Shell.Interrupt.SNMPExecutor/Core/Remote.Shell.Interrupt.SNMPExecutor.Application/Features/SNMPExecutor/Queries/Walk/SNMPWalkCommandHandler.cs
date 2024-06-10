@@ -12,10 +12,9 @@ internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestH
     async Task<JObject> IRequestHandler<SNMPWalkCommand, JObject>.Handle(SNMPWalkCommand request,
                                                                          CancellationToken cancellationToken)
     {
-        var response = await _executor.WalkCommand(request.Host,
-                                                   request.Community,
-                                                   request.Oid,
-                                                   cancellationToken);
-        return response;
+        return await _executor.WalkCommand(request.Host,
+                                           request.Community,
+                                           request.Oid,
+                                           cancellationToken);
     }
 }

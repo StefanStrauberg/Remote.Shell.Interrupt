@@ -17,21 +17,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.API", "src\Remote.Shell.Interrupt.SNMPExecutor\Remote.Shell.Interrupt.SNMPExecutor.API\Remote.Shell.Interrupt.SNMPExecutor.API.csproj", "{F45EBEEC-3163-4D9A-8094-08566E831A7E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.Storehouse", "Remote.Shell.Interrupt.Storehouse", "{38E26EA7-51FF-4D81-BB36-732B7D8D09BF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.API", "src\Remote.Shell.Interrupt.Storehouse\Remote.Shell.Interrupt.Storehouse.API\Remote.Shell.Interrupt.Storehouse.API.csproj", "{C2CAD46E-7551-4DBA-867D-F7C48FE2D840}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{7E4D4C8C-1F1B-4BA7-A3CA-3DFA3AD9CECF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Domain", "src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Domain\Remote.Shell.Interrupt.Storehouse.Domain.csproj", "{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Application", "src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj", "{8812A68B-94E3-4CAD-BD27-37AA1B21A461}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{1A76D11A-2F7A-46F4-ACF5-7B562675F621}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.BuildingBlocks", "src\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj", "{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.AppLogger", "src\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj", "{497D5FDA-6FD8-4614-8101-A6D539B2348A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DF763C35-B657-4CFA-9916-03CF62D0AFF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Tests", "src\Tests\Remote.Shell.Interrupt.SNMPExecutor.Tests\Remote.Shell.Interrupt.SNMPExecutor.Tests.csproj", "{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,18 +50,6 @@ Global
 		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C2CAD46E-7551-4DBA-867D-F7C48FE2D840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C2CAD46E-7551-4DBA-867D-F7C48FE2D840}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C2CAD46E-7551-4DBA-867D-F7C48FE2D840}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C2CAD46E-7551-4DBA-867D-F7C48FE2D840}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8812A68B-94E3-4CAD-BD27-37AA1B21A461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8812A68B-94E3-4CAD-BD27-37AA1B21A461}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8812A68B-94E3-4CAD-BD27-37AA1B21A461}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8812A68B-94E3-4CAD-BD27-37AA1B21A461}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -74,6 +58,10 @@ Global
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -82,13 +70,10 @@ Global
 		{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
 		{F45EBEEC-3163-4D9A-8094-08566E831A7E} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
-		{38E26EA7-51FF-4D81-BB36-732B7D8D09BF} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
-		{C2CAD46E-7551-4DBA-867D-F7C48FE2D840} = {38E26EA7-51FF-4D81-BB36-732B7D8D09BF}
-		{7E4D4C8C-1F1B-4BA7-A3CA-3DFA3AD9CECF} = {38E26EA7-51FF-4D81-BB36-732B7D8D09BF}
-		{CE7B6F9E-0ADA-43AE-8AF7-508D2CE2B9EF} = {7E4D4C8C-1F1B-4BA7-A3CA-3DFA3AD9CECF}
-		{8812A68B-94E3-4CAD-BD27-37AA1B21A461} = {7E4D4C8C-1F1B-4BA7-A3CA-3DFA3AD9CECF}
 		{1A76D11A-2F7A-46F4-ACF5-7B562675F621} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
+		{DF763C35-B657-4CFA-9916-03CF62D0AFF1} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
+		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73} = {DF763C35-B657-4CFA-9916-03CF62D0AFF1}
 	EndGlobalSection
 EndGlobal

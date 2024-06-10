@@ -16,11 +16,11 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         }
         catch (EonaCat.Snmp.Exceptions.TimeoutException ex)
         {
-            throw new DataBadRequestException($"SNMP request timed out: {ex.Message}");
+            throw new SNMPBadRequestException($"SNMP request timed out: {ex.Message}");
         }
         catch (EonaCat.Snmp.Exceptions.SnmpException ex)
         {
-            throw new DataBadRequestException($"SNMP error: {ex.Message}");
+            throw new InternalServerException($"SNMP error: {ex.Message}");
         }
         catch (Exception ex)
         {
@@ -44,11 +44,11 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         }
         catch (EonaCat.Snmp.Exceptions.TimeoutException ex)
         {
-            throw new DataBadRequestException($"SNMP request timed out: {ex.Message}");
+            throw new SNMPBadRequestException($"SNMP request timed out: {ex.Message}");
         }
         catch (EonaCat.Snmp.Exceptions.SnmpException ex)
         {
-            throw new DataBadRequestException($"SNMP error: {ex.Message}");
+            throw new InternalServerException($"SNMP error: {ex.Message}");
         }
         catch (Exception ex)
         {

@@ -12,10 +12,9 @@ internal class SNMPGetCommandHandler(ISNMPCommandExecutor executor) : IRequestHa
     async Task<JObject> IRequestHandler<SNMPGetCommand, JObject>.Handle(SNMPGetCommand request,
                                                                         CancellationToken cancellationToken)
     {
-        var response = await _executor.GetCommand(request.Host,
-                                                  request.Community,
-                                                  request.Oid,
-                                                  cancellationToken);
-        return response;
+        return await _executor.GetCommand(request.Host,
+                                          request.Community,
+                                          request.Oid,
+                                          cancellationToken);
     }
 }
