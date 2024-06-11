@@ -29,6 +29,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{DF763C35
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Tests", "src\Tests\Remote.Shell.Interrupt.SNMPExecutor.Tests\Remote.Shell.Interrupt.SNMPExecutor.Tests.csproj", "{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{DAE207D4-0CEF-479F-A45C-25957AC710E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Presentation", "src\Remote.Shell.Interrupt.SNMPExecutor\Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation.csproj", "{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +66,10 @@ Global
 		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -75,5 +83,7 @@ Global
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
 		{DF763C35-B657-4CFA-9916-03CF62D0AFF1} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
 		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73} = {DF763C35-B657-4CFA-9916-03CF62D0AFF1}
+		{DAE207D4-0CEF-479F-A45C-25957AC710E5} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
+		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9} = {DAE207D4-0CEF-479F-A45C-25957AC710E5}
 	EndGlobalSection
 EndGlobal

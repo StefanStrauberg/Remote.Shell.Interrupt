@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor;
 
-public static class SNMPCommandExecutorService
+public static class SNMPCommandExecutorServicesRegistration
 {
     public static IServiceCollection AddSNMPCommandExecutorServices(this IServiceCollection services)
     {
