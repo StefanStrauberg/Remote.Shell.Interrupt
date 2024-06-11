@@ -4,3 +4,5 @@ global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
 global using Newtonsoft.Json.Linq;
 global using System.Reflection;
 global using Microsoft.Extensions.DependencyInjection;
+global using Remote.Shell.Interrupt.BuildingBlocks.Behaviors;
+global using Remote.Shell.Interrupt.BuildingBlocks.Middleware;

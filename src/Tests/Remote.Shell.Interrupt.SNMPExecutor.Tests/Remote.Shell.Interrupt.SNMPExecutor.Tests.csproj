@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Application\Remote.Shell.Interrupt.SNMPExecutor.Application.csproj" />
     <ProjectReference Include="..\..\Remote.Shell.Interrupt.SNMPExecutor\Remote.Shell.Interrupt.SNMPExecutor.API\Remote.Shell.Interrupt.SNMPExecutor.API.csproj" />
+    <ProjectReference Include="..\..\Remote.Shell.Interrupt.SNMPExecutor\Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

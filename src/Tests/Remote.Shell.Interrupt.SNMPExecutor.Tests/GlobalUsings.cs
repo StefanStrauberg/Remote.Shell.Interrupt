@@ -7,4 +7,4 @@ global using Newtonsoft.Json.Linq;
 global using Remote.Shell.Interrupt.SNMPExecutor.Tests.Mocks;
 global using Shouldly;
 global using FluentValidation.TestHelper;
-global using Remote.Shell.Interrupt.SNMPExecutor.API.SNMP;
+global using Remote.Shell.Interrupt.SNMPExecutor.Presentation.SNMP;

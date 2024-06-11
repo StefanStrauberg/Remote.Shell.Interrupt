@@ -4,7 +4,7 @@ public class SNMPWalkEndpoint : ICarterModule
 {
   public void AddRoutes(IEndpointRouteBuilder app)
   {
-    app.MapGet("/walk", async (SNMPGetWalkRequest request, ISender sender) =>
+    app.MapGet("/walk", async ([FromBody] SNMPGetWalkRequest request, ISender sender) =>
     {
       var command = request.Adapt<SNMPWalkCommand>();
       var result = await sender.Send(command);

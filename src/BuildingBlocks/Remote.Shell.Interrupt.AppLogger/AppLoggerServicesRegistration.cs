@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.AppLogger;
 
-public static class AppLoggerService
+public static class AppLoggerServicesRegistration
 {
     public static IServiceCollection AddLoggerServices(this IServiceCollection services)
     {

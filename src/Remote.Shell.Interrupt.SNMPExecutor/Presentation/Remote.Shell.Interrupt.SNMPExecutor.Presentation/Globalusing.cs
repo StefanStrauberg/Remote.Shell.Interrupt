@@ -7,3 +7,7 @@ global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Routing;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Get;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Walk;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.Extensions.DependencyInjection;
+global using FluentValidation;
+global using System.Reflection;
