@@ -6,6 +6,7 @@ public static class PresentationServicesRegistration
   {
     services.AddCarter();
     services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+    TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
     return services;
   }
 }

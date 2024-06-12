@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.
 
 public record SNMPGetCommand(string Host,
                              string Community,
-                             string Oid) : IRequest<JObject>;
+                             string OID) : IRequest<JObject>;
 
 internal class SNMPGetCommandHandler(ISNMPCommandExecutor executor) : IRequestHandler<SNMPGetCommand, JObject>
 {
@@ -14,7 +14,7 @@ internal class SNMPGetCommandHandler(ISNMPCommandExecutor executor) : IRequestHa
     {
         return await _executor.GetCommand(request.Host,
                                           request.Community,
-                                          request.Oid,
+                                          request.OID,
                                           cancellationToken);
     }
 }

@@ -11,3 +11,4 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.DependencyInjection;
 global using FluentValidation;
 global using System.Reflection;
+global using Remote.Shell.Interrupt.SNMPExecutor.Presentation.SNMP;

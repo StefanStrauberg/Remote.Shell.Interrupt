@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.
 
 public record class SNMPWalkCommand(string Host,
                                     string Community,
-                                    string Oid) : IRequest<JObject>;
+                                    string OID) : IRequest<JObject>;
 
 internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestHandler<SNMPWalkCommand, JObject>
 {
@@ -14,7 +14,7 @@ internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestH
     {
         return await _executor.WalkCommand(request.Host,
                                            request.Community,
-                                           request.Oid,
+                                           request.OID,
                                            cancellationToken);
     }
 }
