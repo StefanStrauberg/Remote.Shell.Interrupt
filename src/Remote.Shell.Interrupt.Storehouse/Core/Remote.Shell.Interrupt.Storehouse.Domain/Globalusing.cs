@@ -1,0 +1,1 @@
+global using Remote.Shell.Interrupt.Storehouse.Domain.Common;

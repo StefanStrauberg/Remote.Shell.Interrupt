@@ -33,6 +33,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Presentation", "src\Remote.Shell.Interrupt.SNMPExecutor\Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation\Remote.Shell.Interrupt.SNMPExecutor.Presentation.csproj", "{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.Storehouse", "Remote.Shell.Interrupt.Storehouse", "{08D9B619-252C-4306-85A9-1F1774E0FAE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{32467CE4-7749-4884-AECB-94184ABCEE2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Domain", "src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Domain\Remote.Shell.Interrupt.Storehouse.Domain.csproj", "{F720DD07-B59E-4087-BDD5-B6835C37A1B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Application", "src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj", "{0F9BCECD-D669-4A5D-AE4B-532979261F31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.API", "src\Remote.Shell.Interrupt.Storehouse\Remote.Shell.Interrupt.Storehouse.API\Remote.Shell.Interrupt.Storehouse.API.csproj", "{C061EFC8-46B5-420B-B703-F35C7E2383A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +80,18 @@ Global
 		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F720DD07-B59E-4087-BDD5-B6835C37A1B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F720DD07-B59E-4087-BDD5-B6835C37A1B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F720DD07-B59E-4087-BDD5-B6835C37A1B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F720DD07-B59E-4087-BDD5-B6835C37A1B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F9BCECD-D669-4A5D-AE4B-532979261F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F9BCECD-D669-4A5D-AE4B-532979261F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F9BCECD-D669-4A5D-AE4B-532979261F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F9BCECD-D669-4A5D-AE4B-532979261F31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -85,5 +107,10 @@ Global
 		{DAC1FDC9-5A8A-4820-8741-CCC20FC8BE73} = {DF763C35-B657-4CFA-9916-03CF62D0AFF1}
 		{DAE207D4-0CEF-479F-A45C-25957AC710E5} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 		{2B040F0A-FC83-457E-8E49-57ECFFC2F3B9} = {DAE207D4-0CEF-479F-A45C-25957AC710E5}
+		{08D9B619-252C-4306-85A9-1F1774E0FAE6} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
+		{32467CE4-7749-4884-AECB-94184ABCEE2B} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
+		{F720DD07-B59E-4087-BDD5-B6835C37A1B9} = {32467CE4-7749-4884-AECB-94184ABCEE2B}
+		{0F9BCECD-D669-4A5D-AE4B-532979261F31} = {32467CE4-7749-4884-AECB-94184ABCEE2B}
+		{C061EFC8-46B5-420B-B703-F35C7E2383A5} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
 	EndGlobalSection
 EndGlobal

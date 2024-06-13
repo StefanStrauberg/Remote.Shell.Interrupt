@@ -60,7 +60,7 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
 
     private static JObject ConvertVariablesToJsonObject(IList<Variable> variables)
     {
-        JObject result = [];
+        JObject result = new();
 
         foreach (var variable in variables)
         {
@@ -70,7 +70,7 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
                 [nameof(variable.Data.TypeCode)] = variable.Data.TypeCode.ToString(),
                 [nameof(variable.Data)] = variable.Data.ToString(),
             };
-            result.Add(variableObject);
+            result.Add(variable.Id.ToString(), variableObject);
         }
         return result;
     }
