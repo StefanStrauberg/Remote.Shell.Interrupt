@@ -8,10 +8,9 @@ public class SNMPWalkEndpoint : ICarterModule
     {
       var command = request.Adapt<SNMPWalkCommand>();
       var result = await sender.Send(command);
-      var response = result.Adapt<SNMPGetWalkResponse>();
-      return Results.Ok(response);
+      return Results.Ok(result.ToString());
     }).WithName("SNMPWALK")
-      .Produces<SNMPGetWalkResponse>(StatusCodes.Status200OK)
+      .Produces<JsonArray>(StatusCodes.Status200OK)
       .ProducesProblem(StatusCodes.Status400BadRequest)
       .WithSummary("SNMP Walk")
       .WithDescription("SNMP Walk");

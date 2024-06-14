@@ -4,4 +4,6 @@ global using EonaCat.Snmp.Helpers.Snmp;
 global using EonaCat.Snmp.Models.Types;
 global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Exceptions;
-global using Newtonsoft.Json.Linq;
+global using System.Text;
+global using System.Text.Json.Nodes;
+global using EonaCat.Snmp.Extensions;

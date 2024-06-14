@@ -1,18 +1,20 @@
+using System.Text.RegularExpressions;
+
 namespace Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor;
 
 internal class SNMPCommandExecutor : ISNMPCommandExecutor
 {
-    async Task<JObject> ISNMPCommandExecutor.WalkCommand(string host,
-                                                         string community,
-                                                         string oid,
-                                                         CancellationToken cancellationToken)
+    async Task<JsonArray> ISNMPCommandExecutor.WalkCommand(string host,
+                                                           string community,
+                                                           string oid,
+                                                           CancellationToken cancellationToken)
     {
-        JObject response;
         var snmpHelper = new SnmpHelper(host, 161, community);
+        JsonArray response;
         try
         {
             IList<Variable> result = await snmpHelper.WalkRequestAsync(oid);
-            response = ConvertVariablesToJsonObject(result);
+            response = ConvertVariablesToJsonArray(result);
         }
         catch (EonaCat.Snmp.Exceptions.TimeoutException ex)
         {
@@ -30,13 +32,13 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         return response;
     }
 
-    async Task<JObject> ISNMPCommandExecutor.GetCommand(string host,
-                                                        string community,
-                                                        string oid,
-                                                        CancellationToken cancellationToken)
+    async Task<JsonObject> ISNMPCommandExecutor.GetCommand(string host,
+                                                           string community,
+                                                           string oid,
+                                                           CancellationToken cancellationToken)
     {
-        JObject response;
         var snmpHelper = new SnmpHelper(host, 161, community);
+        JsonObject response;
         try
         {
             IList<Variable> result = await snmpHelper.GetRequestAsync(oid);
@@ -58,20 +60,42 @@ internal class SNMPCommandExecutor : ISNMPCommandExecutor
         return response;
     }
 
-    private static JObject ConvertVariablesToJsonObject(IList<Variable> variables)
+    private static JsonArray ConvertVariablesToJsonArray(IList<Variable> variables)
     {
-        JObject result = new();
+        var jArray = new JsonArray();
 
         foreach (var variable in variables)
         {
-            JObject variableObject = new()
+            var OID = variable.Id.ToString();
+
+            // Create a new JObject for each variable
+            var jObject = new JsonObject
             {
-                [nameof(variable.Id)] = variable.Id.ToString(),
-                [nameof(variable.Data.TypeCode)] = variable.Data.TypeCode.ToString(),
-                [nameof(variable.Data)] = variable.Data.ToString(),
+                ["OID"] = OID,
+                ["TypeCode"] = variable.Data.TypeCode.ToString(),
+                ["Data"] = Encoding.UTF8.GetString(variable.Data.ToBytes())
             };
-            result.Add(variable.Id.ToString(), variableObject);
+
+            jArray.Add(jObject);
         }
-        return result;
+        return jArray;
+    }
+
+    private static JsonObject ConvertVariablesToJsonObject(IList<Variable> variables)
+    {
+        var item = variables.FirstOrDefault();
+        var jObject = new JsonObject();
+
+        if (item is not null)
+        {
+            var OID = item.Id.ToString();
+            jObject["OID"] = OID;
+            jObject["TypeCode"] = item.Data.TypeCode.ToString();
+            var data = Encoding.UTF8.GetString(item.Data.ToBytes());
+            data = Regex.Replace(data, @"[\r\n\t]", "");
+            jObject["Data"] = data;
+        }
+
+        return jObject;
     }
 }

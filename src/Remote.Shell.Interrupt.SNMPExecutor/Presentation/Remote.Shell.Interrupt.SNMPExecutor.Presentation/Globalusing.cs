@@ -1,4 +1,4 @@
-global using Newtonsoft.Json.Linq;
+global using System.Text.Json.Nodes;
 global using Carter;
 global using MediatR;
 global using Mapster;
