@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.SNMPExecutor.Domain;
+
 namespace Remote.Shell.Interrupt.SNMPExecutor.Tests.Mocks;
 
 internal static class MockSNMPCommandExecutor
@@ -27,7 +29,7 @@ internal static class MockSNMPCommandExecutor
                      string oid,
                      CancellationToken cancellationToken) =>
       {
-        return [];
+        return new Information();
       });
 
     return mockRepo;

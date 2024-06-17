@@ -30,7 +30,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
     };
     httpContext.Response.ContentType = "application/json";
     httpContext.Response.StatusCode = statusCode;
-    await httpContext.Response.WriteAsync(JsonConvert.SerializeObject(response));
+    await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));
   }
 
   static int GetStatusCode(Exception exception) =>

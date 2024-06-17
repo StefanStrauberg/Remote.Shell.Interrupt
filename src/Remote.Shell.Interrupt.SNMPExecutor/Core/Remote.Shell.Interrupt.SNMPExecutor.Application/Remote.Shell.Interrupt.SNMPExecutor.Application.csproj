@@ -2,10 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <ProjectReference Include="..\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

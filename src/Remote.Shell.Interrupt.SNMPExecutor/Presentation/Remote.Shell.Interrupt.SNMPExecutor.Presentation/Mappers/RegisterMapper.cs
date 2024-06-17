@@ -8,5 +8,10 @@ public class RegisterMapper : IRegister
           .Map(dst => dst.Host, src => src.Host)
           .Map(dst => dst.Community, src => src.Community)
           .Map(dst => dst.OID, src => src.OID);
+
+    config.NewConfig<SNMPGetWalkRequest, SNMPWalkCommand>()
+          .Map(dst => dst.Host, src => src.Host)
+          .Map(dst => dst.Community, src => src.Community)
+          .Map(dst => dst.OID, src => src.OID);
   }
 }
