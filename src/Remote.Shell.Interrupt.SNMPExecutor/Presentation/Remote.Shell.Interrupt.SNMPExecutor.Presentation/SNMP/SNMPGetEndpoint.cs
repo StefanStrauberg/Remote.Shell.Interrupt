@@ -10,7 +10,7 @@ public class SNMPGetEndpoint : ICarterModule
       var result = await sender.Send(command);
       return Results.Ok(result);
     }).WithName("SNMPGet")
-      .Produces<Information>(StatusCodes.Status200OK)
+      .Produces<Info>(StatusCodes.Status200OK)
       .ProducesProblem(StatusCodes.Status400BadRequest)
       .WithSummary("SNMP Get")
       .WithDescription("SNMP Get");

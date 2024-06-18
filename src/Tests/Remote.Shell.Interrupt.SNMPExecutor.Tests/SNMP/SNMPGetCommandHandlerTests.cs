@@ -17,7 +17,7 @@ public class SNMPGetCommandHandlerTests
     public async Task Handle_ValidRequest_ReturnsJObject()
     {
         // Act
-        var result = await (_handler as IRequestHandler<SNMPGetCommand, JObject>).Handle(_request, default);
+        var result = await (_handler as IRequestHandler<SNMPGetCommand, Info>).Handle(_request, default);
 
         // Assert
         result.ShouldNotBeNull();

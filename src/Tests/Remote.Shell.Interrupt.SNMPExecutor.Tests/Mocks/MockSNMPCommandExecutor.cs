@@ -29,7 +29,7 @@ internal static class MockSNMPCommandExecutor
                      string oid,
                      CancellationToken cancellationToken) =>
       {
-        return new Information();
+        return new Info();
       });
 
     return mockRepo;

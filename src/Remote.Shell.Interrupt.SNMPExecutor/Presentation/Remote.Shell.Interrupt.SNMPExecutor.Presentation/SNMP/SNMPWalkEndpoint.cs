@@ -10,7 +10,7 @@ public class SNMPWalkEndpoint : ICarterModule
       var result = await sender.Send(command);
       return Results.Ok(result);
     }).WithName("SNMPWALK")
-      .Produces<IEnumerable<Information>>(StatusCodes.Status200OK)
+      .Produces<IEnumerable<Info>>(StatusCodes.Status200OK)
       .ProducesProblem(StatusCodes.Status400BadRequest)
       .WithSummary("SNMP Walk")
       .WithDescription("SNMP Walk");
