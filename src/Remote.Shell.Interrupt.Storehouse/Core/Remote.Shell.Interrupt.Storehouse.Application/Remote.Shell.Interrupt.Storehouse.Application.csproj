@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\Remote.Shell.Interrupt.Storehouse.Domain\Remote.Shell.Interrupt.Storehouse.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

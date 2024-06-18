@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.CommandExecutor;
+namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts;
 
 public interface ISNMPCommandExecutor
 {

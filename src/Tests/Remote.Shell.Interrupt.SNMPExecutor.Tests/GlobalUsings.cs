@@ -1,7 +1,7 @@
 global using NUnit.Framework;
 global using Moq;
-global using Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts.CommandExecutor;
-global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Get;
+global using Remote.Shell.Interrupt.SNMPExecutor.Application.Contracts;
+global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor;
 global using MediatR;
 global using Remote.Shell.Interrupt.SNMPExecutor.Tests.Mocks;
 global using Shouldly;

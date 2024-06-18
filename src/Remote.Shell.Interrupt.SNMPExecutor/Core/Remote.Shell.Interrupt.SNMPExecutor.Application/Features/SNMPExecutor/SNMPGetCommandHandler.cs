@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor.Queries.Get;
+namespace Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor;
 
 public record SNMPGetCommand(string Host,
                              string Community,
@@ -6,11 +6,10 @@ public record SNMPGetCommand(string Host,
 
 internal class SNMPGetCommandHandler(ISNMPCommandExecutor executor) : IRequestHandler<SNMPGetCommand, Info>
 {
-    readonly ISNMPCommandExecutor _executor = executor
-        ?? throw new ArgumentNullException(nameof(executor));
+    readonly ISNMPCommandExecutor _executor = executor ?? throw new ArgumentNullException(nameof(executor));
 
     async Task<Info> IRequestHandler<SNMPGetCommand, Info>.Handle(SNMPGetCommand request,
-                                                                                CancellationToken cancellationToken)
+                                                                  CancellationToken cancellationToken)
     {
         return await _executor.GetCommand(request.Host,
                                           request.Community,
