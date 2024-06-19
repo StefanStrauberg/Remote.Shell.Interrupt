@@ -12,6 +12,7 @@ internal class GetNetworkDevicesQueryHandler(INetworkDeviceRepository networkDev
                                                                                                                     CancellationToken cancellationToken)
   {
     var networkDevices = await _networkDeviceRepository.GetAllAsync(cancellationToken);
+
     return networkDevices;
   }
 }

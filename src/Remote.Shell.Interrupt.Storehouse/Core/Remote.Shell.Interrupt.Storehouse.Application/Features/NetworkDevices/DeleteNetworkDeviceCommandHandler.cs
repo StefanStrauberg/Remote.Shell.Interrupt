@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 
 public record DeleteNetworkDeviceCommand(Guid Id) : ICommand;
@@ -8,6 +7,7 @@ internal class DeleteNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 {
   readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
     ?? throw new ArgumentNullException(nameof(networkDeviceRepository));
+
   async Task<Unit> IRequestHandler<DeleteNetworkDeviceCommand, Unit>.Handle(DeleteNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {

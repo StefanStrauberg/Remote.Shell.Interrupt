@@ -1,27 +1,32 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 
-public record CreateNetworkDeviceCommand(IPAddress Host,
-                                         string Vendor,
-                                         string Model,
-                                         string SoftwareVersion,
-                                         GatewayLevel GatewayLevel,
-                                         ICollection<Interface> Interfaces,
-                                         ICollection<VLAN> VLANs,
-                                         ICollection<ARPEntry> ARPTable) : ICommand;
+public record CreateNetworkDeviceCommand(IPAddress Host) : ICommand;
 
-internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository)
+internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
+                                                 IGatewayRepository gatewayRepository)
   : ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
   readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
     ?? throw new ArgumentNullException(nameof(networkDeviceRepository));
+  readonly IGatewayRepository _gatewayRepository = gatewayRepository
+    ?? throw new ArgumentNullException(nameof(gatewayRepository));
 
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var createNetworkDevice = request.Adapt<NetworkDevice>();
+    var gateway = await _gatewayRepository.ExistsAsync(x => x.Host == request.Host,
+                                                       cancellationToken);
 
-    await _networkDeviceRepository.InsertOneAsync(createNetworkDevice,
-                                                  cancellationToken);
+    if (gateway)
+      throw new NetworkDeviceExists($"Network device \"{request.Host}\" already exists.");
+
+    var networkDevice = new NetworkDevice()
+    {
+
+    };
+
+    await _networkDeviceRepository.InsertOneAsync(networkDevice, cancellationToken);
+
     return Unit.Value;
   }
 }

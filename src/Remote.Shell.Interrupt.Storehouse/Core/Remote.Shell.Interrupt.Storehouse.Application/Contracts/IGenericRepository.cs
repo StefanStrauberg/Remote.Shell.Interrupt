@@ -10,7 +10,7 @@ public interface IGenericRepository<TDocument> where TDocument : BaseEntity
   Task InsertOneAsync(TDocument document,
                       CancellationToken cancellationToken);
 
-  Task InsertManyAsync(ICollection<TDocument> documents,
+  Task InsertManyAsync(IEnumerable<TDocument> documents,
                        CancellationToken cancellationToken);
 
   Task ReplaceOneAsync(Expression<Func<TDocument, bool>> filterExpression,

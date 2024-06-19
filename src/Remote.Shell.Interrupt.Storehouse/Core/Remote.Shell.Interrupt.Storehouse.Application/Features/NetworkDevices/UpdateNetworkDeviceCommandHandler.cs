@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 
 public record UpdateNetworkDeviceCommand(Guid Id,
@@ -28,7 +27,7 @@ internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     var updateNetworkDevice = request.Adapt<NetworkDevice>();
 
-    await _networkDeviceRepository.ReplaceOneAsync(x => x.Id == updateNetworkDevice.Id,
+    await _networkDeviceRepository.ReplaceOneAsync(x => x.Id == request.Id,
                                                    updateNetworkDevice,
                                                    cancellationToken);
     return Unit.Value;
