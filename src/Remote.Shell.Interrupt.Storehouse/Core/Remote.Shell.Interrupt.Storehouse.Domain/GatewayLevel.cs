@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Domain;
 
 public enum GatewayLevel
 {
-  L1,
-  L2
+  L2 = 2,
+  L3 = 3
 }
