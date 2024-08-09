@@ -1,5 +1,6 @@
 global using Microsoft.Extensions.DependencyInjection;
-global using Remote.Shell.Interrupt.Storehouse.Domain;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Entity;
 global using Remote.Shell.Interrupt.BuildingBlocks.CQRS;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Common;
@@ -9,3 +10,5 @@ global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
 global using MediatR;
 global using System.Net;
 global using Mapster;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.OIDRepositories;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;

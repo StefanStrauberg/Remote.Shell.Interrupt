@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Domain;
+namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
 public class ARPEntry
 {

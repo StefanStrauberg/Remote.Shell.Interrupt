@@ -12,7 +12,7 @@ internal class GetNetworkDeviceByExpressionQueryHandler(INetworkDeviceRepository
                                                                                                      CancellationToken cancellationToken)
   {
     var networkDevice = await _networkDeviceRepository.FindOneAsync(request.FilterExpression, cancellationToken)
-      ?? throw new NetworkDeviceNotFoundException(request.FilterExpression.Name!);
+      ?? throw new EntityNotFoundException(request.FilterExpression.Name!);
 
     return networkDevice;
   }

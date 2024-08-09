@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Domain;
+namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
 public class MACAddress(string macAddress)
 {
@@ -10,15 +10,11 @@ public class MACAddress(string macAddress)
     string[] hexValues = macAddress.Split([':', '-']); // Split by : or -
 
     if (hexValues.Length != 6)
-    {
       throw new ArgumentException("Invalid MAC address format.");
-    }
 
     byte[] bytes = new byte[6];
     for (int i = 0; i < 6; i++)
-    {
       bytes[i] = Convert.ToByte(hexValues[i], 16); // Convert each hex pair to byte
-    }
 
     return bytes;
   }

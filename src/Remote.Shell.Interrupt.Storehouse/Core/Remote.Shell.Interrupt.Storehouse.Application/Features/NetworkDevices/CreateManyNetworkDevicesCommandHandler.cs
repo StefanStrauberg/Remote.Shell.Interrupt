@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 
-public record CreateManyNetworkDevicesCommand(IEnumerable<IPAddress> Hosts) : ICommand;
+public record CreateManyNetworkDevicesCommand(IEnumerable<IPAddress> Hosts, bool Replace) : ICommand;
 
 public class CreateManyNetworkDevicesCommandHandler(INetworkDeviceRepository networkDeviceRepository)
   : ICommandHandler<CreateManyNetworkDevicesCommand, Unit>
@@ -11,7 +11,20 @@ public class CreateManyNetworkDevicesCommandHandler(INetworkDeviceRepository net
   async Task<Unit> IRequestHandler<CreateManyNetworkDevicesCommand, Unit>.Handle(CreateManyNetworkDevicesCommand request,
                                                                                  CancellationToken cancellationToken)
   {
-    var networkDevices = request.Adapt<IEnumerable<NetworkDevice>>();
+    IEnumerable<NetworkDevice> networkDevices = [];
+
+    foreach (var host in request.Hosts)
+    {
+      var existingGateway = await _networkDeviceRepository.ExistsAsync(x => x.Host == host,
+                                                                       cancellationToken);
+
+      if (existingGateway && !request.Replace)
+        continue; // If networkDevice exists we pass through it
+
+      var networkDevice = new NetworkDevice()
+      {
+      };
+    }
 
     await _networkDeviceRepository.InsertManyAsync(networkDevices,
                                                    cancellationToken);

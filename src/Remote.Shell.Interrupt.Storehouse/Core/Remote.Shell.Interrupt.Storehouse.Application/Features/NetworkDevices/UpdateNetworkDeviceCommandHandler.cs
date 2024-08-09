@@ -19,11 +19,11 @@ internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<UpdateNetworkDeviceCommand, Unit>.Handle(UpdateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existUpdatingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Id == request.Id,
-                                                                                cancellationToken);
+    var existingUpdatingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Id == request.Id,
+                                                                                   cancellationToken);
 
-    if (!existUpdatingNetworkDevice)
-      throw new NetworkDeviceNotFoundException(request.Id.ToString());
+    if (!existingUpdatingNetworkDevice)
+      throw new EntityNotFoundException(request.Id.ToString());
 
     var updateNetworkDevice = request.Adapt<NetworkDevice>();
 

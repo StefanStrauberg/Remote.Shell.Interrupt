@@ -1,5 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Domain;
-
+namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 public class VLAN
 {
   public int Id { get; set; } // 10
