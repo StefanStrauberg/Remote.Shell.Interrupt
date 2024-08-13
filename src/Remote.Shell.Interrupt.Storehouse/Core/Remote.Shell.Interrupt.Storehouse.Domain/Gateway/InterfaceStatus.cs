@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
 public enum InterfaceStatus
 {
-  Up,
-  Down
+  Down = 0,
+  Up = 1
 }

@@ -1,15 +1,12 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
-public class ARPEntry
+public class ARPEntry : BaseEntity
 {
-  public int Id { get; set; } // 1
-  public required IPAddress IPAddress { get; set; } // "192.168.1.100"
   public required MACAddress MACAddress { get; set; } // "AA:BB:CC:DD:EE:FF"
-  public DateTime LastSeen { get; set; } // 01.01.1999
-
-  // Foreign key
-  public int NetworkDeviceId { get; set; }
+  public required IPAddress IPAddress { get; set; } // "192.168.1.100"
 
   // Navigation property
   public required NetworkDevice NetworkDevice { get; set; }
+  // Foreign key
+  public Guid NetworkDeviceId { get; set; }
 }

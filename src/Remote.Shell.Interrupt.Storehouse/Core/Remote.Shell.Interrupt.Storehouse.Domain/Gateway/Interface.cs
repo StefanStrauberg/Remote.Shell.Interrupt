@@ -1,17 +1,21 @@
+using System.Dynamic;
+
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
-public class Interface
+public class Interface : BaseEntity
 {
-  public int InterfaceId { get; set; } // 1
+  public int InterfaceNumber { get; set; } // 1
   public string Name { get; set; } = string.Empty; // "GigabitEthernet0/1"
-  public string Description { get; set; } = string.Empty; // "Main LAN interface"
   public InterfaceType InterfaceType { get; set; } // "Ethernet"
   public InterfaceStatus InterfaceStatus { get; set; } // "Up"
-  public int Speed { get; set; } // "1 Gbps"
-  public required MACAddress MacAddress { get; set; } // "00:1A:2B:3C:4D:5E"
+  public double Speed { get; set; } // "1 Gbps"
+
+  // Main properties for L2 or L3 gateways
+  public ICollection<VLAN> VLANs { get; set; } = [];
+  public IDictionary<MACAddress, IPAddress>? ARPTable { get; set; }
 
   // Navigation property
   public NetworkDevice NetworkDevice { get; set; } = new();
   // Foreign key
-  public int NetworkDeviceId { get; set; }
+  public Guid NetworkDeviceId { get; set; }
 }
