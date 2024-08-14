@@ -19,10 +19,11 @@ public class CreateManyNetworkDevicesCommandHandler(INetworkDeviceRepository net
                                                                        cancellationToken);
 
       if (existingGateway && !request.Replace)
-        continue; // If networkDevice exists we pass through it
+        continue; // If Network Device exists we skip it
 
       var networkDevice = new NetworkDevice()
       {
+        // ToDo Business logic
       };
     }
 

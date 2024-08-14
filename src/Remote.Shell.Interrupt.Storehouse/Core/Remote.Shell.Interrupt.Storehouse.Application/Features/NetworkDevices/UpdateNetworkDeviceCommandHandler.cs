@@ -6,9 +6,7 @@ public record UpdateNetworkDeviceCommand(Guid Id,
                                          string Model,
                                          string SoftwareVersion,
                                          GatewayLevel GatewayLevel,
-                                         ICollection<Interface> Interfaces,
-                                         ICollection<VLAN> VLANs,
-                                         ICollection<ARPEntry> ARPTable) : ICommand;
+                                         ICollection<Interface> Interfaces) : ICommand;
 
 internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository)
   : ICommandHandler<UpdateNetworkDeviceCommand, Unit>

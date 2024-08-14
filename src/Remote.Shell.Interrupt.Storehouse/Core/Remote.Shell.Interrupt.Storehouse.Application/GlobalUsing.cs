@@ -12,3 +12,4 @@ global using System.Net;
 global using Mapster;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.OIDRepositories;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
+global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;

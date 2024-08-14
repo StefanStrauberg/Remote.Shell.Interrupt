@@ -11,9 +11,7 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Model, src => src.Model)
                   .Map(dst => dst.SoftwareVersion, src => src.SoftwareVersion)
                   .Map(dst => dst.GatewayLevel, src => src.GatewayLevel)
-                  .Map(dst => dst.Interfaces, src => src.Interfaces)
-                  .Map(dst => dst.VLANs, src => src.VLANs)
-                  .Map(dst => dst.ARPTable, src => src.ARPTable);
+                  .Map(dst => dst.Interfaces, src => src.Interfaces);
 
             config.NewConfig<CreateOIDRepositoryCommand, OIDRepository>()
                   .Map(dst => dst.Vendor, src => src.Vendor)
