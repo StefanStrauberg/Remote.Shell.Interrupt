@@ -6,5 +6,4 @@ public class BusinessRule : BaseEntity
 {
   public string RuleName { get; set; } = string.Empty;
   public Expression<Func<object, bool>>? Condition { get; set; }
-  // ToDo pyaload for OIDs
 }

@@ -1,4 +1,4 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts;
 
-public interface IOIDRepositoryRepository : IGenericRepository<OIDRepository>
+public interface IOIDTargetRepository : IGenericRepository<OIDTarget>
 { }

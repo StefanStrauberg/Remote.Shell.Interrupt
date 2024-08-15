@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 
 public record CreateBusinessRuleCommand(string RuleName,
@@ -7,14 +6,14 @@ public record CreateBusinessRuleCommand(string RuleName,
                                         Guid NextHopIfFalse,
                                         Expression<Func<object, bool>>? Condition) : ICommand;
 
-public class CreateBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository)
+internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository)
   : ICommandHandler<CreateBusinessRuleCommand, Unit>
 {
   readonly IBusinessRuleRepository _businessRuleRepository = businessRuleRepository
     ?? throw new ArgumentNullException(nameof(businessRuleRepository));
 
-  public async Task<Unit> IRequestHandler<CreateBusinessRuleCommand, Unit>.Handle(CreateBusinessRuleCommand request,
-                                                                                  CancellationToken cancellationToken)
+  async Task<Unit> IRequestHandler<CreateBusinessRuleCommand, Unit>.Handle(CreateBusinessRuleCommand request,
+                                                                           CancellationToken cancellationToken)
   {
     var existingBusinessRule = await _businessRuleRepository.ExistsAsync(x => x.RuleName == request.RuleName,
                                                                          cancellationToken);
@@ -22,14 +21,14 @@ public class CreateBusinessRuleCommandHandler(IBusinessRuleRepository businessRu
     if (existingBusinessRule)
       throw new EntityAlreadyExists(request.RuleName);
 
-    Dictionary<int, BusinessRule> rules;
+    var businessRules = await _businessRuleRepository.GetAllAsync(cancellationToken);
+    var rules = businessRules.ToDictionary(x => x.Id);
 
-    var rules = await _businessRuleRepository.GetAllAsync(cancellationToken);
-
-    var businessRule = new BusinessRule()
+    if (rules != null)
     {
-      RuleName = request.RuleName,
 
-    };
+    }
+
+    return Unit.Value;
   }
 }
