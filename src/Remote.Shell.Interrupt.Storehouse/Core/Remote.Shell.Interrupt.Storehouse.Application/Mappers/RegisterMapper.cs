@@ -13,17 +13,17 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.GatewayLevel, src => src.GatewayLevel)
                   .Map(dst => dst.Interfaces, src => src.Interfaces);
 
-            config.NewConfig<CreateOIDTargetCommand, OIDTarget>()
-                  .Map(dst => dst.OIDTargetName, src => src.OIDTargetName)
-                  .Map(dst => dst.TargetAction, src => src.TargetAction)
-                  .Map(dst => dst.Target, src => src.Target)
+            config.NewConfig<CreateAssignmentCommand, Assignment>()
+                  .Map(dst => dst.Name, src => src.Name)
+                  .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)
+                  .Map(dst => dst.TargetFieldName, src => src.TargetFieldName)
                   .Map(dst => dst.OID, src => src.OID);
 
-            config.NewConfig<UpdateOIDTargetCommand, OIDTarget>()
+            config.NewConfig<UpdateAssignmentCommand, Assignment>()
                   .Map(dst => dst.Id, src => src.Id)
-                  .Map(dst => dst.OIDTargetName, src => src.OIDTargetName)
-                  .Map(dst => dst.TargetAction, src => src.TargetAction)
-                  .Map(dst => dst.Target, src => src.Target)
+                  .Map(dst => dst.Name, src => src.Name)
+                  .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)
+                  .Map(dst => dst.TargetFieldName, src => src.TargetFieldName)
                   .Map(dst => dst.OID, src => src.OID);
       }
 }

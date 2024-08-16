@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Entity;
 
-public enum TargetAction
+public enum TypeOfRequest
 {
   get,
   walk

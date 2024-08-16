@@ -3,44 +3,31 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 public record CreateNetworkDeviceCommand(IPAddress Host, bool Replace) : ICommand;
 
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
-                                                 ICollection<BusinessRule> businessRules)
+                                                 IBusinessRuleRepository businessRulesRepository)
   : ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
   readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
     ?? throw new ArgumentNullException(nameof(networkDeviceRepository));
-  readonly ICollection<BusinessRule> _businessRules = businessRules
-    ?? throw new ArgumentNullException(nameof(businessRules));
+  readonly IBusinessRuleRepository _businessRulesRepository = businessRulesRepository
+    ?? throw new ArgumentNullException(nameof(businessRulesRepository));
 
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existingGateway = await _networkDeviceRepository.ExistsAsync(x => x.Host == request.Host,
-                                                                     cancellationToken);
+    var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Host == request.Host,
+                                                                           cancellationToken);
+    var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
-    if (existingGateway && !request.Replace)
+    // If a Network Device exists and the Replace is false
+    // throw EntityAlreadyExists exception
+    if (existingNetworkDevice && !request.Replace)
       throw new EntityAlreadyExists(request.Host.ToString());
 
     var networkDevice = new NetworkDevice() { };
 
-    foreach (var item in _businessRules)
+    foreach (var businessRule in businessRules)
     {
-      System.Console.WriteLine(item.RuleName);
-      // ToDo business logic with networkDevice
-      // ToDo implement OID request
-      if (item.Condition != null)
-      {
-        // Compile the expression into a delegate
-        var conditionFunc = item.Condition.Compile();
-
-        // Evaluate the condition with the given parameter
-        bool conditionResult = conditionFunc(networkDevice);
-
-        if (conditionResult)
-        {
-          // Implement your business logic here
-          Console.WriteLine($"Condition met for rule: {item.RuleName}");
-        }
-      }
+      // TODO: implement business rule logic
     }
 
     await _networkDeviceRepository.InsertOneAsync(networkDevice, cancellationToken);

@@ -10,6 +10,6 @@ global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
 global using MediatR;
 global using System.Net;
 global using Mapster;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.OIDRepositories;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
