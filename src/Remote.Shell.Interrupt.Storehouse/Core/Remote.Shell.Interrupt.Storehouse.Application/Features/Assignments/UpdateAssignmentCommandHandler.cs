@@ -15,17 +15,17 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository oidTargetRep
   async Task<Unit> IRequestHandler<UpdateAssignmentCommand, Unit>.Handle(UpdateAssignmentCommand request,
                                                                          CancellationToken cancellationToken)
   {
-    var existingUpdatingAssignment = await _OIDTargetRepository.ExistsAsync(x => x.Id == request.Id,
-                                                                            cancellationToken);
+    var existingUpdatingAssignment = await _OIDTargetRepository.ExistsAsync(filterExpression: x => x.Id == request.Id,
+                                                                            cancellationToken: cancellationToken);
 
     if (!existingUpdatingAssignment)
       throw new EntityNotFoundException(request.Id.ToString());
 
     var updatingAssignment = request.Adapt<Assignment>();
 
-    await _OIDTargetRepository.ReplaceOneAsync(x => x.Id == request.Id,
-                                               updatingAssignment,
-                                               cancellationToken);
+    await _OIDTargetRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
+                                               document: updatingAssignment,
+                                               cancellationToken: cancellationToken);
     return Unit.Value;
   }
 }

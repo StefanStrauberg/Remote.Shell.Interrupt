@@ -11,14 +11,14 @@ internal class DeleteNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<DeleteNetworkDeviceCommand, Unit>.Handle(DeleteNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existingDeletingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Id == request.Id,
-                                                                                   cancellationToken);
+    var existingDeletingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: x => x.Id == request.Id,
+                                                                                   cancellationToken: cancellationToken);
 
     if (!existingDeletingNetworkDevice)
       throw new EntityNotFoundException(request.Id.ToString());
 
-    await _networkDeviceRepository.DeleteOneAsync(x => x.Id == request.Id,
-                                                  cancellationToken);
+    await _networkDeviceRepository.DeleteOneAsync(filterExpression: x => x.Id == request.Id,
+                                                  cancellationToken: cancellationToken);
     return Unit.Value;
   }
 }

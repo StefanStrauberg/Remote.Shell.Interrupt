@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
 public class GenericRepository<TDocument> : IGenericRepository<TDocument> where TDocument : BaseEntity
@@ -8,7 +10,14 @@ public class GenericRepository<TDocument> : IGenericRepository<TDocument> where 
   {
     var client = new MongoClient(settings.ConnectionString);
     var database = client.GetDatabase(settings.DatabaseName);
-    _collection = database.GetCollection<TDocument>(typeof(TDocument).Name);
+    var sb = new StringBuilder();
+
+    sb.Append(typeof(TDocument).Name);
+    sb.Append('s');
+
+    var collectionName = sb.ToString();
+
+    _collection = database.GetCollection<TDocument>(name: collectionName);
   }
 
   public virtual async Task DeleteManyAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,

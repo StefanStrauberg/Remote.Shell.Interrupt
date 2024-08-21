@@ -17,17 +17,17 @@ internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<UpdateNetworkDeviceCommand, Unit>.Handle(UpdateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existingUpdatingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Id == request.Id,
-                                                                                   cancellationToken);
+    var existingUpdatingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: x => x.Id == request.Id,
+                                                                                   cancellationToken: cancellationToken);
 
     if (!existingUpdatingNetworkDevice)
       throw new EntityNotFoundException(request.Id.ToString());
 
     var updateNetworkDevice = request.Adapt<NetworkDevice>();
 
-    await _networkDeviceRepository.ReplaceOneAsync(x => x.Id == request.Id,
-                                                   updateNetworkDevice,
-                                                   cancellationToken);
+    await _networkDeviceRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
+                                                   document: updateNetworkDevice,
+                                                   cancellationToken: cancellationToken);
     return Unit.Value;
   }
 }

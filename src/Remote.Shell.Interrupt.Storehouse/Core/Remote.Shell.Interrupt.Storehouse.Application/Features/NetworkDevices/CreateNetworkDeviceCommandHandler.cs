@@ -14,8 +14,8 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(x => x.Host == request.Host,
-                                                                           cancellationToken);
+    var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: x => x.Host == request.Host,
+                                                                           cancellationToken: cancellationToken);
     var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
     // If a Network Device exists and the Replace is false
