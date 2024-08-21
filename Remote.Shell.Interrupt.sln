@@ -45,13 +45,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Stor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.SNMPExecutor.Domain", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj", "{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{C66DF19B-2F45-4250-A466-FEA3BC127A10}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{8D0BC96E-AADE-4B62-8947-B1A2982D1DB5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Persistence", "src\Remote.Shell.Interrupt.Storehouse\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj", "{8870FADF-D37D-4912-8804-FE07325F52A0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{B07725CB-817D-45D8-9A99-1B455743FB36}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Presentation", "src\Remote.Shell.Interrupt.Storehouse\Presentation\Remote.Shell.Interrupt.Presentation\Remote.Shell.Interrupt.Presentation.csproj", "{5487E6DA-156F-4570-A2C8-967BA4FEB399}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Presentation", "src\Remote.Shell.Interrupt.Storehouse\Presentation\Remote.Shell.Interrupt.Storehouse.Presentation\Remote.Shell.Interrupt.Presentation.csproj", "{B9443A93-6485-4D2B-983C-D869464ADEFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,14 +102,10 @@ Global
 		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8870FADF-D37D-4912-8804-FE07325F52A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8870FADF-D37D-4912-8804-FE07325F52A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8870FADF-D37D-4912-8804-FE07325F52A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8870FADF-D37D-4912-8804-FE07325F52A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5487E6DA-156F-4570-A2C8-967BA4FEB399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5487E6DA-156F-4570-A2C8-967BA4FEB399}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5487E6DA-156F-4570-A2C8-967BA4FEB399}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5487E6DA-156F-4570-A2C8-967BA4FEB399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9443A93-6485-4D2B-983C-D869464ADEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9443A93-6485-4D2B-983C-D869464ADEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9443A93-6485-4D2B-983C-D869464ADEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9443A93-6485-4D2B-983C-D869464ADEFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
@@ -135,9 +127,7 @@ Global
 		{0F9BCECD-D669-4A5D-AE4B-532979261F31} = {32467CE4-7749-4884-AECB-94184ABCEE2B}
 		{C061EFC8-46B5-420B-B703-F35C7E2383A5} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
 		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
-		{C66DF19B-2F45-4250-A466-FEA3BC127A10} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
-		{8870FADF-D37D-4912-8804-FE07325F52A0} = {C66DF19B-2F45-4250-A466-FEA3BC127A10}
-		{B07725CB-817D-45D8-9A99-1B455743FB36} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
-		{5487E6DA-156F-4570-A2C8-967BA4FEB399} = {B07725CB-817D-45D8-9A99-1B455743FB36}
+		{8D0BC96E-AADE-4B62-8947-B1A2982D1DB5} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
+		{B9443A93-6485-4D2B-983C-D869464ADEFE} = {8D0BC96E-AADE-4B62-8947-B1A2982D1DB5}
 	EndGlobalSection
 EndGlobal

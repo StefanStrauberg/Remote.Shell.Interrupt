@@ -89,6 +89,9 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       // TODO new exception for that type of exceptions
       throw new Exception($"A business rules with \"{request.Branch.ToString()}\" subsuequence doesn't exists.");
 
+    await _businessRuleRepository.InsertOneAsync(document: addingRule,
+                                                 cancellationToken: cancellationToken);
+
     return Unit.Value;
   }
 }
