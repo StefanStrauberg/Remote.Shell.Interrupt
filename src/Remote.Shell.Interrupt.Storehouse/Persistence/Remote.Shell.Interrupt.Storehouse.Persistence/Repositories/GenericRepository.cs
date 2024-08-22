@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-public class GenericRepository<TDocument> : IGenericRepository<TDocument> where TDocument : BaseEntity
+internal class GenericRepository<TDocument> : IGenericRepository<TDocument> where TDocument : BaseEntity
 {
   readonly IMongoCollection<TDocument> _collection;
 

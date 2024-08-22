@@ -6,7 +6,7 @@ try
 
   builder.Services.AddLoggerServices();
   builder.Services.AddApplicationServices();
-  builder.Services.AddPersistenceServices();
+  builder.Services.AddPersistenceServices(builder.Configuration);
   builder.Services.AddPresentationServicesServices();
   builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console());
 
@@ -14,6 +14,7 @@ try
 
   app.UseMiddleware<ExceptionHandlingMiddleware>();
   app.MapCarter();
+
   app.Run();
 }
 catch (Exception ex)

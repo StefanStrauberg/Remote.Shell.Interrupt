@@ -1,27 +1,28 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 
-public record DeleteBusinessRuleCommand(Guid Id) : ICommand
+public record DeleteBusinessRuleByExpressionCommand(Expression<Func<BusinessRule, bool>> FilterExpression)
+  : ICommand
 {
 
 }
 
-internal class DeleteBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository)
-  : ICommandHandler<DeleteBusinessRuleCommand, Unit>
+internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleRepository businessRuleRepository)
+  : ICommandHandler<DeleteBusinessRuleByExpressionCommand, Unit>
 {
   readonly IBusinessRuleRepository _businessRuleRepository = businessRuleRepository
     ?? throw new ArgumentNullException(nameof(businessRuleRepository));
 
-  async Task<Unit> IRequestHandler<DeleteBusinessRuleCommand, Unit>.Handle(DeleteBusinessRuleCommand request,
-                                                                           CancellationToken cancellationToken)
+  async Task<Unit> IRequestHandler<DeleteBusinessRuleByExpressionCommand, Unit>.Handle(DeleteBusinessRuleByExpressionCommand request,
+                                                                                       CancellationToken cancellationToken)
   {
-    var existingBusinessRule = await _businessRuleRepository.ExistsAsync(filterExpression: x => x.Id == request.Id,
+    var existingBusinessRule = await _businessRuleRepository.ExistsAsync(filterExpression: request.FilterExpression,
                                                                          cancellationToken: cancellationToken);
 
     if (!existingBusinessRule)
-      throw new EntityNotFoundException(request.Id.ToString());
+      throw new EntityNotFoundException(request.ToString());
 
-    await _businessRuleRepository.DeleteOneAsync(x => x.Id == request.Id,
-                                                 cancellationToken);
+    await _businessRuleRepository.DeleteOneAsync(filterExpression: request.FilterExpression,
+                                                 cancellationToken: cancellationToken);
     return Unit.Value;
   }
 }

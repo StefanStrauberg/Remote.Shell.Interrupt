@@ -1,15 +1,15 @@
 namespace Remote.Shell.Interrupt.Presentation.Assignments;
 
-public class AssignmentGetEndpoint : ICarterModule
+public class GetAssignmentsEndpoint : ICarterModule
 {
   public void AddRoutes(IEndpointRouteBuilder app)
   {
-    app.MapGet("assignment/get", async ([FromBody] CreateAssignmentCommand request, ISender sender) =>
+    app.MapGet("assignments", async ([FromBody] GetAssignmentsQuery request, ISender sender) =>
     {
       var result = await sender.Send(request);
-    }).WithName("SNMPGet")
+    }).WithName("GetAssignments")
       .ProducesProblem(StatusCodes.Status400BadRequest)
-      .WithSummary("SNMP Get")
-      .WithDescription("SNMP Get");
+      .WithSummary("Get Assignments")
+      .WithDescription("Get all assignments");
   }
 }

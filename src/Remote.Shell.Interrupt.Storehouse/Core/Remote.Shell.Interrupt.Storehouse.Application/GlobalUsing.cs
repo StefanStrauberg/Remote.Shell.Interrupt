@@ -13,3 +13,6 @@ global using Mapster;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
+global using System.Reflection;
+global using Remote.Shell.Interrupt.BuildingBlocks.Behaviors;
+global using Remote.Shell.Interrupt.BuildingBlocks.Middleware;
