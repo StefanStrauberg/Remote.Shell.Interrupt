@@ -1,0 +1,27 @@
+.routerWrapper {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.routerInfoWrapper:first-child {
+    margin-top: 0;
+}
+
+.routerInfoWrapper {
+    margin-top: 8px;
+}
+
+.routerInfoTitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.routerInfoDescr {
+    margin-left: 2rem;
+}
+
+.routerInfoText {
+    color: rgba(255, 255, 255, 0.4);
+}
