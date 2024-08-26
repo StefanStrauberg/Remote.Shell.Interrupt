@@ -31,10 +31,10 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateBusinessRule(Guid id,
-                                                      [FromBody] UpdateBusinessRule updateBusinessRule,
+                                                      [FromBody] UpdateBusinessRuleDTO updateBusinessRuleDTO,
                                                       CancellationToken cancellationToken)
     => Ok(await _sender.Send(new UpdateBusinessRuleCommand(id,
-                                                           updateBusinessRule),
+                                                           updateBusinessRuleDTO),
                              cancellationToken));
 
   [HttpDelete("{id}")]

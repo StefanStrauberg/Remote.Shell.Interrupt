@@ -1,14 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 
-public class CreateBusinessRuleDTOValidator : AbstractValidator<CreateBusinessRuleDTO>
-{
-  public CreateBusinessRuleDTOValidator()
-  {
-    RuleFor(x => x.Name).NotNull().WithMessage("Name can't be null")
-                        .NotEmpty().WithMessage("Name can't be empty");
-  }
-}
-
 public record CreateBusinessRuleCommand(CreateBusinessRuleDTO CreateBusinessRuleDTO) : ICommand;
 
 internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository)

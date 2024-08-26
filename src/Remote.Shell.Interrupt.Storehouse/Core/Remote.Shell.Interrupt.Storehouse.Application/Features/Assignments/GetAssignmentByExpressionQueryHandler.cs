@@ -14,7 +14,7 @@ internal class GetAssignmentByExpressionQueryHandler(IAssignmentRepository assig
   {
     var assignment = await _assignmentRepository.FindOneAsync(filterExpression: request.FilterExpression,
                                                               cancellationToken: cancellationToken)
-      ?? throw new EntityNotFoundException(request.FilterExpression.Name!);
+      ?? throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression));
     var assignmentDTO = assignment.Adapt<AssignmentDTO>();
 
     return assignmentDTO;
