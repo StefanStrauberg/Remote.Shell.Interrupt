@@ -2,9 +2,10 @@ import { Route, Routes } from 'react-router-dom';
 import Gatewayspage from './pages/Gatewayspage/Gatewaypage';
 import MainLayout from './Layouts/MainLayout';
 import Gatewaypage from './pages/Gatewaypage/Gatewaypage';
-import Assigmentspage from './pages/Assigmentspage/Assigmentspage';
+import Assignmentspage from './pages/Assignmentspage/Assignmentspage';
 import Form from './components/UI/Form/Form';
 import Rulespage from './pages/Rulespage/Rulespage';
+import Testingpage from './pages/Testingpage/Testingpage';
 
 function App() {
     return (
@@ -19,10 +20,10 @@ function App() {
                             <Form types={[{ name: 'IP', input: 'input' }]} />
                         }
                     />
-                    <Route path="/assigments" element={<Assigmentspage />} />
+                    <Route path="/assignments" element={<Assignmentspage />} />
 
                     <Route
-                        path="/assigments/create"
+                        path="/assignments/create"
                         element={
                             <Form
                                 types={[
@@ -38,7 +39,7 @@ function App() {
                         }
                     ></Route>
                     <Route
-                        path="/assigments/edit"
+                        path="/assignments/edit"
                         element={
                             <Form
                                 types={[
@@ -78,6 +79,7 @@ function App() {
                             />
                         }
                     />
+                    <Route path="/testing" element={<Testingpage />} />
                     <Route path="*" />
                 </Route>
             </Routes>

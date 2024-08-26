@@ -40,60 +40,7 @@ const data = {
                     condition: 'condition 2',
                     children: [{ name: '123', condition: 'last' }],
                 },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
             ],
-        },
-        {
-            name: 'Child 2adsfasdfasdfgisodfoisdfjgiosdjfgiojosidfgfgisjdgooigsodgojsgofasdfsadfasdfafdfggkafsgksdfg',
         },
     ],
 };
@@ -158,7 +105,7 @@ export default function Rulespage() {
                 renderCustomNodeElement={renderRectSvgNode}
                 orientation="vertical"
                 translate={{
-                    x: x / 1.6,
+                    x: x / 2,
                     y: y / 10,
                 }}
                 draggable={false}

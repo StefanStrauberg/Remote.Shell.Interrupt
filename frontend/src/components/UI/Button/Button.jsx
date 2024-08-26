@@ -1,9 +1,10 @@
 import Text from '../../Text/Text';
 import classes from './Button.module.css';
 
-export default function Button({ classNames, children }) {
+export default function Button({ classNames, children, onClick }) {
     return (
         <button
+            onClick={onClick}
             className={
                 classNames ? `${classes.btn} ${classNames}` : classes.btn
             }

@@ -1,10 +1,10 @@
-.assigmentWrapper {
+.assignmentWrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
 }
-.assigmentTitle {
+.assignmentTitle {
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
 }

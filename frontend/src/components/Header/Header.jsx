@@ -23,12 +23,12 @@ export default function Header() {
                         Gateways
                     </div>
                 </Link>
-                <Link to={'/assigments'}>
+                <Link to={'/assignments'}>
                     <div
                         className={`${classes.page} ${
                             location.pathname
                                 .toLowerCase()
-                                .includes('assigments')
+                                .includes('assignments')
                                 ? classes.activePage
                                 : ''
                         } `}
@@ -47,27 +47,39 @@ export default function Header() {
                         Rules
                     </div>
                 </Link>
+                <Link
+                    to={'/testing'}
+                    className={`${classes.page} ${
+                        location.pathname.toLowerCase().includes('testing')
+                            ? classes.activePage
+                            : ''
+                    } `}
+                >
+                    Testing
+                </Link>
             </div>
             {/*             <div className={classes.search}>
                 <Input placeholder={'Поиск информации по сайту'} />
                 <Button>Найти</Button>
             </div> */}
-            <div className={classes.btns}>
-                <Link
-                    to={
-                        location.pathname.includes('create')
-                            ? location.pathname
-                            : location.pathname === '/' ||
-                              location.pathname.includes('gateways')
-                            ? 'gateways/create'
-                            : location.pathname.includes('assigments')
-                            ? 'assigments/create'
-                            : 'rules/create'
-                    }
-                >
-                    <Button>Create new</Button>
-                </Link>
-            </div>
+            {location.pathname !== '/testing' && (
+                <div className={classes.btns}>
+                    <Link
+                        to={
+                            location.pathname.includes('create')
+                                ? location.pathname
+                                : location.pathname === '/' ||
+                                  location.pathname.includes('gateways')
+                                ? 'gateways/create'
+                                : location.pathname.includes('assignments')
+                                ? 'assignments/create'
+                                : 'rules/create'
+                        }
+                    >
+                        <Button>Create new</Button>
+                    </Link>
+                </div>
+            )}
         </header>
     );
 }
