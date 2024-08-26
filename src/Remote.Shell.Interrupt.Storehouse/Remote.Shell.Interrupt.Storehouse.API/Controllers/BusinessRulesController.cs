@@ -1,6 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
-using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
-
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 public class BusinessRulesController(ISender sender) : BaseAPIController

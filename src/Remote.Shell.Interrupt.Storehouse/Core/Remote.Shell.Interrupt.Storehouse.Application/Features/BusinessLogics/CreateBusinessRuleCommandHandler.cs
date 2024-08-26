@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 public class CreateBusinessRuleDTO
 {
   public string Name { get; set; } = string.Empty;
-  public Expression<Func<object, bool>>? Condition { get; set; }
+  public string? Condition { get; set; } // TODO Convert from string to Expression<Func<BusinessRule, bool>> Condition
   public int[] Branch { get; set; } = [];
   public Assignment? Assignment { get; set; }
 };
