@@ -1,14 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
 
-public class UpdateAssignmentDTO
-{
-  public Guid Id { get; set; }
-  public string Name { get; set; } = string.Empty;
-  public TypeOfRequest TypeOfRequest { get; set; }
-  public string TargetFieldName { get; set; } = string.Empty;
-  public string OID { get; set; } = string.Empty;
-};
-
 public record UpdateAssignmentCommand(Guid Id,
                                       UpdateAssignmentDTO UpdateAssignmentDTO) : ICommand;
 
@@ -31,6 +22,9 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
 
     var updatingAssignment = request.UpdateAssignmentDTO
                                     .Adapt<Assignment>();
+
+    updatingAssignment.Id = request.Id;
+    updatingAssignment.Modified = DateTime.Now;
 
     await _assignmentRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
                                                 document: updatingAssignment,

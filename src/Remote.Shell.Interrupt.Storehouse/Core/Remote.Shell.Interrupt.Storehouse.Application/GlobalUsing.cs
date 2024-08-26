@@ -18,3 +18,4 @@ global using Remote.Shell.Interrupt.BuildingBlocks.Behaviors;
 global using Remote.Shell.Interrupt.BuildingBlocks.Middleware;
 global using FluentValidation;
 global using Remote.Shell.Interrupt.BuildingBlocks.Helper;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs;

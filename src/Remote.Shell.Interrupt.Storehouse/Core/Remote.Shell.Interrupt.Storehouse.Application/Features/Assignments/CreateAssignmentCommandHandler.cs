@@ -1,13 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
 
-public class CreateAssignmentDTO
-{
-  public string Name { get; set; } = string.Empty;
-  public TypeOfRequest TypeOfRequest { get; set; }
-  public string TargetFieldName { get; set; } = string.Empty;
-  public string OID { get; set; } = string.Empty;
-};
-
 public class CreateAssignmentDTOValidator : AbstractValidator<CreateAssignmentDTO>
 {
   public CreateAssignmentDTOValidator()
@@ -50,6 +42,9 @@ internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRe
 
     var assignment = request.CreateAssignmentDTO
                             .Adapt<Assignment>();
+
+    assignment.Created = DateTime.Now;
+    assignment.Modified = DateTime.Now;
 
     await _assignmentRepository.InsertOneAsync(document: assignment,
                                                cancellationToken: cancellationToken);

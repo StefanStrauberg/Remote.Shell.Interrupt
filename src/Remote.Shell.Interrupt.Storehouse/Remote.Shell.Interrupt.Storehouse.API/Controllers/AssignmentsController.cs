@@ -6,14 +6,14 @@ public class AssignmentsController(ISender sender) : BaseAPIController
       ?? throw new ArgumentNullException(nameof(sender));
 
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<Assignment>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<AssignmentDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetAssignments(CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetAssignmentsQuery(),
                              cancellationToken));
 
   [HttpGet("{id}")]
-  [ProducesResponseType(typeof(Assignment), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(AssignmentDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetAssignmentById(Guid id,
                                                      CancellationToken cancellationToken)

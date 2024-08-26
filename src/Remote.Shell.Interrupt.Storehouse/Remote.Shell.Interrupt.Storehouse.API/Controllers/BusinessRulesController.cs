@@ -6,14 +6,14 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
     ?? throw new ArgumentNullException(nameof(sender));
 
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<BusinessRule>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<BusinessRuleDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetBusinessRules(CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetBusinessRulesQuery(),
                              cancellationToken));
 
   [HttpGet("{id}")]
-  [ProducesResponseType(typeof(BusinessRule), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(BusinessRuleDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetBusinessRuleById(Guid id,
                                                        CancellationToken cancellationToken)

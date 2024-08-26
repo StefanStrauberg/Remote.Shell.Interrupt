@@ -1,13 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 
-public class CreateBusinessRuleDTO
-{
-  public string Name { get; set; } = string.Empty;
-  public string? Condition { get; set; } // TODO Convert from string to Expression<Func<BusinessRule, bool>> Condition
-  public int[] Branch { get; set; } = [];
-  public Assignment? Assignment { get; set; }
-};
-
 public class CreateBusinessRuleDTOValidator : AbstractValidator<CreateBusinessRuleDTO>
 {
   public CreateBusinessRuleDTOValidator()
@@ -46,6 +38,9 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
 
     // convert input data to BusinessRule model
     var addingRule = request.Adapt<BusinessRule>();
+
+    addingRule.Created = DateTime.Now;
+    addingRule.Modified = DateTime.Now;
 
     // Check if adding business rule is first
     if (businessRules.Count == 0)

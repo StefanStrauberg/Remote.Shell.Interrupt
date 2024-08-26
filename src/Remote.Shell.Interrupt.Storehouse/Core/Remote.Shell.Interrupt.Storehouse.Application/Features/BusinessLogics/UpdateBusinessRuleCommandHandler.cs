@@ -1,16 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 
-public class UpdateBusinessRule
-{
-  public Guid Id { get; set; }
-  public string Name { get; set; } = string.Empty;
-  public Expression<Func<object, bool>>? Condition { get; set; }
-  public int[] Branch { get; set; } = [];
-  public int SequenceNumber { get; set; }
-  public Assignment? Assignment { get; set; }
-};
 
-public class UpdateBusinessRuleDTOValidator : AbstractValidator<UpdateBusinessRule>
+public class UpdateBusinessRuleDTOValidator : AbstractValidator<UpdateBusinessRuleDTO>
 {
   public UpdateBusinessRuleDTOValidator()
   {
@@ -24,7 +15,7 @@ public class UpdateBusinessRuleDTOValidator : AbstractValidator<UpdateBusinessRu
 }
 
 public record UpdateBusinessRuleCommand(Guid Id,
-                                        UpdateBusinessRule UpdateBusinessRule)
+                                        UpdateBusinessRuleDTO UpdateBusinessRule)
   : ICommand;
 
 
@@ -38,7 +29,7 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
                                                                            CancellationToken cancellationToken)
   {
     // Looking for by ID, Branch and SequenceNumber
-    Expression<Func<BusinessRule, bool>> filter = x => x.Id == request.UpdateBusinessRule.Id &&
+    Expression<Func<BusinessRule, bool>> filter = x => x.Id == request.Id &&
                                                        x.Branch == request.UpdateBusinessRule.Branch &&
                                                        x.SequenceNumber == request.UpdateBusinessRule.SequenceNumber;
 
@@ -49,6 +40,9 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
       throw new EntityNotFoundException(request.Id.ToString());
 
     var updatingBusinessRule = request.Adapt<BusinessRule>();
+
+    updatingBusinessRule.Id = request.Id;
+    updatingBusinessRule.Modified = DateTime.Now;
 
     await _businessRuleRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
                                                   document: updatingBusinessRule,

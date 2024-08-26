@@ -11,3 +11,4 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.Entity;
 global using Remote.Shell.Interrupt.Storehouse.API;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics;
 global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs;
