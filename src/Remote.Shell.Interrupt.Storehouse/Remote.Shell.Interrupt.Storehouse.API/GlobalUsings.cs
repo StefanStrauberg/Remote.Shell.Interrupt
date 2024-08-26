@@ -4,3 +4,8 @@ global using Remote.Shell.Interrupt.Storehouse.Persistence;
 global using Remote.Shell.Interrupt.BuildingBlocks.Middleware;
 global using Serilog;
 global using Microsoft.AspNetCore.Mvc;
+global using MediatR;
+global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Entity;
+global using Remote.Shell.Interrupt.Storehouse.API;

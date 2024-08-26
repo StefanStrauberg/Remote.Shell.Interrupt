@@ -13,13 +13,13 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.GatewayLevel, src => src.GatewayLevel)
                   .Map(dst => dst.Interfaces, src => src.Interfaces);
 
-            config.NewConfig<CreateAssignmentCommand, Assignment>()
+            config.NewConfig<CreateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)
                   .Map(dst => dst.TargetFieldName, src => src.TargetFieldName)
                   .Map(dst => dst.OID, src => src.OID);
 
-            config.NewConfig<UpdateAssignmentCommand, Assignment>()
+            config.NewConfig<UpdateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Id, src => src.Id)
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)

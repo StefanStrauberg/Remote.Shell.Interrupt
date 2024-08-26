@@ -8,3 +8,5 @@ global using System.Diagnostics;
 global using System.Text.Json;
 global using ApplicationException = Remote.Shell.Interrupt.BuildingBlocks.Exceptions.ApplicationException;
 global using ValidationException = Remote.Shell.Interrupt.BuildingBlocks.Exceptions.ValidationException;
+global using System.Linq.Expressions;
+global using System.Text;

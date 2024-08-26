@@ -4,15 +4,13 @@ try
 {
   var builder = WebApplication.CreateBuilder(args);
 
-  builder.Services.AddLoggerServices();
-  builder.Services.AddApplicationServices();
-  builder.Services.AddPersistenceServices(builder.Configuration);
-  builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console());
+  // Register Services
+  builder.RegisterServices();
 
   var app = builder.Build();
 
-  app.UseMiddleware<ExceptionHandlingMiddleware>();
-  app.MapCarter();
+  // Register Middlewares
+  app.RegisterMiddlewares();
 
   app.Run();
 }

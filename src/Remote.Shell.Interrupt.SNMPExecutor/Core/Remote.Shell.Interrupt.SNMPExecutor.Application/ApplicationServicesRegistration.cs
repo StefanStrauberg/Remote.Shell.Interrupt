@@ -17,6 +17,7 @@ public static class ApplicationServicesRegistration
 
     // FluentValidation injection
     services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
     // Mapster injection
     TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 

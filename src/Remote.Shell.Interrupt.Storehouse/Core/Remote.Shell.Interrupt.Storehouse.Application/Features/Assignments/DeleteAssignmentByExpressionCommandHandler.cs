@@ -16,7 +16,10 @@ internal class DeleteAssignmentByExpressionCommandHandler(IAssignmentRepository 
                                                                      cancellationToken: cancellationToken);
 
     if (!existingAssignment)
-      throw new EntityNotFoundException(request.ToString());
+    {
+      var errorMessage = new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression);
+      throw new EntityNotFoundException(errorMessage);
+    }
 
     await _assignmentRepository.DeleteOneAsync(filterExpression: request.FilterExpression,
                                                cancellationToken: cancellationToken);

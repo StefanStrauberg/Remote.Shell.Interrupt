@@ -4,12 +4,12 @@
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
     <ProjectReference Include="..\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj" />
-    <ProjectReference Include="..\Presentation\Remote.Shell.Interrupt.Storehouse.Presentation\Remote.Shell.Interrupt.Presentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,10 +1,16 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments;
 
+public class UpdateAssignmentDTO
+{
+  public Guid Id { get; set; }
+  public string Name { get; set; } = string.Empty;
+  public TypeOfRequest TypeOfRequest { get; set; }
+  public string TargetFieldName { get; set; } = string.Empty;
+  public string OID { get; set; } = string.Empty;
+};
+
 public record UpdateAssignmentCommand(Guid Id,
-                                      string Name,
-                                      TypeOfRequest TypeOfRequest,
-                                      string TargetFieldName,
-                                      string OID) : ICommand;
+                                      UpdateAssignmentDTO UpdateAssignmentDTO) : ICommand;
 
 internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRepository)
   : ICommandHandler<UpdateAssignmentCommand, Unit>
@@ -21,7 +27,10 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     if (!existingUpdatingAssignment)
       throw new EntityNotFoundException(request.Id.ToString());
 
-    var updatingAssignment = request.Adapt<Assignment>();
+    request.UpdateAssignmentDTO.Id = request.Id;
+
+    var updatingAssignment = request.UpdateAssignmentDTO
+                                    .Adapt<Assignment>();
 
     await _assignmentRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
                                                 document: updatingAssignment,
