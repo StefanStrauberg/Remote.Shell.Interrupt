@@ -5,7 +5,7 @@ import Button from '../UI/Button/Button';
 
 export default function Header() {
     const location = useLocation();
-
+    console.log(location);
     return (
         <header className={classes.header}>
             <div className={classes.pages}>
@@ -48,9 +48,25 @@ export default function Header() {
                     </div>
                 </Link>
             </div>
-            <div className={classes.search}>
+            {/*             <div className={classes.search}>
                 <Input placeholder={'Поиск информации по сайту'} />
                 <Button>Найти</Button>
+            </div> */}
+            <div className={classes.btns}>
+                <Link
+                    to={
+                        location.pathname.includes('create')
+                            ? location.pathname
+                            : location.pathname === '/' ||
+                              location.pathname.includes('gateways')
+                            ? 'gateways/create'
+                            : location.pathname.includes('assigments')
+                            ? 'assigments/create'
+                            : 'rules/create'
+                    }
+                >
+                    <Button>Create new</Button>
+                </Link>
             </div>
         </header>
     );

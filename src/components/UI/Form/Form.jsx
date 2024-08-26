@@ -1,29 +1,22 @@
 import Wrapper from '../../Wrapper/Wrapper';
 import Button from '../Button/Button';
 import Input from '../Input/Input';
+import Select from '../Select/Select';
 import classes from './Form.module.css';
 
-export default function Form() {
+export default function Form({ types }) {
     return (
         <Wrapper>
             <div className={classes.wrapper}>
-                {' '}
-                <label>
-                    <div className={classes.labelText}>Name</div>
-                    <Input placeholder={'Enter a new info'} />
-                </label>
-                <label>
-                    <div className={classes.labelText}>Type of request</div>
-                    <Input placeholder={'Enter a new info'} />
-                </label>
-                <label>
-                    <div className={classes.labelText}>Target field name</div>
-                    <Input placeholder={'Enter a new info'} />
-                </label>
-                <label>
-                    <div className={classes.labelText}>OID</div>
-                    <Input placeholder={'Enter a new info'} />
-                </label>
+                {types.map((type) => (
+                    <label key={type.name}>
+                        <div className={classes.labelText}>{type.name}</div>
+                        {type.input === 'input' && (
+                            <Input placeholder={'Enter a new info'} />
+                        )}
+                        {type.input === 'select' && <Select />}
+                    </label>
+                ))}
             </div>
             <div className={classes.submitWrapper}>
                 <Button classNames={classes.saveBtn}>Сохранить</Button>

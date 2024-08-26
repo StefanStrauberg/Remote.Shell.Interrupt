@@ -12,14 +12,72 @@ function App() {
             <Routes>
                 <Route path="/" element={<MainLayout />}>
                     <Route index element={<Gatewayspage />} />
+                    <Route path="/gateways/:id" element={<Gatewaypage />} />
                     <Route
-                        path="/gateways/:id"
-                        element={<Gatewaypage />}
-                    ></Route>
+                        path="/gateways/create"
+                        element={
+                            <Form types={[{ name: 'IP', input: 'input' }]} />
+                        }
+                    />
                     <Route path="/assigments" element={<Assigmentspage />} />
-                    <Route path="/assigments/create" element={<Form />}></Route>
-                    <Route path="/assigments/update" element={<Form />}></Route>
+
+                    <Route
+                        path="/assigments/create"
+                        element={
+                            <Form
+                                types={[
+                                    { name: 'Name', input: 'input' },
+                                    { name: 'Type of request', input: 'input' },
+                                    {
+                                        name: 'Target field name',
+                                        input: 'input',
+                                    },
+                                    { name: 'OID', input: 'input' },
+                                ]}
+                            />
+                        }
+                    ></Route>
+                    <Route
+                        path="/assigments/edit"
+                        element={
+                            <Form
+                                types={[
+                                    { name: 'Name', input: 'input' },
+                                    { name: 'Type of request', input: 'input' },
+                                    {
+                                        name: 'Target field name',
+                                        input: 'input',
+                                    },
+                                    { name: 'OID', input: 'input' },
+                                ]}
+                            />
+                        }
+                    ></Route>
                     <Route path="/rules" element={<Rulespage />} />
+                    <Route
+                        path="/rules/edit"
+                        element={
+                            <Form
+                                types={[
+                                    { name: 'Name', input: 'input' },
+                                    { name: 'Condition', input: 'input' },
+                                    { name: 'Assigment?', input: 'select' },
+                                ]}
+                            />
+                        }
+                    />
+                    <Route
+                        path="/rules/create"
+                        element={
+                            <Form
+                                types={[
+                                    { name: 'Name', input: 'input' },
+                                    { name: 'Condition', input: 'input' },
+                                    { name: 'Assigment?', input: 'select' },
+                                ]}
+                            />
+                        }
+                    />
                     <Route path="*" />
                 </Route>
             </Routes>

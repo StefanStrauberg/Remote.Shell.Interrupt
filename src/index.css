@@ -25,3 +25,8 @@ button {
     outline: none;
     border: none;
 }
+
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
