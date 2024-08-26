@@ -7,7 +7,6 @@ try
   builder.Services.AddLoggerServices();
   builder.Services.AddApplicationServices();
   builder.Services.AddPersistenceServices(builder.Configuration);
-  builder.Services.AddPresentationServicesServices();
   builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console());
 
   var app = builder.Build();

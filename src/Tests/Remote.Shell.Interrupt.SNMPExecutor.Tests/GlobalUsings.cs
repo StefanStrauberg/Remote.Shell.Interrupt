@@ -6,5 +6,5 @@ global using MediatR;
 global using Remote.Shell.Interrupt.SNMPExecutor.Tests.Mocks;
 global using Shouldly;
 global using FluentValidation.TestHelper;
-global using Remote.Shell.Interrupt.SNMPExecutor.Presentation.SNMP;
+global using Remote.Shell.Interrupt.SNMPExecutor.Presentation.Modules.SNMPExecutor;
 global using Remote.Shell.Interrupt.SNMPExecutor.Domain;

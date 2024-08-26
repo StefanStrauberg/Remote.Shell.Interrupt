@@ -4,16 +4,16 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddLoggerServices();
-    builder.Services.AddApplicationServices();
-    builder.Services.AddSNMPCommandExecutorServices();
-    builder.Services.AddPresentationServicesServices();
+    // Register Services
+    builder.RegisterServices();
+
     builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console());
 
     var app = builder.Build();
 
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
-    app.MapCarter();
+    // Register Middlewares
+    app.RegisterMiddlewares();
+
     app.Run();
 }
 catch (Exception ex)

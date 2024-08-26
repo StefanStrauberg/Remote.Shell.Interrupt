@@ -1,4 +1,6 @@
-namespace Remote.Shell.Interrupt.SNMPExecutor.Presentation.Mappers;
+using Mapster;
+
+namespace Remote.Shell.Interrupt.SNMPExecutor.API.Mappers;
 
 public class RegisterMapper : IRegister
 {

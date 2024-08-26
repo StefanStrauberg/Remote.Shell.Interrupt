@@ -21,12 +21,12 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
   static async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
   {
     var statusCode = GetStatusCode(exception);
-    var response = new
+    var response = new ApiErrorResponse
     {
-      title = GetTitle(exception),
-      status = statusCode,
-      detail = exception.Message,
-      errors = GetErrors(exception)
+      Title = GetTitle(exception),
+      Status = statusCode,
+      Detail = exception.Message,
+      Errors = GetErrors(exception)
     };
     httpContext.Response.ContentType = "application/json";
     httpContext.Response.StatusCode = statusCode;
@@ -49,13 +49,15 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
         _ => "Server Error"
       };
 
-  static IReadOnlyDictionary<string, IEnumerable<string>>? GetErrors(Exception exception)
+  static IReadOnlyDictionary<string, string[]>? GetErrors(Exception exception)
   {
     IReadOnlyDictionary<string, IEnumerable<string>>? errors = null;
+
     if (exception is ValidationException validationException)
     {
       errors = validationException.ErrorsDictionary;
     }
-    return errors;
+
+    return (IReadOnlyDictionary<string, string[]>?)errors;
   }
 }
