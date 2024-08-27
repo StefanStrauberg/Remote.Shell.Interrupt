@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor;
 
 internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
@@ -24,11 +27,23 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
             foreach (var item in list)
             {
-                result.Add(new Info()
+                // The media-dependent `physical' address. 
+                if (oid == "1.3.6.1.2.1.4.22.1.2")
                 {
-                    OID = item.Id.ToString(),
-                    Data = item.Data.ToString(),
-                });
+                    result.Add(new Info()
+                    {
+                        OID = item.Id.ToString(),
+                        Data = ConvertToMacAddress(item.Data.ToBytes()),
+                    });
+                }
+                else
+                {
+                    result.Add(new Info()
+                    {
+                        OID = item.Id.ToString(),
+                        Data = item.Data.ToString(),
+                    });
+                }
             }
         }
         catch (Exception ex)
@@ -37,6 +52,15 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         }
 
         return result;
+    }
+
+    static string ConvertToMacAddress(byte[] bytes)
+    {
+        //if (bytes.Length != 6) throw new ArgumentException("Invalid MAC address length");
+
+        return string.Join(":", bytes.Skip(2)
+                                     .ToArray()
+                                     .Select(b => b.ToString("X2")));
     }
 
     async Task<Info> ISNMPCommandExecutor.GetCommand(string host,

@@ -7,7 +7,7 @@ public class RegisterMapper : IRegister
             config.NewConfig<UpdateNetworkDeviceCommand, NetworkDevice>()
                   .Map(dst => dst.Id, src => src.Id)
                   .Map(dst => dst.Host, src => src.Host)
-                  .Map(dst => dst.Vendor, src => src.Vendor)
+                  .Map(dst => dst.Name, src => src.Vendor)
                   .Map(dst => dst.Model, src => src.Model)
                   .Map(dst => dst.SoftwareVersion, src => src.SoftwareVersion)
                   .Map(dst => dst.GatewayLevel, src => src.GatewayLevel)
