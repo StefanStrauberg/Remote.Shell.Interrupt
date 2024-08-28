@@ -15,8 +15,8 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Id, src => src.Id)
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.Condition, src => src.Condition)
-                  .Map(dst => dst.Branch, src => src.Branch)
-                  .Map(dst => dst.SequenceNumber, src => src.SequenceNumber)
+                  .Map(dst => dst.ParentId, src => src.ParentId)
+                  .Map(dst => dst.Children, src => src.Children)
                   .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
             config.NewConfig<CreateAssignmentDTO, Assignment>()
@@ -28,7 +28,7 @@ public class RegisterMapper : IRegister
             config.NewConfig<CreateBusinessRuleDTO, BusinessRule>()
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.Condition, src => src.Condition)
-                  .Map(dst => dst.Branch, src => src.Branch)
+                  .Map(dst => dst.ParentId, src => src.ParentId)
                   .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
             config.NewConfig<UpdateAssignmentDTO, Assignment>()
@@ -37,6 +37,11 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)
                   .Map(dst => dst.TargetFieldName, src => src.TargetFieldName)
                   .Map(dst => dst.OID, src => src.OID);
+
+            config.NewConfig<UpdateBusinessRuleDTO, BusinessRule>()
+                  .Map(dst => dst.Name, src => src.Name)
+                  .Map(dst => dst.Condition, src => src.Condition)
+                  .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
             config.NewConfig<UpdateNetworkDevice, NetworkDevice>()
                   .Map(dst => dst.Id, src => src.Id)

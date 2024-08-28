@@ -26,49 +26,27 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
     addingRule.Created = DateTime.UtcNow;
     addingRule.Modified = DateTime.UtcNow;
 
-    var requestBranches = request.CreateBusinessRuleDTO.Branch;
-
-    if (businessRules.Count == 0)
+    // Check if the rule has a parent
+    if (request.CreateBusinessRuleDTO.ParentId != null)
     {
-      // This is the first rule, create root branch [1]
-      addingRule.Branch = new List<int> { 1 };
-      addingRule.SequenceNumber = 0;
+      var parentRule = await _businessRuleRepository.FindOneAsync(x => x.Id == request.CreateBusinessRuleDTO.ParentId,
+                                                                  cancellationToken)
+        ?? throw new ArgumentException("The specified parent rule does not exist.");
+
+      await _businessRuleRepository.InsertOneAsync(document: addingRule,
+                                                   cancellationToken: cancellationToken);
+
+      parentRule.Children.Add(addingRule.Id);
+
+      await _businessRuleRepository.ReplaceOneAsync(x => x.Id == parentRule.Id,
+                                                    parentRule,
+                                                    cancellationToken);
     }
     else
     {
-      var existingRulesWithSameBranch = businessRules
-          .Where(x => x.Branch != null && x.Branch.SequenceEqual(requestBranches))
-          .ToList();
-
-      if (existingRulesWithSameBranch.Count > 0)
-      {
-        // If branch exists, set the sequence number
-        addingRule.SequenceNumber = existingRulesWithSameBranch.Max(rule => rule.SequenceNumber) + 1;
-      }
-      else
-      {
-        // Branch does not exist, find parent branch
-        var parentBranch = requestBranches.Take(requestBranches.Count - 1).ToList();
-        var existingRulesWithParentBranch = businessRules
-            .Where(x => x.Branch != null && x.Branch.SequenceEqual(parentBranch))
-            .ToList();
-
-        if (existingRulesWithParentBranch.Count == 0)
-        {
-          throw new ArgumentException("The adding business rule has a wrong branch.");
-        }
-        else
-        {
-          // Create a new branch sequence for the new rule
-          var nextBranchValue = requestBranches.Last();
-          addingRule.Branch = new List<int>(parentBranch) { nextBranchValue };
-          addingRule.SequenceNumber = 0;
-        }
-      }
+      await _businessRuleRepository.InsertOneAsync(document: addingRule,
+                                                   cancellationToken: cancellationToken);
     }
-
-    await _businessRuleRepository.InsertOneAsync(document: addingRule,
-                                                 cancellationToken: cancellationToken);
 
     return Unit.Value;
   }
