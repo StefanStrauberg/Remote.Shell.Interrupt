@@ -6,6 +6,7 @@ public static class Configuration
   {
     builder.Services.AddLoggerServices();
     builder.Services.AddApplicationServices();
+    builder.Services.AddSNMPCommandExecutorServices();
     builder.Services.AddPersistenceServices(builder.Configuration);
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();

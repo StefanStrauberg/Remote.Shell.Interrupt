@@ -17,7 +17,7 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Condition, src => src.Condition)
                   .Map(dst => dst.Branch, src => src.Branch)
                   .Map(dst => dst.SequenceNumber, src => src.SequenceNumber)
-                  .Map(dst => dst.Assignment, src => src.Assignment);
+                  .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
             config.NewConfig<CreateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Name, src => src.Name)
@@ -29,7 +29,7 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.Condition, src => src.Condition)
                   .Map(dst => dst.Branch, src => src.Branch)
-                  .Map(dst => dst.Assignment, src => src.Assignment);
+                  .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
             config.NewConfig<UpdateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Id, src => src.Id)

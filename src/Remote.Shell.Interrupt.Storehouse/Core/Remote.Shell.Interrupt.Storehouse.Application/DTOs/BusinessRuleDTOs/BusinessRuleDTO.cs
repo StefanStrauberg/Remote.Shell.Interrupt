@@ -4,8 +4,8 @@ public class BusinessRuleDTO
 {
   public Guid Id { get; private set; }
   public string Name { get; set; } = string.Empty; // Get Interfaces for Huawei
-  public string Condition { get; set; } = string.Empty; // x.Name == Huawei
-  public int[] Branch { get; set; } = []; // [1, 3, 15]
+  public string? Condition { get; set; } // x.Name == Huawei
+  public List<int> Branch { get; set; } = []; // [1, 3, 15]
   public int SequenceNumber { get; set; } // 15
-  public Assignment? Assignment { get; set; } // Represent what to do
+  public Guid? AssignmentId { get; set; } // Represent what to do
 }

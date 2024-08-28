@@ -22,3 +22,4 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.AssignmentDTOs;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.BusinessRuleDTOs;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDeviceDTOs;
+global using System.Linq.Dynamic.Core;

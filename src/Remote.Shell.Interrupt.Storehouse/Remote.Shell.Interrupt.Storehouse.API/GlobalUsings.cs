@@ -13,3 +13,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogi
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.AssignmentDTOs;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.BusinessRuleDTOs;
+global using Remmote.Shell.Interrupt.Storehouse.Infrastructure;

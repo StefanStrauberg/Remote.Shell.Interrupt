@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
     <ProjectReference Include="..\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

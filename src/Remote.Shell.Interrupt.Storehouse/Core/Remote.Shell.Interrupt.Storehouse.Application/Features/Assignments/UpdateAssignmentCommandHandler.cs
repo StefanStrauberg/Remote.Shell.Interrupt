@@ -12,14 +12,29 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
   async Task<Unit> IRequestHandler<UpdateAssignmentCommand, Unit>.Handle(UpdateAssignmentCommand request,
                                                                          CancellationToken cancellationToken)
   {
-    var existingUpdatingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: x => x.Id == request.Id,
-                                                                             cancellationToken: cancellationToken);
+    var assignmentId = request.Id;
+    var dto = request.UpdateAssignmentDTO;
 
-    if (!existingUpdatingAssignment)
-      throw new EntityNotFoundException(request.Id.ToString());
+    // Check existing an Assignment with a specific ID
+    Expression<Func<Assignment, bool>> filterByID = x => x.Id == request.Id;
 
-    request.UpdateAssignmentDTO.Id = request.Id;
+    var existingUpdatingAssignmentById = await _assignmentRepository.ExistsAsync(filterExpression: filterByID,
+                                                                                 cancellationToken: cancellationToken);
 
+    if (!existingUpdatingAssignmentById)
+      throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(filterByID));
+
+    // Check existing an Assignment with a specific Name but with an another ID
+    Expression<Func<Assignment, bool>> filterUniqueName = x => x.Name == request.UpdateAssignmentDTO.Name &&
+                                                          x.Id != request.Id;
+
+    var existingUpdatingAssignmentByName = await _assignmentRepository.ExistsAsync(filterExpression: filterUniqueName,
+                                                                                   cancellationToken: cancellationToken);
+
+    if (existingUpdatingAssignmentByName)
+      throw new EntityAlreadyExists(new ExpressionToStringConverter<Assignment>().Convert(filterUniqueName));
+
+    // Update the Assignment
     var updatingAssignment = request.UpdateAssignmentDTO
                                     .Adapt<Assignment>();
 

@@ -11,97 +11,79 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
   async Task<Unit> IRequestHandler<CreateBusinessRuleCommand, Unit>.Handle(CreateBusinessRuleCommand request,
                                                                            CancellationToken cancellationToken)
   {
-    // The name should be unique
     Expression<Func<BusinessRule, bool>> filter = x => x.Name == request.CreateBusinessRuleDTO
                                                                         .Name;
-    // Check if adding business rule is exists by name
     var existingBusinessRule = await _businessRuleRepository.ExistsAsync(filterExpression: filter,
                                                                          cancellationToken: cancellationToken);
 
-    // If adding business rule is exists
-    // throw EntityAlreadyExists exception
     if (existingBusinessRule)
       throw new EntityAlreadyExists(request.CreateBusinessRuleDTO
                                            .Name);
 
-    // Get all business rules
     var businessRules = await _businessRuleRepository.GetAllAsync(cancellationToken);
 
-    // convert input data to BusinessRule model
     var addingRule = request.CreateBusinessRuleDTO
                             .Adapt<BusinessRule>();
 
     addingRule.Created = DateTime.Now;
     addingRule.Modified = DateTime.Now;
 
-    // Check if adding business rule is first
     if (businessRules.Count == 0)
     {
-      // Set first branch number to 1
       addingRule.Branch = [1];
-      // Set first sequence number to 0
       addingRule.SequenceNumber = 0;
-
-      businessRules.Add(addingRule);
     }
-    // If adding business rule is second or more
-    else if (businessRules.Count > 1)
+    else if (businessRules.Count >= 1)
     {
-      // Filtering the subsequence for the presence of a request branch number
-      // For example request branch is [1, 3, 15] and looking for [1, 3, 15]
-      var filteredBusinessRules = businessRules.Where(x => x.Branch == request.CreateBusinessRuleDTO
-                                                                              .Branch)
+      var requestBranches = request.CreateBusinessRuleDTO.Branch;
+      var filteredBusinessRules = businessRules.Where(x => x.Branch != null &&
+                                                      x.Branch.SequenceEqual(requestBranches))
                                                .ToList();
-      // Count of elements in subsequence
+
       var countOfElementsInBranch = filteredBusinessRules.Count;
 
-      // Count of elements in previous subsequence greater than 0
-      // For example countOfElementsInBranch is 5
-      if (countOfElementsInBranch != 0)
+      if (countOfElementsInBranch == 0)
       {
-        // Get max value of SequenceNumber
-        // For example business rules has model with the SequenceNumber equal 14
-        var maxSequenceNumber = filteredBusinessRules.Max(rule => rule.SequenceNumber);
-
-        // Set of max value of SequenceNumber + 1
-        // 14 + 1 = 15
-        addingRule.SequenceNumber = maxSequenceNumber++;
-
-        // Save new BusinessRule
-        businessRules.Add(addingRule);
-      }
-      // Count of elements in previous subsequence equal 0
-      // For example countOfElementsInBranch is 0
-      else if (countOfElementsInBranch == 0)
-      {
-        // Extract branch subsequence without the last element
-        // For example request branch is [1, 3, 15] and looking for [1, 3]
         var branchSubsequence = request.CreateBusinessRuleDTO
                                        .Branch
                                        .Take(request.CreateBusinessRuleDTO
                                                     .Branch
-                                                    .Length - 1)
-                                       .ToArray();
+                                                    .Count - 1)
+                                       .ToList();
+
         filteredBusinessRules = businessRules.Where(x => x.Branch
                                                           .SequenceEqual(branchSubsequence))
                                              .ToList();
 
-        // The count of elements of filteredBusinessRules equals 0
-        // It means it's second branch
         if (filteredBusinessRules.Count == 0)
         {
-          // Handle new branch scenario
-          // You can set the sequence number or perform other actions here
-          // For example:
-          addingRule.Branch = request.CreateBusinessRuleDTO
-                                     .Branch;
-          addingRule.SequenceNumber = 0; // Default sequence number for the new branch
-          businessRules.Add(addingRule);
+          throw new ArgumentException("The adding business rule has wrong brnach.");
         }
+        else if (filteredBusinessRules.Count != 0)
+        {
+          var preCount = branchSubsequence.Count + 1;
+          var branchPreCount = businessRules.Where(x => x.Branch.Count == preCount);
+
+          if (branchPreCount.Count() == 0)
+          {
+            addingRule.Branch = branchSubsequence;
+            addingRule.Branch.Add(1);
+          }
+          else
+          {
+            addingRule.Branch = [];
+          }
+          addingRule.SequenceNumber = 0;
+        }
+      }
+      else if (countOfElementsInBranch != 0)
+      {
+        var maxSequenceNumber = filteredBusinessRules.Max(rule => rule.SequenceNumber);
+
+        addingRule.SequenceNumber = ++maxSequenceNumber;
       }
     }
     else
-      // TODO new exception for that type of exceptions
       throw new Exception($"A business rules with \"{request.CreateBusinessRuleDTO
                                                             .Branch.ToString()}\" subsuequence doesn't exists.");
 
