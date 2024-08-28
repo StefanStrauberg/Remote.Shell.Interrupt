@@ -5,18 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C149A62E-BA32-43E1-86F9-F45ED6DB1B66}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Remote.Shell.Interrupt.SNMPExecutor", "Remote.Shell.Interrupt.SNMPExecutor", "{DC597FCA-A704-4F7E-99A9-F396C52766C0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.SNMPExecutor.Application", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Application\Remote.Shell.Interrupt.SNMPExecutor.Application.csproj", "{8980A587-0242-40B8-9654-F87FA95851C5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor", "src\Remote.Shell.Interrupt.SNMPExecutor\Infrastructure\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor\Remote.Shell.Interrupt.SNMPExecutor.SNMPCommandExecutor.csproj", "{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.SNMPExecutor.API", "src\Remote.Shell.Interrupt.SNMPExecutor\Remote.Shell.Interrupt.SNMPExecutor.API\Remote.Shell.Interrupt.SNMPExecutor.API.csproj", "{F45EBEEC-3163-4D9A-8094-08566E831A7E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{1A76D11A-2F7A-46F4-ACF5-7B562675F621}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.BuildingBlocks", "src\BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks\Remote.Shell.Interrupt.BuildingBlocks.csproj", "{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}"
@@ -33,11 +21,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.Stor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.Storehouse.API", "src\Remote.Shell.Interrupt.Storehouse\Remote.Shell.Interrupt.Storehouse.API\Remote.Shell.Interrupt.Storehouse.API.csproj", "{C061EFC8-46B5-420B-B703-F35C7E2383A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.SNMPExecutor.Domain", "src\Remote.Shell.Interrupt.SNMPExecutor\Core\Remote.Shell.Interrupt.SNMPExecutor.Domain\Remote.Shell.Interrupt.SNMPExecutor.Domain.csproj", "{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{4DECAAA6-8893-4814-B764-52E2E58986B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote.Shell.Interrupt.Storehouse.Persistence", "src\Remote.Shell.Interrupt.Storehouse\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj", "{474DFBD0-4904-43EB-AE87-D69AEE4487A9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{3A44B376-0AC3-406D-BCC0-AB4DE838C3FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remmote.Shell.Interrupt.Storehouse.Infrastructure", "src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure.csproj", "{D9D658CC-A406-4F6C-ABD9-216F7EAEC929}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,18 +35,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8980A587-0242-40B8-9654-F87FA95851C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8980A587-0242-40B8-9654-F87FA95851C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F45EBEEC-3163-4D9A-8094-08566E831A7E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -77,25 +55,19 @@ Global
 		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C061EFC8-46B5-420B-B703-F35C7E2383A5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{474DFBD0-4904-43EB-AE87-D69AEE4487A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{474DFBD0-4904-43EB-AE87-D69AEE4487A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{474DFBD0-4904-43EB-AE87-D69AEE4487A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{474DFBD0-4904-43EB-AE87-D69AEE4487A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D658CC-A406-4F6C-ABD9-216F7EAEC929}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D658CC-A406-4F6C-ABD9-216F7EAEC929}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D658CC-A406-4F6C-ABD9-216F7EAEC929}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D658CC-A406-4F6C-ABD9-216F7EAEC929}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{DC597FCA-A704-4F7E-99A9-F396C52766C0} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
-		{DD38BA56-D85C-45BB-99E0-7E7A5BD59C49} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
-		{8980A587-0242-40B8-9654-F87FA95851C5} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
-		{1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
-		{FB65E1A2-D28D-4D16-81C5-FEAD480A3795} = {1D78849D-6CA2-4D89-B4DF-3CB527ECEE3C}
-		{F45EBEEC-3163-4D9A-8094-08566E831A7E} = {DC597FCA-A704-4F7E-99A9-F396C52766C0}
 		{1A76D11A-2F7A-46F4-ACF5-7B562675F621} = {C149A62E-BA32-43E1-86F9-F45ED6DB1B66}
 		{DBAE776F-9CD0-43F0-8778-84ED0B9EC9C9} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
 		{497D5FDA-6FD8-4614-8101-A6D539B2348A} = {1A76D11A-2F7A-46F4-ACF5-7B562675F621}
@@ -104,9 +76,10 @@ Global
 		{F720DD07-B59E-4087-BDD5-B6835C37A1B9} = {32467CE4-7749-4884-AECB-94184ABCEE2B}
 		{0F9BCECD-D669-4A5D-AE4B-532979261F31} = {32467CE4-7749-4884-AECB-94184ABCEE2B}
 		{C061EFC8-46B5-420B-B703-F35C7E2383A5} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
-		{535ADF67-B9C4-41D9-83C2-EC3705A2EDB9} = {DD38BA56-D85C-45BB-99E0-7E7A5BD59C49}
 		{4DECAAA6-8893-4814-B764-52E2E58986B0} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
 		{474DFBD0-4904-43EB-AE87-D69AEE4487A9} = {4DECAAA6-8893-4814-B764-52E2E58986B0}
+		{3A44B376-0AC3-406D-BCC0-AB4DE838C3FC} = {08D9B619-252C-4306-85A9-1F1774E0FAE6}
+		{D9D658CC-A406-4F6C-ABD9-216F7EAEC929} = {3A44B376-0AC3-406D-BCC0-AB4DE838C3FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1663DF7B-013E-449A-829E-96D35A935AE9}

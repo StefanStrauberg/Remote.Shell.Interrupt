@@ -28,7 +28,8 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
     var businessRules = await _businessRuleRepository.GetAllAsync(cancellationToken);
 
     // convert input data to BusinessRule model
-    var addingRule = request.Adapt<BusinessRule>();
+    var addingRule = request.CreateBusinessRuleDTO
+                            .Adapt<BusinessRule>();
 
     addingRule.Created = DateTime.Now;
     addingRule.Modified = DateTime.Now;

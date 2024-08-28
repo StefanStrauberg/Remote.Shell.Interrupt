@@ -1,12 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;
 
 public record UpdateNetworkDeviceCommand(Guid Id,
-                                         IPAddress Host,
-                                         string Vendor,
-                                         string Model,
-                                         string SoftwareVersion,
-                                         GatewayLevel GatewayLevel,
-                                         ICollection<Interface> Interfaces) : ICommand;
+                                         UpdateNetworkDevice UpdateNetworkDevice) : ICommand;
 
 internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository)
   : ICommandHandler<UpdateNetworkDeviceCommand, Unit>
@@ -23,7 +18,8 @@ internal class UpdateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     if (!existingUpdatingNetworkDevice)
       throw new EntityNotFoundException(request.Id.ToString());
 
-    var updateNetworkDevice = request.Adapt<NetworkDevice>();
+    var updateNetworkDevice = request.UpdateNetworkDevice
+                                     .Adapt<NetworkDevice>();
 
     await _networkDeviceRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.Id,
                                                    document: updateNetworkDevice,

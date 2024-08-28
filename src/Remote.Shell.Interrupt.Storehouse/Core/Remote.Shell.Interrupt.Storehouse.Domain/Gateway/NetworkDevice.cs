@@ -7,5 +7,5 @@ public class NetworkDevice : BaseEntity
   // Set manually
   public string Name { get; set; } = string.Empty; // "Huawei"
   // Navigation properties
-  public ICollection<Interface> Interfaces { get; set; } = [];
+  public ICollection<Port> Ports { get; set; } = [];
 }

@@ -6,6 +6,6 @@ global using Remote.Shell.Interrupt.Storehouse.Persistence.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
-global using Remote.Shell.Interrupt.Storehouse.Domain.Entity;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Options;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Work;
