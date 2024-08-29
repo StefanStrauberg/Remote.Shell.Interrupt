@@ -11,30 +11,30 @@ internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRe
   async Task<Unit> IRequestHandler<CreateAssignmentCommand, Unit>.Handle(CreateAssignmentCommand request,
                                                                          CancellationToken cancellationToken)
   {
-    // The name should be unique
+    // Создание фильтра для проверки уникальности имени назначения
     Expression<Func<Assignment, bool>> filter = x => x.Name == request.CreateAssignmentDTO
                                                                       .Name;
-    // Check if an adding assignment is existing by name
+    // Проверка существует ли уже назначение с таким именем
     var existingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: filter,
                                                                      cancellationToken: cancellationToken);
-    // If an adding assignment exists
-    // throw EntityAlreadyExists exception
-    if (existingAssignment)
-    {
-      var errorMessage = new ExpressionToStringConverter<Assignment>().Convert(filter);
-      throw new EntityAlreadyExists(errorMessage);
-    }
 
-    // convert an inputing dto to domain model 
+    // Если назначение с таким именем уже существует, выбрасываем исключение
+    if (existingAssignment)
+      throw new EntityAlreadyExists(new ExpressionToStringConverter<Assignment>().Convert(filter));
+
+    // Преобразование DTO в доменную модель назначения
     var assignment = request.CreateAssignmentDTO
                             .Adapt<Assignment>();
 
+    // Установка даты создания и последнего изменения
     assignment.Created = DateTime.Now;
     assignment.Modified = DateTime.Now;
 
+    // Вставка нового назначения в репозиторий
     await _assignmentRepository.InsertOneAsync(document: assignment,
                                                cancellationToken: cancellationToken);
 
+    // Возврат успешного завершения операции
     return Unit.Value;
   }
 }

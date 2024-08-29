@@ -12,17 +12,19 @@ internal class DeleteAssignmentByExpressionCommandHandler(IAssignmentRepository 
   async Task<Unit> IRequestHandler<DeleteAssignmentByExpressionCommand, Unit>.Handle(DeleteAssignmentByExpressionCommand request,
                                                                                      CancellationToken cancellationToken)
   {
+    // Проверка существует ли назначение, соответствующее выражению фильтра
     var existingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: request.FilterExpression,
                                                                      cancellationToken: cancellationToken);
 
+    // Если назначение не найдено, выбрасываем исключение
     if (!existingAssignment)
-    {
-      var errorMessage = new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression);
-      throw new EntityNotFoundException(errorMessage);
-    }
+      throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression));
 
+    // Удаление назначения из репозитория
     await _assignmentRepository.DeleteOneAsync(filterExpression: request.FilterExpression,
                                                cancellationToken: cancellationToken);
+
+    // Возврат успешного завершения операции
     return Unit.Value;
   }
 }

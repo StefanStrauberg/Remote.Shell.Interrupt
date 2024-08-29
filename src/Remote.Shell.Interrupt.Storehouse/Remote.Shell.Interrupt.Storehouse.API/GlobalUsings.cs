@@ -14,3 +14,5 @@ global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecut
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.AssignmentDTOs;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.BusinessRuleDTOs;
 global using Remmote.Shell.Interrupt.Storehouse.Infrastructure;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDeviceDTOs;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices;

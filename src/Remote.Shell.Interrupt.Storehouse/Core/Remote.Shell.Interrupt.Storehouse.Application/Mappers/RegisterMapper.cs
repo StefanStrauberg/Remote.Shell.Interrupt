@@ -19,6 +19,12 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Children, src => src.Children)
                   .Map(dst => dst.AssignmentId, src => src.AssignmentId);
 
+            config.NewConfig<NetworkDevice, NetworkDeviceDTO>()
+                  .Map(dst => dst.Id, src => src.Id)
+                  .Map(dst => dst.Name, src => src.Name)
+                  .Map(dst => dst.GeneralInformation, src => src.GeneralInformation)
+                  .Map(dst => dst.Ports, src => src.Ports);
+
             config.NewConfig<CreateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.TypeOfRequest, src => src.TypeOfRequest)
@@ -42,10 +48,5 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Name, src => src.Name)
                   .Map(dst => dst.Condition, src => src.Condition)
                   .Map(dst => dst.AssignmentId, src => src.AssignmentId);
-
-            config.NewConfig<UpdateNetworkDevice, NetworkDevice>()
-                  .Map(dst => dst.Id, src => src.Id)
-                  .Map(dst => dst.Host, src => src.Host)
-                  .Map(dst => dst.Ports, src => src.Ports);
       }
 }

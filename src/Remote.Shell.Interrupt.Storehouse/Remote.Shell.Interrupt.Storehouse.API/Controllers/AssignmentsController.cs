@@ -7,7 +7,6 @@ public class AssignmentsController(ISender sender) : BaseAPIController
 
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<AssignmentDTO>), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetAssignments(CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetAssignmentsQuery(),
                              cancellationToken));

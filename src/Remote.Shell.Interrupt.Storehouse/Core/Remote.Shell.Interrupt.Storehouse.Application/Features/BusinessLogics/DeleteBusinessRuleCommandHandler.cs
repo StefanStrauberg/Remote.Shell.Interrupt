@@ -12,48 +12,55 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
   async Task<Unit> IRequestHandler<DeleteBusinessRuleByExpressionCommand, Unit>.Handle(DeleteBusinessRuleByExpressionCommand request,
                                                                                        CancellationToken cancellationToken)
   {
-    var businessRuleToDelete = await _businessRuleRepository.FindOneAsync(request.FilterExpression, cancellationToken)
+    // Найти сущность, которую нужно удалить, по фильтру из команды
+    var businessRuleToDelete = await _businessRuleRepository.FindOneAsync(request.FilterExpression,
+                                                                          cancellationToken)
       ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(request.FilterExpression));
 
-    // Если узел имеет дочерние узлы
-    if (businessRuleToDelete.Children.Any())
+    // Проверить, есть ли у сущности родитель
+    if (businessRuleToDelete.ParentId != null)
     {
-      // Если у узла есть родитель
-      if (businessRuleToDelete.ParentId != null)
+      // Создать фильтр для поиска родительской сущности
+      var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == businessRuleToDelete.ParentId);
+      var parentBusinessRule = await _businessRuleRepository.FindOneAsync(parentFilter, cancellationToken);
+
+      // Если родительская сущность найдена
+      if (parentBusinessRule != null)
       {
-        // Найти родительский узел
-        var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == businessRuleToDelete.ParentId);
-        var parentBusinessRule = await _businessRuleRepository.FindOneAsync(parentFilter, cancellationToken);
+        // Удалить ID текущей сущности из списка дочерних узлов родителя
+        parentBusinessRule.Children.Remove(businessRuleToDelete.Id);
 
-        if (parentBusinessRule != null)
-        {
-          // Удалить ID текущего узла из дочерних узлов родителя
-          parentBusinessRule.Children.Remove(businessRuleToDelete.Id);
-
-          // Добавить ID дочерних узлов к родителю
+        // Если текущая сущность имеет дочерние узлы, добавить их к родителю
+        if (businessRuleToDelete.Children.Count != 0)
           parentBusinessRule.Children.AddRange(businessRuleToDelete.Children.Select(child => child));
 
-          // Обновить родительский узел
-          await _businessRuleRepository.ReplaceOneAsync(parentFilter, parentBusinessRule, cancellationToken);
-        }
-      }
-
-      // Обновить дочерние узлы, чтобы установить их нового родителя
-      foreach (var childId in businessRuleToDelete.Children.Select(child => child))
-      {
-        var childFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == childId);
-        var childBusinessRule = await _businessRuleRepository.FindOneAsync(childFilter, cancellationToken);
-
-        if (childBusinessRule != null)
-        {
-          childBusinessRule.ParentId = businessRuleToDelete.ParentId;
-          await _businessRuleRepository.ReplaceOneAsync(childFilter, childBusinessRule, cancellationToken);
-        }
+        // Сохранить изменения в родительской сущности
+        await _businessRuleRepository.ReplaceOneAsync(parentFilter, parentBusinessRule, cancellationToken);
       }
     }
 
+    // Обновить дочерние узлы текущей сущности, чтобы установить их нового родителя
+    foreach (var childId in businessRuleToDelete.Children.Select(child => child))
+    {
+      // Создать фильтр для поиска дочерней сущности
+      var childFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == childId);
+      var childBusinessRule = await _businessRuleRepository.FindOneAsync(childFilter, cancellationToken);
+
+      // Если дочерняя сущность найдена
+      if (childBusinessRule != null)
+      {
+        // Установить родителя для дочерней сущности
+        childBusinessRule.ParentId = businessRuleToDelete.ParentId;
+        // Сохранить изменения в дочерней сущности
+        await _businessRuleRepository.ReplaceOneAsync(childFilter, childBusinessRule, cancellationToken);
+      }
+    }
+
+    // Удалить текущую сущность из репозитория
     await _businessRuleRepository.DeleteOneAsync(filterExpression: request.FilterExpression,
                                                  cancellationToken: cancellationToken);
+
+    // Возвратить успешное завершение операции
     return Unit.Value;
   }
 }

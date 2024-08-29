@@ -7,7 +7,6 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
 
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<BusinessRuleDTO>), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetBusinessRules(CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetBusinessRulesQuery(),
                              cancellationToken));
