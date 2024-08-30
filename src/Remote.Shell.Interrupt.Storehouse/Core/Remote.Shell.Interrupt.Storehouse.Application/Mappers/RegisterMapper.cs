@@ -21,9 +21,9 @@ public class RegisterMapper : IRegister
 
             config.NewConfig<NetworkDevice, NetworkDeviceDTO>()
                   .Map(dst => dst.Id, src => src.Id)
-                  .Map(dst => dst.Name, src => src.Name)
+                  .Map(dst => dst.Name, src => src.NetworkDeviceName)
                   .Map(dst => dst.GeneralInformation, src => src.GeneralInformation)
-                  .Map(dst => dst.Ports, src => src.Ports);
+                  .Map(dst => dst.Ports, src => src.PortsOfNetworkDevice);
 
             config.NewConfig<CreateAssignmentDTO, Assignment>()
                   .Map(dst => dst.Name, src => src.Name)

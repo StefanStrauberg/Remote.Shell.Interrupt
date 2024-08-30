@@ -1,0 +1,1 @@
+global using Microsoft.CodeAnalysis.CSharp.Scripting;

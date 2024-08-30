@@ -20,26 +20,34 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: x => x.Host == request.Host,
+    var filterNetworkDevice = (Expression<Func<NetworkDevice, bool>>)(x => x.Host == request.Host);
+    var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: filterNetworkDevice,
                                                                            cancellationToken: cancellationToken);
 
     // If a Network Device exists throw EntityAlreadyExists exception
     if (existingNetworkDevice)
       throw new EntityAlreadyExists(request.Host.ToString());
 
-    var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
     var networkDevice = new NetworkDevice() { };
+    var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
+    var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
-    // foreach (var businessRule in businessRules)
-    // {
-    //   // TODO: implement business rule logic
-    //   if (condifion)
-    //   {
+    foreach (var businessRule in businessRules)
+    {
+      bool result = await businessRule.EvaluateConditionAsync(networkDevice);
 
-    //   }
-    // }
+      if (result)
+      {
+        // TODO work
+      }
+      else
+      {
+        // TODO work
+      }
+    }
 
-    await _networkDeviceRepository.InsertOneAsync(networkDevice, cancellationToken);
+    await _networkDeviceRepository.InsertOneAsync(networkDevice,
+                                                  cancellationToken);
 
     return Unit.Value;
   }
