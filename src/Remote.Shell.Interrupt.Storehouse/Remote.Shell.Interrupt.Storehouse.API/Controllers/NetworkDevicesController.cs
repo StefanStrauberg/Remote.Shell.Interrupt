@@ -18,4 +18,11 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                                                         CancellationToken cancellationToken)
   => Ok(await _sender.Send(new GetNetworkDeviceByExpressionQuery(x => x.Id == id),
                            cancellationToken));
+
+  [HttpPost]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  public async Task<IActionResult> CreateNetworkDevice(CreateNetworkDeviceCommand createNetworkDeviceCommand,
+                                                      CancellationToken cancellationToken)
+    => Ok(await _sender.Send(createNetworkDeviceCommand,
+                             cancellationToken));
 }

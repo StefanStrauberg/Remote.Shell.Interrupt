@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-internal class AssignmentRepository(IMongoDbSettings settings)
-  : GenericRepository<Assignment>(settings), IAssignmentRepository
+internal class AssignmentRepository(IDocumentSession session)
+  : GenericRepository<Assignment>(session), IAssignmentRepository
 {
 }

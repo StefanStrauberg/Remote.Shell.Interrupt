@@ -2,12 +2,13 @@
 
 public static class PersistenceServicesRegistration
 {
-  public static IServiceCollection AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
+  public static IServiceCollection AddPersistenceServices(this IServiceCollection services,
+                                                          IConfiguration configuration)
   {
-    services.Configure<MongoDbSettings>(configuration.GetSection("MongoDbSettings"));
-
-    services.AddSingleton<IMongoDbSettings>(serviceProvider =>
-        serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+    services.AddMarten(options =>
+      {
+        options.Connection(configuration.GetConnectionString("DefaultConnection")!);
+      }).UseLightweightSessions();
 
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     services.AddScoped<IAssignmentRepository, AssignmentRepository>();

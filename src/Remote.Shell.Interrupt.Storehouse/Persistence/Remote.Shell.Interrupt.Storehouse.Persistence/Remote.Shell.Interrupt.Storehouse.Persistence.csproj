@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDb.Driver" Version="2.28.0" />
+    <PackageReference Include="Marten" Version="7.26.4" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -51,7 +51,7 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
     updatingBusinessRule.Id = request.Id;
     updatingBusinessRule.Modified = DateTime.UtcNow;
     // Сохранение родительского ID, время создания и списка дочерних узлов оригинального бизнес-правила
-    updatingBusinessRule.Created = originalBusinessRule.Created;
+    updatingBusinessRule.Created = originalBusinessRule!.Created;
     updatingBusinessRule.ParentId = originalBusinessRule.ParentId;
     updatingBusinessRule.Children = originalBusinessRule.Children;
     updatingBusinessRule.AssignmentId = request.UpdateBusinessRule.AssignmentId;
