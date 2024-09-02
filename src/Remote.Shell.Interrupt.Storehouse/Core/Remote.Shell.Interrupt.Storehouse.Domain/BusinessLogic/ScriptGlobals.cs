@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
 
-internal class ScriptGlobals
+public class ScriptGlobals
 {
   // BaseEntity properties
   public Guid Id { get; set; }

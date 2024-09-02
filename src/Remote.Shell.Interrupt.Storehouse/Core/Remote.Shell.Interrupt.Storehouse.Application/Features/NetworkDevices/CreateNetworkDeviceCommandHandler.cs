@@ -28,34 +28,49 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     if (existingNetworkDevice)
       throw new EntityAlreadyExists(request.Host.ToString());
 
+    // Create new instance of NetworkDevice and set NetworkDeviceName property of it
     var networkDevice = new NetworkDevice
     {
       NetworkDeviceName = request.NetworkDeviceName
     };
+    // Get all assignments and business rules
     var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
     var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
+    // walktrhough business rules
     foreach (var businessRule in businessRules.DistinctBy(x => x.Created))
     {
-      bool result = true;
+      // default value of EvaluateCondition is true
+      bool resultOfEvaluateCondition = true;
 
       if (businessRule.Condition is not null)
-        result = await businessRule.EvaluateConditionAsync(networkDevice);
+        resultOfEvaluateCondition = await businessRule.EvaluateConditionAsync(networkDevice);
 
-      if (result)
+      if (resultOfEvaluateCondition)
       {
-        var assigment = assignments.FirstOrDefault(x => x.Id == businessRule.AssignmentId);
-        var valueToSet = await _SNMPCommandExecutor.GetCommand(host: request.Host,
-                                                               community: request.Community,
-                                                               oid: assigment!.OID,
-                                                               cancellationToken: cancellationToken);
-        _ = HandleAssignmentAsync(networkDevice, assigment, valueToSet.Data);
-        // TODO work 1
+        var assigment = assignments.Single(x => x.Id == businessRule.AssignmentId);
+
+        switch (assigment.TypeOfRequest)
+        {
+          case TypeOfRequest.get:
+            var singleValueToSet = await _SNMPCommandExecutor.GetCommand(host: request.Host,
+                                                                         community: request.Community,
+                                                                         oid: assigment!.OID,
+                                                                         cancellationToken: cancellationToken);
+            HandleAssignmentAsync(networkDevice: networkDevice,
+                                  assignment: assigment,
+                                  valueToSet: singleValueToSet.Data);
+            break;
+          case TypeOfRequest.walk:
+            var multiplyValuesToSet = await _SNMPCommandExecutor.WalkCommand(host: request.Host,
+                                                                             community: request.Community,
+                                                                             oid: assigment!.OID,
+                                                                             cancellationToken: cancellationToken);
+            break;
+        }
       }
       else
-      {
-        // TODO work 2
-      }
+        continue;
     }
 
     await _networkDeviceRepository.InsertOneAsync(networkDevice,
@@ -63,30 +78,26 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     return Unit.Value;
   }
-  public static async Task HandleAssignmentAsync(NetworkDevice networkDevice, Assignment assignment, string valueToSet)
+  public static void HandleAssignmentAsync(NetworkDevice networkDevice,
+                                           Assignment assignment,
+                                           string valueToSet)
   {
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
-    {
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
-    }
 
-    // Получаем тип NetworkDevice
+    // Get type of NetworkDevice
     var deviceType = typeof(NetworkDevice);
 
-    // Получаем свойство по имени
-    var property = deviceType.GetProperty(assignment.TargetFieldName, BindingFlags.Public | BindingFlags.Instance);
+    // Get properties by names
+    var property = deviceType.GetProperty(name: assignment.TargetFieldName,
+                                          bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+      ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {deviceType.Name}.");
 
-    if (property == null)
-    {
-      throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {deviceType.Name}.");
-    }
-
-    // Устанавливаем значение свойства
-    // Конвертируем значение в нужный тип
-    var convertedValue = Convert.ChangeType(valueToSet, property.PropertyType);
-    property.SetValue(networkDevice, convertedValue);
-
-    // Дополнительные действия после установки значения, если необходимо
-    await Task.CompletedTask;
+    // Set values to properties and
+    // Convert values to necessary types
+    var convertedValue = Convert.ChangeType(value: valueToSet,
+                                            conversionType: property.PropertyType);
+    property.SetValue(obj: networkDevice,
+                      value: convertedValue);
   }
 }
