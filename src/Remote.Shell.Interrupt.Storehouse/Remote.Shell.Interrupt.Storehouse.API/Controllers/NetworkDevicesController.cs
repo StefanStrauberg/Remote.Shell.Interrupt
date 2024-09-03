@@ -25,4 +25,12 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                                                       CancellationToken cancellationToken)
     => Ok(await _sender.Send(createNetworkDeviceCommand,
                              cancellationToken));
+
+  [HttpDelete("{id}")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> DeleteNetworkDeviceById(Guid id,
+                                                           CancellationToken cancellationToken)
+    => Ok(await _sender.Send(new DeleteNetworkDeviceByExpressionCommand(x => x.Id == id),
+                             cancellationToken));
 }

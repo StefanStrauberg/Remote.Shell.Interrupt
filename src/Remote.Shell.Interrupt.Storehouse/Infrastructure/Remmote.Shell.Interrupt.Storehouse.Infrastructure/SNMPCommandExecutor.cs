@@ -2,10 +2,10 @@ namespace Remmote.Shell.Interrupt.Storehouse.Infrastructure;
 
 internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 {
-    async Task<IEnumerable<SNMPResponse>> ISNMPCommandExecutor.WalkCommand(string host,
-                                                                   string community,
-                                                                   string oid,
-                                                                   CancellationToken cancellationToken)
+    async Task<List<SNMPResponse>> ISNMPCommandExecutor.WalkCommand(string host,
+                                                                    string community,
+                                                                    string oid,
+                                                                    CancellationToken cancellationToken)
     {
         List<SNMPResponse> result = [];
 

@@ -31,7 +31,8 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     // Create new instance of NetworkDevice and set NetworkDeviceName property of it
     var networkDevice = new NetworkDevice
     {
-      NetworkDeviceName = request.NetworkDeviceName
+      NetworkDeviceName = request.NetworkDeviceName,
+      Host = IPAddress.Parse(request.Host)
     };
     // Get all assignments and business rules
     var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
@@ -53,19 +54,24 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         switch (assigment.TypeOfRequest)
         {
           case TypeOfRequest.get:
-            var singleValueToSet = await _SNMPCommandExecutor.GetCommand(host: request.Host,
-                                                                         community: request.Community,
-                                                                         oid: assigment!.OID,
-                                                                         cancellationToken: cancellationToken);
-            HandleAssignmentAsync(networkDevice: networkDevice,
-                                  assignment: assigment,
-                                  valueToSet: singleValueToSet.Data);
+            var singleValueToSet = (await _SNMPCommandExecutor.GetCommand(host: request.Host,
+                                                                          community: request.Community,
+                                                                          oid: assigment!.OID,
+                                                                          cancellationToken: cancellationToken)).Data;
+            HandleAssignment(networkDevice: networkDevice,
+                             assignment: assigment,
+                             valueToSet: singleValueToSet);
             break;
           case TypeOfRequest.walk:
-            var multiplyValuesToSet = await _SNMPCommandExecutor.WalkCommand(host: request.Host,
-                                                                             community: request.Community,
-                                                                             oid: assigment!.OID,
-                                                                             cancellationToken: cancellationToken);
+            var multiplyValuesToSet = (await _SNMPCommandExecutor.WalkCommand(host: request.Host,
+                                                                              community: request.Community,
+                                                                              oid: assigment!.OID,
+                                                                              cancellationToken: cancellationToken))
+                                                                 .Select(x => x.Data)
+                                                                 .ToList();
+            HandleAssignment(networkDevice: networkDevice,
+                             assignment: assigment,
+                             valueToSet: multiplyValuesToSet);
             break;
         }
       }
@@ -78,9 +84,9 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     return Unit.Value;
   }
-  public static void HandleAssignmentAsync(NetworkDevice networkDevice,
-                                           Assignment assignment,
-                                           string valueToSet)
+  public static void HandleAssignment(NetworkDevice networkDevice,
+                                      Assignment assignment,
+                                      string valueToSet)
   {
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
@@ -99,5 +105,146 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                             conversionType: property.PropertyType);
     property.SetValue(obj: networkDevice,
                       value: convertedValue);
+  }
+
+  public static void HandleAssignment(NetworkDevice networkDevice,
+                                      Assignment assignment,
+                                      List<string> valueToSet)
+  {
+    if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
+      throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
+
+    var ports = networkDevice.PortsOfNetworkDevice.Count == 0 ? new List<Port>(valueToSet.Count) : networkDevice.PortsOfNetworkDevice;
+
+    var portType = typeof(Port);
+    PropertyInfo property;
+
+    // Handle multiple value assignment
+    switch (assignment.TargetFieldName)
+    {
+      case "InterfaceNumber":
+        property = portType.GetProperty(name: assignment.TargetFieldName,
+                                        bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+          ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
+
+        if (ports.Count == 0)
+        {
+          foreach (var value in valueToSet)
+          {
+            var port = new Port
+            {
+              Id = new Guid(),
+              Created = DateTime.UtcNow,
+              Modified = DateTime.UtcNow,
+            };
+
+            ports.Add(port);
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: value,
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: port,
+                              value: convertedValue);
+          }
+        }
+        else
+        {
+          for (int i = 0; i < ports.Count; i++)
+          {
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: valueToSet[i],
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: ports[i],
+                              value: convertedValue);
+          }
+        }
+        networkDevice.PortsOfNetworkDevice = ports;
+        break;
+
+      case "PortName":
+        property = portType.GetProperty(name: assignment.TargetFieldName,
+                                            bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+          ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
+
+        if (ports.Count == 0)
+        {
+          foreach (var value in valueToSet)
+          {
+            var port = new Port
+            {
+              Id = new Guid(),
+              Created = DateTime.UtcNow,
+              Modified = DateTime.UtcNow,
+            };
+
+            ports.Add(port);
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: value,
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: port,
+                              value: convertedValue);
+          }
+        }
+        else
+        {
+          for (int i = 0; i < ports.Count; i++)
+          {
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: valueToSet[i],
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: ports[i],
+                              value: convertedValue);
+          }
+        }
+        networkDevice.PortsOfNetworkDevice = ports;
+        break;
+
+      case "SpeedOfPort":
+        property = portType.GetProperty(name: assignment.TargetFieldName,
+                                            bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+          ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
+
+        if (ports.Count == 0)
+        {
+          foreach (var value in valueToSet)
+          {
+            var port = new Port
+            {
+              Id = new Guid(),
+              Created = DateTime.UtcNow,
+              Modified = DateTime.UtcNow,
+            };
+
+            ports.Add(port);
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: value,
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: port,
+                              value: convertedValue);
+          }
+        }
+        else
+        {
+          for (int i = 0; i < ports.Count; i++)
+          {
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: valueToSet[i],
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: ports[i],
+                              value: convertedValue);
+          }
+        }
+        networkDevice.PortsOfNetworkDevice = ports;
+        break;
+
+      // Add additional cases as needed for other collections
+      default:
+        throw new InvalidOperationException($"Unhandled TargetFieldName '{assignment.TargetFieldName}' for collection processing.");
+    }
   }
 }
