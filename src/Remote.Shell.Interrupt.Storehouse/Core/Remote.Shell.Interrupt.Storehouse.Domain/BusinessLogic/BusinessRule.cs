@@ -7,6 +7,7 @@ public class BusinessRule : BaseEntity
   public Guid? ParentId { get; set; }
   public List<Guid> Children { get; set; } = [];
   public Guid? AssignmentId { get; set; } // Represent what to do
+  public bool IsRoot { get; set; }
 
   public async Task<bool> EvaluateConditionAsync(object contextObject)
   {

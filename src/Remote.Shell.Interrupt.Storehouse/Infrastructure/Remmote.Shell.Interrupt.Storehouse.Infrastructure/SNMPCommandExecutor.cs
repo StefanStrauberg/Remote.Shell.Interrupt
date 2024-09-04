@@ -11,35 +11,53 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
         try
         {
-            ObjectIdentifier targetOid = new(oid);
-            IList<Variable> list = [];
+            var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+            var communityString = new OctetString(community);
 
-            var response = await Messenger.WalkAsync(version: VersionCode.V2, // SNMP version
-                                                     endpoint: new IPEndPoint(IPAddress.Parse(host), 161), // SNMP agent endpoint
-                                                     community: new OctetString(community), // SNMP community string
-                                                     table: targetOid, // Starting OID for the walk operation
-                                                     list: list, // empty list since the variables are handled in the handler
-                                                     mode: WalkMode.WithinSubtree,
-                                                     token: cancellationToken); // Walk mode (e.g., WithinSubtree)
-
-            foreach (var item in list)
+            var agentParams = new AgentParameters(communityString)
             {
-                // The media-dependent `physical' address. 
-                if (oid == "1.3.6.1.2.1.4.22.1.2")
+                Version = SnmpVersion.Ver2
+            };
+
+            var pdu = new Pdu(PduType.GetBulk)
+            {
+                MaxRepetitions = 10
+            };
+
+            pdu.VbList.Add(new Oid(oid));
+
+            var response = await Task.Run(() =>
+            {
+                try
                 {
-                    result.Add(new SNMPResponse()
-                    {
-                        OID = item.Id.ToString(),
-                        Data = ConvertToMacAddress(item.Data.ToBytes()),
-                    });
+                    return target.Request(pdu, agentParams);
                 }
-                else
+                catch (Exception ex)
                 {
-                    result.Add(new SNMPResponse()
+                    throw new Exception("SNMP request failed", ex);
+                }
+            }, cancellationToken);
+
+            if (response != null && response.Pdu.VbList.Count > 0)
+            {
+                foreach (Vb item in response.Pdu.VbList)
+                {
+                    if (oid == "1.3.6.1.2.1.4.22.1.2") // Пример проверки OID
                     {
-                        OID = item.Id.ToString(),
-                        Data = item.Data.ToString(),
-                    });
+                        result.Add(new SNMPResponse()
+                        {
+                            OID = item.Oid.ToString(),
+                            Data = ConvertToMacAddress(item.Value.ToString())
+                        });
+                    }
+                    else
+                    {
+                        result.Add(new SNMPResponse()
+                        {
+                            OID = item.Oid.ToString(),
+                            Data = item.Value.ToString()
+                        });
+                    }
                 }
             }
         }
@@ -51,13 +69,15 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         return result;
     }
 
-    static string ConvertToMacAddress(byte[] bytes)
+    static string ConvertToMacAddress(string value)
     {
-        //if (bytes.Length != 6) throw new ArgumentException("Invalid MAC address length");
+        var bytes = value.Split(':')
+                             .Select(s => Convert.ToByte(s, 16))
+                             .ToArray();
 
-        return string.Join(":", bytes.Skip(2)
-                                     .ToArray()
-                                     .Select(b => b.ToString("X2")));
+        if (bytes.Length != 6) throw new ArgumentException("Invalid MAC address length");
+
+        return string.Join(":", bytes.Select(b => b.ToString("X2")));
     }
 
     async Task<SNMPResponse> ISNMPCommandExecutor.GetCommand(string host,
@@ -69,21 +89,36 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
         try
         {
-            IList<Variable> variables = [new Variable(new ObjectIdentifier(oid))];
+            var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+            var communityString = new OctetString(community);
 
-            var response = await Messenger.GetAsync(version: VersionCode.V2, // SNMP version
-                                                    endpoint: new IPEndPoint(IPAddress.Parse(host), 161), // SNMP agent endpoint
-                                                    community: new OctetString(community), // SNMP community string
-                                                    variables: variables,
-                                                    token: cancellationToken);
-
-            if (response is not null)
+            var agentParams = new AgentParameters(communityString)
             {
-                var item = response.FirstOrDefault();
-                if (item is not null)
+                Version = SnmpVersion.Ver2
+            };
+
+            var pdu = new Pdu(PduType.Get);
+            pdu.VbList.Add(new Oid(oid));
+
+            var response = await Task.Run(() =>
+            {
+                try
                 {
-                    result.OID = item.Id.ToString();
-                    result.Data = item.Data.ToString();
+                    return target.Request(pdu, agentParams);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("SNMP request failed", ex);
+                }
+            }, cancellationToken);
+
+            if (response != null && response.Pdu.VbList.Count > 0)
+            {
+                var item = response.Pdu.VbList.FirstOrDefault();
+                if (item != null)
+                {
+                    result.OID = item.Oid.ToString();
+                    result.Data = item.Value.ToString();
                 }
             }
         }

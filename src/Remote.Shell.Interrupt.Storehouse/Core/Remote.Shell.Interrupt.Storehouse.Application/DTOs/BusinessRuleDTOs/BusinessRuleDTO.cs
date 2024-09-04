@@ -8,4 +8,5 @@ public class BusinessRuleDTO
   public Guid? ParentId { get; set; }
   public List<Guid> Children { get; set; } = [];
   public Guid? AssignmentId { get; set; } // Represent what to do
+  public bool IsRoot { get; set; }
 }

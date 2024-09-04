@@ -31,10 +31,19 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
     // Преобразование DTO в сущность бизнес-правила
     var addingRule = request.CreateBusinessRuleDTO
                             .Adapt<BusinessRule>();
+    var isRoot = (await _businessRuleRepository.GetAllAsync(cancellationToken)).Any();
 
     // Установка даты создания и последнего изменения
     addingRule.Created = DateTime.UtcNow;
     addingRule.Modified = DateTime.UtcNow;
+
+    if (!isRoot)
+    {
+      addingRule.IsRoot = true;
+      addingRule.ParentId = null;
+    }
+    else
+      addingRule.IsRoot = false;
 
     // Проверка наличия родительского бизнес-правила
     if (request.CreateBusinessRuleDTO.ParentId != null)

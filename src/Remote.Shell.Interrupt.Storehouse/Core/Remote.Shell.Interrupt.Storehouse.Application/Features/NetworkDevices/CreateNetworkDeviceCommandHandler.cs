@@ -24,69 +24,89 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: filterNetworkDevice,
                                                                            cancellationToken: cancellationToken);
 
-    // If a Network Device exists throw EntityAlreadyExists exception
     if (existingNetworkDevice)
       throw new EntityAlreadyExists(request.Host.ToString());
 
-    // Create new instance of NetworkDevice and set NetworkDeviceName property of it
     var networkDevice = new NetworkDevice
     {
       NetworkDeviceName = request.NetworkDeviceName,
       Host = IPAddress.Parse(request.Host)
     };
-    // Get all assignments and business rules
+
     var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
     var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
-    // walktrhough business rules
-    foreach (var businessRule in businessRules.DistinctBy(x => x.Created))
-    {
-      // default value of EvaluateCondition is true
-      bool resultOfEvaluateCondition = true;
+    if (!businessRules.Any())
+      throw new InvalidOperationException($"Busness Rules collection is empty.");
 
-      if (businessRule.Condition is not null)
-        resultOfEvaluateCondition = await businessRule.EvaluateConditionAsync(networkDevice);
+    var rootRule = businessRules.FirstOrDefault(x => x.IsRoot == true)
+      ?? throw new InvalidOperationException($"Busness Rules collection doesn't have root element.");
 
-      if (resultOfEvaluateCondition)
-      {
-        var assigment = assignments.Single(x => x.Id == businessRule.AssignmentId);
-
-        switch (assigment.TypeOfRequest)
-        {
-          case TypeOfRequest.get:
-            var singleValueToSet = (await _SNMPCommandExecutor.GetCommand(host: request.Host,
-                                                                          community: request.Community,
-                                                                          oid: assigment!.OID,
-                                                                          cancellationToken: cancellationToken)).Data;
-            HandleAssignment(networkDevice: networkDevice,
-                             assignment: assigment,
-                             valueToSet: singleValueToSet);
-            break;
-          case TypeOfRequest.walk:
-            var multiplyValuesToSet = (await _SNMPCommandExecutor.WalkCommand(host: request.Host,
-                                                                              community: request.Community,
-                                                                              oid: assigment!.OID,
-                                                                              cancellationToken: cancellationToken))
-                                                                 .Select(x => x.Data)
-                                                                 .ToList();
-            HandleAssignment(networkDevice: networkDevice,
-                             assignment: assigment,
-                             valueToSet: multiplyValuesToSet);
-            break;
-        }
-      }
-      else
-        continue;
-    }
+    await ProcessBusinessRuleTree(rootRule,
+                                  businessRules,
+                                  assignments,
+                                  networkDevice,
+                                  request,
+                                  cancellationToken);
 
     await _networkDeviceRepository.InsertOneAsync(networkDevice,
                                                   cancellationToken);
-
     return Unit.Value;
   }
-  public static void HandleAssignment(NetworkDevice networkDevice,
-                                      Assignment assignment,
-                                      string valueToSet)
+  async Task ProcessBusinessRuleTree(BusinessRule rule,
+                                     IEnumerable<BusinessRule> allRules,
+                                     IEnumerable<Assignment> assignments,
+                                     NetworkDevice networkDevice,
+                                     CreateNetworkDeviceCommand request,
+                                     CancellationToken cancellationToken)
+  {
+    // Evaluate the condition for the current rule
+    bool resultOfEvaluateCondition = rule.Condition == null || await rule.EvaluateConditionAsync(networkDevice);
+
+    if (resultOfEvaluateCondition)
+    {
+      if (rule.AssignmentId.HasValue)
+      {
+        var assignment = assignments.Single(x => x.Id == rule.AssignmentId.Value);
+
+        switch (assignment.TypeOfRequest)
+        {
+          case TypeOfRequest.get:
+            var singleValueToSet = (await _SNMPCommandExecutor.GetCommand(request.Host, request.Community, assignment.OID, cancellationToken)).Data;
+            HandleAssignment(networkDevice,
+                             assignment,
+                             singleValueToSet);
+            break;
+          case TypeOfRequest.walk:
+            var multiplyValuesToSet = (await _SNMPCommandExecutor.WalkCommand(request.Host, request.Community, assignment.OID, cancellationToken))
+                .Select(x => x.Data)
+                .ToList();
+            HandleAssignment(networkDevice,
+                             assignment,
+                             multiplyValuesToSet);
+            break;
+        }
+      }
+    }
+
+    // Recursively process child rules
+    foreach (var childId in rule.Children)
+    {
+      var childRule = allRules.FirstOrDefault(x => x.Id == childId);
+
+      if (childRule != null)
+        await ProcessBusinessRuleTree(childRule,
+                                      allRules,
+                                      assignments,
+                                      networkDevice,
+                                      request,
+                                      cancellationToken);
+    }
+  }
+
+  static void HandleAssignment(NetworkDevice networkDevice,
+                               Assignment assignment,
+                               string valueToSet)
   {
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
@@ -107,9 +127,9 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                       value: convertedValue);
   }
 
-  public static void HandleAssignment(NetworkDevice networkDevice,
-                                      Assignment assignment,
-                                      List<string> valueToSet)
+  static void HandleAssignment(NetworkDevice networkDevice,
+                               Assignment assignment,
+                               List<string> valueToSet)
   {
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
@@ -164,7 +184,47 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
       case "PortName":
         property = portType.GetProperty(name: assignment.TargetFieldName,
-                                            bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+                                        bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+          ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
+
+        if (ports.Count == 0)
+        {
+          foreach (var value in valueToSet)
+          {
+            var port = new Port
+            {
+              Id = new Guid(),
+              Created = DateTime.UtcNow,
+              Modified = DateTime.UtcNow,
+            };
+
+            ports.Add(port);
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: value,
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: port,
+                              value: convertedValue);
+          }
+        }
+        else
+        {
+          for (int i = 0; i < ports.Count; i++)
+          {
+            // Set values to properties and
+            // Convert values to necessary types
+            var convertedValue = Convert.ChangeType(value: valueToSet[i],
+                                                    conversionType: property.PropertyType);
+            property.SetValue(obj: ports[i],
+                              value: convertedValue);
+          }
+        }
+        networkDevice.PortsOfNetworkDevice = ports;
+        break;
+
+      case "InterfaceType":
+        property = portType.GetProperty(name: assignment.TargetFieldName,
+                                        bindingAttr: BindingFlags.Public | BindingFlags.Instance)
           ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
 
         if (ports.Count == 0)
@@ -204,7 +264,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
       case "SpeedOfPort":
         property = portType.GetProperty(name: assignment.TargetFieldName,
-                                            bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+                                        bindingAttr: BindingFlags.Public | BindingFlags.Instance)
           ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {portType.Name}.");
 
         if (ports.Count == 0)

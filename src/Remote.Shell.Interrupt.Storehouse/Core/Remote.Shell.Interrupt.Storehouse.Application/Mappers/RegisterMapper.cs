@@ -17,7 +17,8 @@ public class RegisterMapper : IRegister
                   .Map(dst => dst.Condition, src => src.Condition)
                   .Map(dst => dst.ParentId, src => src.ParentId)
                   .Map(dst => dst.Children, src => src.Children)
-                  .Map(dst => dst.AssignmentId, src => src.AssignmentId);
+                  .Map(dst => dst.AssignmentId, src => src.AssignmentId)
+                  .Map(dst => dst.IsRoot, src => src.IsRoot);
 
             config.NewConfig<NetworkDevice, NetworkDeviceDTO>()
                   .Map(dst => dst.Id, src => src.Id)

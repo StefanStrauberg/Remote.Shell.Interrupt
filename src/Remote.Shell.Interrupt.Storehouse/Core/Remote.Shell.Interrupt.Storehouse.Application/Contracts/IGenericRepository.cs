@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts;
 
 public interface IGenericRepository<TDocument> where TDocument : BaseEntity
 {
-  Task<IReadOnlyList<TDocument>> GetAllAsync(CancellationToken cancellationToken);
+  Task<IEnumerable<TDocument>> GetAllAsync(CancellationToken cancellationToken);
 
   Task<TDocument?> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression,
                                 CancellationToken cancellationToken);

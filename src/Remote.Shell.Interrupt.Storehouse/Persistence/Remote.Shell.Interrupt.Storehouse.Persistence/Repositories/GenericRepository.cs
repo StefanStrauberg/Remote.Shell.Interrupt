@@ -41,7 +41,7 @@ internal class GenericRepository<TDocument>(IDocumentSession session)
                      .FirstOrDefaultAsync(predicate: filterExpression,
                                           token: cancellationToken);
 
-  public virtual async Task<IReadOnlyList<TDocument>> GetAllAsync(CancellationToken cancellationToken)
+  public virtual async Task<IEnumerable<TDocument>> GetAllAsync(CancellationToken cancellationToken)
    => await _session.Query<TDocument>()
                     .ToListAsync(token: cancellationToken);
 
