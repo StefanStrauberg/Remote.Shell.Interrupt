@@ -20,13 +20,16 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
+    // Проверяем существует ли уже сетевое устройство с таким Host
     var filterNetworkDevice = (Expression<Func<NetworkDevice, bool>>)(x => x.Host == request.Host);
     var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: filterNetworkDevice,
                                                                            cancellationToken: cancellationToken);
 
+    // Если устройство уже существует, выбрасываем исключение
     if (existingNetworkDevice)
       throw new EntityAlreadyExists(request.Host);
 
+    // Создаем новое сетевое устройство
     var networkDevice = new NetworkDevice
     {
       NetworkDeviceName = request.NetworkDeviceName,
@@ -35,15 +38,19 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       Modified = DateTime.UtcNow
     };
 
+    // Получаем назначения и бизнес-правила
     var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
     var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
 
+    // Проверяем наличие бизнес-правил
     if (!businessRules.Any())
       throw new InvalidOperationException($"Busness Rules collection is empty.");
 
+    // Находим корневое бизнес-правило
     var rootRule = businessRules.FirstOrDefault(x => x.IsRoot == true)
       ?? throw new InvalidOperationException($"Busness Rules collection doesn't have root element.");
 
+    // Обрабатываем дерево бизнес-правил
     await ProcessBusinessRuleTree(rootRule,
                                   businessRules,
                                   assignments,
@@ -51,6 +58,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                   request,
                                   cancellationToken);
 
+    // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(networkDevice,
                                                   cancellationToken);
     return Unit.Value;
@@ -62,14 +70,17 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                      CreateNetworkDeviceCommand request,
                                      CancellationToken cancellationToken)
   {
+    // Проверяем условие бизнес-правила
     bool resultOfEvaluateCondition = rule.Condition == null || await rule.EvaluateConditionAsync(networkDevice);
 
+    // Если у бизнес-правила есть задание
     if (resultOfEvaluateCondition)
     {
       if (rule.AssignmentId.HasValue)
       {
         var assignment = assignments.Single(x => x.Id == rule.AssignmentId.Value);
 
+        // Выполняем задание в зависимости от типа запроса
         switch (assignment.TypeOfRequest)
         {
           case TypeOfRequest.get:
@@ -96,6 +107,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       }
     }
 
+    // Рекурсивно обрабатываем дочерние правила
     foreach (var childId in rule.Children)
     {
       var childRule = allRules.FirstOrDefault(x => x.Id == childId);
@@ -110,38 +122,40 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     }
   }
 
+  // Обработка задания с одним значением
   static void HandleAssignment(NetworkDevice networkDevice,
                                Assignment assignment,
                                string valueToSet)
   {
-    // Проверка TargetFieldName является ли null или пустая строка
+    // Проверка корректности TargetFieldName
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
 
-    // Получение типа NetworkDevice
+    // Получение типа сетевого устройства
     var deviceType = typeof(NetworkDevice);
 
-    // Получение свойства по имени
+    // Получение свойства по имени из TargetFieldName
     var property = deviceType.GetProperty(name: assignment.TargetFieldName,
                                           bindingAttr: BindingFlags.Public | BindingFlags.Instance)
       ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {deviceType.Name}.");
 
-    // Конвертация устанавливоемого значения в необходимый тип и установка свойства
+    // Конвертация значения и установка свойства
     var convertedValue = Convert.ChangeType(value: valueToSet,
                                             conversionType: property.PropertyType);
     property.SetValue(obj: networkDevice,
                       value: convertedValue);
   }
 
+  // Обработка задания со списком значений
   static void HandleAssignment(NetworkDevice networkDevice,
                                Assignment assignment,
                                List<string> valueToSet)
   {
-    // Проверка TargetFieldName
+    // Проверка корректности TargetFieldName
     if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
       throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
 
-    // Получение типа NetworkDevice и Port
+    // Получение типа NetworkDevice
     var networkDeviceType = typeof(NetworkDevice);
 
     // Разделение имени свойства на часть для NetworkDevice и Port
@@ -183,16 +197,17 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var items = collection.Cast<object>()
                           .ToList();
 
-    // Обновление коллекции
     if (collection.Count == 0)
     {
+      // Если коллекция пуста, создаем новые элементы и добавляем их в коллекцию
       for (int i = 0; i < valueToSet.Count; i++)
       {
-        // Создание и добавление элементов в коллекцию
+        // Создание нового элемента коллекции
         var item = Activator.CreateInstance(collectionType);
 
         if (item != null)
         {
+          // Установка идентификатора и временных меток
           var idProperty = collectionType.GetProperty(nameof(BaseEntity.Id));
           var createdProperty = collectionType.GetProperty(nameof(BaseEntity.Created));
           var modifiedProperty = collectionType.GetProperty(nameof(BaseEntity.Modified));
@@ -212,7 +227,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
           else
           {
 
-            // Установка значения свойства
+            // Конвертация строки в значение нужного типа
             var convertedValue = Convert.ChangeType(valueToSet[i],
                                                     portProperty.PropertyType);
             portProperty.SetValue(item,
@@ -239,11 +254,13 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
         if (isEnumPortProperty)
         {
+          // Обновление значения свойства, если это перечисление
           var enumValue = Enum.Parse(portProperty.PropertyType, valueToSet[i]);
           portProperty.SetValue(item, enumValue);
         }
         else
         {
+          // Конвертация и установка нового значения
           var convertedValue = Convert.ChangeType(valueToSet[i], portProperty.PropertyType);
           portProperty.SetValue(item, convertedValue);
         }
