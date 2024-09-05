@@ -8,7 +8,7 @@ public class ScriptGlobals
   public DateTime Modified { get; set; }
 
   // NetworkDevice properties
-  public IPAddress? Host { get; set; }
+  public string? Host { get; set; }
   public string NetworkDeviceName { get; set; } = string.Empty;
   public string GeneralInformation { get; set; } = string.Empty;
   public ICollection<Port> PortsOfNetworkDevice { get; set; } = [];

@@ -34,5 +34,6 @@ public enum PortType
   irb = 53, // Integrated Routing and Bridging
   vtun = 131,
   TenGigEthernet = 135,
+  unknown = 150,
   ae = 161 // Aggregated Ethernet
 }

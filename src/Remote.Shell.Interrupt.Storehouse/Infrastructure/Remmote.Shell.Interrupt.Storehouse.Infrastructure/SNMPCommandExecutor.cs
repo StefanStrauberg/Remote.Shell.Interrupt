@@ -7,77 +7,78 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                                                                     string oid,
                                                                     CancellationToken cancellationToken)
     {
-        List<SNMPResponse> result = [];
+        var result = new List<SNMPResponse>();
 
-        try
+        var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+        var communityString = new OctetString(community);
+        var agentParams = new AgentParameters(communityString)
         {
-            var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
-            var communityString = new OctetString(community);
+            Version = SnmpVersion.Ver2
+        };
+        Oid currentOid = new(oid);
+        bool moreData = true;
 
-            var agentParams = new AgentParameters(communityString)
+        while (moreData)
+        {
+            try
             {
-                Version = SnmpVersion.Ver2
-            };
-
-            var pdu = new Pdu(PduType.GetBulk)
-            {
-                MaxRepetitions = 10
-            };
-
-            pdu.VbList.Add(new Oid(oid));
-
-            var response = await Task.Run(() =>
-            {
-                try
+                var pdu = new Pdu(PduType.GetBulk)
                 {
-                    return target.Request(pdu, agentParams);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("SNMP request failed", ex);
-                }
-            }, cancellationToken);
-
-            if (response != null && response.Pdu.VbList.Count > 0)
-            {
-                foreach (Vb item in response.Pdu.VbList)
-                {
-                    if (oid == "1.3.6.1.2.1.4.22.1.2") // Пример проверки OID
+                    NonRepeaters = 0,
+                    MaxRepetitions = 10
+                };
+                pdu.VbList.Add(currentOid);
+                // Используем TaskCompletionSource для преобразования асинхронного колбэка в Task
+                var tcs = new TaskCompletionSource<SnmpPacket>();
+                SnmpAsyncResponse callback = (result, packet) =>
                     {
-                        result.Add(new SNMPResponse()
+                        if (result == AsyncRequestResult.NoError)
                         {
-                            OID = item.Oid.ToString(),
-                            Data = ConvertToMacAddress(item.Value.ToString())
-                        });
-                    }
-                    else
+                            tcs.SetResult(packet);
+                        }
+                        else
+                        {
+                            tcs.SetException(new SNMPBadRequestException("Request failed."));
+                        }
+                    };
+
+                target.RequestAsync(pdu, agentParams, callback);
+                using (cancellationToken.Register(() => tcs.SetCanceled()))
+                {
+
+                    var responsePacket = await tcs.Task;
+
+                    if (responsePacket != null && responsePacket.Pdu.VbList.Count > 0)
                     {
-                        result.Add(new SNMPResponse()
+                        moreData = false;
+
+                        foreach (Vb item in responsePacket.Pdu.VbList)
                         {
-                            OID = item.Oid.ToString(),
-                            Data = item.Value.ToString()
-                        });
+                            if (item.Oid.ToString().StartsWith(oid))
+                            {
+                                result.Add(new SNMPResponse()
+                                {
+                                    OID = item.Oid.ToString(),
+                                    Data = item.Value.ToString() ?? string.Empty
+                                });
+
+                                moreData = true;
+                            }
+                        }
+                        currentOid = new Oid(responsePacket.Pdu.VbList.Last().Oid.ToString()); // Update OID for next request
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw new SNMPBadRequestException("The SNMP Walk operation was canceled.");
+            }
+            catch (Exception ex)
+            {
+                throw new SNMPBadRequestException($"Error during SNMP Walk: {ex.Message}", ex);
+            }
         }
-        catch (Exception ex)
-        {
-            throw new SNMPBadRequestException(ex.Message);
-        }
-
         return result;
-    }
-
-    static string ConvertToMacAddress(string value)
-    {
-        var bytes = value.Split(':')
-                             .Select(s => Convert.ToByte(s, 16))
-                             .ToArray();
-
-        if (bytes.Length != 6) throw new ArgumentException("Invalid MAC address length");
-
-        return string.Join(":", bytes.Select(b => b.ToString("X2")));
     }
 
     async Task<SNMPResponse> ISNMPCommandExecutor.GetCommand(string host,
@@ -86,45 +87,57 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                                                      CancellationToken cancellationToken)
     {
         SNMPResponse result = new();
+        var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+        var communityString = new OctetString(community);
+
+        var agentParams = new AgentParameters(communityString)
+        {
+            Version = SnmpVersion.Ver2
+        };
 
         try
         {
-            var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
-            var communityString = new OctetString(community);
-
-            var agentParams = new AgentParameters(communityString)
-            {
-                Version = SnmpVersion.Ver2
-            };
 
             var pdu = new Pdu(PduType.Get);
             pdu.VbList.Add(new Oid(oid));
 
-            var response = await Task.Run(() =>
+            var tcs = new TaskCompletionSource<SnmpPacket>();
+            SnmpAsyncResponse callback = (responseResult, packet) =>
             {
-                try
+                if (responseResult == AsyncRequestResult.NoError)
                 {
-                    return target.Request(pdu, agentParams);
+                    tcs.SetResult(packet);
                 }
-                catch (Exception ex)
+                else
                 {
-                    throw new Exception("SNMP request failed", ex);
+                    tcs.SetException(new SNMPBadRequestException($"Request failed with result: {responseResult}"));
                 }
-            }, cancellationToken);
+            };
 
-            if (response != null && response.Pdu.VbList.Count > 0)
+            target.RequestAsync(pdu, agentParams, callback);
+
+            using (cancellationToken.Register(() => tcs.SetCanceled()))
             {
-                var item = response.Pdu.VbList.FirstOrDefault();
-                if (item != null)
+                var responsePacket = await tcs.Task;
+
+                if (responsePacket != null && responsePacket.Pdu.VbList.Count > 0)
                 {
-                    result.OID = item.Oid.ToString();
-                    result.Data = item.Value.ToString();
+                    var item = responsePacket.Pdu.VbList.FirstOrDefault();
+                    if (item != null)
+                    {
+                        result.OID = item.Oid.ToString();
+                        result.Data = item.Value.ToString() ?? string.Empty;
+                    }
                 }
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw new SNMPBadRequestException("The SNMP Get operation was canceled.");
+        }
         catch (Exception ex)
         {
-            throw new SNMPBadRequestException(ex.Message);
+            throw new SNMPBadRequestException($"Error during SNMP Get: {ex.Message}", ex);
         }
 
         return result;

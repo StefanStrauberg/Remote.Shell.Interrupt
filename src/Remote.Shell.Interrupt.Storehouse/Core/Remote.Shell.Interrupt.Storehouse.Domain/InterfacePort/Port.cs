@@ -10,5 +10,5 @@ public class Port : BaseEntity
 
 
   public ICollection<VLAN> VLANsOfPort { get; set; } = [];
-  public IDictionary<MACAddress, IPAddress>? ARPTableOfPort { get; set; }
+  public IDictionary<MACAddress, string>? ARPTableOfPort { get; set; }
 }
