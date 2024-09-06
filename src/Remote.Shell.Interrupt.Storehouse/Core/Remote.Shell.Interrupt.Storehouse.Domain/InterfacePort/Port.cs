@@ -7,6 +7,7 @@ public class Port : BaseEntity
   public PortType InterfaceType { get; set; } // "Ethernet"
   public PortStatus InterfaceStatus { get; set; } // "Up"
   public ulong SpeedOfPort { get; set; } // "1 Gbps"
+  public IDictionary<string, int>? IPTable { get; set; }
   public ICollection<VLAN> VLANsOfPort { get; set; } = [];
   public IDictionary<string, HashSet<string>>? ARPTableOfPort { get; set; }
 }
