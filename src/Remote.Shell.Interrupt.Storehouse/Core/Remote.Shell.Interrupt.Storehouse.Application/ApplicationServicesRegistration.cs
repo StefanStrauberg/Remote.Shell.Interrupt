@@ -12,14 +12,17 @@ public static class ApplicationServicesRegistration
       config.AddOpenBehavior(typeof(LoggingBehavior<,>));
     });
 
+    // AutoMapper
+    services.AddAutoMapper(cfg =>
+    {
+      cfg.AddProfile(new AssemblyMappingProfile(Assembly.GetExecutingAssembly()));
+    });
+
     // Exception Handling Middleware injection
     services.AddTransient<ExceptionHandlingMiddleware>();
 
     // FluentValidation injection
     services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
-    // Mapster injection
-    TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
     return services;
   }

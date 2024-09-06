@@ -9,7 +9,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
     {
         var result = new List<SNMPResponse>();
 
-        var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+        var target = new UdpTarget(IPAddress.Parse(host), 161, 20000, 1);
         var communityString = new OctetString(community);
         var agentParams = new AgentParameters(communityString)
         {
@@ -87,7 +87,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                                                      CancellationToken cancellationToken)
     {
         SNMPResponse result = new();
-        var target = new UdpTarget(IPAddress.Parse(host), 161, 2000, 1);
+        var target = new UdpTarget(IPAddress.Parse(host), 161, 20000, 1);
         var communityString = new OctetString(community);
 
         var agentParams = new AgentParameters(communityString)

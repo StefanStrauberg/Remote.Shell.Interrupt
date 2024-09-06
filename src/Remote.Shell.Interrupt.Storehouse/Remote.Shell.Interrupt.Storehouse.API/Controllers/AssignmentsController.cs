@@ -12,7 +12,7 @@ public class AssignmentsController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{id}")]
-  [ProducesResponseType(typeof(AssignmentDTO), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(AssignmentDetailDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetAssignmentById(Guid id,
                                                      CancellationToken cancellationToken)
@@ -26,14 +26,11 @@ public class AssignmentsController(ISender sender) : BaseAPIController
     => Ok(await _sender.Send(new CreateAssignmentCommand(createAssignmentDTO),
                              cancellationToken));
 
-  [HttpPut("{id}")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> UpdateAssignment(Guid id,
-                                                    [FromBody] UpdateAssignmentDTO updateAssignmentDTO,
+  public async Task<IActionResult> UpdateAssignment([FromBody] UpdateAssignmentDTO updateAssignmentDTO,
                                                     CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new UpdateAssignmentCommand(id,
-                                                         updateAssignmentDTO),
+    => Ok(await _sender.Send(new UpdateAssignmentCommand(updateAssignmentDTO),
                              cancellationToken));
 
   [HttpDelete("{id}")]
