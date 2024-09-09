@@ -62,6 +62,11 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                community: request.Community,
                                cancellationToken: cancellationToken);
 
+    await FillNetworkTableOfPort(networkDevice: networkDevice,
+                                 host: request.Host,
+                                 community: request.Community,
+                                 cancellationToken: cancellationToken);
+
     // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(document: networkDevice,
                                                   cancellationToken: cancellationToken);
@@ -351,6 +356,73 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
         // Присваиваем заполненную ARP таблицу порту
         port.ARPTableOfPort = arpTable;
+      }
+    }
+  }
+
+  private async Task FillNetworkTableOfPort(NetworkDevice networkDevice,
+                                            string host,
+                                            string community,
+                                            CancellationToken cancellationToken)
+  {
+    // Выполняем SNMP-запросы
+    var interfaceNumbers = await _SNMPCommandExecutor.WalkCommand(host: host,
+                                                                  community: community,
+                                                                  oid: "1.3.6.1.2.1.4.20.1.2",
+                                                                  cancellationToken: cancellationToken);
+    var ipAddresses = await _SNMPCommandExecutor.WalkCommand(host: host,
+                                                             community: community,
+                                                             oid: "1.3.6.1.2.1.4.20.1.1",
+                                                             cancellationToken);
+    var netMasks = await _SNMPCommandExecutor.WalkCommand(host: host,
+                                                          community: community,
+                                                          oid: "1.3.6.1.2.1.4.20.1.3",
+                                                          cancellationToken);
+
+    if (interfaceNumbers.Count == 0 || ipAddresses.Count == 0 || ipAddresses.Count == 0)
+      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+
+    // Проверка, что количество элементов одинаковое
+    if (interfaceNumbers.Count != ipAddresses.Count || ipAddresses.Count != ipAddresses.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), macs({ipAddresses.Count}), ips({ipAddresses.Count})");
+
+    // Объединяем данные в словарь по InterfaceNumber
+    var arpEntries = interfaceNumbers.Zip(second: ipAddresses,
+                                          resultSelector: (iface, address) => new
+                                          {
+                                            iface,
+                                            address
+                                          })
+                                     .Zip(second: netMasks,
+                                          resultSelector: (firstPair, mask) => new
+                                          {
+                                            Interface = firstPair.iface.Data,
+                                            Address = firstPair.address.Data,
+                                            Mask = mask.Data
+                                          });
+
+    var arpDictionary = arpEntries.GroupBy(entry => int.Parse(entry.Interface))
+                                  .ToDictionary(keySelector: group => group.Key,
+                                                elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
+                                                                                                                             e.Mask))
+                                  .ToList());
+
+
+    // Заполнение ARP таблицы для каждого порта
+    foreach (var port in networkDevice.PortsOfNetworkDevice)
+    {
+      if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
+      {
+        var arpTable = new Dictionary<string, string>();
+
+        // Проходим по каждой записи и добавляем в таблицу
+        foreach (var arpEntry in arpForPort)
+        {
+          arpTable.Add(key: arpEntry.Key, value: arpEntry.Value);
+        }
+
+        // Присваиваем заполненную ARP таблицу порту
+        port.NetworkTableOfPort = arpTable;
       }
     }
   }
