@@ -365,63 +365,66 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                             string community,
                                             CancellationToken cancellationToken)
   {
-    // Выполняем SNMP-запросы
+    // Выполняем SNMP-запрос для получения номеров интерфейсов
     var interfaceNumbers = await _SNMPCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.20.1.2",
                                                                   cancellationToken: cancellationToken);
+    // Выполняем SNMP-запрос для получения IP-адресов
     var ipAddresses = await _SNMPCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.20.1.1",
                                                              cancellationToken);
+    // Выполняем SNMP-запрос для получения сетевых масок
     var netMasks = await _SNMPCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken);
 
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
     if (interfaceNumbers.Count == 0 || ipAddresses.Count == 0 || ipAddresses.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
 
-    // Проверка, что количество элементов одинаковое
+    // Проверяем, что количество элементов в каждом запросе совпадает
     if (interfaceNumbers.Count != ipAddresses.Count || ipAddresses.Count != ipAddresses.Count)
       throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), macs({ipAddresses.Count}), ips({ipAddresses.Count})");
 
-    // Объединяем данные в словарь по InterfaceNumber
-    var arpEntries = interfaceNumbers.Zip(second: ipAddresses,
-                                          resultSelector: (iface, address) => new
-                                          {
-                                            iface,
-                                            address
-                                          })
-                                     .Zip(second: netMasks,
-                                          resultSelector: (firstPair, mask) => new
-                                          {
-                                            Interface = firstPair.iface.Data,
-                                            Address = firstPair.address.Data,
-                                            Mask = mask.Data
-                                          });
+    // Объединяем результаты SNMP-запросов: interfaceNumber -> IP -> Mask
+    var ipTableEntries = interfaceNumbers.Zip(second: ipAddresses,
+                                              resultSelector: (iface, address) => new
+                                              {
+                                                iface,
+                                                address
+                                              })
+                                          .Zip(second: netMasks,
+                                               resultSelector: (firstPair, mask) => new
+                                               {
+                                                 Interface = firstPair.iface.Data,
+                                                 Address = firstPair.address.Data,
+                                                 Mask = mask.Data
+                                               });
 
-    var arpDictionary = arpEntries.GroupBy(entry => int.Parse(entry.Interface))
-                                  .ToDictionary(keySelector: group => group.Key,
-                                                elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
-                                                                                                                             e.Mask))
-                                  .ToList());
+    // Группируем данные по номерам интерфейсов и создаем словарь
+    var arpDictionary = ipTableEntries.GroupBy(entry => int.Parse(entry.Interface))
+                                      .ToDictionary(keySelector: group => group.Key,
+                                                    elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
+                                                                                                                                 e.Mask))
+                                      .ToList());
 
-
-    // Заполнение ARP таблицы для каждого порта
+    // Заполняем сетевую таблицу для каждого порта устройства
     foreach (var port in networkDevice.PortsOfNetworkDevice)
     {
+      // Если есть записи для порта, то создаем сетевую таблицу
       if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
       {
         var arpTable = new Dictionary<string, string>();
 
-        // Проходим по каждой записи и добавляем в таблицу
+        // Добавляем записи IP и масок в сетевую таблицу порта
         foreach (var arpEntry in arpForPort)
         {
           arpTable.Add(key: arpEntry.Key, value: arpEntry.Value);
         }
-
-        // Присваиваем заполненную ARP таблицу порту
+        // Присваиваем заполненную сетевую таблицу порту
         port.NetworkTableOfPort = arpTable;
       }
     }
