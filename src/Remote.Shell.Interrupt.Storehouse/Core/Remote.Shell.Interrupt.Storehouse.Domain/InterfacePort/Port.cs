@@ -9,5 +9,5 @@ public class Port : BaseEntity
   public ulong SpeedOfPort { get; set; } // "1 Gbps"
   public IDictionary<string, HashSet<string>>? ARPTableOfPort { get; set; }
   public IDictionary<string, string>? NetworkTableOfPort { get; set; }
-  public ICollection<VLAN> VLANsOfPort { get; set; } = [];
+  public VLAN? VLANsOfPort { get; set; }
 }
