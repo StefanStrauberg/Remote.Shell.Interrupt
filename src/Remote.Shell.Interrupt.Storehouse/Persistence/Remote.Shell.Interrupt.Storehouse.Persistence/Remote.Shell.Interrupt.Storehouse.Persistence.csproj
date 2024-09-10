@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="NpgSQL.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
-    <PackageReference Include="NpgSQL.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <ProjectReference Include="..\..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

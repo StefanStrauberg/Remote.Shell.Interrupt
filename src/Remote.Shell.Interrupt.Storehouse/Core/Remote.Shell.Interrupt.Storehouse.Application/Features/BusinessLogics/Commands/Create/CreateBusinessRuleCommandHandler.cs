@@ -69,7 +69,6 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       await _businessRuleRepository.InsertOneAsync(document: addingBusinessRule,
                                                    cancellationToken: cancellationToken);
     }
-
     // Возврат успешного завершения операции
     return Unit.Value;
   }

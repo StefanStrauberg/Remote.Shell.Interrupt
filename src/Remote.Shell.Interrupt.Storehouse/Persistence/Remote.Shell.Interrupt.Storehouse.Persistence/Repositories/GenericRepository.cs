@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
 internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
@@ -33,11 +35,11 @@ internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
                    .AnyAsync(predicate: filterExpression,
                              cancellationToken: cancellationToken);
 
-  public async virtual Task<TDocument?> FindOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
-                                                     CancellationToken cancellationToken)
+  public async virtual Task<TDocument> FindOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
+                                                    CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()
-                  .FirstOrDefaultAsync(predicate: filterExpression,
-                                       cancellationToken: cancellationToken);
+                  .FirstAsync(predicate: filterExpression,
+                              cancellationToken: cancellationToken);
 
   public virtual async Task<IEnumerable<TDocument>> GetAllAsync(CancellationToken cancellationToken)
    => await _dbSet.AsNoTracking()

@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Helper;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
 
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
@@ -14,7 +12,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     ?? throw new ArgumentNullException(nameof(businessRulesRepository));
   readonly IAssignmentRepository _assignmentRepository = assignmentRepository
     ?? throw new ArgumentNullException(nameof(assignmentRepository));
-  readonly ISNMPCommandExecutor _SNMPCommandExecutor = snmpCommandExecutor
+  readonly ISNMPCommandExecutor _sNMPCommandExecutor = snmpCommandExecutor
     ?? throw new ArgumentNullException(nameof(snmpCommandExecutor));
 
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
@@ -94,7 +92,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         switch (assignment.TypeOfRequest)
         {
           case TypeOfRequest.get:
-            var singleValueToSet = (await _SNMPCommandExecutor.GetCommand(request.Host,
+            var singleValueToSet = (await _sNMPCommandExecutor.GetCommand(request.Host,
                                                                           request.Community,
                                                                           assignment.OID,
                                                                           cancellationToken)).Data;
@@ -103,7 +101,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                              singleValueToSet);
             break;
           case TypeOfRequest.walk:
-            var multiplyValuesToSet = (await _SNMPCommandExecutor.WalkCommand(request.Host,
+            var multiplyValuesToSet = (await _sNMPCommandExecutor.WalkCommand(request.Host,
                                                                               request.Community,
                                                                               assignment.OID,
                                                                               cancellationToken))
@@ -279,15 +277,15 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                           CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запросы
-    var interfaceNumbers = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.22.1.1",
                                                                   cancellationToken: cancellationToken);
-    var macAddresses = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var macAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                               community: community,
                                                               oid: "1.3.6.1.2.1.4.22.1.2",
                                                               cancellationToken);
-    var ipAddresses = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.22.1.3",
                                                              cancellationToken);
@@ -349,17 +347,17 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                             CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запрос для получения номеров интерфейсов
-    var interfaceNumbers = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.20.1.2",
                                                                   cancellationToken: cancellationToken);
     // Выполняем SNMP-запрос для получения IP-адресов
-    var ipAddresses = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.20.1.1",
                                                              cancellationToken);
     // Выполняем SNMP-запрос для получения сетевых масок
-    var netMasks = await _SNMPCommandExecutor.WalkCommand(host: host,
+    var netMasks = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken);

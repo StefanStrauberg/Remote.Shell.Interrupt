@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+
 namespace Remote.Shell.Interrupt.Storehouse.Infrastructure;
 
 public static class SNMPCommandExecutorServicesRegistration

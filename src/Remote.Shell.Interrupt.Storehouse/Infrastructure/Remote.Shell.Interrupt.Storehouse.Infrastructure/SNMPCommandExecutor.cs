@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+
 namespace Remote.Shell.Interrupt.Storehouse.Infrastructure;
 
 internal partial class SNMPCommandExecutor : ISNMPCommandExecutor

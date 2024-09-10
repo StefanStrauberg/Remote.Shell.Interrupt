@@ -1,4 +1,6 @@
-﻿namespace Remote.Shell.Interrupt.Storehouse.Persistence;
+﻿using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+
+namespace Remote.Shell.Interrupt.Storehouse.Persistence;
 
 public static class PersistenceServicesRegistration
 {
