@@ -5,10 +5,8 @@ public static class PersistenceServicesRegistration
   public static IServiceCollection AddPersistenceServices(this IServiceCollection services,
                                                           IConfiguration configuration)
   {
-    services.AddMarten(options =>
-      {
-        options.Connection(configuration.GetConnectionString("DefaultConnection")!);
-      }).UseLightweightSessions();
+    services.AddDbContext<ApplicationDbContext>(options =>
+      options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     services.AddScoped<IAssignmentRepository, AssignmentRepository>();

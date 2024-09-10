@@ -16,9 +16,9 @@ public class AssignmentDetailDTO : IMapWith<Assignment>
            .ForMember(src => src.Id,
                       opt => opt.MapFrom(dst => dst.Id))
            .ForMember(src => src.Created,
-                      opt => opt.MapFrom(dst => dst.Created))
+                      opt => opt.MapFrom(dst => dst.CreatedAt))
            .ForMember(src => src.Modified,
-                      opt => opt.MapFrom(dst => dst.Modified))
+                      opt => opt.MapFrom(dst => dst.UpdatedAt))
            .ForMember(src => src.Name,
                       opt => opt.MapFrom(dst => dst.Name))
            .ForMember(src => src.TypeOfRequest,

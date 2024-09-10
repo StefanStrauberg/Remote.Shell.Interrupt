@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Helper;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
 
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
@@ -31,9 +33,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var networkDevice = new NetworkDevice
     {
       NetworkDeviceName = request.NetworkDeviceName,
-      Host = request.Host,
-      Created = DateTime.UtcNow,
-      Modified = DateTime.UtcNow
+      Host = request.Host
     };
 
     // Получаем назначения и бизнес-правила
@@ -80,14 +80,15 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                      CancellationToken cancellationToken)
   {
     // Проверяем условие бизнес-правила
-    bool resultOfEvaluateCondition = rule.Condition == null || await rule.EvaluateConditionAsync(networkDevice);
+    bool resultOfEvaluateCondition = rule.Condition == null || await ConditionEvaluator.EvaluateConditionAsync(condition: rule.Condition,
+                                                                                                               contextObject: networkDevice);
 
     // Если у бизнес-правила есть задание
     if (resultOfEvaluateCondition)
     {
-      if (rule.AssignmentId.HasValue)
+      if (rule.Assignment != null)
       {
-        var assignment = assignments.Single(x => x.Id == rule.AssignmentId.Value);
+        var assignment = assignments.Single(x => x.Id == rule.AssignmentId);
 
         // Выполняем задание в зависимости от типа запроса
         switch (assignment.TypeOfRequest)
@@ -117,9 +118,9 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     }
 
     // Рекурсивно обрабатываем дочерние правила
-    foreach (var childId in rule.Children)
+    foreach (var child in rule.Children)
     {
-      var childRule = allRules.FirstOrDefault(x => x.Id == childId);
+      var childRule = allRules.FirstOrDefault(x => x.Id == child.Id);
 
       if (childRule != null)
         await ProcessBusinessRuleTree(childRule,
@@ -217,18 +218,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
         if (item != null)
         {
-          // Установка идентификатора и временных меток
-          var idProperty = collectionType.GetProperty(nameof(BaseEntity.Id));
-          var createdProperty = collectionType.GetProperty(nameof(BaseEntity.Created));
-          var modifiedProperty = collectionType.GetProperty(nameof(BaseEntity.Modified));
-
-          idProperty?.SetValue(obj: item,
-                               value: Guid.NewGuid());
-          createdProperty?.SetValue(obj: item,
-                                    value: DateTime.UtcNow);
-          modifiedProperty?.SetValue(obj: item,
-                                     value: DateTime.UtcNow);
-
           if (isEnumPortProperty)
           {
             // Преобразование строки в значение enum
@@ -324,14 +313,12 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                             Mac = FormatMACAddress.Handle(firstPair.mac.Data),
                                             Ip = ip.Data
                                           });
-
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
     var arpDictionary = arpEntries.GroupBy(entry => int.Parse(entry.Interface))
                                   .ToDictionary(keySelector: group => group.Key,
                                                 elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Mac,
                                                                                                                              e.Ip))
                                   .ToList());
-
-
     // Заполнение ARP таблицы для каждого порта
     foreach (var port in networkDevice.PortsOfNetworkDevice)
     {
@@ -339,21 +326,17 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
       {
         // Создаем новую таблицу, которая поддерживает несколько IP для одного MAC
-        var arpTable = new Dictionary<string, HashSet<string>>();
-
+        var arpTable = new List<ARPEntity>();
         // Проходим по каждой записи и добавляем в таблицу
         foreach (var arpEntry in arpForPort)
         {
-          // Если MAC-адрес уже существует в таблице, добавляем IP в список
-          if (!arpTable.TryGetValue(arpEntry.Key, out HashSet<string>? value))
+
+          arpTable.Add(new ARPEntity()
           {
-            value = ([]);
-            arpTable[arpEntry.Key] = value;
-          }
-
-          value.Add(arpEntry.Value);
+            MAC = arpEntry.Key,
+            IPAddress = arpEntry.Value
+          });
         }
-
         // Присваиваем заполненную ARP таблицу порту
         port.ARPTableOfPort = arpTable;
       }
@@ -380,15 +363,12 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken);
-
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
     if (interfaceNumbers.Count == 0 || ipAddresses.Count == 0 || ipAddresses.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
-
     // Проверяем, что количество элементов в каждом запросе совпадает
     if (interfaceNumbers.Count != ipAddresses.Count || ipAddresses.Count != ipAddresses.Count)
       throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), macs({ipAddresses.Count}), ips({ipAddresses.Count})");
-
     // Объединяем результаты SNMP-запросов: interfaceNumber -> IP -> Mask
     var ipTableEntries = interfaceNumbers.Zip(second: ipAddresses,
                                               resultSelector: (iface, address) => new
@@ -403,26 +383,27 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                  Address = firstPair.address.Data,
                                                  Mask = mask.Data
                                                });
-
     // Группируем данные по номерам интерфейсов и создаем словарь
     var arpDictionary = ipTableEntries.GroupBy(entry => int.Parse(entry.Interface))
                                       .ToDictionary(keySelector: group => group.Key,
                                                     elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
                                                                                                                                  e.Mask))
                                       .ToList());
-
     // Заполняем сетевую таблицу для каждого порта устройства
     foreach (var port in networkDevice.PortsOfNetworkDevice)
     {
       // Если есть записи для порта, то создаем сетевую таблицу
       if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
       {
-        var arpTable = new Dictionary<string, string>();
-
+        var arpTable = new List<TerminatedNetworkEntity>();
         // Добавляем записи IP и масок в сетевую таблицу порта
         foreach (var arpEntry in arpForPort)
         {
-          arpTable.Add(key: arpEntry.Key, value: arpEntry.Value);
+          arpTable.Add(new TerminatedNetworkEntity()
+          {
+            IPAddress = arpEntry.Key,
+            Netmask = arpEntry.Value
+          });
         }
         // Присваиваем заполненную сетевую таблицу порту
         port.NetworkTableOfPort = arpTable;

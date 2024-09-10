@@ -9,7 +9,6 @@ global using Remote.Shell.Interrupt.BuildingBlocks.Exceptions;
 global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
 global using Remote.Shell.Interrupt.Storehouse.API;
 global using Remote.Shell.Interrupt.SNMPExecutor.Application.Features.SNMPExecutor;
-global using Remmote.Shell.Interrupt.Storehouse.Infrastructure;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Create;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Delete;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Update;
@@ -24,3 +23,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevic
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Delete;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
+global using Remote.Shell.Interrupt.Storehouse.Infrastructure;

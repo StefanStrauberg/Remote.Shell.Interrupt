@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-internal class NetworkDeviceRepository(IDocumentSession session)
-  : GenericRepository<NetworkDevice>(session), INetworkDeviceRepository
+internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
+  : GenericRepository<NetworkDevice>(dbContext), INetworkDeviceRepository
 {
 }

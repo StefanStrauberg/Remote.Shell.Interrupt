@@ -6,4 +6,6 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
 global using Microsoft.Extensions.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Work;
-global using Marten;
+global using Microsoft.EntityFrameworkCore;
+global using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
+global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;

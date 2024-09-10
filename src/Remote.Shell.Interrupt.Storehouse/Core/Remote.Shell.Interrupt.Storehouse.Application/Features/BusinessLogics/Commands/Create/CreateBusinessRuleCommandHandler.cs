@@ -33,14 +33,10 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
     var addingBusinessRule = _mapper.Map<BusinessRule>(request.CreateBusinessRuleDTO);
     var isRoot = (await _businessRuleRepository.GetAllAsync(cancellationToken)).Any();
 
-    // Установка даты создания и последнего изменения
-    addingBusinessRule.Created = DateTime.UtcNow;
-    addingBusinessRule.Modified = DateTime.UtcNow;
-
     if (!isRoot)
     {
       addingBusinessRule.IsRoot = true;
-      addingBusinessRule.ParentId = null;
+      addingBusinessRule.Parent = null;
     }
     else
       addingBusinessRule.IsRoot = false;
@@ -60,7 +56,7 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
                                                    cancellationToken: cancellationToken);
 
       // Добавление ID нового бизнес-правила в список дочерних элементов родительского бизнес-правила
-      parentBusinessRule.Children.Add(addingBusinessRule.Id);
+      parentBusinessRule.Children.Add(addingBusinessRule);
 
       // Обновление родительского бизнес-правила в репозитории
       await _businessRuleRepository.ReplaceOneAsync(filterExpression: parentFilter,

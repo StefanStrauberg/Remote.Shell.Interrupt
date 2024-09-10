@@ -1,21 +1,19 @@
-using System.Linq.Dynamic.Core.Tokenizer;
-
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-internal class GenericRepository<TDocument>(IDocumentSession session)
+internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
   : IGenericRepository<TDocument> where TDocument : BaseEntity
 {
-  readonly IDocumentSession _session = session
-    ?? throw new ArgumentNullException(nameof(session));
+  readonly DbSet<TDocument> _dbSet = dbContext.Set<TDocument>()
+    ?? throw new ArgumentNullException(nameof(dbContext));
 
   public virtual async Task DeleteManyAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
                                             CancellationToken cancellationToken)
   {
-    var documents = await _session.Query<TDocument>()
-                                  .Where(predicate: filterExpression)
-                                  .ToListAsync(token: cancellationToken);
-    _session.Delete(documents);
-    await _session.SaveChangesAsync(token: cancellationToken);
+    var documents = await _dbSet.Where(filterExpression)
+                                .AsNoTracking()
+                                .ToListAsync(cancellationToken);
+    _dbSet.RemoveRange(documents);
+    await dbContext.SaveChangesAsync(cancellationToken);
   }
 
   public virtual async Task DeleteOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
@@ -24,51 +22,50 @@ internal class GenericRepository<TDocument>(IDocumentSession session)
     var document = await FindOneAsync(filterExpression, cancellationToken);
     if (document != null)
     {
-      _session.Delete(document);
-      await _session.SaveChangesAsync(cancellationToken);
+      _dbSet.Remove(document);
+      await dbContext.SaveChangesAsync(cancellationToken);
     }
   }
 
   public virtual async Task<bool> ExistsAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
                                               CancellationToken cancellationToken)
-    => await _session.Query<TDocument>()
-                     .AnyAsync(predicate: filterExpression,
-                               token: cancellationToken);
+    => await _dbSet.AsNoTracking()
+                   .AnyAsync(predicate: filterExpression,
+                             cancellationToken: cancellationToken);
 
   public async virtual Task<TDocument?> FindOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
                                                      CancellationToken cancellationToken)
-    => await _session.Query<TDocument>()
-                     .FirstOrDefaultAsync(predicate: filterExpression,
-                                          token: cancellationToken);
+    => await _dbSet.AsNoTracking()
+                  .FirstOrDefaultAsync(predicate: filterExpression,
+                                       cancellationToken: cancellationToken);
 
   public virtual async Task<IEnumerable<TDocument>> GetAllAsync(CancellationToken cancellationToken)
-   => await _session.Query<TDocument>()
-                    .ToListAsync(token: cancellationToken);
+   => await _dbSet.AsNoTracking()
+                  .ToListAsync(cancellationToken);
 
   public async virtual Task InsertManyAsync(IEnumerable<TDocument> documents,
                                             CancellationToken cancellationToken)
   {
-    _session.Store(entities: documents);
-    await _session.SaveChangesAsync(token: cancellationToken);
+    await _dbSet.AddRangeAsync(documents, cancellationToken);
+    await dbContext.SaveChangesAsync(cancellationToken);
   }
 
   public virtual async Task InsertOneAsync(TDocument document,
                                      CancellationToken cancellationToken)
   {
-    _session.Store(entities: document);
-    await _session.SaveChangesAsync(token: cancellationToken);
+    await _dbSet.AddAsync(document, cancellationToken);
+    await dbContext.SaveChangesAsync(cancellationToken);
   }
 
   public virtual async Task ReplaceOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
                                       TDocument document,
                                       CancellationToken cancellationToken)
   {
-    var existing = await FindOneAsync(filterExpression: filterExpression,
-                                      cancellationToken: cancellationToken);
+    var existing = await FindOneAsync(filterExpression, cancellationToken);
     if (existing != null)
     {
-      _session.Store(entities: document);
-      await _session.SaveChangesAsync(token: cancellationToken);
+      dbContext.Entry(existing).CurrentValues.SetValues(document);
+      await dbContext.SaveChangesAsync(cancellationToken);
     }
   }
 }

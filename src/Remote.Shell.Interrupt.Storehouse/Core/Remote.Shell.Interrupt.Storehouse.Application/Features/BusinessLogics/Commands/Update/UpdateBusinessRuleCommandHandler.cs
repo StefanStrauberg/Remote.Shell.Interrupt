@@ -48,9 +48,6 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
     // Преобразование DTO в доменную модель назначения
     _mapper.Map(request.UpdateBusinessRule, businessRule);
 
-    // Установка ID и даты последнего изменения для обновляемого бизнес-правила
-    businessRule!.Modified = DateTime.UtcNow;
-
     // Обновление бизнес-правила в репозитории
     await _businessRuleRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.UpdateBusinessRule.Id,
                                                   document: businessRule,

@@ -43,9 +43,6 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     // Преобразование DTO в доменную модель назначения
     _mapper.Map(request.UpdateAssignmentDTO, assignment);
 
-    // Установка ID и даты последнего изменения для обновляемого назначения
-    assignment!.Modified = DateTime.Now;
-
     // Обновление назначения в репозитории
     await _assignmentRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.UpdateAssignmentDTO.Id,
                                                 document: assignment,

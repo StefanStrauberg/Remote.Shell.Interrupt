@@ -24,3 +24,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Create;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Update;
 global using AutoMapper;
+global using Microsoft.CodeAnalysis.CSharp.Scripting;

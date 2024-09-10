@@ -4,10 +4,14 @@
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
     <ProjectReference Include="..\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Remote.Shell.Interrupt.AppLogger\Remote.Shell.Interrupt.AppLogger.csproj" />
-    <ProjectReference Include="..\Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure\Remmote.Shell.Interrupt.Storehouse.Infrastructure.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.Infrastructure\Remote.Shell.Interrupt.Storehouse.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />

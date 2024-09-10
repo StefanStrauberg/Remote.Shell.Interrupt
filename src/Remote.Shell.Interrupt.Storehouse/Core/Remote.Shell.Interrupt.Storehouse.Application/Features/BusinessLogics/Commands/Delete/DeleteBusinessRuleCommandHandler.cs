@@ -18,7 +18,7 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
       ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(request.FilterExpression));
 
     // Проверить, есть ли у сущности родитель
-    if (businessRuleToDelete.ParentId != null)
+    if (businessRuleToDelete.Parent != null)
     {
       // Создать фильтр для поиска родительской сущности
       var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == businessRuleToDelete.ParentId);
@@ -28,7 +28,7 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
       if (parentBusinessRule != null)
       {
         // Удалить ID текущей сущности из списка дочерних узлов родителя
-        parentBusinessRule.Children.Remove(businessRuleToDelete.Id);
+        parentBusinessRule.Children.Remove(businessRuleToDelete);
 
         // Если текущая сущность имеет дочерние узлы, добавить их к родителю
         if (businessRuleToDelete.Children.Count != 0)
@@ -40,10 +40,10 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
     }
 
     // Обновить дочерние узлы текущей сущности, чтобы установить их нового родителя
-    foreach (var childId in businessRuleToDelete.Children.Select(child => child))
+    foreach (var child in businessRuleToDelete.Children)
     {
       // Создать фильтр для поиска дочерней сущности
-      var childFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == childId);
+      var childFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == child.Id);
       var childBusinessRule = await _businessRuleRepository.FindOneAsync(childFilter, cancellationToken);
 
       // Если дочерняя сущность найдена

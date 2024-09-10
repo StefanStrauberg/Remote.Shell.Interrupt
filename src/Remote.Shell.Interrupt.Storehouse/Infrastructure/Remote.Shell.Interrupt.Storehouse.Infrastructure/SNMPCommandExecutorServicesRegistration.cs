@@ -1,4 +1,4 @@
-namespace Remmote.Shell.Interrupt.Storehouse.Infrastructure;
+namespace Remote.Shell.Interrupt.Storehouse.Infrastructure;
 
 public static class SNMPCommandExecutorServicesRegistration
 {

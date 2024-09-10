@@ -26,10 +26,6 @@ internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     // Преобразование DTO в доменную модель назначения
     var assignment = _mapper.Map<Assignment>(request.CreateAssignmentDTO);
 
-    // Установка даты создания и последнего изменения
-    assignment.Created = DateTime.Now;
-    assignment.Modified = DateTime.Now;
-
     // Вставка нового назначения в репозиторий
     await _assignmentRepository.InsertOneAsync(document: assignment,
                                                cancellationToken: cancellationToken);

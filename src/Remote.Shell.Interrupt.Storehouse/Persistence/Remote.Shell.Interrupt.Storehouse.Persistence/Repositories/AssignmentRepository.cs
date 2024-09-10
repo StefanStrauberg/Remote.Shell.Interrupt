@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-internal class AssignmentRepository(IDocumentSession session)
-  : GenericRepository<Assignment>(session), IAssignmentRepository
+internal class AssignmentRepository(ApplicationDbContext dbContext)
+  : GenericRepository<Assignment>(dbContext), IAssignmentRepository
 {
 }

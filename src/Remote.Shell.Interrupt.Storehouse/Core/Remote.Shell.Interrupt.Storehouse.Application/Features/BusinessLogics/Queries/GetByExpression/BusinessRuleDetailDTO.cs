@@ -18,9 +18,9 @@ public class BusinessRuleDetailDTO : IMapWith<BusinessRule>
            .ForMember(businessRuleDetailDTO => businessRuleDetailDTO.Id,
                       opt => opt.MapFrom(businessRule => businessRule.Id))
            .ForMember(businessRuleDetailDTO => businessRuleDetailDTO.Created,
-                      opt => opt.MapFrom(businessRule => businessRule.Created))
+                      opt => opt.MapFrom(businessRule => businessRule.CreatedAt))
            .ForMember(businessRuleDetailDTO => businessRuleDetailDTO.Modified,
-                      opt => opt.MapFrom(businessRule => businessRule.Modified))
+                      opt => opt.MapFrom(businessRule => businessRule.UpdatedAt))
            .ForMember(businessRuleDetailDTO => businessRuleDetailDTO.Name,
                       opt => opt.MapFrom(businessRule => businessRule.Name))
            .ForMember(businessRuleDetailDTO => businessRuleDetailDTO.Condition,

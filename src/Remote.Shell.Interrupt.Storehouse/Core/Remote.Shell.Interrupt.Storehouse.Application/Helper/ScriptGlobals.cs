@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
+namespace Remote.Shell.Interrupt.Storehouse.Application.Helper;
 
 public class ScriptGlobals
 {
