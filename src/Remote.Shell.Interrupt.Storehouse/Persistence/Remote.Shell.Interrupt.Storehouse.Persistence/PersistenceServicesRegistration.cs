@@ -8,7 +8,10 @@ public static class PersistenceServicesRegistration
                                                           IConfiguration configuration)
   {
     services.AddDbContext<ApplicationDbContext>(options =>
-      options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+    {
+      options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+      options.LogTo(Console.WriteLine);
+    });
 
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     services.AddScoped<IAssignmentRepository, AssignmentRepository>();

@@ -10,7 +10,7 @@ public class Port : BaseEntity
 
   public ICollection<ARPEntity> ARPTableOfPort { get; set; } = [];
   public ICollection<TerminatedNetworkEntity> NetworkTableOfPort { get; set; } = [];
-  public ICollection<VLAN> VLANsOfPort { get; set; } = [];
+  public ICollection<PortVLAN> PortVLANS { get; set; } = [];
 
   public Guid NetworkDeviceId { get; set; }
   public NetworkDevice NetworkDevice { get; set; } = null!;

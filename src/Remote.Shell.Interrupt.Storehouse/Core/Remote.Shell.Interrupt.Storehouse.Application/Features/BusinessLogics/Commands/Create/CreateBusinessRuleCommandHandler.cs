@@ -48,7 +48,7 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == request.CreateBusinessRuleDTO
                                                                                     .ParentId);
       var parentBusinessRule = await _businessRuleRepository.FindOneAsync(filterExpression: parentFilter,
-                                                                  cancellationToken)
+                                                                          cancellationToken)
         ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(parentFilter));
 
       // Вставка нового бизнес-правила в репозиторий

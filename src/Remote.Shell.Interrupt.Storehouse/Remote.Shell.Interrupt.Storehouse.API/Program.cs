@@ -16,6 +16,7 @@ try
 }
 catch (Exception ex)
 {
+  Log.Fatal("An error occurred during application startup: {Message}", ex.Message);
   Log.Fatal(ex, "Host terminated unexpectedly");
 }
 finally

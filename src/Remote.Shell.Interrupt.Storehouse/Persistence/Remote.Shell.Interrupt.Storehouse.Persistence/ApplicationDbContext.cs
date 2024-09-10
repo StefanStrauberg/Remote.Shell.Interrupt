@@ -3,13 +3,28 @@ namespace Remote.Shell.Interrupt.Storehouse.Persistence;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
   : DbContext(options)
 {
+  public DbSet<Assignment> Assignments { get; set; }
+  public DbSet<BusinessRule> BusinessRules { get; set; }
   public DbSet<NetworkDevice> NetworkDevices { get; set; }
+  public DbSet<PortVLAN> PortVLANS { get; set; }
   public DbSet<Port> Ports { get; set; }
+  public DbSet<VLAN> VLANs { get; set; }
   public DbSet<ARPEntity> ARPEntities { get; set; }
   public DbSet<TerminatedNetworkEntity> TerminatedNetworkEntities { get; set; }
-  public DbSet<VLAN> VLANs { get; set; }
-  public DbSet<BusinessRule> BusinessRules { get; set; }
-  public DbSet<Assignment> Assignments { get; set; }
+
+  protected override void OnModelCreating(ModelBuilder modelBuilder)
+  {
+    modelBuilder.ApplyConfiguration(new PortConfiguration());
+    modelBuilder.ApplyConfiguration(new PortVLANConfiguration());
+    modelBuilder.ApplyConfiguration(new VLANConfiguration());
+    modelBuilder.ApplyConfiguration(new BusinessRuleConfiguration());
+    modelBuilder.ApplyConfiguration(new AssignmentConfiguration());
+    modelBuilder.ApplyConfiguration(new NetworkDeviceConfiguration());
+    modelBuilder.ApplyConfiguration(new ARPEntityConfiguration());
+    modelBuilder.ApplyConfiguration(new TerminatedNetworkEntityConfiguration());
+
+    base.OnModelCreating(modelBuilder);
+  }
 
   public override int SaveChanges()
   {

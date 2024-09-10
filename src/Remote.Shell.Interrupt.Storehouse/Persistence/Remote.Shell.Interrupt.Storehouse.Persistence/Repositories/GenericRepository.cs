@@ -1,11 +1,9 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
-
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
 internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
   : IGenericRepository<TDocument> where TDocument : BaseEntity
 {
-  readonly DbSet<TDocument> _dbSet = dbContext.Set<TDocument>()
+  protected readonly DbSet<TDocument> _dbSet = dbContext.Set<TDocument>()
     ?? throw new ArgumentNullException(nameof(dbContext));
 
   public virtual async Task DeleteManyAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,

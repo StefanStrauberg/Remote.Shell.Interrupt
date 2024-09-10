@@ -22,7 +22,7 @@ public class BusinessRuleDTO : IMapWith<BusinessRule>
            .ForMember(businessRuleDTO => businessRuleDTO.ParentId,
                       opt => opt.MapFrom(businessRule => businessRule.ParentId))
            .ForMember(businessRuleDTO => businessRuleDTO.Children,
-                      opt => opt.MapFrom(businessRule => businessRule.Children))
+                      opt => opt.MapFrom(businessRule => businessRule.Children.Select(x => x.Id)))
            .ForMember(businessRuleDTO => businessRuleDTO.AssignmentId,
                       opt => opt.MapFrom(businessRule => businessRule.AssignmentId))
            .ForMember(businessRuleDTO => businessRuleDTO.IsRoot,

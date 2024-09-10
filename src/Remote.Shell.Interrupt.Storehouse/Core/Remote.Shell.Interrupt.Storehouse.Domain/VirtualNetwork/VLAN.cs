@@ -4,5 +4,5 @@ public class VLAN : BaseEntity
   public int VLANNumber { get; set; } // 10
   public string VLANName { get; set; } = string.Empty; // "VLAN10"
 
-  public ICollection<Port> Ports { get; set; } = [];
+  public ICollection<PortVLAN> PortVLANS { get; set; } = [];
 }
