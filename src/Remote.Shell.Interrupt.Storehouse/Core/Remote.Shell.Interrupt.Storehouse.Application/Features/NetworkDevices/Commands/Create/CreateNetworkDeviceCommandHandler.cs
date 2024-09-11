@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
 
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
@@ -26,7 +28,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     // Создаем новое сетевое устройство
     var networkDevice = new NetworkDevice
     {
-      NetworkDeviceName = request.NetworkDeviceName,
+      TypeOfNetworkDevice = Enum.Parse<TypeOfNetworkDevice>(request.TypeOfNetworkDevice),
       Host = request.Host
     };
 
@@ -60,6 +62,11 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                  host: request.Host,
                                  community: request.Community,
                                  cancellationToken: cancellationToken);
+
+    await FillPortVLANS(networkDevice: networkDevice,
+                        host: request.Host,
+                        community: request.Community,
+                        cancellationToken: cancellationToken);
 
     // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(document: networkDevice,
@@ -98,9 +105,8 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
           var multiplyValuesToSet = (await _sNMPCommandExecutor.WalkCommand(request.Host,
                                                                             request.Community,
                                                                             assignment.OID,
-                                                                            cancellationToken))
-              .Select(x => x.Data)
-              .ToList();
+                                                                            cancellationToken)).Select(x => x.Data)
+                                                                                               .ToList();
           HandleAssignment(networkDevice,
                            assignment,
                            multiplyValuesToSet);
@@ -310,6 +316,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                 elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Mac,
                                                                                                                              e.Ip))
                                   .ToList());
+
     // Заполнение ARP таблицы для каждого порта
     foreach (var port in networkDevice.PortsOfNetworkDevice)
     {
@@ -400,5 +407,68 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         port.NetworkTableOfPort = arpTable;
       }
     }
+  }
+
+  private async Task FillPortVLANS(NetworkDevice networkDevice,
+                                   string host,
+                                   string community,
+                                   CancellationToken cancellationToken)
+  {
+    List<SNMPResponse> interfaceNumbers = [];
+    List<SNMPResponse> vlansNames = [];
+
+    if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
+    {
+
+      // Выполняем SNMP-запрос для получения номеров интерфейсов
+      interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                                community: community,
+                                                                oid: "1.3.6.1.4.1.2636.3.48.1.3.1.1.3",
+                                                                cancellationToken: cancellationToken);
+      // Выполняем SNMP-запрос для получения IP-адресов
+      vlansNames = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                          community: community,
+                                                          oid: "1.3.6.1.4.1.2636.3.48.1.3.1.1.2",
+                                                          cancellationToken);
+    }
+    else
+    {
+      return;
+    }
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (interfaceNumbers.Count == 0 || vlansNames.Count == 0)
+      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+    // Проверяем, что количество элементов в каждом запросе совпадает
+    if (interfaceNumbers.Count != vlansNames.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), vlans({vlansNames.Count})");
+
+    // Объединяем данные в пары по InterfaceNumber и VLANName
+    var vlanEntries = interfaceNumbers.Zip(vlansNames,
+                                           (iface, vlan) => new
+                                           {
+                                             InterfaceNumber = int.Parse(iface.Data),
+                                             VLANName = vlan.Data
+                                           });
+
+    // Заполнение VLAN для каждого порта
+    // foreach (var port in networkDevice.PortsOfNetworkDevice)
+    // {
+    //   // Проверяем, есть ли VLAN запись для текущего порта
+    //   var vlanEntry = vlanEntries.FirstOrDefault(v => v.InterfaceNumber == port.InterfaceNumber);
+    //   if (vlanEntry != null)
+    //   {
+    //     // Создаем новый VLAN и связываем его с портом
+    //     var vlan = new VLAN
+    //     {
+    //       VLANNumber = vlanEntry.InterfaceNumber,
+    //       VLANName = vlanEntry.VLANName,
+    //       Port = port
+    //     };
+
+    //     // Присваиваем VLAN порту
+    //     port.VLAN = vlan;
+    //   }
+    // }
   }
 }

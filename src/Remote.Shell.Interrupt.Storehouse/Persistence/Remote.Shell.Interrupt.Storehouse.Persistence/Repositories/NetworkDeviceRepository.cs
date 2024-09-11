@@ -10,5 +10,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
               .ThenInclude(port => port.ARPTableOfPort)
             .Include(nd => nd.PortsOfNetworkDevice)
               .ThenInclude(arpTable => arpTable.NetworkTableOfPort)
+            .Include(nd => nd.PortsOfNetworkDevice)
+              .ThenInclude(vln => vln.VLAN)
             .ToListAsync(cancellationToken);
 }

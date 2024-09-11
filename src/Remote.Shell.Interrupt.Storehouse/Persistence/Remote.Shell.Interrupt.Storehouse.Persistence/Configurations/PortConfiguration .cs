@@ -11,9 +11,5 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
     builder.HasMany(p => p.NetworkTableOfPort)
            .WithOne(t => t.Port)
            .HasForeignKey(t => t.PortId);
-
-    builder.HasMany(p => p.PortVLANS)
-        .WithOne(pv => pv.Port)
-        .HasForeignKey(pv => pv.PortId);
   }
 }

@@ -7,10 +7,10 @@ public class Port : BaseEntity
   public PortType InterfaceType { get; set; } // "Ethernet"
   public PortStatus InterfaceStatus { get; set; } // "Up"
   public ulong SpeedOfPort { get; set; } // "1 Gbps"
+  public VLAN? VLAN { get; set; }
 
   public ICollection<ARPEntity> ARPTableOfPort { get; set; } = [];
   public ICollection<TerminatedNetworkEntity> NetworkTableOfPort { get; set; } = [];
-  public ICollection<PortVLAN> PortVLANS { get; set; } = [];
 
   public Guid NetworkDeviceId { get; set; }
   public NetworkDevice NetworkDevice { get; set; } = null!;

@@ -7,6 +7,7 @@ public class PortDTO : IMapWith<Port>
   public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
   public string InterfaceStatus { get; set; } = string.Empty; // "Up"
   public ulong SpeedOfPort { get; set; } // "1 Gbps"
+  public VLANDTO VLAN { get; set; } = null!;
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, HashSet<string>> NetworkTableOfPort { get; set; } = null!;
@@ -24,6 +25,8 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.InterfaceStatus.ToDescriptionString()))
            .ForMember(dest => dest.SpeedOfPort,
                       opt => opt.MapFrom(src => src.SpeedOfPort))
+           .ForMember(dest => dest.VLAN,
+                      opt => opt.MapFrom(src => src.VLAN))
            .ForMember(dest => dest.ARPTableOfPort,
                       opt => opt.MapFrom(src => src.ARPTableOfPort
                                 .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
