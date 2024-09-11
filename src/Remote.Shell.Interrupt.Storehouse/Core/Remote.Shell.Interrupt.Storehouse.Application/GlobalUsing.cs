@@ -27,3 +27,4 @@ global using System.Text;
 global using System.Text.Json;
 global using ApplicationException = Remote.Shell.Interrupt.Storehouse.Application.Exceptions.ApplicationException;
 global using ValidationException = Remote.Shell.Interrupt.Storehouse.Application.Exceptions.ValidationException;
+global using System.ComponentModel;

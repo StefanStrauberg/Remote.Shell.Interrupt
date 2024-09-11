@@ -1,4 +1,7 @@
-Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
+                                      .WriteTo.Console()
+                                      .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+                                      .CreateLogger();
 
 try
 {

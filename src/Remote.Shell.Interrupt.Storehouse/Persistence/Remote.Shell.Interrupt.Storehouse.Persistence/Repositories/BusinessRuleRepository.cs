@@ -9,5 +9,6 @@ internal class BusinessRuleRepository(ApplicationDbContext dbContext)
     => await _dbSet
             .AsNoTracking()
             .Include(br => br.Children)
+            .Include(br => br.Assignment)
             .ToListAsync(cancellationToken);
 }

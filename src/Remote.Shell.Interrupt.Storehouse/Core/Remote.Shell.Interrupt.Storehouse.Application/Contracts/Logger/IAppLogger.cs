@@ -8,3 +8,12 @@ public interface IAppLogger<T>
 
   void LogError(string message, params object[] args);
 }
+
+public interface IAppLogger
+{
+  void LogInformation(string className, string message, params object[] args);
+
+  void LogWarning(string className, string message, params object[] args);
+
+  void LogError(string className, string message, params object[] args);
+}

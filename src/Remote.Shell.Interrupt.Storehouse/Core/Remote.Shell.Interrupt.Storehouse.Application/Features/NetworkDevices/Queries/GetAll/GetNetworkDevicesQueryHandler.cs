@@ -12,7 +12,7 @@ internal class GetNetworkDevicesQueryHandler(INetworkDeviceRepository networkDev
   async Task<IEnumerable<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesQuery, IEnumerable<NetworkDeviceDTO>>.Handle(GetNetworkDevicesQuery request,
                                                                                                                           CancellationToken cancellationToken)
   {
-    var networkDevices = await _networkDeviceRepository.GetAllAsync(cancellationToken);
+    var networkDevices = await _networkDeviceRepository.GetAllWithChildrenAsync(cancellationToken);
     var networkDevicesDTOs = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
 
     return networkDevicesDTOs;

@@ -19,12 +19,8 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                             CancellationToken cancellationToken)
   {
     // // Проверяем существует ли уже сетевое устройство с таким Host
-    // var filterNetworkDevice = (Expression<Func<NetworkDevice, bool>>)(x => x.Host == request.Host);
-    // var existingNetworkDevice = await _networkDeviceRepository.ExistsAsync(filterExpression: filterNetworkDevice,
-    //                                                                        cancellationToken: cancellationToken);
-
     // // Если устройство уже существует, выбрасываем исключение
-    // if (existingNetworkDevice)
+    // if (await _networkDeviceRepository.ExistsAsync(x => x.Host == request.Host, cancellationToken))
     //   throw new EntityAlreadyExists(request.Host);
 
     // Создаем новое сетевое устройство
@@ -36,7 +32,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     // Получаем назначения и бизнес-правила
     var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
-    var businessRules = await _businessRulesRepository.GetAllAsync(cancellationToken);
+    var businessRules = await _businessRulesRepository.GetAllWithChildrenAsync(cancellationToken);
 
     // Проверяем наличие бизнес-правил
     if (!businessRules.Any())
@@ -82,36 +78,33 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                                                                contextObject: networkDevice);
 
     // Если у бизнес-правила есть задание
-    if (resultOfEvaluateCondition)
+    if (resultOfEvaluateCondition && rule.Assignment != null)
     {
-      if (rule.Assignment != null)
-      {
-        var assignment = assignments.Single(x => x.Id == rule.AssignmentId);
+      var assignment = assignments.Single(x => x.Id == rule.AssignmentId);
 
-        // Выполняем задание в зависимости от типа запроса
-        switch (assignment.TypeOfRequest)
-        {
-          case TypeOfRequest.get:
-            var singleValueToSet = (await _sNMPCommandExecutor.GetCommand(request.Host,
-                                                                          request.Community,
-                                                                          assignment.OID,
-                                                                          cancellationToken)).Data;
-            HandleAssignment(networkDevice,
-                             assignment,
-                             singleValueToSet);
-            break;
-          case TypeOfRequest.walk:
-            var multiplyValuesToSet = (await _sNMPCommandExecutor.WalkCommand(request.Host,
-                                                                              request.Community,
-                                                                              assignment.OID,
-                                                                              cancellationToken))
-                .Select(x => x.Data)
-                .ToList();
-            HandleAssignment(networkDevice,
-                             assignment,
-                             multiplyValuesToSet);
-            break;
-        }
+      // Выполняем задание в зависимости от типа запроса
+      switch (assignment.TypeOfRequest)
+      {
+        case TypeOfRequest.get:
+          var singleValueToSet = (await _sNMPCommandExecutor.GetCommand(request.Host,
+                                                                        request.Community,
+                                                                        assignment.OID,
+                                                                        cancellationToken)).Data;
+          HandleAssignment(networkDevice,
+                           assignment,
+                           singleValueToSet);
+          break;
+        case TypeOfRequest.walk:
+          var multiplyValuesToSet = (await _sNMPCommandExecutor.WalkCommand(request.Host,
+                                                                            request.Community,
+                                                                            assignment.OID,
+                                                                            cancellationToken))
+              .Select(x => x.Data)
+              .ToList();
+          HandleAssignment(networkDevice,
+                           assignment,
+                           multiplyValuesToSet);
+          break;
       }
     }
 

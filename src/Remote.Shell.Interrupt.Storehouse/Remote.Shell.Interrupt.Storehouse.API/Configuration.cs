@@ -4,6 +4,7 @@ public static class Configuration
 {
   public static void RegisterServices(this WebApplicationBuilder builder)
   {
+    Log.Debug("Starting dependency injection registration...");
     builder.Services.AddLoggerServices();
     builder.Services.AddApplicationServices();
     builder.Services.AddSNMPCommandExecutorServices();
@@ -18,6 +19,7 @@ public static class Configuration
                                                               .AllowAnyHeader()
                                                               .AllowAnyMethod());
                     });
+    Log.Debug("Dependency injection registration completed.");
   }
 
   public static void RegisterMiddlewares(this WebApplication app)
