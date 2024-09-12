@@ -5,7 +5,7 @@ public class TerminatedNetworkEntityConfiguration : IEntityTypeConfiguration<Ter
   public void Configure(EntityTypeBuilder<TerminatedNetworkEntity> builder)
   {
     builder.HasOne(t => t.Port)
-        .WithMany(p => p.NetworkTableOfPort)
+        .WithMany(p => p.NetworkTableOfInterface)
         .HasForeignKey(t => t.PortId);
   }
 }

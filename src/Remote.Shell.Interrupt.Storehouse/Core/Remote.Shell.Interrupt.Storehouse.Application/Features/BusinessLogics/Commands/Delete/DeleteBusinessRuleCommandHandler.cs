@@ -35,7 +35,8 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
           parentBusinessRule.Children.AddRange(businessRuleToDelete.Children.Select(child => child));
 
         // Сохранить изменения в родительской сущности
-        await _businessRuleRepository.ReplaceOneAsync(parentFilter, parentBusinessRule, cancellationToken);
+        await _businessRuleRepository.ReplaceOneAsync(document: parentBusinessRule,
+                                                      cancellationToken: cancellationToken);
       }
     }
 
@@ -52,12 +53,13 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IBusinessRuleReposit
         // Установить родителя для дочерней сущности
         childBusinessRule.ParentId = businessRuleToDelete.ParentId;
         // Сохранить изменения в дочерней сущности
-        await _businessRuleRepository.ReplaceOneAsync(childFilter, childBusinessRule, cancellationToken);
+        await _businessRuleRepository.ReplaceOneAsync(document: childBusinessRule,
+                                                      cancellationToken: cancellationToken);
       }
     }
 
     // Удалить текущую сущность из репозитория
-    await _businessRuleRepository.DeleteOneAsync(filterExpression: request.FilterExpression,
+    await _businessRuleRepository.DeleteOneAsync(document: businessRuleToDelete,
                                                  cancellationToken: cancellationToken);
 
     // Возвратить успешное завершение операции

@@ -44,8 +44,7 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     _mapper.Map(request.UpdateAssignmentDTO, assignment);
 
     // Обновление назначения в репозитории
-    await _assignmentRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.UpdateAssignmentDTO.Id,
-                                                document: assignment,
+    await _assignmentRepository.ReplaceOneAsync(document: assignment,
                                                 cancellationToken: cancellationToken);
 
     // Возврат успешного завершения операции

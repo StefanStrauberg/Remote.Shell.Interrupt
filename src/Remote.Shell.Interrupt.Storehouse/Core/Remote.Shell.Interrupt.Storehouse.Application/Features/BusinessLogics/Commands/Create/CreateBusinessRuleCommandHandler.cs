@@ -59,8 +59,7 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       parentBusinessRule.Children.Add(addingBusinessRule);
 
       // Обновление родительского бизнес-правила в репозитории
-      await _businessRuleRepository.ReplaceOneAsync(filterExpression: parentFilter,
-                                                    document: parentBusinessRule,
+      await _businessRuleRepository.ReplaceOneAsync(document: parentBusinessRule,
                                                     cancellationToken: cancellationToken);
     }
     else

@@ -41,7 +41,7 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
         throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(assignmentFilter));
     }
 
-    // Получаем назначение для обновления
+    // Получаем бизнес правило для обновления
     var businessRule = await _businessRuleRepository.FindOneAsync(filterExpression: filterByID,
                                                                   cancellationToken: cancellationToken);
 
@@ -49,8 +49,7 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
     _mapper.Map(request.UpdateBusinessRule, businessRule);
 
     // Обновление бизнес-правила в репозитории
-    await _businessRuleRepository.ReplaceOneAsync(filterExpression: x => x.Id == request.UpdateBusinessRule.Id,
-                                                  document: businessRule,
+    await _businessRuleRepository.ReplaceOneAsync(document: businessRule,
                                                   cancellationToken: cancellationToken);
 
     // Возврат успешного завершения операции

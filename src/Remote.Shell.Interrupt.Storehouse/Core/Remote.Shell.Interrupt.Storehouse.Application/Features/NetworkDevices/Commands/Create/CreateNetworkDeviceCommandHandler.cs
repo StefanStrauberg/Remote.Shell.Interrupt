@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
 
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
@@ -336,7 +334,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
           });
         }
         // Присваиваем заполненную ARP таблицу порту
-        port.ARPTableOfPort = arpTable;
+        port.ARPTableOfInterface = arpTable;
       }
     }
   }
@@ -351,22 +349,27 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.20.1.2",
                                                                   cancellationToken: cancellationToken);
+
     // Выполняем SNMP-запрос для получения IP-адресов
     var ipAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.20.1.1",
                                                              cancellationToken);
+
     // Выполняем SNMP-запрос для получения сетевых масок
     var netMasks = await _sNMPCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken);
+
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
     if (interfaceNumbers.Count == 0 || ipAddresses.Count == 0 || ipAddresses.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
+
     // Проверяем, что количество элементов в каждом запросе совпадает
     if (interfaceNumbers.Count != ipAddresses.Count || ipAddresses.Count != ipAddresses.Count)
       throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), macs({ipAddresses.Count}), ips({ipAddresses.Count})");
+
     // Объединяем результаты SNMP-запросов: interfaceNumber -> IP -> Mask
     var ipTableEntries = interfaceNumbers.Zip(second: ipAddresses,
                                               resultSelector: (iface, address) => new
@@ -374,19 +377,21 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                 iface,
                                                 address
                                               })
-                                          .Zip(second: netMasks,
-                                               resultSelector: (firstPair, mask) => new
-                                               {
-                                                 Interface = firstPair.iface.Data,
-                                                 Address = firstPair.address.Data,
-                                                 Mask = mask.Data
-                                               });
+                                         .Zip(second: netMasks,
+                                              resultSelector: (firstPair, mask) => new
+                                              {
+                                                Interface = firstPair.iface.Data,
+                                                Address = firstPair.address.Data,
+                                                Mask = mask.Data
+                                              });
+
     // Группируем данные по номерам интерфейсов и создаем словарь
     var arpDictionary = ipTableEntries.GroupBy(entry => int.Parse(entry.Interface))
                                       .ToDictionary(keySelector: group => group.Key,
                                                     elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
                                                                                                                                  e.Mask))
                                       .ToList());
+
     // Заполняем сетевую таблицу для каждого порта устройства
     foreach (var port in networkDevice.PortsOfNetworkDevice)
     {
@@ -394,6 +399,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
       {
         var arpTable = new List<TerminatedNetworkEntity>();
+
         // Добавляем записи IP и масок в сетевую таблицу порта
         foreach (var arpEntry in arpForPort)
         {
@@ -404,7 +410,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
           });
         }
         // Присваиваем заполненную сетевую таблицу порту
-        port.NetworkTableOfPort = arpTable;
+        port.NetworkTableOfInterface = arpTable;
       }
     }
   }
@@ -414,61 +420,84 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                    string community,
                                    CancellationToken cancellationToken)
   {
-    List<SNMPResponse> interfaceNumbers = [];
-    List<SNMPResponse> vlansNames = [];
+    List<SNMPResponse> dot1dBasePort = [];
+    List<SNMPResponse> dot1dBasePortIfIndex = [];
+    List<SNMPResponse> dot1qVlanStaticName = [];
+    List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
-    if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
-    {
+    // Выполняем SNMP-запрос для получения Base Port
+    dot1dBasePort = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                           community: community,
+                                                           oid: "1.3.6.1.2.1.17.1.4.1.1",
+                                                           cancellationToken: cancellationToken);
 
-      // Выполняем SNMP-запрос для получения номеров интерфейсов
-      interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
-                                                                community: community,
-                                                                oid: "1.3.6.1.4.1.2636.3.48.1.3.1.1.3",
-                                                                cancellationToken: cancellationToken);
-      // Выполняем SNMP-запрос для получения IP-адресов
-      vlansNames = await _sNMPCommandExecutor.WalkCommand(host: host,
-                                                          community: community,
-                                                          oid: "1.3.6.1.4.1.2636.3.48.1.3.1.1.2",
-                                                          cancellationToken);
-    }
-    else
-    {
-      return;
-    }
+    // Выполняем SNMP-запрос для получения Port If Index
+    dot1dBasePortIfIndex = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                                  community: community,
+                                                                  oid: "1.3.6.1.2.1.17.1.4.1.2",
+                                                                  cancellationToken: cancellationToken);
+
+    // Выполняем SNMP-запрос для получения VLAN Static Name
+    dot1qVlanStaticName = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                                 community: community,
+                                                                 oid: "1.3.6.1.2.1.17.7.1.4.3.1.1",
+                                                                 cancellationToken);
+
+    // Выполняем SNMP-запрос для получения VLAN Egress Ports
+    dot1qVlanStaticEgressPorts = await _sNMPCommandExecutor.WalkCommand(host: host,
+                                                                        community: community,
+                                                                        oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
+                                                                        cancellationToken);
 
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (interfaceNumbers.Count == 0 || vlansNames.Count == 0)
+    if (dot1dBasePort.Count == 0 || dot1qVlanStaticName.Count == 0 || dot1qVlanStaticEgressPorts.Count == 0 || dot1dBasePortIfIndex.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
     // Проверяем, что количество элементов в каждом запросе совпадает
-    if (interfaceNumbers.Count != vlansNames.Count)
-      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), vlans({vlansNames.Count})");
+    if (dot1dBasePort.Count != dot1dBasePortIfIndex.Count || dot1qVlanStaticName.Count != dot1qVlanStaticEgressPorts.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count}), dot1qVlanStaticName({dot1qVlanStaticName.Count}) mismatch to dot1qVlanStaticEgressPorts({dot1qVlanStaticEgressPorts.Count})");
 
-    // Объединяем данные в пары по InterfaceNumber и VLANName
-    var vlanEntries = interfaceNumbers.Zip(vlansNames,
-                                           (iface, vlan) => new
-                                           {
-                                             InterfaceNumber = int.Parse(iface.Data),
-                                             VLANName = vlan.Data
-                                           });
+    // Объединяем результаты SNMP-запросов
+    var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex, (basePort, ifIndex) => new
+    {
+      BasePort = int.Parse(basePort.Data),
+      PortIfIndex = int.Parse(ifIndex.Data)
+    }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
 
-    // Заполнение VLAN для каждого порта
-    // foreach (var port in networkDevice.PortsOfNetworkDevice)
-    // {
-    //   // Проверяем, есть ли VLAN запись для текущего порта
-    //   var vlanEntry = vlanEntries.FirstOrDefault(v => v.InterfaceNumber == port.InterfaceNumber);
-    //   if (vlanEntry != null)
-    //   {
-    //     // Создаем новый VLAN и связываем его с портом
-    //     var vlan = new VLAN
-    //     {
-    //       VLANNumber = vlanEntry.InterfaceNumber,
-    //       VLANName = vlanEntry.VLANName,
-    //       Port = port
-    //     };
+    var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
+    {
+      VlanTag = FormatOIDsToVLANsTags.Handle(vlanName.OID),
+      VlanName = vlanName.Data,
+      EgressPorts = FormatEgressPorts.Handle(egressPorts.Data)
+    }).ToList();
 
-    //     // Присваиваем VLAN порту
-    //     port.VLAN = vlan;
-    //   }
-    // }
+    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
+    var portsDictionary = networkDevice.PortsOfNetworkDevice
+        .ToDictionary(port => port.InterfaceNumber);
+
+    // Проходим по результатам vlanTableEntries
+    foreach (var vlanEntry in vlanTableEntries)
+    {
+      // Проходим по каждому egress-порту для текущего VLAN
+      foreach (var egressPort in vlanEntry.EgressPorts)
+      {
+        // Находим соответствие BasePort с PortIfIndex
+        if (physicIfTable.TryGetValue(egressPort, out int portIfIndex))
+        {
+          // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
+          if (portsDictionary.TryGetValue(portIfIndex, out var matchingPort))
+          {
+            // Если коллекция VLANs не инициализирована, инициализируем её
+            matchingPort.VLANs ??= [];
+
+            // Добавляем новый VLAN в порт
+            matchingPort.VLANs.Add(new VLAN
+            {
+              VLANTag = vlanEntry.VlanTag,
+              VLANName = vlanEntry.VlanName
+            });
+          }
+        }
+      }
+    }
   }
 }

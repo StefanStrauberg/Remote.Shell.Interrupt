@@ -5,7 +5,7 @@ public class ARPEntityConfiguration : IEntityTypeConfiguration<ARPEntity>
   public void Configure(EntityTypeBuilder<ARPEntity> builder)
   {
     builder.HasOne(a => a.Port)
-        .WithMany(p => p.ARPTableOfPort)
+        .WithMany(p => p.ARPTableOfInterface)
         .HasForeignKey(a => a.PortId);
   }
 }

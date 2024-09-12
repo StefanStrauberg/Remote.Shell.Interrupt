@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 
-public class ARPEntityDTO : IMapWith<ARPEntityDTO>
+public class ARPEntityDTO : IMapWith<ARPEntity>
 {
   public string MAC { get; set; } = string.Empty;
   public string IPAddress { get; set; } = string.Empty;
 
-  void IMapWith<ARPEntityDTO>.Mapping(Profile profile)
+  void IMapWith<ARPEntity>.Mapping(Profile profile)
   {
     profile.CreateMap<ARPEntity, ARPEntityDTO>()
            .ForMember(dest => dest.MAC,

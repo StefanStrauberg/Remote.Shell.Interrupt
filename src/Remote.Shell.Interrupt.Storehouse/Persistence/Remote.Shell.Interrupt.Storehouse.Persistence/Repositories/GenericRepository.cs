@@ -16,15 +16,11 @@ internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
     await dbContext.SaveChangesAsync(cancellationToken);
   }
 
-  public virtual async Task DeleteOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
+  public virtual async Task DeleteOneAsync(TDocument document,
                                            CancellationToken cancellationToken)
   {
-    var document = await FindOneAsync(filterExpression, cancellationToken);
-    if (document != null)
-    {
-      _dbSet.Remove(document);
-      await dbContext.SaveChangesAsync(cancellationToken);
-    }
+    _dbSet.Remove(document);
+    await dbContext.SaveChangesAsync(cancellationToken);
   }
 
   public virtual async Task<bool> ExistsAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
@@ -51,21 +47,16 @@ internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
   }
 
   public virtual async Task InsertOneAsync(TDocument document,
-                                     CancellationToken cancellationToken)
+                                           CancellationToken cancellationToken)
   {
     await _dbSet.AddAsync(document, cancellationToken);
     await dbContext.SaveChangesAsync(cancellationToken);
   }
 
-  public virtual async Task ReplaceOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
-                                      TDocument document,
-                                      CancellationToken cancellationToken)
+  public virtual async Task ReplaceOneAsync(TDocument document,
+                                            CancellationToken cancellationToken)
   {
-    var existing = await FindOneAsync(filterExpression, cancellationToken);
-    if (existing != null)
-    {
-      dbContext.Entry(existing).CurrentValues.SetValues(document);
-      await dbContext.SaveChangesAsync(cancellationToken);
-    }
+    _dbSet.Update(document);
+    await dbContext.SaveChangesAsync(cancellationToken);
   }
 }

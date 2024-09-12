@@ -3,39 +3,39 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 public class PortDTO : IMapWith<Port>
 {
   public int InterfaceNumber { get; set; } // 1
-  public string PortName { get; set; } = string.Empty; // "GigabitEthernet0/1"
+  public string InterfaceName { get; set; } = string.Empty; // "GigabitEthernet0/1"
   public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
   public string InterfaceStatus { get; set; } = string.Empty; // "Up"
-  public ulong SpeedOfPort { get; set; } // "1 Gbps"
-  public VLANDTO VLAN { get; set; } = null!;
+  public ulong InterfaceSpeed { get; set; } // "1 Gbps"
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, HashSet<string>> NetworkTableOfPort { get; set; } = null!;
+  public ICollection<VLANDTO> VLANs { get; set; } = null!;
 
   void IMapWith<Port>.Mapping(Profile profile)
   {
     profile.CreateMap<Port, PortDTO>()
            .ForMember(dest => dest.InterfaceNumber,
                       opt => opt.MapFrom(src => src.InterfaceNumber))
-           .ForMember(dest => dest.PortName,
-                      opt => opt.MapFrom(src => src.PortName))
+           .ForMember(dest => dest.InterfaceName,
+                      opt => opt.MapFrom(src => src.InterfaceName))
            .ForMember(dest => dest.InterfaceType,
                       opt => opt.MapFrom(src => src.InterfaceType.ToDescriptionString()))
            .ForMember(dest => dest.InterfaceStatus,
                       opt => opt.MapFrom(src => src.InterfaceStatus.ToDescriptionString()))
-           .ForMember(dest => dest.SpeedOfPort,
-                      opt => opt.MapFrom(src => src.SpeedOfPort))
-           .ForMember(dest => dest.VLAN,
-                      opt => opt.MapFrom(src => src.VLAN))
+           .ForMember(dest => dest.InterfaceSpeed,
+                      opt => opt.MapFrom(src => src.InterfaceSpeed))
+           .ForMember(dest => dest.VLANs,
+                      opt => opt.MapFrom(src => src.VLANs))
            .ForMember(dest => dest.ARPTableOfPort,
-                      opt => opt.MapFrom(src => src.ARPTableOfPort
+                      opt => opt.MapFrom(src => src.ARPTableOfInterface
                                 .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
                                 .ToDictionary(
                                     grp => grp.Key, // MAC-адрес как ключ
                                     grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
                                 )))
            .ForMember(dest => dest.NetworkTableOfPort,
-                      opt => opt.MapFrom(src => src.NetworkTableOfPort
+                      opt => opt.MapFrom(src => src.NetworkTableOfInterface
                                 .GroupBy(net => net.IPAddress)
                                 .ToDictionary(
                                   grp => grp.Key,

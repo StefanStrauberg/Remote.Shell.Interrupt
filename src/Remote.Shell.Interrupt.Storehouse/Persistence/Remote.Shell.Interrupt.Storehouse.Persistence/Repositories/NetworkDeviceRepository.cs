@@ -7,10 +7,10 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
     => await _dbSet
             .AsNoTracking()
             .Include(nd => nd.PortsOfNetworkDevice)
-              .ThenInclude(port => port.ARPTableOfPort)
+              .ThenInclude(port => port.ARPTableOfInterface)
             .Include(nd => nd.PortsOfNetworkDevice)
-              .ThenInclude(arpTable => arpTable.NetworkTableOfPort)
+              .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
             .Include(nd => nd.PortsOfNetworkDevice)
-              .ThenInclude(vln => vln.VLAN)
+              .ThenInclude(vln => vln.VLANs)
             .ToListAsync(cancellationToken);
 }
