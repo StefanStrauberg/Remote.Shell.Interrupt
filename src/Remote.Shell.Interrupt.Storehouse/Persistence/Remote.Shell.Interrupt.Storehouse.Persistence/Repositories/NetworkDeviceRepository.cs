@@ -13,4 +13,23 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
             .Include(nd => nd.PortsOfNetworkDevice)
               .ThenInclude(vln => vln.VLANs)
             .ToListAsync(cancellationToken);
+
+  public override async Task DeleteOneAsync(NetworkDevice document, CancellationToken cancellationToken)
+  {
+    // Удалите NetworkDevice
+    _dbSet.Remove(document);
+
+    // Удалите все VLAN, которые не связаны с другими Port
+    var vlanIdsToDelete = document.PortsOfNetworkDevice
+                                  .SelectMany(p => p.VLANs.Select(v => v.Id))
+                                  .Distinct();
+
+    var unusedVlans = await _dbContext.VLANs
+                                      .Where(v => !v.Ports.Any(p => vlanIdsToDelete.Contains(v.Id)))
+                                      .ToListAsync(cancellationToken);
+
+    _dbContext.VLANs.RemoveRange(unusedVlans);
+
+    await _dbContext.SaveChangesAsync(cancellationToken);
+  }
 }

@@ -61,10 +61,11 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                  community: request.Community,
                                  cancellationToken: cancellationToken);
 
-    await FillPortVLANS(networkDevice: networkDevice,
-                        host: request.Host,
-                        community: request.Community,
-                        cancellationToken: cancellationToken);
+    if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
+      await FillPortVLANS(networkDevice: networkDevice,
+                          host: request.Host,
+                          community: request.Community,
+                          cancellationToken: cancellationToken);
 
     // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(document: networkDevice,

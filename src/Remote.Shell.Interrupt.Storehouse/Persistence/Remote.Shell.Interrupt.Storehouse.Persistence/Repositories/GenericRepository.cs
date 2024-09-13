@@ -5,6 +5,8 @@ internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
 {
   protected readonly DbSet<TDocument> _dbSet = dbContext.Set<TDocument>()
     ?? throw new ArgumentNullException(nameof(dbContext));
+  protected readonly ApplicationDbContext _dbContext = dbContext
+    ?? throw new ArgumentNullException(nameof(dbContext));
 
   public virtual async Task DeleteManyAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
                                             CancellationToken cancellationToken)

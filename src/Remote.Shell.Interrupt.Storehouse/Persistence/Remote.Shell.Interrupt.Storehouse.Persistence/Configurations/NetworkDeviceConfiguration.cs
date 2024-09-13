@@ -6,6 +6,7 @@ public class NetworkDeviceConfiguration : IEntityTypeConfiguration<NetworkDevice
   {
     builder.HasMany(nd => nd.PortsOfNetworkDevice)
            .WithOne(p => p.NetworkDevice)
-           .HasForeignKey(p => p.NetworkDeviceId);
+           .HasForeignKey(p => p.NetworkDeviceId)
+           .OnDelete(DeleteBehavior.Cascade);
   }
 }
