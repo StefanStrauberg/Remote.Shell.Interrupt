@@ -5,16 +5,20 @@ Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
 
 try
 {
+  Log.Information("Starting application initialization...");
   var builder = WebApplication.CreateBuilder(args);
 
   // Register Services
   builder.RegisterServices();
 
+  Log.Information("Building application...");
   var app = builder.Build();
 
   // Register Middlewares
+  Log.Information("Registering middlewares...");
   app.RegisterMiddlewares();
 
+  Log.Information("Running application...");
   app.Run();
 }
 catch (Exception ex)

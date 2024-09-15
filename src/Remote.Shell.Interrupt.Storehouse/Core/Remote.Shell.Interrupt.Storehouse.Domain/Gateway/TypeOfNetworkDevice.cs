@@ -4,5 +4,6 @@ public enum TypeOfNetworkDevice
 {
   Huawei,
   Juniper,
-  Extreme
+  Extreme,
+  Cisco
 }
