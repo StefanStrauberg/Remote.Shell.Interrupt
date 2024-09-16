@@ -39,7 +39,7 @@ public static class FormatEgressPorts
       foreach (char bit in binaryString)
       {
         if (bit == '1')
-          activePorts.Add(portNumber); // Порт активен
+          activePorts.Add(portNumber - 1); // Порт активен
 
         portNumber++;
       }
