@@ -4,7 +4,7 @@ public static class FormatEgressPorts
 {
   private static readonly char[] separator = [',', ' '];
 
-  public static int[] Handle(string input)
+  internal static int[] HandleJuniperData(string input)
   {
     // Если строка пустая или null, возвращаем пустой массив
     if (string.IsNullOrWhiteSpace(input))
@@ -16,7 +16,7 @@ public static class FormatEgressPorts
                 .ToArray();
   }
 
-  public static int[] HandleHexString(string input)
+  public static int[] HandleHuaweiHexString(string input)
   {
     // Разбиваем строку на отдельные байты
     var hexValues = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -46,5 +46,10 @@ public static class FormatEgressPorts
     }
 
     return [.. activePorts]; // Возвращаем активные порты в виде массива
+  }
+
+  internal static int[] HandleExtremeOID(List<string> list)
+  {
+    throw new NotImplementedException();
   }
 }

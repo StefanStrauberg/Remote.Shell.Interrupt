@@ -3,7 +3,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
                                                  IBusinessRuleRepository businessRulesRepository,
                                                  IAssignmentRepository assignmentRepository,
-                                                 ISNMPCommandExecutor snmpCommandExecutor)
+                                                 ISNMPCommandExecutor snmpCommandExecutor,
+                                                 IVLANRepository vlanRepository)
   : ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
   readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
@@ -12,8 +13,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     ?? throw new ArgumentNullException(nameof(businessRulesRepository));
   readonly IAssignmentRepository _assignmentRepository = assignmentRepository
     ?? throw new ArgumentNullException(nameof(assignmentRepository));
-  readonly ISNMPCommandExecutor _sNMPCommandExecutor = snmpCommandExecutor
+  readonly ISNMPCommandExecutor _snmpCommandExecutor = snmpCommandExecutor
     ?? throw new ArgumentNullException(nameof(snmpCommandExecutor));
+  readonly IVLANRepository _vlanRepository = vlanRepository
+    ?? throw new ArgumentNullException(nameof(vlanRepository));
 
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
@@ -71,6 +74,11 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                    host: request.Host,
                                    community: request.Community,
                                    cancellationToken: cancellationToken);
+    else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
+      await FillPortVLANSForExtreme(networkDevice: networkDevice,
+                                    host: request.Host,
+                                    community: request.Community,
+                                    cancellationToken: cancellationToken);
 
     // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(document: networkDevice,
@@ -97,7 +105,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       switch (assignment.TypeOfRequest)
       {
         case TypeOfRequest.get:
-          var singleValueToSet = (await _sNMPCommandExecutor.GetCommand(request.Host,
+          var singleValueToSet = (await _snmpCommandExecutor.GetCommand(request.Host,
                                                                         request.Community,
                                                                         assignment.OID,
                                                                         cancellationToken)).Data;
@@ -106,7 +114,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                            singleValueToSet);
           break;
         case TypeOfRequest.walk:
-          var multiplyValuesToSet = (await _sNMPCommandExecutor.WalkCommand(request.Host,
+          var multiplyValuesToSet = (await _snmpCommandExecutor.WalkCommand(request.Host,
                                                                             request.Community,
                                                                             assignment.OID,
                                                                             cancellationToken)).Select(x => x.Data)
@@ -280,15 +288,15 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                           CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запросы
-    var interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.22.1.1",
                                                                   cancellationToken: cancellationToken);
-    var macAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var macAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
                                                               community: community,
                                                               oid: "1.3.6.1.2.1.4.22.1.2",
                                                               cancellationToken);
-    var ipAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.22.1.3",
                                                              cancellationToken);
@@ -351,19 +359,19 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                             CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запрос для получения номеров интерфейсов
-    var interfaceNumbers = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.20.1.2",
                                                                   cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения IP-адресов
-    var ipAddresses = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.20.1.1",
                                                              cancellationToken);
 
     // Выполняем SNMP-запрос для получения сетевых масок
-    var netMasks = await _sNMPCommandExecutor.WalkCommand(host: host,
+    var netMasks = await _snmpCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken);
@@ -432,25 +440,25 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
     // Выполняем SNMP-запрос для получения Base Port
-    dot1dBasePort = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
                                                            community: community,
                                                            oid: "1.3.6.1.2.1.17.1.4.1.1",
                                                            cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения Port If Index
-    dot1dBasePortIfIndex = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.17.1.4.1.2",
                                                                   cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения VLAN Static Name
-    dot1qVlanStaticName = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.17.7.1.4.3.1.1",
                                                                  cancellationToken);
 
     // Выполняем SNMP-запрос для получения VLAN Egress Ports
-    dot1qVlanStaticEgressPorts = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
                                                                         cancellationToken);
@@ -473,7 +481,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     {
       VlanTag = FormatOIDsToVLANsTags.Handle(vlanName.OID),
       VlanName = vlanName.Data,
-      EgressPorts = FormatEgressPorts.Handle(egressPorts.Data)
+      EgressPorts = FormatEgressPorts.HandleJuniperData(egressPorts.Data)
     }).ToList();
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
@@ -518,25 +526,25 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
     // Выполняем SNMP-запрос для получения Base Port
-    dot1dBasePort = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
                                                            community: community,
                                                            oid: "1.3.6.1.2.1.17.1.4.1.1",
                                                            cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения Port If Index
-    dot1dBasePortIfIndex = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.17.1.4.1.2",
                                                                   cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения VLAN Static Name
-    dot1qVlanStaticName = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.17.7.1.4.3.1.1",
                                                                  cancellationToken);
 
     // Выполняем SNMP-запрос для получения VLAN Egress Ports
-    dot1qVlanStaticEgressPorts = await _sNMPCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
                                                                         cancellationToken);
@@ -559,7 +567,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     {
       VlanTag = FormatOIDsToVLANsTags.Handle(vlanName.OID),
       VlanName = vlanName.Data,
-      EgressPorts = FormatEgressPorts.HandleHexString(egressPorts.Data)
+      EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
     }).ToList();
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
@@ -588,6 +596,70 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
               VLANName = vlanEntry.VlanName
             });
           }
+        }
+      }
+    }
+  }
+
+  private async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
+                                             string host,
+                                             string community,
+                                             CancellationToken cancellationToken)
+  {
+    List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
+
+    // Выполняем SNMP-запрос для получения Port If Index & VLAN Static Name & VLAN Egress Ports
+    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                        community: community,
+                                                                        oid: "1.3.6.1.4.1.1916.1.4.17.1.1",
+                                                                        cancellationToken);
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (dot1qVlanStaticEgressPorts.Count == 0)
+      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+    // Проверяем, что количество элементов в каждом запросе совпадает
+
+    // Пробегаемся по результатам SNMP-запроса
+    foreach (var response in dot1qVlanStaticEgressPorts)
+    {
+      // Извлекаем номер порта (позиция 1001) и номер VLAN (позиция 1000012) из OID
+      var oidParts = response.OID.Split('.');
+
+      if (oidParts.Length < 2)
+        throw new FormatException("Invalid OID format in SNMP response.");
+
+      // Порт находится на предпоследней позиции
+      if (!int.TryParse(oidParts[^2], out int portIfIndex))
+        throw new FormatException("Unable to parse port index from OID.");
+
+      // VLAN находится на последней позиции
+      if (!int.TryParse(oidParts[^1], out int vlanTag))
+        throw new FormatException("Unable to parse VLAN tag from OID.");
+
+      // Находим порт по InterfaceNumber (порт IfIndex)
+      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == portIfIndex);
+
+      if (port != null)
+      {
+        // Проверяем, есть ли уже VLAN с таким тегом
+        var vlan = port.VLANs.FirstOrDefault(v => v.VLANTag == vlanTag);
+        if (vlan == null)
+        {
+          // Если VLAN не существует, создаем новый VLAN
+          vlan = new VLAN
+          {
+            VLANTag = vlanTag,
+            VLANName = response.Data // Имя VLAN из SNMP response.Data
+          };
+
+          // Добавляем VLAN к порту
+          port.VLANs.Add(vlan);
+        }
+
+        // Добавляем порт в VLAN (двунаправленная связь)
+        if (!vlan.Ports.Contains(port))
+        {
+          vlan.Ports.Add(port);
         }
       }
     }

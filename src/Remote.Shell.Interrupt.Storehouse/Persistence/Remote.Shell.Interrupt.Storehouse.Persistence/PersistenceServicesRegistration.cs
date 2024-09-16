@@ -20,6 +20,7 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IAssignmentRepository, AssignmentRepository>();
     services.AddScoped<IBusinessRuleRepository, BusinessRuleRepository>();
     services.AddScoped<INetworkDeviceRepository, NetworkDeviceRepository>();
+    services.AddScoped<IVLANRepository, VLANRepository>();
 
     return services;
   }
