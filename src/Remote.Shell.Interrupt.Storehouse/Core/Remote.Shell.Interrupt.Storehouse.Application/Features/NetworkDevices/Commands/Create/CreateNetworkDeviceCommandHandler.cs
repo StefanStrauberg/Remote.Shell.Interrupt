@@ -488,6 +488,20 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var portsDictionary = networkDevice.PortsOfNetworkDevice
         .ToDictionary(port => port.InterfaceNumber);
 
+    var vlans = new List<VLAN>();
+
+    // Добавляем вланы в БД (для избежания копий)
+    foreach (var vlan in vlanTableEntries)
+    {
+      VLAN vlanToCreate = new()
+      {
+        VLANTag = vlan.VlanTag,
+        VLANName = RemoveTrailingPlusDigit.Handle(vlan.VlanName)
+      };
+      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
+      vlans.Add(vlanToCreate);
+    }
+
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
     {
@@ -504,11 +518,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
             matchingPort.VLANs ??= [];
 
             // Добавляем новый VLAN в порт
-            matchingPort.VLANs.Add(new VLAN
-            {
-              VLANTag = vlanEntry.VlanTag,
-              VLANName = vlanEntry.VlanName
-            });
+            matchingPort.VLANs.Add(vlans.Where(x => x.VLANTag == vlanEntry.VlanTag).First());
           }
         }
       }
@@ -574,6 +584,20 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var portsDictionary = networkDevice.PortsOfNetworkDevice
         .ToDictionary(port => port.InterfaceNumber);
 
+    var vlans = new List<VLAN>();
+
+    // Добавляем вланы в БД (для избежания копий)
+    foreach (var vlan in vlanTableEntries)
+    {
+      VLAN vlanToCreate = new()
+      {
+        VLANTag = vlan.VlanTag,
+        VLANName = vlan.VlanName
+      };
+      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
+      vlans.Add(vlanToCreate);
+    }
+
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
     {
@@ -590,11 +614,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
             matchingPort.VLANs ??= [];
 
             // Добавляем новый VLAN в порт
-            matchingPort.VLANs.Add(new VLAN
-            {
-              VLANTag = vlanEntry.VlanTag,
-              VLANName = vlanEntry.VlanName
-            });
+            matchingPort.VLANs.Add(vlans.Where(x => x.VLANTag == vlanEntry.VlanTag).First());
           }
         }
       }
