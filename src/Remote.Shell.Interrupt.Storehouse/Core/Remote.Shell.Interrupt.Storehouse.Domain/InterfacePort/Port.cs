@@ -8,6 +8,9 @@ public class Port : BaseEntity
   public PortStatus InterfaceStatus { get; set; } // "Up"
   public ulong InterfaceSpeed { get; set; } // "1 Gbps"
 
+  // Aggregation
+  public List<Port> AggregationPorts { get; set; } = [];
+
   public ICollection<ARPEntity> ARPTableOfInterface { get; set; } = [];
   public ICollection<TerminatedNetworkEntity> NetworkTableOfInterface { get; set; } = [];
   public ICollection<VLAN> VLANs { get; set; } = [];

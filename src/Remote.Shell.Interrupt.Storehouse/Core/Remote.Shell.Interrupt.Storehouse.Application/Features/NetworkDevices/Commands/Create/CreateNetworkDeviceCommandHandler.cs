@@ -567,21 +567,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                    string community,
                                    CancellationToken cancellationToken)
   {
-    List<SNMPResponse> dot1dBasePort = [];
-    List<SNMPResponse> dot1dBasePortIfIndex = [];
     List<SNMPResponse> dot3adAggPortAttachedAggID = [];
-
-    // Выполняем SNMP-запрос для получения Base Port
-    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                           community: community,
-                                                           oid: "1.3.6.1.2.1.17.1.4.1.1",
-                                                           cancellationToken: cancellationToken);
-
-    // Выполняем SNMP-запрос для получения Port If Index
-    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                                  community: community,
-                                                                  oid: "1.3.6.1.2.1.17.1.4.1.2",
-                                                                  cancellationToken: cancellationToken);
 
     // Выполняем SNMP-запрос для получения Agg Port Attached
     dot3adAggPortAttachedAggID = await _snmpCommandExecutor.WalkCommand(host: host,
@@ -590,25 +576,33 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                         cancellationToken);
 
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (dot1dBasePort.Count == 0 || dot1dBasePortIfIndex.Count == 0 || dot3adAggPortAttachedAggID.Count == 0)
+    if (dot3adAggPortAttachedAggID.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
-
-    // Проверяем, что количество элементов в каждом запросе совпадает
-    if (dot1dBasePort.Count != dot1dBasePortIfIndex.Count)
-      throw new InvalidOperationException($"SNMP responses count mismatch for data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count})");
-
-    // Объединяем результаты SNMP-запросов
-    var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex, (basePort, ifIndex) => new
-    {
-      BasePort = int.Parse(basePort.Data),
-      PortIfIndex = int.Parse(ifIndex.Data)
-    }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
 
     var aggPortTable = dot3adAggPortAttachedAggID.Select(x => new
     {
       ifNumber = OIDGetLastNumbers.Handle(x.OID),
-      ports = FormatEgressPorts.HandleHuaweiHexString(x.Data)
+      ports = x.Data == "\0" ? [] : FormatEgressPorts.HandleHuaweiHexString(x.Data)
     });
+
+    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
+    var portsDictionaryByNumber = networkDevice.PortsOfNetworkDevice
+        .ToDictionary(port => port.InterfaceNumber);
+
+    foreach (var aggPort in aggPortTable)
+    {
+      foreach (var portNumber in aggPort.ports)
+      {
+        if (portsDictionaryByNumber.TryGetValue(portNumber, out var foundPort))
+        {
+          if (portsDictionaryByNumber.TryGetValue(aggPort.ifNumber, out var aggregation))
+          {
+            aggregation.AggregationPorts ??= [];
+            aggregation.AggregationPorts.Add(foundPort);
+          }
+        }
+      }
+    }
   }
 
   private async Task FillPortVLANSForHuawei(NetworkDevice networkDevice,
