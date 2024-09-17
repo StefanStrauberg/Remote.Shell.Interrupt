@@ -65,26 +65,63 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                  cancellationToken: cancellationToken);
 
     if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
+    {
       await FillPortVLANSForJuniper(networkDevice: networkDevice,
                                     host: request.Host,
                                     community: request.Community,
                                     cancellationToken: cancellationToken);
+      CleanJuniper(networkDevice.PortsOfNetworkDevice);
+      await LinkAgregationPorts(networkDevice: networkDevice,
+                                host: request.Host,
+                                community: request.Community,
+                                cancellationToken: cancellationToken);
+    }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei)
+    {
       await FillPortVLANSForHuawei(networkDevice: networkDevice,
                                    host: request.Host,
                                    community: request.Community,
                                    cancellationToken: cancellationToken);
+      CleanHuawei(networkDevice.PortsOfNetworkDevice);
+    }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
+    {
       await FillPortVLANSForExtreme(networkDevice: networkDevice,
                                     host: request.Host,
                                     community: request.Community,
                                     cancellationToken: cancellationToken);
+      CleanExtreme(networkDevice.PortsOfNetworkDevice);
+    }
 
     // Вставляем новое сетевое устройство в репозиторий
     await _networkDeviceRepository.InsertOneAsync(document: networkDevice,
                                                   cancellationToken: cancellationToken);
     return Unit.Value;
   }
+
+  private static void CleanJuniper(List<Port> portsOfNetworkDevice)
+  {
+    portsOfNetworkDevice.RemoveAll(port => !(port.InterfaceName.StartsWith("xe") ||
+                                             port.InterfaceName.StartsWith("irb") ||
+                                             port.InterfaceName.StartsWith("ae")));
+  }
+
+  private static void CleanHuawei(List<Port> portsOfNetworkDevice)
+  {
+    portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("InLoop") ||
+                                           port.InterfaceName.StartsWith("MEth") ||
+                                           port.InterfaceName.StartsWith("NULL0") ||
+                                           port.InterfaceName.StartsWith("Vlan"));
+  }
+
+  private static void CleanExtreme(List<Port> portsOfNetworkDevice)
+  {
+    portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("Management") ||
+                                           port.InterfaceName.StartsWith("rtif") ||
+                                           port.InterfaceName.StartsWith("Virtual") ||
+                                           port.InterfaceName.StartsWith("VLAN"));
+  }
+
   async Task ProcessBusinessRuleTree(BusinessRule rule,
                                      IEnumerable<BusinessRule> allRules,
                                      IEnumerable<Assignment> assignments,
@@ -468,7 +505,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
     // Проверяем, что количество элементов в каждом запросе совпадает
     if (dot1dBasePort.Count != dot1dBasePortIfIndex.Count || dot1qVlanStaticName.Count != dot1qVlanStaticEgressPorts.Count)
-      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count}), dot1qVlanStaticName({dot1qVlanStaticName.Count}) mismatch to dot1qVlanStaticEgressPorts({dot1qVlanStaticEgressPorts.Count})");
+      throw new InvalidOperationException($"SNMP responses count mismatch for data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count}), dot1qVlanStaticName({dot1qVlanStaticName.Count}) mismatch to dot1qVlanStaticEgressPorts({dot1qVlanStaticEgressPorts.Count})");
 
     // Объединяем результаты SNMP-запросов
     var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex, (basePort, ifIndex) => new
@@ -479,7 +516,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
     {
-      VlanTag = FormatOIDsToVLANsTags.Handle(vlanName.OID),
+      VlanTag = OIDGetLastNumbers.Handle(vlanName.OID),
       VlanName = vlanName.Data,
       EgressPorts = FormatEgressPorts.HandleJuniperData(egressPorts.Data)
     }).ToList();
@@ -523,6 +560,55 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         }
       }
     }
+  }
+
+  private async Task LinkAgregationPorts(NetworkDevice networkDevice,
+                                   string host,
+                                   string community,
+                                   CancellationToken cancellationToken)
+  {
+    List<SNMPResponse> dot1dBasePort = [];
+    List<SNMPResponse> dot1dBasePortIfIndex = [];
+    List<SNMPResponse> dot3adAggPortAttachedAggID = [];
+
+    // Выполняем SNMP-запрос для получения Base Port
+    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                           community: community,
+                                                           oid: "1.3.6.1.2.1.17.1.4.1.1",
+                                                           cancellationToken: cancellationToken);
+
+    // Выполняем SNMP-запрос для получения Port If Index
+    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                  community: community,
+                                                                  oid: "1.3.6.1.2.1.17.1.4.1.2",
+                                                                  cancellationToken: cancellationToken);
+
+    // Выполняем SNMP-запрос для получения Agg Port Attached
+    dot3adAggPortAttachedAggID = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                        community: community,
+                                                                        oid: "1.2.840.10006.300.43.1.1.2.1.1",
+                                                                        cancellationToken);
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (dot1dBasePort.Count == 0 || dot1dBasePortIfIndex.Count == 0 || dot3adAggPortAttachedAggID.Count == 0)
+      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+
+    // Проверяем, что количество элементов в каждом запросе совпадает
+    if (dot1dBasePort.Count != dot1dBasePortIfIndex.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch for data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count})");
+
+    // Объединяем результаты SNMP-запросов
+    var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex, (basePort, ifIndex) => new
+    {
+      BasePort = int.Parse(basePort.Data),
+      PortIfIndex = int.Parse(ifIndex.Data)
+    }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
+
+    var aggPortTable = dot3adAggPortAttachedAggID.Select(x => new
+    {
+      ifNumber = OIDGetLastNumbers.Handle(x.OID),
+      ports = FormatEgressPorts.HandleHuaweiHexString(x.Data)
+    });
   }
 
   private async Task FillPortVLANSForHuawei(NetworkDevice networkDevice,
@@ -575,7 +661,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
     {
-      VlanTag = FormatOIDsToVLANsTags.Handle(vlanName.OID),
+      VlanTag = OIDGetLastNumbers.Handle(vlanName.OID),
       VlanName = vlanName.Data,
       EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
     }).ToList();
@@ -622,9 +708,9 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   }
 
   private async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
-                                             string host,
-                                             string community,
-                                             CancellationToken cancellationToken)
+                                            string host,
+                                            string community,
+                                            CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
@@ -634,52 +720,73 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                         oid: "1.3.6.1.4.1.1916.1.4.17.1.1",
                                                                         cancellationToken);
 
-    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    // Проверяем, что хотя бы запрос не вернул пустые данные
     if (dot1qVlanStaticEgressPorts.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests receive empty result.");
-    // Проверяем, что количество элементов в каждом запросе совпадает
+      throw new InvalidOperationException("One from SNMP requests received empty result.");
 
-    // Пробегаемся по результатам SNMP-запроса
-    foreach (var response in dot1qVlanStaticEgressPorts)
-    {
-      // Извлекаем номер порта (позиция 1001) и номер VLAN (позиция 1000012) из OID
-      var oidParts = response.OID.Split('.');
-
-      if (oidParts.Length < 2)
-        throw new FormatException("Invalid OID format in SNMP response.");
-
-      // Порт находится на предпоследней позиции
-      if (!int.TryParse(oidParts[^2], out int portIfIndex))
-        throw new FormatException("Unable to parse port index from OID.");
-
-      // VLAN находится на последней позиции
-      if (!int.TryParse(oidParts[^1], out int vlanTag))
-        throw new FormatException("Unable to parse VLAN tag from OID.");
-
-      // Находим порт по InterfaceNumber (порт IfIndex)
-      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == portIfIndex);
-
-      if (port != null)
-      {
-        // Проверяем, есть ли уже VLAN с таким тегом
-        var vlan = port.VLANs.FirstOrDefault(v => v.VLANTag == vlanTag);
-        if (vlan == null)
+    // Обрабатываем результаты SNMP-запросов
+    var vlanEntries = dot1qVlanStaticEgressPorts
+        .Select(response =>
         {
-          // Если VLAN не существует, создаем новый VLAN
-          vlan = new VLAN
+          var oidParts = response.OID.Split('.');
+
+          if (oidParts.Length < 2)
+            throw new FormatException("Invalid OID format in SNMP response.");
+
+          if (!int.TryParse(oidParts[^2], out int portIfIndex))
+            throw new FormatException("Unable to parse port index from OID.");
+
+          if (!int.TryParse(oidParts[^1], out int vlanTag))
+            throw new FormatException("Unable to parse VLAN tag from OID.");
+
+          return new
           {
-            VLANTag = vlanTag,
-            VLANName = response.Data // Имя VLAN из SNMP response.Data
+            PortIfIndex = portIfIndex,
+            VlanTag = vlanTag,
+            VlanName = response.Data // Имя VLAN из SNMP response.Data
           };
-
-          // Добавляем VLAN к порту
-          port.VLANs.Add(vlan);
-        }
-
-        // Добавляем порт в VLAN (двунаправленная связь)
-        if (!vlan.Ports.Contains(port))
+        })
+        .GroupBy(entry => new { entry.PortIfIndex, entry.VlanTag, entry.VlanName })
+        .Select(group => new
         {
-          vlan.Ports.Add(port);
+          PortIfIndex = group.Key.PortIfIndex,
+          VlanTag = group.Key.VlanTag,
+          VlanName = group.Key.VlanName
+        })
+        .ToList();
+
+    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
+    var portsDictionary = networkDevice.PortsOfNetworkDevice
+        .ToDictionary(port => port.InterfaceNumber);
+
+    var vlans = new List<VLAN>();
+
+    // Добавляем вланы в БД (для избежания копий)
+    foreach (var vlanEntry in vlanEntries)
+    {
+      VLAN vlanToCreate = new()
+      {
+        VLANTag = vlanEntry.VlanTag,
+        VLANName = vlanEntry.VlanName
+      };
+      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
+      vlans.Add(vlanToCreate);
+    }
+
+    // Проходим по результатам vlanEntries
+    foreach (var vlanEntry in vlanEntries)
+    {
+      // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
+      if (portsDictionary.TryGetValue(vlanEntry.PortIfIndex, out var matchingPort))
+      {
+        // Если коллекция VLANs не инициализирована, инициализируем её
+        matchingPort.VLANs ??= [];
+
+        // Добавляем новый VLAN в порт
+        var vlanToAdd = vlans.First(v => v.VLANTag == vlanEntry.VlanTag);
+        if (!matchingPort.VLANs.Contains(vlanToAdd))
+        {
+          matchingPort.VLANs.Add(vlanToAdd);
         }
       }
     }
