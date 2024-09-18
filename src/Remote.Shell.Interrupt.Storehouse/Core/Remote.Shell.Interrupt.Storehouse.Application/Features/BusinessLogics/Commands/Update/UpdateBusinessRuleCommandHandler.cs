@@ -45,6 +45,7 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
     var businessRule = await _businessRuleRepository.FindOneAsync(filterExpression: filterByID,
                                                                   cancellationToken: cancellationToken);
 
+
     // Преобразование DTO в доменную модель назначения
     _mapper.Map(request.UpdateBusinessRule, businessRule);
 

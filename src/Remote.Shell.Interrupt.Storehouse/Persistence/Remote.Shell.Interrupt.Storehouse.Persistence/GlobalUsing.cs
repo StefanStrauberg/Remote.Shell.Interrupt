@@ -11,3 +11,4 @@ global using Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Remote.Shell.Interrupt.Storehouse.Persistence.Configurations;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+global using System.Linq.Expressions;

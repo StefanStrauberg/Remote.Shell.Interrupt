@@ -13,8 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.AppLogger\Remote.Shell.Interrupt.Storehouse.AppLogger.csproj" />
-    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.Infrastructure\Remote.Shell.Interrupt.Storehouse.Infrastructure.csproj" />
     <ProjectReference Include="..\Persistence\Remote.Shell.Interrupt.Storehouse.Persistence\Remote.Shell.Interrupt.Storehouse.Persistence.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -4,7 +4,7 @@ public class CreateBusinessRuleDTO : IMapWith<BusinessRule>
 {
   public Guid Id { get; set; }
   public string Name { get; set; } = string.Empty;
-  public string? Condition { get; set; }
+  public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
   public Guid? AssignmentId { get; set; }
 
@@ -15,8 +15,8 @@ public class CreateBusinessRuleDTO : IMapWith<BusinessRule>
                       opt => opt.MapFrom(createBusinessRuleDTO => createBusinessRuleDTO.Id))
            .ForMember(businessRule => businessRule.Name,
                       opt => opt.MapFrom(createBusinessRuleDTO => createBusinessRuleDTO.Name))
-           .ForMember(businessRule => businessRule.Condition,
-                      opt => opt.MapFrom(createBusinessRuleDTO => createBusinessRuleDTO.Condition))
+           .ForMember(businessRule => businessRule.Vendor,
+                      opt => opt.MapFrom(createBusinessRuleDTO => createBusinessRuleDTO.Vendor))
            .ForMember(businessRule => businessRule.ParentId,
                       opt => opt.MapFrom(createBusinessRuleDTO => createBusinessRuleDTO.ParentId))
            .ForMember(businessRule => businessRule.AssignmentId,

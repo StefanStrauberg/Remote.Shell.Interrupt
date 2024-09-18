@@ -2,7 +2,6 @@ global using AutoMapper;
 global using FluentValidation;
 global using MediatR;
 global using Microsoft.AspNetCore.Http;
-global using Microsoft.CodeAnalysis.CSharp.Scripting;
 global using Microsoft.Extensions.DependencyInjection;
 global using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;

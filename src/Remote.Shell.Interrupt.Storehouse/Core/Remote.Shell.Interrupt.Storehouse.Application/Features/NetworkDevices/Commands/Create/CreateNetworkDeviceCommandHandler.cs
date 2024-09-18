@@ -21,11 +21,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
-    // // Проверяем существует ли уже сетевое устройство с таким Host
-    // // Если устройство уже существует, выбрасываем исключение
-    // if (await _networkDeviceRepository.ExistsAsync(x => x.Host == request.Host, cancellationToken))
-    //   throw new EntityAlreadyExists(request.Host);
-
     // Создаем новое сетевое устройство
     var networkDevice = new NetworkDevice
     {
@@ -71,10 +66,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                     community: request.Community,
                                     cancellationToken: cancellationToken);
       CleanJuniper(networkDevice.PortsOfNetworkDevice);
-      await LinkAgregationPorts(networkDevice: networkDevice,
-                                host: request.Host,
-                                community: request.Community,
-                                cancellationToken: cancellationToken);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei)
     {
@@ -130,8 +121,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                      CancellationToken cancellationToken)
   {
     // Проверяем условие бизнес-правила
-    bool resultOfEvaluateCondition = rule.Condition == null || await ConditionEvaluator.EvaluateConditionAsync(condition: rule.Condition,
-                                                                                                               contextObject: networkDevice);
+    bool resultOfEvaluateCondition = rule.Vendor == null || rule.Vendor == networkDevice.TypeOfNetworkDevice;
 
     // Если у бизнес-правила есть задание
     if (resultOfEvaluateCondition && rule.Assignment != null)
@@ -556,49 +546,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
             // Добавляем новый VLAN в порт
             matchingPort.VLANs.Add(vlans.Where(x => x.VLANTag == vlanEntry.VlanTag).First());
-          }
-        }
-      }
-    }
-  }
-
-  private async Task LinkAgregationPorts(NetworkDevice networkDevice,
-                                   string host,
-                                   string community,
-                                   CancellationToken cancellationToken)
-  {
-    List<SNMPResponse> dot3adAggPortAttachedAggID = [];
-
-    // Выполняем SNMP-запрос для получения Agg Port Attached
-    dot3adAggPortAttachedAggID = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                                        community: community,
-                                                                        oid: "1.2.840.10006.300.43.1.1.2.1.1",
-                                                                        cancellationToken);
-
-    // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (dot3adAggPortAttachedAggID.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests receive empty result.");
-
-    var aggPortTable = dot3adAggPortAttachedAggID.Select(x => new
-    {
-      ifNumber = OIDGetLastNumbers.Handle(x.OID),
-      ports = x.Data == "\0" ? [] : FormatEgressPorts.HandleHuaweiHexString(x.Data)
-    });
-
-    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
-    var portsDictionaryByNumber = networkDevice.PortsOfNetworkDevice
-        .ToDictionary(port => port.InterfaceNumber);
-
-    foreach (var aggPort in aggPortTable)
-    {
-      foreach (var portNumber in aggPort.ports)
-      {
-        if (portsDictionaryByNumber.TryGetValue(portNumber, out var foundPort))
-        {
-          if (portsDictionaryByNumber.TryGetValue(aggPort.ifNumber, out var aggregation))
-          {
-            aggregation.AggregationPorts ??= [];
-            aggregation.AggregationPorts.Add(foundPort);
           }
         }
       }

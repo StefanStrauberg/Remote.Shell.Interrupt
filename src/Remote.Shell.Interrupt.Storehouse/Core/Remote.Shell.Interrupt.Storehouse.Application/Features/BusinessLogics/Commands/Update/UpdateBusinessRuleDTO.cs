@@ -4,7 +4,7 @@ public class UpdateBusinessRuleDTO : IMapWith<BusinessRule>
 {
   public Guid Id { get; set; }
   public string Name { get; set; } = string.Empty;
-  public string? Condition { get; set; } = string.Empty;
+  public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
   public List<Guid> Children { get; set; } = [];
   public Guid? AssignmentId { get; set; }
@@ -16,12 +16,12 @@ public class UpdateBusinessRuleDTO : IMapWith<BusinessRule>
                       opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.Id))
            .ForMember(businessRule => businessRule.Name,
                       opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.Name))
-           .ForMember(businessRule => businessRule.Condition,
-                      opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.Condition))
+           .ForMember(businessRule => businessRule.Vendor,
+                      opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.Vendor))
            .ForMember(businessRule => businessRule.ParentId,
                       opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.ParentId))
            .ForMember(businessRule => businessRule.Children,
-                      opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.Children))
+                      opt => opt.Ignore()) // Здесь игнорируем прямое маппирование
            .ForMember(businessRule => businessRule.AssignmentId,
                       opt => opt.MapFrom(updateBusinessRuleDTO => updateBusinessRuleDTO.AssignmentId));
   }

@@ -3,11 +3,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.
 public class BusinessRuleDTO : IMapWith<BusinessRule>
 {
   public Guid Id { get; private set; }
-  public string Name { get; set; } = string.Empty; // Get Interfaces for Huawei
-  public string? Condition { get; set; } // x.Name == Huawei
+  public string Name { get; set; } = string.Empty;
+  public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
   public List<Guid> Children { get; set; } = [];
-  public Guid? AssignmentId { get; set; } // Represent what to do
+  public Guid? AssignmentId { get; set; }
   public bool IsRoot { get; set; }
 
   void IMapWith<BusinessRule>.Mapping(Profile profile)
@@ -17,8 +17,8 @@ public class BusinessRuleDTO : IMapWith<BusinessRule>
                       opt => opt.MapFrom(businessRule => businessRule.Id))
            .ForMember(businessRuleDTO => businessRuleDTO.Name,
                       opt => opt.MapFrom(businessRule => businessRule.Name))
-           .ForMember(businessRuleDTO => businessRuleDTO.Condition,
-                      opt => opt.MapFrom(businessRule => businessRule.Condition))
+           .ForMember(businessRuleDTO => businessRuleDTO.Vendor,
+                      opt => opt.MapFrom(businessRule => businessRule.Vendor))
            .ForMember(businessRuleDTO => businessRuleDTO.ParentId,
                       opt => opt.MapFrom(businessRule => businessRule.ParentId))
            .ForMember(businessRuleDTO => businessRuleDTO.Children,

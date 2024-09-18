@@ -2,8 +2,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
 
 public class BusinessRule : BaseEntity
 {
-  public string Name { get; set; } = string.Empty; // Get Interfaces for Huawei
-  public string? Condition { get; set; } // x.Name == Huawei
+  public string Name { get; set; } = string.Empty; // Get Interfaces 
+  public TypeOfNetworkDevice? Vendor { get; set; } // Huawei or null
   public bool IsRoot { get; set; }
 
   public Guid? ParentId { get; set; }
