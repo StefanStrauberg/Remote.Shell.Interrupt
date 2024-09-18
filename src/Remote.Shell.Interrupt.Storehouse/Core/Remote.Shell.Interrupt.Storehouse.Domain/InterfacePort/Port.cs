@@ -12,6 +12,13 @@ public class Port : BaseEntity
   public ICollection<TerminatedNetworkEntity> NetworkTableOfInterface { get; set; } = [];
   public ICollection<VLAN> VLANs { get; set; } = [];
 
+  // Добавляем свойство для агрегации
+  public ICollection<Port> AggregatedPorts { get; set; } = [];
+
   public Guid NetworkDeviceId { get; set; }
   public NetworkDevice NetworkDevice { get; set; } = null!;
+
+  // Свойство для указания родительского порта
+  public Guid? ParentPortId { get; set; }
+  public Port? ParentPort { get; set; }
 }

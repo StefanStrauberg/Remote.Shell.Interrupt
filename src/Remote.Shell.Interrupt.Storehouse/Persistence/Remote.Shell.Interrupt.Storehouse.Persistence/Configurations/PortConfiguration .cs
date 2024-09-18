@@ -25,5 +25,11 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
                             .HasForeignKey("PortId")
                             .OnDelete(DeleteBehavior.Cascade)
                      );
+
+              // Конфигурация для агрегации портов
+              builder.HasMany(p => p.AggregatedPorts)
+                     .WithOne(p => p.ParentPort)
+                     .HasForeignKey(p => p.ParentPortId)
+                     .OnDelete(DeleteBehavior.Cascade); // Зависимость при удалении родительского порта
        }
 }

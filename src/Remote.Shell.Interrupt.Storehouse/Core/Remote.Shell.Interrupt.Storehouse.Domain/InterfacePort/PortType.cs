@@ -22,7 +22,7 @@ public enum PortType
   propPointToPoint = 21,
   propMultipoint = 22,
   IEEE80211 = 23, // IEEE 802.11 (Wi-Fi
-  loopback = 24,
+  softwareLoopback = 24,
   eon = 25, // Ethernet over Non-Ethernet (EON)
   ethernet3M = 26, // Ethernet 3 Mbit/sec
   serial = 27,
@@ -31,9 +31,9 @@ public enum PortType
   tokenRing = 30, // Token Ring
   protocol = 31,
   vlan = 32, // VLAN (Virtual LAN)
-  irb = 53, // Integrated Routing and Bridging
-  vtun = 131,
-  TenGigEthernet = 135,
-  unknown = 150,
-  ae = 161 // Aggregated Ethernet
+  propVirtual = 53, // Integrated Routing and Bridging
+  tunnel = 131,
+  l2vlan = 135,
+  mplsTunnel = 150,
+  ieee8023adLag = 161 // Aggregated Ethernet
 }

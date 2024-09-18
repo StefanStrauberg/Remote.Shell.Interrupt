@@ -12,6 +12,8 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
               .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
             .Include(nd => nd.PortsOfNetworkDevice)
               .ThenInclude(vln => vln.VLANs)
+            .Include(nd => nd.PortsOfNetworkDevice)
+              .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
             .ToListAsync(cancellationToken);
 
   public override async Task DeleteOneAsync(NetworkDevice document, CancellationToken cancellationToken)

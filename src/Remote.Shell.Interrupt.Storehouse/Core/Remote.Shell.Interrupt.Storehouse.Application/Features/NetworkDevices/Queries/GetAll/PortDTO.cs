@@ -7,6 +7,9 @@ public class PortDTO : IMapWith<Port>
   public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
   public string InterfaceStatus { get; set; } = string.Empty; // "Up"
   public ulong InterfaceSpeed { get; set; } // "1 Gbps"
+  public bool IsAggregated { get; set; }
+
+  public ICollection<PortDTO> AggregatedPorts { get; set; } = [];
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, HashSet<string>> NetworkTableOfPort { get; set; } = null!;
@@ -25,6 +28,10 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.InterfaceStatus.ToDescriptionString()))
            .ForMember(dest => dest.InterfaceSpeed,
                       opt => opt.MapFrom(src => src.InterfaceSpeed))
+           .ForMember(dest => dest.IsAggregated,
+                      opt => opt.MapFrom(src => src.AggregatedPorts.Count != 0))
+           .ForMember(dest => dest.AggregatedPorts,
+                      opt => opt.MapFrom(src => src.AggregatedPorts))
            .ForMember(dest => dest.VLANs,
                       opt => opt.MapFrom(src => src.VLANs))
            .ForMember(dest => dest.ARPTableOfPort,
