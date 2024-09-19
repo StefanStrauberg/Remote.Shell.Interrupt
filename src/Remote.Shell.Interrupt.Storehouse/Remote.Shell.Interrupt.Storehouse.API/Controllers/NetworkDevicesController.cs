@@ -11,13 +11,23 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
     => Ok(await _sender.Send(new GetNetworkDevicesQuery(),
                              cancellationToken));
 
-  [HttpGet("{id}")]
+  [HttpGet("{address}")]
   [ProducesResponseType(typeof(NetworkDeviceDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetNetworkDeviceById(Guid id,
+  public async Task<IActionResult> GetNetworkDeviceByIP(string address,
                                                         CancellationToken cancellationToken)
-  => Ok(await _sender.Send(new GetNetworkDeviceByExpressionQuery(x => x.Id == id),
-                           cancellationToken));
+  {
+    var ipToCheck = IPAddress.Parse(address);
+    var ipToCheckNum = BitConverter.ToUInt32(ipToCheck.GetAddressBytes().Reverse().ToArray(), 0);
+    var request = new GetNetworkDeviceByExpressionQuery(
+        x => x.PortsOfNetworkDevice.Any(port =>
+            port.NetworkTableOfInterface.Any(network => (ipToCheckNum & network.Netmask) ==
+                                                        (network.NetworkAddress & network.Netmask))
+        )
+    );
+    var result = await _sender.Send(request, cancellationToken);
+    return Ok(result);
+  }
 
   [HttpPost]
   [ProducesResponseType(StatusCodes.Status200OK)]

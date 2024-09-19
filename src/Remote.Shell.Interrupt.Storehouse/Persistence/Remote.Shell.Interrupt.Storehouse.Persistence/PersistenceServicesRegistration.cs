@@ -8,12 +8,6 @@ public static class PersistenceServicesRegistration
     services.AddDbContext<ApplicationDbContext>(options =>
     {
       options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
-
-      // Включаем детализированное логирование для всех операций EF Core
-      options.EnableSensitiveDataLogging(); // Логирует параметры запросов (внимание: может содержать чувствительные данные)
-      options.EnableDetailedErrors();       // Включает детализированные сообщения об ошибках
-
-      options.LogTo(Console.WriteLine);
     });
 
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

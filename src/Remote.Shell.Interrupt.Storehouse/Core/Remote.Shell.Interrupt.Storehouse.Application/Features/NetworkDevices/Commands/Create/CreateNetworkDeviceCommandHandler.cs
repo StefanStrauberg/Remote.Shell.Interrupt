@@ -70,6 +70,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                 host: request.Host,
                                 community: request.Community,
                                 cancellationToken: cancellationToken);
+      CleanJuniperDots(networkDevice.PortsOfNetworkDevice);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei)
     {
@@ -99,7 +100,43 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     portsOfNetworkDevice.RemoveAll(port => !(port.InterfaceName.StartsWith("xe") ||
                                              port.InterfaceName.StartsWith("irb") ||
                                              port.InterfaceName.StartsWith("ae")));
-    portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.Contains('.'));
+  }
+
+  private static void CleanJuniperDots(List<Port> portsOfNetworkDevice)
+  {
+    var aePorts = portsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
+    var xePorts = portsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("xe")).ToList();
+
+    // Находим все порты без точки и создаем группы
+    var aePortsWithoutDots = aePorts.Where(port => !port.InterfaceName.Contains('.')).ToList();
+    var xePortsWithoutDots = xePorts.Where(port => !port.InterfaceName.Contains('.')).ToList();
+
+    foreach (var port in aePortsWithoutDots)
+    {
+      var baseName = port.InterfaceName;
+
+      // Находим порты с точкой с основанием baseName
+      var lookingGroupWithDot = portsOfNetworkDevice.Where(p => p.InterfaceName.StartsWith(baseName + '.'))
+                                                    .ToList();
+      foreach (var item in lookingGroupWithDot)
+      {
+        // удаляем порты с точкой с основанием baseName
+        portsOfNetworkDevice.Remove(item);
+      }
+    }
+    foreach (var port in xePortsWithoutDots)
+    {
+      var baseName = port.InterfaceName;
+
+      // Находим порты с точкой с основанием baseName
+      var lookingGroupWithDot = portsOfNetworkDevice.Where(p => p.InterfaceName.StartsWith(baseName + '.'))
+                                                    .ToList();
+      foreach (var item in lookingGroupWithDot)
+      {
+        // удаляем порты с точкой с основанием baseName
+        portsOfNetworkDevice.Remove(item);
+      }
+    }
   }
 
   private static void CleanHuawei(List<Port> portsOfNetworkDevice)
@@ -449,11 +486,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         // Добавляем записи IP и масок в сетевую таблицу порта
         foreach (var arpEntry in arpForPort)
         {
-          arpTable.Add(new TerminatedNetworkEntity()
-          {
-            IPAddress = arpEntry.Key,
-            Netmask = arpEntry.Value
-          });
+          var terminatedNetwork = new TerminatedNetworkEntity();
+          terminatedNetwork.SetAddressAndMask(arpEntry.Key, arpEntry.Value);
+          arpTable.Add(terminatedNetwork);
+
         }
         // Присваиваем заполненную сетевую таблицу порту
         port.NetworkTableOfInterface = arpTable;
@@ -511,7 +547,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
     {
-      VlanTag = OIDGetLastNumbers.Handle(vlanName.OID),
+      VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
       VlanName = vlanName.Data,
       EgressPorts = FormatEgressPorts.HandleJuniperData(egressPorts.Data)
     }).ToList();
@@ -562,44 +598,103 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                    string community,
                                    CancellationToken cancellationToken)
   {
-    List<SNMPResponse> dot3adAggPortAttachedAggID = [];
+    List<SNMPResponse> ifStackTable = [];
 
     // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
-    dot3adAggPortAttachedAggID = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                                        community: community,
-                                                                        oid: "1.2.840.10006.300.43.1.1.2.1.1",
-                                                                        cancellationToken);
+    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                          community: community,
+                                                          oid: "1.3.6.1.2.1.31.1.2.1.3",
+                                                          cancellationToken);
 
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (dot3adAggPortAttachedAggID.Count == 0)
+    if (ifStackTable.Count == 0)
       throw new InvalidOperationException("One from SNMP requests receive empty result.");
 
-    var aggPortTable = dot3adAggPortAttachedAggID.Select(x => new
-    {
-      ifNumber = OIDGetLastNumbers.Handle(x.OID),
-      ports = x.Data == "\0" ? null : FormatEgressPorts.HandleHuaweiHexString(x.Data)
-    }).Where(x => x.ports != null)
-      .ToList();
+    var aePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
+    var xePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("xe")).ToList();
 
-    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
-    var portsDictionaryByNumber = networkDevice.PortsOfNetworkDevice
-        .ToDictionary(port => port.InterfaceNumber);
+    var aeGroupedPorts = GroupPorts(aePorts);
+    var xeGroupedPorts = GroupPorts(xePorts);
 
-    foreach (var aggPort in aggPortTable)
+    // Создаем набор ключей для aePorts и xePorts
+    var aeKeys = aeGroupedPorts.SelectMany(g => g.Key).ToHashSet();
+    var xeKeys = xeGroupedPorts.SelectMany(g => g.Key).ToHashSet();
+
+    // Получаем ключи из ifStackTable
+    var aggKeySet = ifStackTable.Select(x => (left: OIDGetNumbers.HandleLastButOne(x.OID),
+                                              right: OIDGetNumbers.HandleLast(x.OID)))
+                                .Where(x => x.left != 0 && x.right != 0)
+                                //.Select(x => (x.left, x.right))
+                                .ToHashSet();
+
+    // Находим пересекаемые комбинации
+    var intersectingCombinations = new HashSet<(int aeKey, int xeKey)>();
+
+    foreach (var aeKey in aeKeys)
     {
-      foreach (var portNumber in aggPort.ports!)
+      foreach (var xeKey in xeKeys)
       {
-        if (portsDictionaryByNumber.TryGetValue(portNumber, out var foundPort))
+        // Проверяем, есть ли пара aeKey, xeKey в aggKeySet
+        if (aggKeySet.Contains((aeKey, xeKey)))
         {
-          if (portsDictionaryByNumber.TryGetValue(aggPort.ifNumber, out var aggregation))
-          {
-            aggregation.AggregatedPorts ??= [];
-
-            aggregation.AggregatedPorts.Add(foundPort);
-          }
+          intersectingCombinations.Add((aeKey, xeKey));
         }
       }
     }
+
+    foreach (var (aeKey, xeKey) in intersectingCombinations)
+    {
+      // Получаем нужную группу
+      var aggGroup = aeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(aeKey));
+      var exGroup = xeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(xeKey));
+
+      // Проверяем, что группы найдены
+      if (aggGroup.Value != null && exGroup.Value != null)
+      {
+        // Получаем первый порт из каждой группы
+        var firstAggPort = aggGroup.Value.First();
+        var firstExPort = exGroup.Value.First();
+
+        var check = firstAggPort.AggregatedPorts.Contains(firstExPort);
+
+        if (!check)
+          firstAggPort.AggregatedPorts.Add(firstExPort);
+      }
+      else
+      {
+        continue;
+      }
+    }
+  }
+
+  static Dictionary<HashSet<int>, List<Port>> GroupPorts(List<Port> ports)
+  {
+    // Создаем словарь для группировки
+    var baseGroups = new Dictionary<HashSet<int>, List<Port>>();
+
+    // Находим все порты без точки и создаем группы
+    var portsWithoutDots = ports.Where(port => !port.InterfaceName.Contains('.')).ToList();
+
+    foreach (var port in portsWithoutDots)
+    {
+      var baseName = port.InterfaceName;
+
+      var group = new List<Port> { port };
+      var keys = new HashSet<int> { port.InterfaceNumber }; // Начальный ключ
+
+      // Находим порты с точкой и добавляем их в группу
+      var lookingGroupWithDot = ports
+          .Where(p => p.InterfaceName.StartsWith(baseName + '.'))
+          .ToList();
+
+      group.AddRange(lookingGroupWithDot);
+      keys.UnionWith(lookingGroupWithDot.Select(p => p.InterfaceNumber)); // Добавляем ключи
+
+      // Добавляем группу в словарь
+      baseGroups[keys] = group;
+    }
+
+    return baseGroups;
   }
 
   private async Task FillPortVLANSForHuawei(NetworkDevice networkDevice,
@@ -652,7 +747,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
     {
-      VlanTag = OIDGetLastNumbers.Handle(vlanName.OID),
+      VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
       VlanName = vlanName.Data,
       EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
     }).ToList();

@@ -28,3 +28,4 @@ global using ApplicationException = Remote.Shell.Interrupt.Storehouse.Applicatio
 global using ValidationException = Remote.Shell.Interrupt.Storehouse.Application.Exceptions.ValidationException;
 global using System.ComponentModel;
 global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
+global using System.Net;

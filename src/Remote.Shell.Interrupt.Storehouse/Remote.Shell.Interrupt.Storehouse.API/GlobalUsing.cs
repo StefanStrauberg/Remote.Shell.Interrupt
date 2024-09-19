@@ -25,3 +25,4 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
 global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor;
 global using Remote.Shell.Interrupt.Storehouse.Persistence;
 global using Serilog;
+global using System.Net;

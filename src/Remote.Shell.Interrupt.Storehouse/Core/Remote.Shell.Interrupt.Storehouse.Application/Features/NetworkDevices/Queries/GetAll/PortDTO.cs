@@ -43,10 +43,17 @@ public class PortDTO : IMapWith<Port>
                                 )))
            .ForMember(dest => dest.NetworkTableOfPort,
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
-                                .GroupBy(net => net.IPAddress)
+                                .GroupBy(net => ConvertToString(net.NetworkAddress))
                                 .ToDictionary(
                                   grp => grp.Key,
-                                  grp => new HashSet<string>(grp.Select(net => net.Netmask))
+                                  grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
                                 )));
+  }
+
+  private static string ConvertToString(uint address)
+  {
+    var bytes = BitConverter.GetBytes(address);
+    Array.Reverse(bytes); // Изменяем порядок байтов
+    return new IPAddress(bytes).ToString();
   }
 }
