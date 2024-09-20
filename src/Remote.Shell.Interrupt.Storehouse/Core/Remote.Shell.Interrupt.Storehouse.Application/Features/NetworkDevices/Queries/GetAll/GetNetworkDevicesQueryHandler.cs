@@ -13,6 +13,23 @@ internal class GetNetworkDevicesQueryHandler(INetworkDeviceRepository networkDev
                                                                                                                           CancellationToken cancellationToken)
   {
     var networkDevices = await _networkDeviceRepository.GetAllWithChildrenAsync(cancellationToken);
+
+    // Фильтруем порты для каждого устройства
+    foreach (var device in networkDevices)
+    {
+      // Получаем уникальные идентификаторы портов из AggregatedPorts
+      HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
+          .Where(port => port.AggregatedPorts.Count != 0)
+          .SelectMany(port => port.AggregatedPorts)
+          .Select(item => item.Id)
+          .ToHashSet();
+
+      // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
+      device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
+          .Where(port => !aggregatedPortsIds.Contains(port.Id))
+          .ToList();
+    }
+
     var networkDevicesDTOs = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
 
     return networkDevicesDTOs;

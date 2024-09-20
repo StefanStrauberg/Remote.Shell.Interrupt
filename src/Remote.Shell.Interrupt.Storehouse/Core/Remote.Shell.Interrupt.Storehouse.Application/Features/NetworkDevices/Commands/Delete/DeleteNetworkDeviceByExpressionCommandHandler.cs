@@ -18,7 +18,7 @@ internal class DeleteNetworkDeviceByExpressionCommandHandler(INetworkDeviceRepos
       throw new EntityNotFoundException(request.ToString());
 
     // Находим устройство, которое нужно удалить, по выражению фильтра
-    var networkDeviceToDelete = await _networkDeviceRepository.FindOneAsync(filterExpression: request.FilterExpression,
+    var networkDeviceToDelete = await _networkDeviceRepository.FindOneWithChildrenAsync(filterExpression: request.FilterExpression,
                                                                             cancellationToken: cancellationToken);
 
     // Удаляем найденное устройство из репозитория

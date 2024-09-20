@@ -21,13 +21,10 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
   static async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
   {
     var statusCode = GetStatusCode(exception);
-    var response = new ApiErrorResponse
-    {
-      Title = GetTitle(exception),
-      Status = statusCode,
-      Detail = exception.Message,
-      Errors = GetErrors(exception)
-    };
+    var response = new ApiErrorResponse(status: statusCode,
+                                        title: GetTitle(exception),
+                                        detail: exception.Message,
+                                        errors: GetErrors(exception));
     httpContext.Response.ContentType = "application/json";
     httpContext.Response.StatusCode = statusCode;
     await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));

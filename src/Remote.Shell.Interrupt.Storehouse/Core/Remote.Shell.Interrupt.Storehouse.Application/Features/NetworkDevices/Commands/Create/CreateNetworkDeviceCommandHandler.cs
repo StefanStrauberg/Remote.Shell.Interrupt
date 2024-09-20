@@ -66,10 +66,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                     community: request.Community,
                                     cancellationToken: cancellationToken);
       CleanJuniper(networkDevice.PortsOfNetworkDevice);
-      await LinkAgregationPorts(networkDevice: networkDevice,
-                                host: request.Host,
-                                community: request.Community,
-                                cancellationToken: cancellationToken);
+      await LinkAgregationPortsForJuniper(networkDevice: networkDevice,
+                                          host: request.Host,
+                                          community: request.Community,
+                                          cancellationToken: cancellationToken);
       CleanJuniperDots(networkDevice.PortsOfNetworkDevice);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei)
@@ -78,6 +78,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                    host: request.Host,
                                    community: request.Community,
                                    cancellationToken: cancellationToken);
+      await LinkAgregationPortsForHuawei(networkDevice: networkDevice,
+                                         host: request.Host,
+                                         community: request.Community,
+                                         cancellationToken: cancellationToken);
       CleanHuawei(networkDevice.PortsOfNetworkDevice);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
@@ -398,28 +402,47 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                                                                              e.Ip))
                                   .ToList());
 
-    // Заполнение ARP таблицы для каждого порта
-    foreach (var port in networkDevice.PortsOfNetworkDevice)
+    foreach (var arpEntry in arpDictionary)
     {
-      // Проверяем, есть ли ARP записи для текущего порта в словаре arpDictionary
-      if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
+      // Ищем порт с соответствующим InterfaceNumber
+      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == arpEntry.Key);
+
+      if (port != null)
       {
         // Создаем новую таблицу, которая поддерживает несколько IP для одного MAC
-        var arpTable = new List<ARPEntity>();
-        // Проходим по каждой записи и добавляем в таблицу
-        foreach (var arpEntry in arpForPort)
+        var arpTable = arpEntry.Value.Select(entry => new ARPEntity
         {
+          MAC = entry.Key,
+          IPAddress = entry.Value
+        }).ToList();
 
-          arpTable.Add(new ARPEntity()
-          {
-            MAC = arpEntry.Key,
-            IPAddress = arpEntry.Value
-          });
-        }
         // Присваиваем заполненную ARP таблицу порту
         port.ARPTableOfInterface = arpTable;
       }
     }
+
+    // // Заполнение ARP таблицы для каждого порта
+    // foreach (var port in networkDevice.PortsOfNetworkDevice)
+    // {
+    //   // Проверяем, есть ли ARP записи для текущего порта в словаре arpDictionary
+    //   if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
+    //   {
+    //     // Создаем новую таблицу, которая поддерживает несколько IP для одного MAC
+    //     var arpTable = new List<ARPEntity>();
+    //     // Проходим по каждой записи и добавляем в таблицу
+    //     foreach (var arpEntry in arpForPort)
+    //     {
+
+    //       arpTable.Add(new ARPEntity()
+    //       {
+    //         MAC = arpEntry.Key,
+    //         IPAddress = arpEntry.Value
+    //       });
+    //     }
+    //     // Присваиваем заполненную ARP таблицу порту
+    //     port.ARPTableOfInterface = arpTable;
+    //   }
+    // }
   }
 
   private async Task FillNetworkTableOfPort(NetworkDevice networkDevice,
@@ -475,26 +498,49 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
                                                                                                                                  e.Mask))
                                       .ToList());
 
-    // Заполняем сетевую таблицу для каждого порта устройства
-    foreach (var port in networkDevice.PortsOfNetworkDevice)
+    // Заполняем сетевую таблицу для каждого порта устройства, используя arpDictionary
+    foreach (var arpEntry in arpDictionary)
     {
-      // Если есть записи для порта, то создаем сетевую таблицу
-      if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
+      // Ищем порт с соответствующим InterfaceNumber
+      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == arpEntry.Key);
+
+      if (port != null)
       {
-        var arpTable = new List<TerminatedNetworkEntity>();
+        var networkTable = new List<TerminatedNetworkEntity>();
 
         // Добавляем записи IP и масок в сетевую таблицу порта
-        foreach (var arpEntry in arpForPort)
+        foreach (var entry in arpEntry.Value)
         {
           var terminatedNetwork = new TerminatedNetworkEntity();
-          terminatedNetwork.SetAddressAndMask(arpEntry.Key, arpEntry.Value);
-          arpTable.Add(terminatedNetwork);
-
+          terminatedNetwork.SetAddressAndMask(entry.Key, entry.Value);
+          networkTable.Add(terminatedNetwork);
         }
+
         // Присваиваем заполненную сетевую таблицу порту
-        port.NetworkTableOfInterface = arpTable;
+        port.NetworkTableOfInterface = networkTable;
       }
     }
+
+    // // Заполняем сетевую таблицу для каждого порта устройства
+    // foreach (var port in networkDevice.PortsOfNetworkDevice)
+    // {
+    //   // Если есть записи для порта, то создаем сетевую таблицу
+    //   if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
+    //   {
+    //     var arpTable = new List<TerminatedNetworkEntity>();
+
+    //     // Добавляем записи IP и масок в сетевую таблицу порта
+    //     foreach (var arpEntry in arpForPort)
+    //     {
+    //       var terminatedNetwork = new TerminatedNetworkEntity();
+    //       terminatedNetwork.SetAddressAndMask(arpEntry.Key, arpEntry.Value);
+    //       arpTable.Add(terminatedNetwork);
+
+    //     }
+    //     // Присваиваем заполненную сетевую таблицу порту
+    //     port.NetworkTableOfInterface = arpTable;
+    //   }
+    // }
   }
 
   private async Task FillPortVLANSForJuniper(NetworkDevice networkDevice,
@@ -566,9 +612,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         VLANTag = vlan.VlanTag,
         VLANName = RemoveTrailingPlusDigit.Handle(vlan.VlanName)
       };
-      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
       vlans.Add(vlanToCreate);
     }
+
+    await _vlanRepository.InsertManyAsync(vlans, cancellationToken);
 
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
@@ -593,10 +640,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     }
   }
 
-  private async Task LinkAgregationPorts(NetworkDevice networkDevice,
-                                   string host,
-                                   string community,
-                                   CancellationToken cancellationToken)
+  private async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice,
+                                                   string host,
+                                                   string community,
+                                                   CancellationToken cancellationToken)
   {
     List<SNMPResponse> ifStackTable = [];
 
@@ -608,10 +655,12 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
     if (ifStackTable.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+      return;
 
     var aePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
+    //var aePortsCheck = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceType == PortType.ieee8023adLag).ToList();
     var xePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("xe")).ToList();
+    //var xePortsCheck = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceType == PortType.ethernetCsmacd).ToList();
 
     var aeGroupedPorts = GroupPorts(aePorts);
     var xeGroupedPorts = GroupPorts(xePorts);
@@ -624,7 +673,7 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var aggKeySet = ifStackTable.Select(x => (left: OIDGetNumbers.HandleLastButOne(x.OID),
                                               right: OIDGetNumbers.HandleLast(x.OID)))
                                 .Where(x => x.left != 0 && x.right != 0)
-                                //.Select(x => (x.left, x.right))
+                                .Where(x => aeKeys.Contains(x.left))
                                 .ToHashSet();
 
     // Находим пересекаемые комбинации
@@ -659,6 +708,62 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
 
         if (!check)
           firstAggPort.AggregatedPorts.Add(firstExPort);
+      }
+      else
+      {
+        continue;
+      }
+    }
+  }
+
+  private async Task LinkAgregationPortsForHuawei(NetworkDevice networkDevice,
+                                                  string host,
+                                                  string community,
+                                                  CancellationToken cancellationToken)
+  {
+    List<SNMPResponse> ifStackTable = [];
+
+    // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
+    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                          community: community,
+                                                          oid: "1.3.6.1.2.1.31.1.2.1.3",
+                                                          cancellationToken);
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (ifStackTable.Count == 0)
+      return;
+
+    var trunkPorts = networkDevice.PortsOfNetworkDevice
+                                  .Where(port => port.InterfaceName.Contains("Trunk"))
+                                  .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    var gePorts = networkDevice.PortsOfNetworkDevice
+                               .Where(port => port.InterfaceName.Contains("GE"))
+                               .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    // Получаем ключи из ifStackTable
+    var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
+                                              portNum: OIDGetNumbers.HandleLast(x.OID)))
+                                .Where(x => x.aeNum != 0 && x.portNum != 0)
+                                .ToHashSet();
+
+    // Находим пересекаемые комбинации
+    var intersectingCombinations = new HashSet<(int aeNum, int portNum)>();
+
+    foreach (var (aeNum, portNum) in aggKeySet)
+    {
+      // Проверяем, есть ли пара aeNum, portNum в gePorts и trunkPorts
+      if (trunkPorts.ContainsKey(aeNum) && gePorts.ContainsKey(portNum))
+        intersectingCombinations.Add((aeNum, portNum));
+    }
+
+    foreach (var (aeNum, portNum) in intersectingCombinations)
+    {
+      // Проверяем, что группы найдены
+      if (trunkPorts.TryGetValue(aeNum, out var aePort) && gePorts.TryGetValue(portNum, out var gePort))
+      {
+        if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
+          aePort.AggregatedPorts.Add(gePort);
       }
       else
       {
@@ -766,9 +871,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         VLANTag = vlan.VlanTag,
         VLANName = vlan.VlanName
       };
-      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
       vlans.Add(vlanToCreate);
     }
+
+    await _vlanRepository.InsertManyAsync(vlans, cancellationToken);
 
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)

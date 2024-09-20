@@ -2,6 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 
 public class PortDTO : IMapWith<Port>
 {
+  public Guid Id { get; set; }
   public int InterfaceNumber { get; set; } // 1
   public string InterfaceName { get; set; } = string.Empty; // "GigabitEthernet0/1"
   public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
@@ -18,6 +19,8 @@ public class PortDTO : IMapWith<Port>
   void IMapWith<Port>.Mapping(Profile profile)
   {
     profile.CreateMap<Port, PortDTO>()
+           .ForMember(dest => dest.Id,
+                      opt => opt.MapFrom(src => src.Id))
            .ForMember(dest => dest.InterfaceNumber,
                       opt => opt.MapFrom(src => src.InterfaceNumber))
            .ForMember(dest => dest.InterfaceName,
