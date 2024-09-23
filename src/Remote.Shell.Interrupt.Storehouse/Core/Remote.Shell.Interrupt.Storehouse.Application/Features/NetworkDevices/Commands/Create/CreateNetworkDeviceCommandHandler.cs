@@ -724,7 +724,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       return;
 
     var stackPorts = networkDevice.PortsOfNetworkDevice
-                                  .Where(port => port.InterfaceName.Contains("Stack"))
                                   .ToDictionary(port => port.InterfaceNumber, port => port);
 
     // Получаем ключи из ifStackTable
