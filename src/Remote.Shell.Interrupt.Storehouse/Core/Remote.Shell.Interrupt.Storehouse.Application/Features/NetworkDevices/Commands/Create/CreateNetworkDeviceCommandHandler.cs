@@ -84,6 +84,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                     community: request.Community,
                                     cancellationToken: cancellationToken);
       CleanExtreme(networkDevice.PortsOfNetworkDevice);
+      await LinkAgregationPortsForExtreme(networkDevice: networkDevice,
+                                          host: request.Host,
+                                          community: request.Community,
+                                          cancellationToken: cancellationToken);
     }
 
     // Вставляем новое сетевое устройство в репозиторий
@@ -604,10 +608,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     if (ifStackTable.Count == 0)
       return;
 
-    var aePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
-    //var aePortsCheck = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceType == PortType.ieee8023adLag).ToList();
-    var xePorts = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("xe")).ToList();
-    //var xePortsCheck = networkDevice.PortsOfNetworkDevice.Where(x => x.InterfaceType == PortType.ethernetCsmacd).ToList();
+    var aePorts = networkDevice.PortsOfNetworkDevice
+                               .Where(x => x.InterfaceName.StartsWith("ae"))
+                               .ToList();
+    var xePorts = networkDevice.PortsOfNetworkDevice
+                               .Where(x => x.InterfaceName.StartsWith("xe"))
+                               .ToList();
 
     var aeGroupedPorts = GroupPorts(aePorts);
     var xeGroupedPorts = GroupPorts(xePorts);
@@ -617,32 +623,19 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var xeKeys = xeGroupedPorts.SelectMany(g => g.Key).ToHashSet();
 
     // Получаем ключи из ifStackTable
-    var aggKeySet = ifStackTable.Select(x => (left: OIDGetNumbers.HandleLastButOne(x.OID),
-                                              right: OIDGetNumbers.HandleLast(x.OID)))
-                                .Where(x => x.left != 0 && x.right != 0)
-                                .Where(x => aeKeys.Contains(x.left))
+    var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
+                                              portNum: OIDGetNumbers.HandleLast(x.OID)))
+                                .Where(x => x.aeNum != 0 && x.portNum != 0)
+                                .Where(x => aeKeys.Contains(x.aeNum))
                                 .ToHashSet();
 
-    // Находим пересекаемые комбинации
-    var intersectingCombinations = new HashSet<(int aeKey, int xeKey)>();
+    int count = 0;
 
-    foreach (var aeKey in aeKeys)
-    {
-      foreach (var xeKey in xeKeys)
-      {
-        // Проверяем, есть ли пара aeKey, xeKey в aggKeySet
-        if (aggKeySet.Contains((aeKey, xeKey)))
-        {
-          intersectingCombinations.Add((aeKey, xeKey));
-        }
-      }
-    }
-
-    foreach (var (aeKey, xeKey) in intersectingCombinations)
+    foreach (var (aeNum, portNum) in aggKeySet)
     {
       // Получаем нужную группу
-      var aggGroup = aeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(aeKey));
-      var exGroup = xeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(xeKey));
+      var aggGroup = aeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(aeNum));
+      var exGroup = xeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(portNum));
 
       // Проверяем, что группы найдены
       if (aggGroup.Value != null && exGroup.Value != null)
@@ -654,7 +647,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         var check = firstAggPort.AggregatedPorts.Contains(firstExPort);
 
         if (!check)
+        {
           firstAggPort.AggregatedPorts.Add(firstExPort);
+          count++;
+        }
       }
       else
       {
@@ -694,20 +690,54 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                 .Where(x => x.aeNum != 0 && x.portNum != 0)
                                 .ToHashSet();
 
-    // Находим пересекаемые комбинации
-    var intersectingCombinations = new HashSet<(int aeNum, int portNum)>();
 
     foreach (var (aeNum, portNum) in aggKeySet)
     {
-      // Проверяем, есть ли пара aeNum, portNum в gePorts и trunkPorts
-      if (trunkPorts.ContainsKey(aeNum) && gePorts.ContainsKey(portNum))
-        intersectingCombinations.Add((aeNum, portNum));
-    }
-
-    foreach (var (aeNum, portNum) in intersectingCombinations)
-    {
       // Проверяем, что группы найдены
       if (trunkPorts.TryGetValue(aeNum, out var aePort) && gePorts.TryGetValue(portNum, out var gePort))
+      {
+        if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
+          aePort.AggregatedPorts.Add(gePort);
+      }
+      else
+      {
+        continue;
+      }
+    }
+  }
+
+  private async Task LinkAgregationPortsForExtreme(NetworkDevice networkDevice,
+                                                   string host,
+                                                   string community,
+                                                   CancellationToken cancellationToken)
+  {
+    List<SNMPResponse> ifStackTable = [];
+
+    // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
+    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                          community: community,
+                                                          oid: "1.3.6.1.4.1.1916.1.4.3.1.4",
+                                                          cancellationToken);
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (ifStackTable.Count == 0)
+      return;
+
+    var stackPorts = networkDevice.PortsOfNetworkDevice
+                                  .Where(port => port.InterfaceName.Contains("Stack"))
+                                  .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    // Получаем ключи из ifStackTable
+    var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
+                                              portNum: OIDGetNumbers.HandleLast(x.OID)))
+                                .Where(x => x.aeNum != 0 && x.portNum != 0)
+                                .Where(x => x.aeNum != x.portNum)
+                                .ToHashSet();
+
+    foreach (var (aeNum, portNum) in aggKeySet)
+    {
+      // Проверяем, что группы найдены
+      if (stackPorts.TryGetValue(aeNum, out var aePort) && stackPorts.TryGetValue(portNum, out var gePort))
       {
         if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
           aePort.AggregatedPorts.Add(gePort);
