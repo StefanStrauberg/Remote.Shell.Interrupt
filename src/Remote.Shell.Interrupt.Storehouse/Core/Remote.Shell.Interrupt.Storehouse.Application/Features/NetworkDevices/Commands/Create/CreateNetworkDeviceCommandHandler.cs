@@ -1,22 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
 
-internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networkDeviceRepository,
-                                                 IBusinessRuleRepository businessRulesRepository,
-                                                 IAssignmentRepository assignmentRepository,
-                                                 ISNMPCommandExecutor snmpCommandExecutor,
-                                                 IVLANRepository vlanRepository)
+internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpCommandExecutor,
+                                                 IUnitOfWork unitOfWork)
   : ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
-  readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
-    ?? throw new ArgumentNullException(nameof(networkDeviceRepository));
-  readonly IBusinessRuleRepository _businessRulesRepository = businessRulesRepository
-    ?? throw new ArgumentNullException(nameof(businessRulesRepository));
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
   readonly ISNMPCommandExecutor _snmpCommandExecutor = snmpCommandExecutor
     ?? throw new ArgumentNullException(nameof(snmpCommandExecutor));
-  readonly IVLANRepository _vlanRepository = vlanRepository
-    ?? throw new ArgumentNullException(nameof(vlanRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
 
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
@@ -29,8 +20,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     };
 
     // Получаем назначения и бизнес-правила
-    var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
-    var businessRules = await _businessRulesRepository.GetAllWithChildrenAsync(cancellationToken);
+    var assignments = await _unitOfWork.Assignments
+                                       .GetAllAsync(cancellationToken);
+    var businessRules = await _unitOfWork.BusinessRules
+                                         .GetAllWithChildrenAsync(cancellationToken);
 
     // Проверяем наличие бизнес-правил
     if (!businessRules.Any())
@@ -94,8 +87,10 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     }
 
     // Вставляем новое сетевое устройство в репозиторий
-    await _networkDeviceRepository.InsertOneAsync(document: networkDevice,
-                                                  cancellationToken: cancellationToken);
+    _unitOfWork.NetworkDevices
+                     .InsertOne(networkDevice);
+
+    await _unitOfWork.CompleteAsync(cancellationToken);
     return Unit.Value;
   }
 
@@ -420,29 +415,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         port.ARPTableOfInterface = arpTable;
       }
     }
-
-    // // Заполнение ARP таблицы для каждого порта
-    // foreach (var port in networkDevice.PortsOfNetworkDevice)
-    // {
-    //   // Проверяем, есть ли ARP записи для текущего порта в словаре arpDictionary
-    //   if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
-    //   {
-    //     // Создаем новую таблицу, которая поддерживает несколько IP для одного MAC
-    //     var arpTable = new List<ARPEntity>();
-    //     // Проходим по каждой записи и добавляем в таблицу
-    //     foreach (var arpEntry in arpForPort)
-    //     {
-
-    //       arpTable.Add(new ARPEntity()
-    //       {
-    //         MAC = arpEntry.Key,
-    //         IPAddress = arpEntry.Value
-    //       });
-    //     }
-    //     // Присваиваем заполненную ARP таблицу порту
-    //     port.ARPTableOfInterface = arpTable;
-    //   }
-    // }
   }
 
   private async Task FillNetworkTableOfPort(NetworkDevice networkDevice,
@@ -520,27 +492,6 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         port.NetworkTableOfInterface = networkTable;
       }
     }
-
-    // // Заполняем сетевую таблицу для каждого порта устройства
-    // foreach (var port in networkDevice.PortsOfNetworkDevice)
-    // {
-    //   // Если есть записи для порта, то создаем сетевую таблицу
-    //   if (arpDictionary.TryGetValue(port.InterfaceNumber, out var arpForPort))
-    //   {
-    //     var arpTable = new List<TerminatedNetworkEntity>();
-
-    //     // Добавляем записи IP и масок в сетевую таблицу порта
-    //     foreach (var arpEntry in arpForPort)
-    //     {
-    //       var terminatedNetwork = new TerminatedNetworkEntity();
-    //       terminatedNetwork.SetAddressAndMask(arpEntry.Key, arpEntry.Value);
-    //       arpTable.Add(terminatedNetwork);
-
-    //     }
-    //     // Присваиваем заполненную сетевую таблицу порту
-    //     port.NetworkTableOfInterface = arpTable;
-    //   }
-    // }
   }
 
   private async Task FillPortVLANSForJuniper(NetworkDevice networkDevice,
@@ -602,27 +553,20 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var portsDictionary = networkDevice.PortsOfNetworkDevice
         .ToDictionary(port => port.InterfaceNumber);
 
-    var vlans = new List<VLAN>();
-
-    // Добавляем вланы в БД (для избежания копий)
-    foreach (var vlan in vlanTableEntries)
-    {
-      VLAN vlanToCreate = new()
-      {
-        VLANTag = vlan.VlanTag,
-        VLANName = RemoveTrailingPlusDigit.Handle(vlan.VlanName)
-      };
-      vlans.Add(vlanToCreate);
-    }
-
-    await _vlanRepository.InsertManyAsync(vlans, cancellationToken);
+    var vlansToAdd = new HashSet<VLAN>();
 
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
     {
+      VLAN vlanToCreate = new()
+      {
+        VLANTag = vlanEntry.VlanTag,
+        VLANName = RemoveTrailingPlusDigit.Handle(vlanEntry.VlanName)
+      };
       // Проходим по каждому egress-порту для текущего VLAN
       foreach (var egressPort in vlanEntry.EgressPorts)
       {
+        vlansToAdd.Add(vlanToCreate);
         // Находим соответствие BasePort с PortIfIndex
         if (physicIfTable.TryGetValue(egressPort, out int portIfIndex))
         {
@@ -633,11 +577,14 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
             matchingPort.VLANs ??= [];
 
             // Добавляем новый VLAN в порт
-            matchingPort.VLANs.Add(vlans.Where(x => x.VLANTag == vlanEntry.VlanTag).First());
+            matchingPort.VLANs.Add(vlanToCreate);
           }
         }
       }
     }
+
+    _unitOfWork.VLANs
+               .InsertMany(vlansToAdd);
   }
 
   private async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice,
@@ -861,27 +808,20 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
     var portsDictionary = networkDevice.PortsOfNetworkDevice
         .ToDictionary(port => port.InterfaceNumber);
 
-    var vlans = new List<VLAN>();
-
-    // Добавляем вланы в БД (для избежания копий)
-    foreach (var vlan in vlanTableEntries)
-    {
-      VLAN vlanToCreate = new()
-      {
-        VLANTag = vlan.VlanTag,
-        VLANName = vlan.VlanName
-      };
-      vlans.Add(vlanToCreate);
-    }
-
-    await _vlanRepository.InsertManyAsync(vlans, cancellationToken);
+    var vlansToAdd = new HashSet<VLAN>();
 
     // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
     {
+      VLAN vlanToCreate = new()
+      {
+        VLANTag = vlanEntry.VlanTag,
+        VLANName = vlanEntry.VlanName
+      };
       // Проходим по каждому egress-порту для текущего VLAN
       foreach (var egressPort in vlanEntry.EgressPorts)
       {
+        vlansToAdd.Add(vlanToCreate);
         // Находим соответствие BasePort с PortIfIndex
         if (physicIfTable.TryGetValue(egressPort, out int portIfIndex))
         {
@@ -892,11 +832,14 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
             matchingPort.VLANs ??= [];
 
             // Добавляем новый VLAN в порт
-            matchingPort.VLANs.Add(vlans.Where(x => x.VLANTag == vlanEntry.VlanTag).First());
+            matchingPort.VLANs.Add(vlanToCreate);
           }
         }
       }
     }
+
+    _unitOfWork.VLANs
+               .InsertMany(vlansToAdd);
   }
 
   private async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
@@ -917,43 +860,47 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
       throw new InvalidOperationException("One from SNMP requests received empty result.");
 
     // Обрабатываем результаты SNMP-запросов
-    var vlanEntries = dot1qVlanStaticEgressPorts
-        .Select(response =>
-        {
-          var oidParts = response.OID.Split('.');
+    var vlanEntries = dot1qVlanStaticEgressPorts.Select(response =>
+                                                        {
+                                                          var oidParts = response.OID.Split('.');
 
-          if (oidParts.Length < 2)
-            throw new FormatException("Invalid OID format in SNMP response.");
+                                                          if (oidParts.Length < 2)
+                                                            throw new FormatException("Invalid OID format in SNMP response.");
 
-          if (!int.TryParse(oidParts[^2], out int portIfIndex))
-            throw new FormatException("Unable to parse port index from OID.");
+                                                          if (!int.TryParse(oidParts[^2], out int portIfIndex))
+                                                            throw new FormatException("Unable to parse port index from OID.");
 
-          if (!int.TryParse(oidParts[^1], out int vlanTag))
-            throw new FormatException("Unable to parse VLAN tag from OID.");
+                                                          if (!int.TryParse(oidParts[^1], out int vlanTag))
+                                                            throw new FormatException("Unable to parse VLAN tag from OID.");
 
-          return new
-          {
-            PortIfIndex = portIfIndex,
-            VlanTag = vlanTag,
-            VlanName = response.Data // Имя VLAN из SNMP response.Data
-          };
-        })
-        .GroupBy(entry => new { entry.PortIfIndex, entry.VlanTag, entry.VlanName })
-        .Select(group => new
-        {
-          PortIfIndex = group.Key.PortIfIndex,
-          VlanTag = group.Key.VlanTag,
-          VlanName = group.Key.VlanName
-        })
-        .ToList();
+                                                          return new
+                                                          {
+                                                            PortIfIndex = portIfIndex,
+                                                            VlanTag = vlanTag,
+                                                            VlanName = response.Data // Имя VLAN из SNMP response.Data
+                                                          };
+                                                        })
+                                                .GroupBy(entry => new
+                                                {
+                                                  entry.PortIfIndex,
+                                                  entry.VlanTag,
+                                                  entry.VlanName
+                                                })
+                                                .Select(group => new
+                                                {
+                                                  PortIfIndex = group.Key.PortIfIndex,
+                                                  VlanTag = group.Key.VlanTag,
+                                                  VlanName = group.Key.VlanName
+                                                })
+                                                .ToList();
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
     var portsDictionary = networkDevice.PortsOfNetworkDevice
         .ToDictionary(port => port.InterfaceNumber);
 
-    var vlans = new List<VLAN>();
+    var vlansToAdd = new HashSet<VLAN>();
 
-    // Добавляем вланы в БД (для избежания копий)
+    // Проходим по результатам vlanEntries
     foreach (var vlanEntry in vlanEntries)
     {
       VLAN vlanToCreate = new()
@@ -961,26 +908,19 @@ internal class CreateNetworkDeviceCommandHandler(INetworkDeviceRepository networ
         VLANTag = vlanEntry.VlanTag,
         VLANName = vlanEntry.VlanName
       };
-      await _vlanRepository.InsertOneAsync(vlanToCreate, cancellationToken);
-      vlans.Add(vlanToCreate);
-    }
-
-    // Проходим по результатам vlanEntries
-    foreach (var vlanEntry in vlanEntries)
-    {
       // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
       if (portsDictionary.TryGetValue(vlanEntry.PortIfIndex, out var matchingPort))
       {
+        vlansToAdd.Add(vlanToCreate);
         // Если коллекция VLANs не инициализирована, инициализируем её
         matchingPort.VLANs ??= [];
 
         // Добавляем новый VLAN в порт
-        var vlanToAdd = vlans.First(v => v.VLANTag == vlanEntry.VlanTag);
-        if (!matchingPort.VLANs.Contains(vlanToAdd))
-        {
-          matchingPort.VLANs.Add(vlanToAdd);
-        }
+        matchingPort.VLANs.Add(vlanToCreate);
       }
     }
+
+    _unitOfWork.VLANs
+               .InsertMany(vlansToAdd);
   }
 }

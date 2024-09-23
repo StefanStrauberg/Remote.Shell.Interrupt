@@ -13,9 +13,9 @@ internal class GetBusinessRuleByExpressionQueryHandler(IBusinessRuleRepository b
   async Task<BusinessRuleDetailDTO> IRequestHandler<GetBusinessRuleByExpressionQuery, BusinessRuleDetailDTO>.Handle(GetBusinessRuleByExpressionQuery request,
                                                                                                                     CancellationToken cancellationToken)
   {
-    var businessRule = await _businessRuleRepository.FindOneAsync(filterExpression: request.FilterExpression,
-                                                                  cancellationToken: cancellationToken)
+    var businessRule = await _businessRuleRepository.FirstAsync(request.FilterExpression, cancellationToken)
       ?? throw new EntityNotFoundException(request.FilterExpression.Name!);
+
     var businessRuleDTO = _mapper.Map<BusinessRuleDetailDTO>(businessRule);
 
     return businessRuleDTO;

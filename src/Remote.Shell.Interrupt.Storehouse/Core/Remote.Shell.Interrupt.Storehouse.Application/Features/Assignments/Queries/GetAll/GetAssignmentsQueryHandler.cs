@@ -2,19 +2,21 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Que
 
 public record GetAssignmentsQuery() : IQuery<IEnumerable<AssignmentDTO>>;
 
-internal class GetAssignmentsQueryHandler(IAssignmentRepository assignmentRepository,
+internal class GetAssignmentsQueryHandler(IUnitOfWork unitOfWork,
                                           IMapper mapper)
   : IQueryHandler<GetAssignmentsQuery, IEnumerable<AssignmentDTO>>
 {
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
   async Task<IEnumerable<AssignmentDTO>> IRequestHandler<GetAssignmentsQuery, IEnumerable<AssignmentDTO>>.Handle(GetAssignmentsQuery request,
                                                                                                                  CancellationToken cancellationToken)
   {
-    var assignments = await _assignmentRepository.GetAllAsync(cancellationToken);
+    var assignments = await _unitOfWork.Assignments
+                                       .GetAllAsync(cancellationToken);
+
     var assignmentsDTOs = _mapper.Map<IEnumerable<AssignmentDTO>>(assignments);
 
     return assignmentsDTOs;

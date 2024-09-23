@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 
-internal class GetNetworkDevicesByIPQueryHandler(INetworkDeviceRepository networkDeviceRepository,
+internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
                                                  IMapper mapper)
   : IQueryHandler<GetNetworkDevicesByIPQuery, IEnumerable<NetworkDeviceDTO>>
 {
-  readonly INetworkDeviceRepository _networkDeviceRepository = networkDeviceRepository
-    ?? throw new ArgumentNullException(nameof(networkDeviceRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -24,8 +24,9 @@ internal class GetNetworkDevicesByIPQueryHandler(INetworkDeviceRepository networ
     var filterExpression = GetFilterExpression(ipToCheckNum);
 
     // Получаем сетевые устройства
-    var networkDevice = await _networkDeviceRepository.FindOneWithChildrenAsync(filterExpression: filterExpression,
-                                                                                cancellationToken: cancellationToken)
+    var networkDevice = await _unitOfWork.NetworkDevices
+                                         .FindOneWithChildrenAsync(filterExpression: filterExpression,
+                                                                   cancellationToken: cancellationToken)
       ?? throw new EntityNotFoundException(filterExpression.Name!);
 
     FilterPorts(networkDevice, ipToCheckNum, out HashSet<int> tags);
@@ -35,7 +36,9 @@ internal class GetNetworkDevicesByIPQueryHandler(INetworkDeviceRepository networ
                                                   tags: tags);
 
     // Получаем связанные сетевые устройства на основе тегов VLAN
-    var relatedDevices = await _networkDeviceRepository.FindManyWithChildrenAsync(filterExpression, cancellationToken);
+    var relatedDevices = await _unitOfWork.NetworkDevices
+                                          .FindManyWithChildrenAsync(filterExpression: filterExpression,
+                                                                     cancellationToken: cancellationToken);
 
     FilterPorts(relatedDevices, tags);
 

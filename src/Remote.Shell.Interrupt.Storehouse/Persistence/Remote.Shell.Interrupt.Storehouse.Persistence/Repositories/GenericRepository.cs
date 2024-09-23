@@ -1,64 +1,41 @@
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
-internal class GenericRepository<TDocument>(ApplicationDbContext dbContext)
-  : IGenericRepository<TDocument> where TDocument : BaseEntity
+internal class GenericRepository<T>(ApplicationDbContext dbContext)
+  : IGenericRepository<T> where T : BaseEntity
 {
-  protected readonly DbSet<TDocument> _dbSet = dbContext.Set<TDocument>()
+  protected readonly DbSet<T> _dbSet = dbContext.Set<T>()
     ?? throw new ArgumentNullException(nameof(dbContext));
   protected readonly ApplicationDbContext _dbContext = dbContext
     ?? throw new ArgumentNullException(nameof(dbContext));
 
-  public virtual async Task DeleteManyAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
-                                            CancellationToken cancellationToken)
-  {
-    var documents = await _dbSet.Where(filterExpression)
-                                .AsNoTracking()
-                                .ToListAsync(cancellationToken);
-    _dbSet.RemoveRange(documents);
-    await dbContext.SaveChangesAsync(cancellationToken);
-  }
+  void IGenericRepository<T>.DeleteMany(IEnumerable<T> entities)
+    => _dbSet.RemoveRange(entities);
 
-  public virtual async Task DeleteOneAsync(TDocument document,
-                                           CancellationToken cancellationToken)
-  {
-    _dbSet.Remove(document);
-    await dbContext.SaveChangesAsync(cancellationToken);
-  }
+  void IGenericRepository<T>.DeleteOne(T entity)
+    => _dbSet.Remove(entity);
 
-  public virtual async Task<bool> ExistsAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
-                                              CancellationToken cancellationToken)
+  async Task<bool> IGenericRepository<T>.AnyAsync(Expression<Func<T, bool>> predicate,
+                                                  CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()
-                   .AnyAsync(predicate: filterExpression,
+                   .AnyAsync(predicate: predicate,
                              cancellationToken: cancellationToken);
 
-  public async virtual Task<TDocument> FindOneAsync(System.Linq.Expressions.Expression<Func<TDocument, bool>> filterExpression,
-                                                    CancellationToken cancellationToken)
+  async Task<T> IGenericRepository<T>.FirstAsync(Expression<Func<T, bool>> predicate,
+                                                 CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()
-                  .FirstAsync(predicate: filterExpression,
-                              cancellationToken: cancellationToken);
+                   .FirstAsync(predicate: predicate,
+                               cancellationToken: cancellationToken);
 
-  public virtual async Task<IEnumerable<TDocument>> GetAllAsync(CancellationToken cancellationToken)
+  async Task<IEnumerable<T>> IGenericRepository<T>.GetAllAsync(CancellationToken cancellationToken)
    => await _dbSet.AsNoTracking()
                   .ToListAsync(cancellationToken);
 
-  public async virtual Task InsertManyAsync(IEnumerable<TDocument> documents,
-                                            CancellationToken cancellationToken)
-  {
-    await _dbSet.AddRangeAsync(documents, cancellationToken);
-    await dbContext.SaveChangesAsync(cancellationToken);
-  }
+  void IGenericRepository<T>.InsertMany(IEnumerable<T> entities)
+    => _dbSet.AddRange(entities);
 
-  public virtual async Task InsertOneAsync(TDocument document,
-                                           CancellationToken cancellationToken)
-  {
-    await _dbSet.AddAsync(document, cancellationToken);
-    await dbContext.SaveChangesAsync(cancellationToken);
-  }
+  void IGenericRepository<T>.InsertOne(T entity)
+    => _dbSet.Add(entity);
 
-  public virtual async Task ReplaceOneAsync(TDocument document,
-                                            CancellationToken cancellationToken)
-  {
-    _dbSet.Update(document);
-    await dbContext.SaveChangesAsync(cancellationToken);
-  }
+  void IGenericRepository<T>.ReplaceOne(T entity)
+    => _dbSet.Update(entity);
 }

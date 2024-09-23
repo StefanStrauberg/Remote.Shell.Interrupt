@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Create;
 
-internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRepository,
+internal class CreateAssignmentCommandHandler(IUnitOfWork unitOfWork,
                                               IMapper mapper)
   : ICommandHandler<CreateAssignmentCommand, Unit>
 {
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -16,8 +16,8 @@ internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     Expression<Func<Assignment, bool>> filter = x => x.Name == request.CreateAssignmentDTO
                                                                       .Name;
     // Проверка существует ли уже назначение с таким именем
-    var existingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: filter,
-                                                                     cancellationToken: cancellationToken);
+    var existingAssignment = await _unitOfWork.Assignments
+                                              .AnyAsync(filter, cancellationToken);
 
     // Если назначение с таким именем уже существует, выбрасываем исключение
     if (existingAssignment)
@@ -27,8 +27,10 @@ internal class CreateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     var assignment = _mapper.Map<Assignment>(request.CreateAssignmentDTO);
 
     // Вставка нового назначения в репозиторий
-    await _assignmentRepository.InsertOneAsync(document: assignment,
-                                               cancellationToken: cancellationToken);
+    _unitOfWork.Assignments
+               .InsertOne(assignment);
+
+    await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции
     return Unit.Value;

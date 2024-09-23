@@ -1,14 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Create;
 
-internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository,
-                                                IAssignmentRepository assignmentRepository,
+internal class CreateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
                                                 IMapper mapper)
   : ICommandHandler<CreateBusinessRuleCommand, Unit>
 {
-  readonly IBusinessRuleRepository _businessRuleRepository = businessRuleRepository
-    ?? throw new ArgumentNullException(nameof(businessRuleRepository));
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -22,8 +19,8 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       var assignmentFilter = (Expression<Func<Assignment, bool>>)(x => x.Id == request.CreateBusinessRuleDTO
                                                                                       .AssignmentId);
       // Проверка существует ли назначение с указанным ID
-      var existingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: assignmentFilter,
-                                                                       cancellationToken: cancellationToken);
+      var existingAssignment = await _unitOfWork.Assignments
+                                                .AnyAsync(assignmentFilter, cancellationToken);
       // Если назначение не найдено, выбрасываем исключение
       if (!existingAssignment)
         throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(assignmentFilter));
@@ -31,9 +28,10 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
 
     // Преобразование DTO в сущность бизнес-правила
     var addingBusinessRule = _mapper.Map<BusinessRule>(request.CreateBusinessRuleDTO);
-    var isRoot = (await _businessRuleRepository.GetAllAsync(cancellationToken)).Any();
+    var isAny = await _unitOfWork.BusinessRules
+                                 .AnyAsync(x => true, cancellationToken);
 
-    if (!isRoot)
+    if (!isAny)
     {
       addingBusinessRule.IsRoot = true;
       addingBusinessRule.Parent = null;
@@ -42,32 +40,36 @@ internal class CreateBusinessRuleCommandHandler(IBusinessRuleRepository business
       addingBusinessRule.IsRoot = false;
 
     // Проверка наличия родительского бизнес-правила
-    if (request.CreateBusinessRuleDTO.ParentId != null)
+    if (request.CreateBusinessRuleDTO.ParentId != null && isAny)
     {
       // Поиск родительского бизнес-правила
       var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == request.CreateBusinessRuleDTO
                                                                                     .ParentId);
-      var parentBusinessRule = await _businessRuleRepository.FindOneAsync(filterExpression: parentFilter,
-                                                                          cancellationToken)
+      var parentBusinessRule = await _unitOfWork.BusinessRules
+                                                .FirstAsync(parentFilter, cancellationToken)
         ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(parentFilter));
 
       // Вставка нового бизнес-правила в репозиторий
-      await _businessRuleRepository.InsertOneAsync(document: addingBusinessRule,
-                                                   cancellationToken: cancellationToken);
+      _unitOfWork.BusinessRules
+                 .InsertOne(addingBusinessRule);
 
       // Добавление ID нового бизнес-правила в список дочерних элементов родительского бизнес-правила
-      parentBusinessRule.Children.Add(addingBusinessRule);
+      parentBusinessRule.Children
+                        .Add(addingBusinessRule);
 
       // Обновление родительского бизнес-правила в репозитории
-      await _businessRuleRepository.ReplaceOneAsync(document: parentBusinessRule,
-                                                    cancellationToken: cancellationToken);
+      _unitOfWork.BusinessRules
+                 .ReplaceOne(parentBusinessRule);
     }
     else
     {
       // Если нет родительского бизнес-правила, просто вставляем новое бизнес-правило в репозиторий
-      await _businessRuleRepository.InsertOneAsync(document: addingBusinessRule,
-                                                   cancellationToken: cancellationToken);
+      _unitOfWork.BusinessRules
+                 .InsertOne(entity: addingBusinessRule);
     }
+
+    await _unitOfWork.CompleteAsync(cancellationToken);
+
     // Возврат успешного завершения операции
     return Unit.Value;
   }

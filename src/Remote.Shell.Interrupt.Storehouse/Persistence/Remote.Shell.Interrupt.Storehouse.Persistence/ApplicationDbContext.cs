@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
   : DbContext(options)
 {
   public DbSet<Assignment> Assignments { get; set; }

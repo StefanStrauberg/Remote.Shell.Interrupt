@@ -4,24 +4,19 @@ public interface IGenericRepository<T> where T : BaseEntity
 {
     Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task<T> FindOneAsync(Expression<Func<T, bool>> filterExpression,
-                         CancellationToken cancellationToken);
+    Task<T> FirstAsync(Expression<Func<T, bool>> predicate,
+                       CancellationToken cancellationToken);
 
-    Task InsertOneAsync(T document,
+    void InsertOne(T entity);
+
+    void InsertMany(IEnumerable<T> entities);
+
+    void ReplaceOne(T entity);
+
+    void DeleteOne(T entity);
+
+    void DeleteMany(IEnumerable<T> entities);
+
+    Task<bool> AnyAsync(Expression<Func<T, bool>> predicate,
                         CancellationToken cancellationToken);
-
-    Task InsertManyAsync(IEnumerable<T> documents,
-                         CancellationToken cancellationToken);
-
-    Task ReplaceOneAsync(T document,
-                         CancellationToken cancellationToken);
-
-    Task DeleteOneAsync(T document,
-                        CancellationToken cancellationToken);
-
-    Task DeleteManyAsync(Expression<Func<T, bool>> filterExpression,
-                         CancellationToken cancellationToken);
-
-    Task<bool> ExistsAsync(Expression<Func<T, bool>> filterExpression,
-                           CancellationToken cancellationToken);
 }

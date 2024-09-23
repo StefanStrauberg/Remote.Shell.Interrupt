@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Update;
 
-internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRepository,
+internal class UpdateAssignmentCommandHandler(IUnitOfWork unitOfWork,
                                               IMapper mapper)
   : ICommandHandler<UpdateAssignmentCommand, Unit>
 {
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -16,8 +16,8 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     var filterByID = (Expression<Func<Assignment, bool>>)(x => x.Id == request.UpdateAssignmentDTO.Id);
 
     // Проверка существует ли назначение с указанным ID
-    var existingUpdatingAssignmentById = await _assignmentRepository.ExistsAsync(filterExpression: filterByID,
-                                                                                 cancellationToken: cancellationToken);
+    var existingUpdatingAssignmentById = await _unitOfWork.Assignments
+                                                          .AnyAsync(filterByID, cancellationToken);
 
     // Если назначение с таким ID не найдено, выбрасываем исключение
     if (!existingUpdatingAssignmentById)
@@ -28,8 +28,8 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
     var filterUniqueName = (Expression<Func<Assignment, bool>>)(x => x.Name == request.UpdateAssignmentDTO
                                                                                       .Name &&
                                                                      x.Id != request.UpdateAssignmentDTO.Id);
-    var existingUpdatingAssignmentByName = await _assignmentRepository.ExistsAsync(filterExpression: filterUniqueName,
-                                                                                   cancellationToken: cancellationToken);
+    var existingUpdatingAssignmentByName = await _unitOfWork.Assignments
+                                                            .AnyAsync(filterUniqueName, cancellationToken);
 
     // Если назначение с таким именем уже существует и это не то назначение
     // которое обновляется, выбрасываем исключение
@@ -37,15 +37,16 @@ internal class UpdateAssignmentCommandHandler(IAssignmentRepository assignmentRe
       throw new EntityAlreadyExists(new ExpressionToStringConverter<Assignment>().Convert(filterUniqueName));
 
     // Получаем назначение для обновления
-    var assignment = await _assignmentRepository.FindOneAsync(filterExpression: filterByID,
-                                                              cancellationToken: cancellationToken);
+    var assignment = await _unitOfWork.Assignments
+                                      .FirstAsync(filterByID, cancellationToken);
 
     // Преобразование DTO в доменную модель назначения
     _mapper.Map(request.UpdateAssignmentDTO, assignment);
 
     // Обновление назначения в репозитории
-    await _assignmentRepository.ReplaceOneAsync(document: assignment,
-                                                cancellationToken: cancellationToken);
+    _unitOfWork.Assignments.ReplaceOne(assignment);
+
+    await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции
     return Unit.Value;

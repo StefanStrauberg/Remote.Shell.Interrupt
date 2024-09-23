@@ -3,21 +3,22 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Que
 public record GetAssignmentByExpressionQuery(Expression<Func<Assignment, bool>> FilterExpression)
   : IQuery<AssignmentDetailDTO>;
 
-internal class GetAssignmentByExpressionQueryHandler(IAssignmentRepository assignmentRepository,
+internal class GetAssignmentByExpressionQueryHandler(IUnitOfWork unitOfWork,
                                                      IMapper mapper)
   : IQueryHandler<GetAssignmentByExpressionQuery, AssignmentDetailDTO>
 {
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _uniOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
   async Task<AssignmentDetailDTO> IRequestHandler<GetAssignmentByExpressionQuery, AssignmentDetailDTO>.Handle(GetAssignmentByExpressionQuery request,
                                                                                                               CancellationToken cancellationToken)
   {
-    var assignment = await _assignmentRepository.FindOneAsync(filterExpression: request.FilterExpression,
-                                                              cancellationToken: cancellationToken)
+    var assignment = await _uniOfWork.Assignments
+                                     .FirstAsync(request.FilterExpression, cancellationToken)
       ?? throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression));
+
     var assignmentDetailDTO = _mapper.Map<AssignmentDetailDTO>(assignment);
 
     return assignmentDetailDTO;

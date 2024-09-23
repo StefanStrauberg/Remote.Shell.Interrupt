@@ -1,14 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Update;
 
-internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository businessRuleRepository,
-                                                IAssignmentRepository assignmentRepository,
+internal class UpdateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
                                                 IMapper mapper)
   : ICommandHandler<UpdateBusinessRuleCommand, Unit>
 {
-  readonly IBusinessRuleRepository _businessRuleRepository = businessRuleRepository
-    ?? throw new ArgumentNullException(nameof(businessRuleRepository));
-  readonly IAssignmentRepository _assignmentRepository = assignmentRepository
-    ?? throw new ArgumentNullException(nameof(assignmentRepository));
+  readonly IUnitOfWork _unitOfWork = unitOfWork
+    ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
@@ -19,8 +16,8 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
     Expression<Func<BusinessRule, bool>> filterByID = x => x.Id == request.UpdateBusinessRule.Id;
 
     // Проверка существует ли бизнес-правило с указанным ID
-    var existingUpdatingBusinessRule = await _businessRuleRepository.ExistsAsync(filterExpression: filterByID,
-                                                                                 cancellationToken: cancellationToken);
+    var existingUpdatingBusinessRule = await _unitOfWork.BusinessRules
+                                                        .AnyAsync(filterByID, cancellationToken);
 
     // Если бизнес-правило не найдено, выбрасываем исключение
     if (!existingUpdatingBusinessRule)
@@ -34,24 +31,25 @@ internal class UpdateBusinessRuleCommandHandler(IBusinessRuleRepository business
       var assignmentFilter = (Expression<Func<Assignment, bool>>)(x => x.Id == request.UpdateBusinessRule
                                                                                       .AssignmentId);
       // Проверка существует ли назначение с указанным ID
-      var existingAssignment = await _assignmentRepository.ExistsAsync(filterExpression: assignmentFilter,
-                                                                       cancellationToken: cancellationToken);
+      var existingAssignment = await _unitOfWork.Assignments
+                                                .AnyAsync(assignmentFilter, cancellationToken);
       // Если назначение не найдено, выбрасываем исключение
       if (!existingAssignment)
         throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(assignmentFilter));
     }
 
     // Получаем бизнес правило для обновления
-    var businessRule = await _businessRuleRepository.FindOneAsync(filterExpression: filterByID,
-                                                                  cancellationToken: cancellationToken);
-
+    var businessRule = await _unitOfWork.BusinessRules
+                                        .FirstAsync(filterByID, cancellationToken);
 
     // Преобразование DTO в доменную модель назначения
     _mapper.Map(request.UpdateBusinessRule, businessRule);
 
     // Обновление бизнес-правила в репозитории
-    await _businessRuleRepository.ReplaceOneAsync(document: businessRule,
-                                                  cancellationToken: cancellationToken);
+    _unitOfWork.BusinessRules
+               .ReplaceOne(businessRule);
+
+    await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции
     return Unit.Value;

@@ -13,6 +13,7 @@ internal class GetBusinessRulesQueryHandler(IBusinessRuleRepository businessRule
                                                                                                                        CancellationToken cancellationToken)
   {
     var businessRules = await _businessRuleRepository.GetAllWithChildrenAsync(cancellationToken);
+
     var businessRulesDTOs = _mapper.Map<IEnumerable<BusinessRuleDTO>>(businessRules);
 
     return businessRulesDTOs;
