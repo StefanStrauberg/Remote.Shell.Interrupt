@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Redpoint.ThirdParty.SharpSnmp" Version="2024.1242.282" />
     <PackageReference Include="SnmpSharpNet" Version="0.9.6" />
   </ItemGroup>
 

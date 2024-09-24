@@ -108,7 +108,9 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   private static void CleanJuniperDots(List<Port> portsOfNetworkDevice)
   {
     var aePorts = portsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
+    var aeGroups = aePorts.GroupBy(x => x.InterfaceType);
     var xePorts = portsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("xe")).ToList();
+    var xeGroups = xePorts.GroupBy(x => x.InterfaceType);
 
     // Находим все порты без точки и создаем группы
     var aePortsWithoutDots = aePorts.Where(port => !port.InterfaceName.Contains('.')).ToList();
@@ -226,13 +228,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var deviceType = typeof(NetworkDevice);
 
     // Получение свойства по имени из TargetFieldName
-    var property = deviceType.GetProperty(name: assignment.TargetFieldName,
-                                          bindingAttr: BindingFlags.Public | BindingFlags.Instance)
+    var property = deviceType.GetProperty(assignment.TargetFieldName, BindingFlags.Public | BindingFlags.Instance)
       ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {deviceType.Name}.");
 
     // Конвертация значения и установка свойства
-    var convertedValue = Convert.ChangeType(value: valueToSet,
-                                            conversionType: property.PropertyType);
+    var convertedValue = Convert.ChangeType(valueToSet, property.PropertyType);
+
     property.SetValue(obj: networkDevice,
                       value: convertedValue);
   }
@@ -259,8 +260,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     Type networkDeviceType = typeof(NetworkDevice);
 
     // Проверка существования свойства в NetworkDevice
-    PropertyInfo portsProperty = networkDeviceType.GetProperty(name: networkDeviceFieldName,
-                                                               bindingAttr: BindingFlags.Public | BindingFlags.Instance)!
+    PropertyInfo portsProperty = networkDeviceType.GetProperty(networkDeviceFieldName, BindingFlags.Public | BindingFlags.Instance)!
       ?? throw new ArgumentException($"Property '{networkDeviceFieldName}' not found on {networkDeviceType.Name}.");
 
     // Проверка, является ли свойство коллекцией
@@ -302,18 +302,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
           if (isEnumPortProperty)
           {
             // Преобразование строки в значение enum
-            var enumValue = Enum.Parse(enumType: portProperty.PropertyType,
-                                       value: valueToSet[i]);
-            portProperty.SetValue(obj: item,
-                                  value: enumValue);
+            var enumValue = Enum.Parse(portProperty.PropertyType, valueToSet[i]);
+            portProperty.SetValue(item, enumValue);
           }
           else
           {
             // Конвертация строки в значение нужного типа
-            var convertedValue = Convert.ChangeType(value: valueToSet[i],
-                                                    conversionType: portProperty.PropertyType);
-            portProperty.SetValue(obj: item,
-                                  value: convertedValue);
+            var convertedValue = Convert.ChangeType(valueToSet[i], portProperty.PropertyType);
+            portProperty.SetValue(item, convertedValue);
 
           }
           // Добавление элемента в коллекцию
@@ -337,18 +333,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         if (isEnumPortProperty)
         {
           // Обновление значения свойства, если это перечисление
-          var enumValue = Enum.Parse(enumType: portProperty.PropertyType,
-                                     value: valueToSet[i]);
-          portProperty.SetValue(obj: item,
-                                value: enumValue);
+          var enumValue = Enum.Parse(portProperty.PropertyType, valueToSet[i]);
+          portProperty.SetValue(item, enumValue);
         }
         else
         {
           // Конвертация и установка нового значения
-          var convertedValue = Convert.ChangeType(value: valueToSet[i],
-                                                  conversionType: portProperty.PropertyType);
-          portProperty.SetValue(obj: item,
-                                value: convertedValue);
+          var convertedValue = Convert.ChangeType(valueToSet[i], portProperty.PropertyType);
+          portProperty.SetValue(item, convertedValue);
         }
       }
     }
@@ -401,19 +393,22 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                                                                              e.Ip))
                                   .ToList());
 
+    var portsDictionary = networkDevice.PortsOfNetworkDevice
+                                       .ToDictionary(kvp => kvp.InterfaceNumber);
+
     foreach (var arpEntry in arpDictionary)
     {
       // Ищем порт с соответствующим InterfaceNumber
-      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == arpEntry.Key);
-
-      if (port != null)
+      if (portsDictionary.TryGetValue(arpEntry.Key, out var port))
       {
         // Создаем новую таблицу, которая поддерживает несколько IP для одного MAC
-        var arpTable = arpEntry.Value.Select(entry => new ARPEntity
-        {
-          MAC = entry.Key,
-          IPAddress = entry.Value
-        }).ToList();
+        var arpTable = arpEntry.Value
+                               .Select(entry => new ARPEntity
+                               {
+                                 MAC = entry.Key,
+                                 IPAddress = entry.Value
+                               })
+                               .ToList();
 
         // Присваиваем заполненную ARP таблицу порту
         port.ARPTableOfInterface = arpTable;
@@ -453,34 +448,35 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: interfaces({interfaceNumbers.Count}), macs({ipAddresses.Count}), ips({ipAddresses.Count})");
 
     // Объединяем результаты SNMP-запросов: interfaceNumber -> IP -> Mask
-    var ipTableEntries = interfaceNumbers.Zip(second: ipAddresses,
-                                              resultSelector: (iface, address) => new
+    var ipTableEntries = interfaceNumbers.Zip(ipAddresses,
+                                              (iface, address) => new
                                               {
                                                 iface,
                                                 address
                                               })
-                                         .Zip(second: netMasks,
-                                              resultSelector: (firstPair, mask) => new
+                                         .Zip(netMasks,
+                                              (firstPair, mask) => new
                                               {
-                                                Interface = firstPair.iface.Data,
+                                                Interface = int.Parse(firstPair.iface.Data),
                                                 Address = firstPair.address.Data,
                                                 Mask = mask.Data
                                               });
 
     // Группируем данные по номерам интерфейсов и создаем словарь
-    var arpDictionary = ipTableEntries.GroupBy(entry => int.Parse(entry.Interface))
-                                      .ToDictionary(keySelector: group => group.Key,
-                                                    elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Address,
-                                                                                                                                 e.Mask))
+    var arpDictionary = ipTableEntries.GroupBy(entry => entry.Interface)
+                                      .ToDictionary(group => group.Key,
+                                                    group => group.Select(e => new KeyValuePair<string, string>(e.Address,
+                                                                                                                e.Mask))
                                       .ToList());
+
+    var portsDictionary = networkDevice.PortsOfNetworkDevice
+                                       .ToDictionary(p => p.InterfaceNumber);
 
     // Заполняем сетевую таблицу для каждого порта устройства, используя arpDictionary
     foreach (var arpEntry in arpDictionary)
     {
       // Ищем порт с соответствующим InterfaceNumber
-      var port = networkDevice.PortsOfNetworkDevice.FirstOrDefault(p => p.InterfaceNumber == arpEntry.Key);
-
-      if (port != null)
+      if (portsDictionary.TryGetValue(arpEntry.Key, out var port))
       {
         var networkTable = new List<TerminatedNetworkEntity>();
 
@@ -555,7 +551,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
     var portsDictionary = networkDevice.PortsOfNetworkDevice
-        .ToDictionary(port => port.InterfaceNumber);
+                                       .ToDictionary(port => port.InterfaceNumber);
 
     var vlansToAdd = new HashSet<VLAN>();
 
@@ -609,18 +605,20 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       return;
 
     var aePorts = networkDevice.PortsOfNetworkDevice
-                               .Where(x => x.InterfaceName.StartsWith("ae"))
+                               .Where(x => x.InterfaceName
+                                            .StartsWith("ae"))
                                .ToList();
     var xePorts = networkDevice.PortsOfNetworkDevice
-                               .Where(x => x.InterfaceName.StartsWith("xe"))
+                               .Where(x => x.InterfaceName
+                                            .StartsWith("xe"))
                                .ToList();
 
     var aeGroupedPorts = GroupPorts(aePorts);
     var xeGroupedPorts = GroupPorts(xePorts);
 
     // Создаем набор ключей для aePorts и xePorts
-    var aeKeys = aeGroupedPorts.SelectMany(g => g.Key).ToHashSet();
-    var xeKeys = xeGroupedPorts.SelectMany(g => g.Key).ToHashSet();
+    var aeKeys = aeGroupedPorts.SelectMany(g => g.Key)
+                               .ToHashSet();
 
     // Получаем ключи из ifStackTable
     var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
@@ -629,28 +627,27 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                 .Where(x => aeKeys.Contains(x.aeNum))
                                 .ToHashSet();
 
-    int count = 0;
-
     foreach (var (aeNum, portNum) in aggKeySet)
     {
       // Получаем нужную группу
-      var aggGroup = aeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(aeNum));
-      var exGroup = xeGroupedPorts.FirstOrDefault(kvp => kvp.Key.Contains(portNum));
+      var aggGroup = aeGroupedPorts.FirstOrDefault(kvp => kvp.Key
+                                                             .Contains(aeNum));
+      var exGroup = xeGroupedPorts.FirstOrDefault(kvp => kvp.Key
+                                                            .Contains(portNum));
 
       // Проверяем, что группы найдены
       if (aggGroup.Value != null && exGroup.Value != null)
       {
         // Получаем первый порт из каждой группы
-        var firstAggPort = aggGroup.Value.First();
-        var firstExPort = exGroup.Value.First();
+        var aggPort = aggGroup.Value
+                              .First();
+        var exPort = exGroup.Value
+                            .First();
 
-        var check = firstAggPort.AggregatedPorts.Contains(firstExPort);
-
-        if (!check)
-        {
-          firstAggPort.AggregatedPorts.Add(firstExPort);
-          count++;
-        }
+        if (!aggPort.AggregatedPorts
+                    .Contains(exPort))
+          aggPort.AggregatedPorts
+                 .Add(exPort);
       }
       else
       {
@@ -820,18 +817,22 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: dot1dBasePortIfIndex({dot1dBasePort.Count}) mismatch to dot1dBasePortIfIndex({dot1dBasePortIfIndex.Count}), dot1qVlanStaticName({dot1qVlanStaticName.Count}) mismatch to dot1qVlanStaticEgressPorts({dot1qVlanStaticEgressPorts.Count})");
 
     // Объединяем результаты SNMP-запросов
-    var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex, (basePort, ifIndex) => new
-    {
-      BasePort = int.Parse(basePort.Data),
-      PortIfIndex = int.Parse(ifIndex.Data)
-    }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
+    var physicIfTable = dot1dBasePort.Zip(dot1dBasePortIfIndex,
+                                          (basePort, ifIndex) => new
+                                          {
+                                            BasePort = int.Parse(basePort.Data),
+                                            PortIfIndex = int.Parse(ifIndex.Data)
+                                          })
+                                     .ToDictionary(x => x.BasePort, x => x.PortIfIndex);
 
-    var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts, (vlanName, egressPorts) => new
-    {
-      VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
-      VlanName = vlanName.Data,
-      EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
-    }).ToList();
+    var vlanTableEntries = dot1qVlanStaticName.Zip(dot1qVlanStaticEgressPorts,
+                                                   (vlanName, egressPorts) => new
+                                                   {
+                                                     VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
+                                                     VlanName = vlanName.Data,
+                                                     EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
+                                                   })
+                                              .ToList();
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
     var portsDictionary = networkDevice.PortsOfNetworkDevice
@@ -872,55 +873,74 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   }
 
   private async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
-                                            string host,
-                                            string community,
-                                            CancellationToken cancellationToken)
+                                             string host,
+                                             string community,
+                                             CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
+    List<SNMPResponse> dot1qVlanStaticName = [];
+    List<SNMPResponse> dot1qVlanStaticNumber = [];
+    List<SNMPResponse> dot1qVlanStaticTag = [];
 
-    // Выполняем SNMP-запрос для получения Port If Index & VLAN Static Name & VLAN Egress Ports
+    // Выполняем SNMP-запрос для получения VlanNumber
+    dot1qVlanStaticNumber = await _snmpCommandExecutor.WalkCommand(host,
+                                                                   community,
+                                                                   "1.3.6.1.4.1.1916.1.2.1.2.1.1",
+                                                                   cancellationToken);
+
+    // Выполняем SNMP-запрос для получения VlanName
+    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host,
+                                                                 community,
+                                                                 "1.3.6.1.4.1.1916.1.2.1.2.1.2",
+                                                                 cancellationToken);
+    // Выполняем SNMP-запрос для получения VlanTag
+    dot1qVlanStaticTag = await _snmpCommandExecutor.WalkCommand(host,
+                                                                community,
+                                                                "1.3.6.1.4.1.1916.1.2.1.2.1.10",
+                                                                cancellationToken);
+
+    // Выполняем SNMP-запрос для получения Base Port & VLAN Egress Ports
     dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
-                                                                        oid: "1.3.6.1.4.1.1916.1.4.17.1.1",
+                                                                        oid: "1.3.6.1.4.1.1916.1.4.17.1.2",
                                                                         cancellationToken);
 
     // Проверяем, что хотя бы запрос не вернул пустые данные
     if (dot1qVlanStaticEgressPorts.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests received empty result.");
+      return;
 
-    // Обрабатываем результаты SNMP-запросов
-    var vlanEntries = dot1qVlanStaticEgressPorts.Select(response =>
+    // Объединяем результаты SNMP-запросов
+    var vlanTable = dot1qVlanStaticNumber.Zip(dot1qVlanStaticName,
+                                              (vlanNumber, vlanName) => new
+                                              {
+                                                vlanNumber,
+                                                vlanName
+                                              })
+                                        .Zip(dot1qVlanStaticTag,
+                                             (firstPair, vlanTag) => new
+                                             {
+                                               VlanNumber = int.Parse(firstPair.vlanNumber.Data),
+                                               VlanName = firstPair.vlanName.Data,
+                                               VlanTag = int.Parse(vlanTag.Data)
+                                             })
+                                        .ToDictionary(x => x.VlanNumber);
+
+    var egressPorts = dot1qVlanStaticEgressPorts.Select(response =>
                                                         {
                                                           var oidParts = response.OID.Split('.');
 
-                                                          if (oidParts.Length < 2)
-                                                            throw new FormatException("Invalid OID format in SNMP response.");
+                                                          if (!int.TryParse(oidParts[^1], out int vlanNumber))
+                                                            throw new FormatException("Unable to parse port index from OID.");
 
                                                           if (!int.TryParse(oidParts[^2], out int portIfIndex))
                                                             throw new FormatException("Unable to parse port index from OID.");
 
-                                                          if (!int.TryParse(oidParts[^1], out int vlanTag))
-                                                            throw new FormatException("Unable to parse VLAN tag from OID.");
-
                                                           return new
                                                           {
                                                             PortIfIndex = portIfIndex,
-                                                            VlanTag = vlanTag,
-                                                            VlanName = response.Data // Имя VLAN из SNMP response.Data
+                                                            VlanNumber = vlanNumber
                                                           };
                                                         })
-                                                .GroupBy(entry => new
-                                                {
-                                                  entry.PortIfIndex,
-                                                  entry.VlanTag,
-                                                  entry.VlanName
-                                                })
-                                                .Select(group => new
-                                                {
-                                                  PortIfIndex = group.Key.PortIfIndex,
-                                                  VlanTag = group.Key.VlanTag,
-                                                  VlanName = group.Key.VlanName
-                                                })
                                                 .ToList();
 
     // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
@@ -930,22 +950,25 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var vlansToAdd = new HashSet<VLAN>();
 
     // Проходим по результатам vlanEntries
-    foreach (var vlanEntry in vlanEntries)
+    foreach (var egressPort in egressPorts)
     {
-      VLAN vlanToCreate = new()
+      if (vlanTable.TryGetValue(egressPort.VlanNumber, out var vlan))
       {
-        VLANTag = vlanEntry.VlanTag,
-        VLANName = vlanEntry.VlanName
-      };
-      // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
-      if (portsDictionary.TryGetValue(vlanEntry.PortIfIndex, out var matchingPort))
-      {
-        vlansToAdd.Add(vlanToCreate);
-        // Если коллекция VLANs не инициализирована, инициализируем её
-        matchingPort.VLANs ??= [];
+        VLAN vlanToCreate = new()
+        {
+          VLANTag = vlan.VlanTag,
+          VLANName = vlan.VlanName
+        };
+        // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
+        if (portsDictionary.TryGetValue(egressPort.PortIfIndex, out var matchingPort))
+        {
+          vlansToAdd.Add(vlanToCreate);
+          // Если коллекция VLANs не инициализирована, инициализируем её
+          matchingPort.VLANs ??= [];
 
-        // Добавляем новый VLAN в порт
-        matchingPort.VLANs.Add(vlanToCreate);
+          // Добавляем новый VLAN в порт
+          matchingPort.VLANs.Add(vlanToCreate);
+        }
       }
     }
 
