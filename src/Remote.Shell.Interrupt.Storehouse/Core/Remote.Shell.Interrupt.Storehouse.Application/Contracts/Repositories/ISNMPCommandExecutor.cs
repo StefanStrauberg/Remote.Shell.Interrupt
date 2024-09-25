@@ -5,10 +5,12 @@ public interface ISNMPCommandExecutor
     Task<List<SNMPResponse>> WalkCommand(string host,
                                          string community,
                                          string oid,
-                                         CancellationToken cancellationToken);
+                                         CancellationToken cancellationToken,
+                                         bool toHex = false);
 
     Task<SNMPResponse> GetCommand(string host,
                                  string community,
                                  string oid,
-                                 CancellationToken cancellationToken);
+                                 CancellationToken cancellationToken,
+                                 bool toHex = false);
 }

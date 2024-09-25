@@ -359,7 +359,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var macAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
                                                               community: community,
                                                               oid: "1.3.6.1.2.1.4.22.1.2",
-                                                              cancellationToken);
+                                                              cancellationToken,
+                                                              true);
     var ipAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.22.1.3",
@@ -807,7 +808,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
-                                                                        cancellationToken);
+                                                                        cancellationToken,
+                                                                        true);
 
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
     if (dot1dBasePort.Count == 0 || dot1qVlanStaticName.Count == 0 || dot1qVlanStaticEgressPorts.Count == 0 || dot1dBasePortIfIndex.Count == 0)
