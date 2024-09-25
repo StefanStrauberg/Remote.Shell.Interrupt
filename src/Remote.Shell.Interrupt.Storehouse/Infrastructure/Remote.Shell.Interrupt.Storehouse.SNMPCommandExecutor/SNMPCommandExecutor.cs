@@ -206,26 +206,76 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         var target = new IPEndPoint(IPAddress.Parse(host), 161);
         var communityString = new OctetString(community);
         var currentOid = new ObjectIdentifier(oid);
-        var walkMode = WalkMode.Default;
+        var userRegistry = new Lextm.SharpSnmpLib.Security.UserRegistry();
 
         try
         {
-            var response = new List<Variable>();
-            await Messenger.WalkAsync(version,
-                                      target,
-                                      communityString,
-                                      currentOid,
-                                      response,
-                                      walkMode,
-                                      cancellationToken);
-
-            foreach (var item in response)
+            while (true)
             {
-                result.Add(new SNMPResponse()
+                var message = new GetBulkRequestMessage(0,
+                                                        version,
+                                                        communityString,
+                                                        0,
+                                                        10,
+                                                        [new Variable(currentOid)]);
+
+                var response = await message.GetResponseAsync(target, registry: userRegistry, cancellationToken);
+
+                // Проверка на ошибки в ответе
+                if (response.Pdu().ErrorStatus.ToInt32() != 0)
                 {
-                    OID = item.Id.ToString(),
-                    Data = item.Data.ToString(),
-                });
+                    throw new Exception($"Error in response: {response.Pdu().ErrorStatus}");
+                }
+
+                var responseVariables = response.Pdu().Variables;
+                if (responseVariables.Count == 0)
+                {
+                    break; // Нет больше данных
+                }
+
+                bool foundBaseOid = false; // Флаг для проверки наличия базового OID
+
+                foreach (var item in response.Pdu().Variables)
+                {
+                    var itemOid = item.Id.ToString();
+
+                    if (itemOid.StartsWith(oid))
+                    {
+                        if (item.Data.TypeCode == SnmpType.OctetString)
+                        {
+                            result.Add(new SNMPResponse()
+                            {
+                                OID = item.Id.ToString(),
+                                Data = ConvertSnmpDataToHex(item.Data),
+                            });
+                        }
+                        else
+                        {
+                            result.Add(new SNMPResponse()
+                            {
+                                OID = item.Id.ToString(),
+                                Data = item.Data.ToString(),
+                            });
+                        }
+
+                        foundBaseOid = true; // Базовый OID найден
+                    }
+                    else
+                    {
+                        foundBaseOid = false;
+                        break;
+                    }
+                }
+
+                // Если базовый OID не найден, выходим из цикла
+                if (!foundBaseOid)
+                {
+                    break; // Нет больше данных для получения
+                }
+
+                // Обновляем текущий OID для следующего запроса
+                // Используем последний полученный OID для следующего запроса
+                currentOid = responseVariables.Last().Id; // Для следующего запроса
             }
         }
         catch (OperationCanceledException)
@@ -237,5 +287,29 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
             throw new SNMPBadRequestException($"Error during SNMP Get: {ex.Message}", ex);
         }
         return result;
+    }
+
+    public static string ConvertSnmpDataToHex(ISnmpData snmpData)
+    {
+        // Проверяем, является ли snmpData экземпляром OctetString
+        if (snmpData is OctetString octetString)
+        {
+            // Получаем массив байтов из OctetString
+            byte[] bytes = octetString.GetRaw();
+
+            // Если длина массива байтов равна 6, считаем это MAC-адресом
+            if (bytes.Length == 6)
+            {
+                // Создаем строку в формате Hex
+                return string.Join(" ", bytes.Select(b => b.ToString("X2")));
+            }
+
+            // Если длина не 6, создаем строку
+            return snmpData.ToString();
+        }
+        else
+        {
+            throw new ArgumentException("Provided ISnmpData is not an OctetString.");
+        }
     }
 }
