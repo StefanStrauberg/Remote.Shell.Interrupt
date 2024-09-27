@@ -49,6 +49,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         var communityString = new OctetString(community);
         var currentOid = new ObjectIdentifier(oid);
         var userRegistry = new Lextm.SharpSnmpLib.Security.UserRegistry();
+        var maxRepetitions = 15;
 
         try
         {
@@ -58,7 +59,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                                                         version,
                                                         communityString,
                                                         0,
-                                                        10,
+                                                        maxRepetitions,
                                                         [new Variable(currentOid)]);
 
                 var response = await message.GetResponseAsync(target, registry: userRegistry, cancellationToken);
@@ -66,7 +67,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                 // Проверка на ошибки в ответе
                 if (response.Pdu().ErrorStatus.ToInt32() != 0)
                 {
-                    throw new Exception($"Error in response: {response.Pdu().ErrorStatus}");
+                    throw new Exception($"Error in response: {response.Pdu().ErrorStatus} (OID: {currentOid})");
                 }
 
                 var responseVariables = response.Pdu().Variables;

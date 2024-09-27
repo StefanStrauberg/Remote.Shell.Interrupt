@@ -98,14 +98,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     return Unit.Value;
   }
 
-  private static void CleanJuniper(List<Port> portsOfNetworkDevice)
+  static void CleanJuniper(List<Port> portsOfNetworkDevice)
   {
     portsOfNetworkDevice.RemoveAll(port => !(port.InterfaceName.StartsWith("xe") ||
                                              port.InterfaceName.StartsWith("irb") ||
                                              port.InterfaceName.StartsWith("ae")));
   }
 
-  private static void CleanJuniperDots(List<Port> portsOfNetworkDevice)
+  static void CleanJuniperDots(List<Port> portsOfNetworkDevice)
   {
     var aePorts = portsOfNetworkDevice.Where(x => x.InterfaceName.StartsWith("ae")).ToList();
     var aeGroups = aePorts.GroupBy(x => x.InterfaceType);
@@ -144,7 +144,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private static void CleanHuawei(List<Port> portsOfNetworkDevice)
+  static void CleanHuawei(List<Port> portsOfNetworkDevice)
   {
     portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("InLoop") ||
                                            port.InterfaceName.StartsWith("MEth") ||
@@ -152,7 +152,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                            port.InterfaceName.StartsWith("Vlan"));
   }
 
-  private static void CleanExtreme(List<Port> portsOfNetworkDevice)
+  static void CleanExtreme(List<Port> portsOfNetworkDevice)
   {
     portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("Management") ||
                                            port.InterfaceName.StartsWith("rtif") ||
@@ -346,10 +346,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private async Task FillARPTableForPorts(NetworkDevice networkDevice,
-                                          string host,
-                                          string community,
-                                          CancellationToken cancellationToken)
+  async Task FillARPTableForPorts(NetworkDevice networkDevice,
+                                  string host,
+                                  string community,
+                                  CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запросы
     var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
@@ -417,10 +417,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private async Task FillNetworkTableOfPort(NetworkDevice networkDevice,
-                                            string host,
-                                            string community,
-                                            CancellationToken cancellationToken)
+  async Task FillNetworkTableOfPort(NetworkDevice networkDevice,
+                                    string host,
+                                    string community,
+                                    CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запрос для получения номеров интерфейсов
     var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
@@ -495,10 +495,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private async Task FillPortVLANSForJuniper(NetworkDevice networkDevice,
-                                             string host,
-                                             string community,
-                                             CancellationToken cancellationToken)
+  async Task FillPortVLANSForJuniper(NetworkDevice networkDevice,
+                                     string host,
+                                     string community,
+                                     CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1dBasePort = [];
     List<SNMPResponse> dot1dBasePortIfIndex = [];
@@ -588,10 +588,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                .InsertMany(vlansToAdd);
   }
 
-  private async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice,
-                                                   string host,
-                                                   string community,
-                                                   CancellationToken cancellationToken)
+  async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice,
+                                           string host,
+                                           string community,
+                                           CancellationToken cancellationToken)
   {
     List<SNMPResponse> ifStackTable = [];
 
@@ -606,12 +606,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       return;
 
     var aePorts = networkDevice.PortsOfNetworkDevice
-                               .Where(x => x.InterfaceName
-                                            .StartsWith("ae"))
+                               .Where(x => x.InterfaceType == PortType.ieee8023adLag ||
+                                           x.InterfaceType == PortType.propVirtual)
                                .ToList();
+
     var xePorts = networkDevice.PortsOfNetworkDevice
-                               .Where(x => x.InterfaceName
-                                            .StartsWith("xe"))
+                               .Where(x => x.InterfaceType == PortType.ethernetCsmacd ||
+                                           x.InterfaceType == PortType.propVirtual ||
+                                           x.InterfaceType == PortType.l2vlan)
                                .ToList();
 
     var aeGroupedPorts = GroupPorts(aePorts);
@@ -657,10 +659,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private async Task LinkAgregationPortsForHuawei(NetworkDevice networkDevice,
-                                                  string host,
-                                                  string community,
-                                                  CancellationToken cancellationToken)
+  async Task LinkAgregationPortsForHuawei(NetworkDevice networkDevice,
+                                          string host,
+                                          string community,
+                                          CancellationToken cancellationToken)
   {
     List<SNMPResponse> ifStackTable = [];
 
@@ -674,13 +676,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     if (ifStackTable.Count == 0)
       return;
 
-    var trunkPorts = networkDevice.PortsOfNetworkDevice
-                                  .Where(port => port.InterfaceName.Contains("Trunk"))
-                                  .ToDictionary(port => port.InterfaceNumber, port => port);
-
-    var gePorts = networkDevice.PortsOfNetworkDevice
-                               .Where(port => port.InterfaceName.Contains("GE"))
-                               .ToDictionary(port => port.InterfaceNumber, port => port);
+    var portsDictionary = networkDevice.PortsOfNetworkDevice
+                                       .ToDictionary(p => p.InterfaceNumber);
 
     // Получаем ключи из ifStackTable
     var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
@@ -692,7 +689,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     foreach (var (aeNum, portNum) in aggKeySet)
     {
       // Проверяем, что группы найдены
-      if (trunkPorts.TryGetValue(aeNum, out var aePort) && gePorts.TryGetValue(portNum, out var gePort))
+      if (portsDictionary.TryGetValue(aeNum, out var aePort) && portsDictionary.TryGetValue(portNum, out var gePort))
       {
         if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
           aePort.AggregatedPorts.Add(gePort);
@@ -704,10 +701,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
   }
 
-  private async Task LinkAgregationPortsForExtreme(NetworkDevice networkDevice,
-                                                   string host,
-                                                   string community,
-                                                   CancellationToken cancellationToken)
+  async Task LinkAgregationPortsForExtreme(NetworkDevice networkDevice,
+                                           string host,
+                                           string community,
+                                           CancellationToken cancellationToken)
   {
     List<SNMPResponse> ifStackTable = [];
 
@@ -750,36 +747,47 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   {
     // Создаем словарь для группировки
     var baseGroups = new Dictionary<HashSet<int>, List<Port>>();
+    var lookingFor = new StringBuilder();
 
     // Находим все порты без точки и создаем группы
-    var portsWithoutDots = ports.Where(port => !port.InterfaceName.Contains('.')).ToList();
+    var portsWithoutDots = ports.Where(port => !port.InterfaceName
+                                                    .Contains('.'))
+                                .ToList();
+
+    var group = new List<Port>();
+    var keys = new HashSet<int>(); // Начальный ключ
 
     foreach (var port in portsWithoutDots)
     {
-      var baseName = port.InterfaceName;
+      lookingFor.Append(port.InterfaceName);
+      lookingFor.Append('.');
 
-      var group = new List<Port> { port };
-      var keys = new HashSet<int> { port.InterfaceNumber }; // Начальный ключ
+      keys.Add(port.InterfaceNumber);
+      group.Add(port);
 
       // Находим порты с точкой и добавляем их в группу
-      var lookingGroupWithDot = ports
-          .Where(p => p.InterfaceName.StartsWith(baseName + '.'))
-          .ToList();
+      var lookingGroupWithDot = ports.Where(p => p.InterfaceName
+                                                  .StartsWith(lookingFor.ToString()))
+                                     .ToList();
 
       group.AddRange(lookingGroupWithDot);
       keys.UnionWith(lookingGroupWithDot.Select(p => p.InterfaceNumber)); // Добавляем ключи
 
       // Добавляем группу в словарь
       baseGroups[keys] = group;
+
+      lookingFor.Clear();
+      group.Clear();
+      keys.Clear();
     }
 
     return baseGroups;
   }
 
-  private async Task FillPortVLANSForHuawei(NetworkDevice networkDevice,
-                                            string host,
-                                            string community,
-                                            CancellationToken cancellationToken)
+  async Task FillPortVLANSForHuawei(NetworkDevice networkDevice,
+                                    string host,
+                                    string community,
+                                    CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1dBasePort = [];
     List<SNMPResponse> dot1dBasePortIfIndex = [];
@@ -874,10 +882,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                .InsertMany(vlansToAdd);
   }
 
-  private async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
-                                             string host,
-                                             string community,
-                                             CancellationToken cancellationToken)
+  async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
+                                            string host,
+                                            string community,
+                                            CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
     List<SNMPResponse> dot1qVlanStaticName = [];

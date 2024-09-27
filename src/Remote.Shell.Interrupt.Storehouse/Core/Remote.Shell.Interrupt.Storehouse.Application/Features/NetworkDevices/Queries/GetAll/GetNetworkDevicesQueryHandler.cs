@@ -26,9 +26,15 @@ internal class GetNetworkDevicesQueryHandler(IUnitOfWork unitOfWork,
           .ToHashSet();
 
       // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
-      device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
+      device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice
           .Where(port => !aggregatedPortsIds.Contains(port.Id))
-          .ToList();
+          .OrderBy(port => port.InterfaceName)];
+
+      // Сортируем AggregatedPorts по InterfaceName
+      foreach (var port in device.PortsOfNetworkDevice)
+      {
+        port.AggregatedPorts = [.. port.AggregatedPorts.OrderBy(aggregatedPort => aggregatedPort.InterfaceName)];
+      }
     }
 
     var networkDevicesDTOs = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
