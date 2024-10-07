@@ -47,9 +47,4 @@ public static class FormatEgressPorts
 
     return [.. activePorts]; // Возвращаем активные порты в виде массива
   }
-
-  internal static int[] HandleExtremeOID(List<string> list)
-  {
-    throw new NotImplementedException();
-  }
 }

@@ -672,12 +672,44 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                           oid: "1.3.6.1.2.1.31.1.2.1.3",
                                                           cancellationToken);
 
-    // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (ifStackTable.Count == 0)
-      return;
 
     var portsDictionary = networkDevice.PortsOfNetworkDevice
                                        .ToDictionary(p => p.InterfaceNumber);
+
+    // Проверяем, что хотя бы один из запросов не вернул пустые данные
+    if (ifStackTable.Count == 0)
+    {
+      // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
+      ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                            community: community,
+                                                            oid: "1.2.840.10006.300.43.1.1.2.1.1",
+                                                            cancellationToken,
+                                                            true);
+      var aggKeys = ifStackTable.Select(x => (aeEnum: OIDGetNumbers.HandleLast(x.OID),
+                                              portNums: FormatEgressPorts.HandleHuaweiHexString(x.Data)))
+                                .Where(x => x.portNums.Length != 0)
+                                .ToList();
+      foreach (var (aeNum, portNums) in aggKeys)
+      {
+        if (portsDictionary.TryGetValue(aeNum, out var aePort))
+        {
+          if (portNums.Length == 0)
+            continue;
+
+          foreach (var portNum in portNums)
+          {
+            var lookingForPort = portNum > 48 ? portNum + 12 : portNum + 6;
+
+            if (portsDictionary.TryGetValue(lookingForPort, out var port))
+            {
+              aePort.AggregatedPorts.Add(port);
+              Console.WriteLine($"aePor {aePort.InterfaceNumber}: {aePort.InterfaceName} adding aggregation {port.InterfaceNumber}: {port.InterfaceName}");
+            }
+          }
+        }
+      }
+      return;
+    }
 
     // Получаем ключи из ifStackTable
     var aggKeySet = ifStackTable.Select(x => (aeNum: OIDGetNumbers.HandleLastButOne(x.OID),
