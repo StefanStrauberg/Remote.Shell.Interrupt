@@ -6,7 +6,8 @@ public interface ISNMPCommandExecutor
                                          string community,
                                          string oid,
                                          CancellationToken cancellationToken,
-                                         bool toHex = false);
+                                         bool toHex = false,
+                                         int repetitions = 20);
 
     Task<SNMPResponse> GetCommand(string host,
                                  string community,

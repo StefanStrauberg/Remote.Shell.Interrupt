@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <PackageReference Include="Lextm.SharpSnmpLib" Version="12.5.3" />
-    <PackageReference Include="SnmpSharpNet" Version="0.9.6" />
   </ItemGroup>
 
   <ItemGroup>

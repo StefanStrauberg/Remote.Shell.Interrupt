@@ -1,6 +1,3 @@
-using Lextm.SharpSnmpLib;
-using Lextm.SharpSnmpLib.Messaging;
-
 namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor;
 
 internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
@@ -41,7 +38,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         return result;
     }
 
-    public async Task<List<SNMPResponse>> WalkCommand(string host, string community, string oid, CancellationToken cancellationToken, bool toHex = false)
+    public async Task<List<SNMPResponse>> WalkCommand(string host, string community, string oid, CancellationToken cancellationToken, bool toHex = false, int repetitions = 20)
     {
         var result = new List<SNMPResponse>();
         var version = VersionCode.V2;
@@ -49,7 +46,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         var communityString = new OctetString(community);
         var currentOid = new ObjectIdentifier(oid);
         var userRegistry = new Lextm.SharpSnmpLib.Security.UserRegistry();
-        var maxRepetitions = 15;
+        var maxRepetitions = repetitions;
 
         try
         {
