@@ -180,14 +180,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   {
     portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("InLoop") ||
                                            port.InterfaceName.StartsWith("MEth") ||
-                                           port.InterfaceName.StartsWith("NULL0") ||
-                                           port.InterfaceName.StartsWith("Vlan"));
+                                           port.InterfaceName.StartsWith("NULL0"));
   }
 
   static void CleanExtreme(List<Port> portsOfNetworkDevice)
   {
     portsOfNetworkDevice.RemoveAll(port => port.InterfaceName.StartsWith("Management") ||
-                                           port.InterfaceName.StartsWith("rtif") ||
                                            port.InterfaceName.StartsWith("Virtual") ||
                                            port.InterfaceName.StartsWith("VLAN"));
   }
