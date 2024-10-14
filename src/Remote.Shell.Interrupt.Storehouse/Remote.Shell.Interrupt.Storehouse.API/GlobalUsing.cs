@@ -17,6 +17,7 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevic
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Delete;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetById;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Get;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Walk;
 global using Remote.Shell.Interrupt.Storehouse.Application.Middleware;
@@ -25,4 +26,3 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
 global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor;
 global using Remote.Shell.Interrupt.Storehouse.Persistence;
 global using Serilog;
-global using System.Net;
