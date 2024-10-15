@@ -49,14 +49,21 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     {
       // Получаем уникальные идентификаторы портов из AggregatedPorts
       HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
-          .Where(port => port.AggregatedPorts.Count != 0)
-          .SelectMany(port => port.AggregatedPorts)
-          .Select(item => item.Id)
-          .ToHashSet();
+                                               .Where(port => port.AggregatedPorts.Count != 0)
+                                               .SelectMany(port => port.AggregatedPorts)
+                                               .Select(item => item.Id)
+                                               .ToHashSet();
+
+      HashSet<Guid> portsWith101Vlan = device.PortsOfNetworkDevice
+                                             .SelectMany(port => port.VLANs)
+                                             .Where(vlan => vlan.VLANTag == 101)
+                                             .Select(item => item.Id)
+                                             .ToHashSet();
 
       // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
       device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
           .Where(port => !aggregatedPortsIds.Contains(port.Id))
+          //.Where(port => !port.VLANs.Any(vlan => portsWith101Vlan.Contains(vlan.Id)))
           .ToList();
     }
 
