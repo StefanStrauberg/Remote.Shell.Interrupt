@@ -65,6 +65,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                maxRepetitions,
                                cancellationToken);
 
+    await FillMACTableForPorts(networkDevice,
+                               request.Host,
+                               request.Community,
+                               maxRepetitions,
+                               cancellationToken);
+
     await FillNetworkTableOfPort(networkDevice,
                                  request.Host,
                                  request.Community,
@@ -128,6 +134,66 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     await _unitOfWork.CompleteAsync(cancellationToken);
     return Unit.Value;
+  }
+
+  private async Task FillMACTableForPorts(NetworkDevice networkDevice,
+                                          string host,
+                                          string community,
+                                          int maxRepetitions,
+                                          CancellationToken cancellationToken)
+  {
+    var macToVirNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                 community: community,
+                                                                 oid: "1.3.6.1.2.1.17.4.3.1.2",
+                                                                 cancellationToken,
+                                                                 repetitions: maxRepetitions);
+    var virNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                            community: community,
+                                                            oid: "1.3.6.1.2.1.17.1.4.1.1",
+                                                            cancellationToken,
+                                                            repetitions: maxRepetitions);
+
+    var virNumToPort = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                              community: community,
+                                                              oid: "1.3.6.1.2.1.17.1.4.1.2",
+                                                              cancellationToken,
+                                                              repetitions: maxRepetitions);
+
+    if (macToVirNumbers.Count == 0 || virNumbers.Count == 0 || virNumToPort.Count == 0)
+      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+
+    // Проверка, что количество элементов одинаковое
+    if (virNumbers.Count != virNumToPort.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch for ARP data: virNumbers({virNumbers.Count}), virNumToPort({virNumToPort.Count})");
+
+    var portsDict = networkDevice.PortsOfNetworkDevice
+                                 .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    var macTable = macToVirNumbers.Select(response => new
+    {
+      num = int.Parse(response.Data),
+      mac = FormatMACAddress.HandleMACTable(response.OID)
+    }).GroupBy(entry => entry.num)
+      .ToDictionary(group => group.Key, group => group.Select(x => x.mac));
+
+    // Объединяем данные в словарь по InterfaceNumber
+    var interfaceTable = virNumbers.Zip(second: virNumToPort,
+                                        resultSelector: (virNum, intNum) => new
+                                        {
+                                          virNum = int.Parse(virNum.Data),
+                                          intNum = int.Parse(intNum.Data)
+                                        });
+
+    foreach (var item in interfaceTable)
+    {
+      if (macTable.TryGetValue(item.virNum, out var macs))
+      {
+        if (portsDict.TryGetValue(item.intNum, out var port))
+        {
+          port.MACTable = macs.ToList();
+        }
+      }
+    }
   }
 
   static void CleanJuniper(List<Port> portsOfNetworkDevice)
@@ -426,12 +492,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                      .Zip(second: ipAddresses,
                                           resultSelector: (firstPair, ip) => new
                                           {
-                                            Interface = firstPair.iface.Data,
+                                            Interface = int.Parse(firstPair.iface.Data),
                                             Mac = FormatMACAddress.Handle(firstPair.mac.Data),
                                             Ip = ip.Data
                                           });
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    var arpDictionary = arpEntries.GroupBy(entry => int.Parse(entry.Interface))
+    var arpDictionary = arpEntries.GroupBy(entry => entry.Interface)
                                   .ToDictionary(keySelector: group => group.Key,
                                                 elementSelector: group => group.Select(e => new KeyValuePair<string, string>(e.Mac,
                                                                                                                              e.Ip))
