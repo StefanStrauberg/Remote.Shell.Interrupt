@@ -160,7 +160,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                               repetitions: maxRepetitions);
 
     if (macToVirNumbers.Count == 0 || virNumbers.Count == 0 || virNumToPort.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+      return;
 
     // Проверка, что количество элементов одинаковое
     if (virNumbers.Count != virNumToPort.Count)
@@ -174,7 +174,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       num = int.Parse(response.Data),
       mac = FormatMACAddress.HandleMACTable(response.OID)
     }).GroupBy(entry => entry.num)
-      .ToDictionary(group => group.Key, group => group.Select(x => x.mac));
+      .ToDictionary(group => group.Key,
+                    group => group.Select(x => x.mac));
 
     // Объединяем данные в словарь по InterfaceNumber
     var interfaceTable = virNumbers.Zip(second: virNumToPort,
@@ -190,7 +191,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       {
         if (portsDict.TryGetValue(item.intNum, out var port))
         {
-          port.MACTable = macs.ToList();
+          foreach (var mac in macs)
+          {
+            port.MACTable.Add(new MACEntity { MACAddress = mac });
+          }
         }
       }
     }

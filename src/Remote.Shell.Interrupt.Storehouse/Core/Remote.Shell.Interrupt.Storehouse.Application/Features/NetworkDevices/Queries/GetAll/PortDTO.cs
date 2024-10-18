@@ -11,6 +11,7 @@ public class PortDTO : IMapWith<Port>
   public bool IsAggregated { get; set; }
 
   public ICollection<PortDTO> AggregatedPorts { get; set; } = [];
+  public ICollection<string> MacTable { get; set; } = [];
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, HashSet<string>> NetworkTableOfPort { get; set; } = null!;
@@ -35,22 +36,24 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.AggregatedPorts.Count != 0))
            .ForMember(dest => dest.AggregatedPorts,
                       opt => opt.MapFrom(src => src.AggregatedPorts))
+           .ForMember(dest => dest.MacTable,
+                      opt => opt.MapFrom(src => src.MACTable.Select(x => x.MACAddress)))
            .ForMember(dest => dest.VLANs,
                       opt => opt.MapFrom(src => src.VLANs))
            .ForMember(dest => dest.ARPTableOfPort,
                       opt => opt.MapFrom(src => src.ARPTableOfInterface
-                                .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
-                                .ToDictionary(
-                                    grp => grp.Key, // MAC-адрес как ключ
-                                    grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
-                                )))
+                                                   .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
+                                                   .ToDictionary(
+                                                       grp => grp.Key, // MAC-адрес как ключ
+                                                       grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
+                                                   )))
            .ForMember(dest => dest.NetworkTableOfPort,
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
-                                .GroupBy(net => ConvertToString(net.NetworkAddress))
-                                .ToDictionary(
-                                  grp => grp.Key,
-                                  grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
-                                )));
+                                                   .GroupBy(net => ConvertToString(net.NetworkAddress))
+                                                   .ToDictionary(
+                                                     grp => grp.Key,
+                                                     grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
+                                                   )));
   }
 
   private static string ConvertToString(uint address)

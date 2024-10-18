@@ -9,7 +9,7 @@ public class Port : BaseEntity
   public ulong InterfaceSpeed { get; set; } // "1 Gbps"
 
   public ICollection<ARPEntity> ARPTableOfInterface { get; set; } = [];
-  public ICollection<string> MACTable { get; set; } = [];
+  public ICollection<MACEntity> MACTable { get; set; } = [];
   public ICollection<TerminatedNetworkEntity> NetworkTableOfInterface { get; set; } = [];
   public ICollection<VLAN> VLANs { get; set; } = [];
 

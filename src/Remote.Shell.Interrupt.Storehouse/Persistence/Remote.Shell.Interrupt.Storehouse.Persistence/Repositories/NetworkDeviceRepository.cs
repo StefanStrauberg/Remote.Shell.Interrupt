@@ -48,6 +48,8 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
                    .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(vln => vln.VLANs)
                    .Include(nd => nd.PortsOfNetworkDevice)
+                     .ThenInclude(vln => vln.MACTable)
+                   .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
                    .FirstAsync(predicate, cancellationToken);
 
@@ -61,6 +63,8 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
                    .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(vln => vln.VLANs)
                    .Include(nd => nd.PortsOfNetworkDevice)
+                     .ThenInclude(vln => vln.MACTable)
+                   .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
                    .FirstAsync(filterExpression, cancellationToken);
 
@@ -73,6 +77,8 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
                      .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
                    .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(vln => vln.VLANs)
+                   .Include(nd => nd.PortsOfNetworkDevice)
+                     .ThenInclude(vln => vln.MACTable)
                    .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
                    .Where(predicate: filterExpression)
