@@ -4,13 +4,7 @@ import Input from '../Input/Input';
 import Select from '../Select/Select';
 import classes from './Form.module.css';
 
-export default function Form({
-    types,
-    onChange,
-    submitText,
-    placeholder,
-    onSubmit,
-}) {
+export default function Form({ types, onChange, submitText, onSubmit }) {
     return (
         <Wrapper>
             <div className={classes.wrapper}>
@@ -19,8 +13,13 @@ export default function Form({
                         <div className={classes.labelText}>{type.name}</div>
                         {type.input === 'input' && (
                             <Input
-                                placeholder={placeholder || 'Enter a new info'}
-                                onChange={(e) => onChange(e, type.requestName)}
+                                defaultValue={type.defaultValue}
+                                placeholder={'Enter a new info...'}
+                                onChange={(e) =>
+                                    onChange
+                                        ? onChange(e, type.onChangeName)
+                                        : null
+                                }
                             />
                         )}
                         {type.input === 'select' && (
@@ -28,7 +27,11 @@ export default function Form({
                                 options={
                                     type.options || [{ option: '', value: '' }]
                                 }
-                                onChange={(e) => onChange(e, type.requestName)}
+                                onChange={(e) =>
+                                    onChange
+                                        ? onChange(e, type.requestName)
+                                        : null
+                                }
                             />
                         )}
                     </label>

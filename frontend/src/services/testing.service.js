@@ -1,7 +1,7 @@
-import { testing } from '../data/endpoints';
+import { TESTING } from '../data/endpoints';
 
 export function getTesting(data) {
-    return fetch(testing.testing + testing.getTesting, {
+    return fetch(TESTING.TESTING + TESTING.GET_TESTING, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -11,7 +11,7 @@ export function getTesting(data) {
 }
 
 export function walkTesting(data) {
-    return fetch(testing.testing + testing.walkTesting, {
+    return fetch(TESTING.TESTING + TESTING.WALK_TESTING, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

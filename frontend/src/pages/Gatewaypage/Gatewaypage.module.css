@@ -24,4 +24,21 @@
 
 .routerInfoText {
     color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem;
+}
+
+.bold {
+    color: #fff;
+}
+
+.lan {
+    margin-top: 1rem;
+    padding: 1rem 0;
+    padding-left: 1rem;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0.5rem;
+}
+.lan * {
+    color: #fff;
+    font-weight: bold;
 }

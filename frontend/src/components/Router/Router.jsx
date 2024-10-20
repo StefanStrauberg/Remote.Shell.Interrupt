@@ -1,12 +1,39 @@
 import { Link } from 'react-router-dom';
 import classes from './Router.module.css';
-export default function Router() {
+import { ROUTES } from '../../data/routes';
+export default function Router({ data }) {
+    const titlePort = (port) => {
+        const {
+            interfaceName,
+            interfaceNumber,
+            interfaceSpeed,
+            interfaceStatus,
+            interfaceType,
+        } = port;
+        const mainPortInfo = {
+            interfaceName,
+            interfaceNumber,
+            interfaceSpeed,
+            interfaceStatus,
+            interfaceType,
+        };
+        let res = '';
+        for (let prop in mainPortInfo) {
+            res += `${prop} - ${mainPortInfo[prop]}\n`;
+        }
+
+        return res;
+    };
     return (
-        <Link to={'/gateways/2'}>
+        <Link
+            to={`${
+                data.id ? ROUTES.GATEWAYS + `/${data.id}` : location.pathname
+            }`}
+            className={classes.link}
+            state={data}
+        >
             <div className={classes.wrapper}>
-                <div className={classes.title}>
-                    Cisco CE6863E-48S6CQ - 192.168.1.1
-                </div>
+                <div className={classes.title}>{data.host}</div>
                 <div className={classes.routerFlex}>
                     <div className={classes.router}>
                         <div className={classes.state}>
@@ -14,22 +41,15 @@ export default function Router() {
                             <div className={classes.on}></div>
                         </div>
                         <div className={classes.ports}>
-                            <div className={classes.portWrapper}>
-                                <div
-                                    className={`${classes.port} ${classes.activePort}`}
-                                ></div>
-                                <div className={classes.port}></div>
-                            </div>
-                            <div className={classes.portWrapper}>
-                                <div
-                                    className={`${classes.port} ${classes.activePort}`}
-                                ></div>
-                                <div className={classes.port}></div>
-                            </div>
-                            <div className={classes.portWrapper}>
-                                <div className={classes.port}></div>
-                                <div className={classes.port}></div>
-                            </div>
+                            {data.portsOfNetworkDevice.map((port) => {
+                                return (
+                                    <div
+                                        className={classes.port}
+                                        key={port.id}
+                                        title={titlePort(port)}
+                                    ></div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

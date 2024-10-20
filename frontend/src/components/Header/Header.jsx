@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import classes from './Header.module.css';
-import Input from '../UI/Input/Input';
 import Button from '../UI/Button/Button';
+import { ROUTES } from '../../data/routes';
 
 export default function Header() {
     const location = useLocation();
-    console.log(location);
     return (
         <header className={classes.header}>
             <div className={classes.pages}>
@@ -23,7 +22,7 @@ export default function Header() {
                         Gateways
                     </div>
                 </Link>
-                <Link to={'/assignments'}>
+                <Link to={ROUTES.ASSIGNMENTS}>
                     <div
                         className={`${classes.page} ${
                             location.pathname
@@ -36,7 +35,7 @@ export default function Header() {
                         Assigments
                     </div>
                 </Link>
-                <Link to={'/rules'}>
+                <Link to={ROUTES.RULES}>
                     <div
                         className={`${classes.page} ${
                             location.pathname.toLowerCase().includes('rules')
@@ -48,7 +47,7 @@ export default function Header() {
                     </div>
                 </Link>
                 <Link
-                    to={'/testing'}
+                    to={ROUTES.TESTING}
                     className={`${classes.page} ${
                         location.pathname.toLowerCase().includes('testing')
                             ? classes.activePage
@@ -62,8 +61,16 @@ export default function Header() {
                 <Input placeholder={'Поиск информации по сайту'} />
                 <Button>Найти</Button>
             </div> */}
-            {location.pathname !== '/testing' && (
-                <div className={classes.btns}>
+            {
+                <div
+                    className={classes.btns}
+                    style={{
+                        pointerEvents: location.pathname.includes('/testing')
+                            ? 'none'
+                            : 'auto',
+                        opacity: location.pathname.includes('/testing') ? 0 : 1,
+                    }}
+                >
                     <Link
                         to={
                             location.pathname.includes('create')
@@ -79,7 +86,7 @@ export default function Header() {
                         <Button>Create new</Button>
                     </Link>
                 </div>
-            )}
+            }
         </header>
     );
 }

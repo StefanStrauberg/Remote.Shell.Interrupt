@@ -1,6 +1,12 @@
 .gatewaysInfo {
     display: flex;
+    align-items: center;
     gap: 2rem;
     justify-content: space-around;
     flex-wrap: wrap;
+}
+
+.loading {
+    margin-top: 2rem;
+    font-size: 2rem;
 }

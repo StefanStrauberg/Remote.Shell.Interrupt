@@ -1,3 +1,7 @@
+.link {
+    flex: 100%;
+}
+
 .wrapper {
     display: flex;
     flex-direction: column;
@@ -5,19 +9,24 @@
 }
 
 .title {
-    font-size: 18px;
+    font-size: 2rem;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
 }
+
+.routerFlex {
+    width: 100%;
+}
 .router {
     position: relative;
-    padding: 0 1rem;
+    padding: 1rem;
     background-color: #f4f4f4;
     border-radius: 5px;
-    height: 40px;
+    min-height: 40px;
     align-items: center;
     display: inline-flex;
     gap: 2rem;
+    width: 100%;
 }
 
 .state {
@@ -28,8 +37,8 @@
 
 .on,
 .off {
-    width: 8px;
-    height: 8px;
+    width: 24px;
+    height: 24px;
     border-radius: 100%;
 }
 
@@ -43,12 +52,14 @@
 
 .ports {
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
 .port {
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 24px;
     background-color: #0d2a4c;
     border-radius: 2px;
 }
@@ -60,5 +71,5 @@
 .portWrapper {
     display: flex;
     gap: 4px;
-    flex-direction: column;
+    flex-direction: row;
 }
