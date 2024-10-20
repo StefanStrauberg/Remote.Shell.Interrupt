@@ -4,7 +4,7 @@ import classes from './Button.module.css';
 export default function Button({ classNames, children, onClick }) {
     return (
         <button
-            onClick={onClick}
+            onClick={onClick ?? null}
             className={
                 classNames ? `${classes.btn} ${classNames}` : classes.btn
             }
