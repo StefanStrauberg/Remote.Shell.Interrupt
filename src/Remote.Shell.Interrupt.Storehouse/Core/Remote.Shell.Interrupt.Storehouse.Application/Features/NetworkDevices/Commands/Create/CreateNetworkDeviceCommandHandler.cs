@@ -58,6 +58,18 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                   maxRepetitions,
                                   cancellationToken);
 
+    await FillMACAddressForPorts(networkDevice,
+                                 request.Host,
+                                 request.Community,
+                                 maxRepetitions,
+                                 cancellationToken);
+
+    await FillDescriptionForPorts(networkDevice,
+                                  request.Host,
+                                  request.Community,
+                                  maxRepetitions,
+                                  cancellationToken);
+
     // Заполняем ARP таблицу интерфейсов
     await FillARPTableForPorts(networkDevice,
                                request.Host,
@@ -134,6 +146,73 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     await _unitOfWork.CompleteAsync(cancellationToken);
     return Unit.Value;
+  }
+
+  private async Task FillDescriptionForPorts(NetworkDevice networkDevice,
+                                             string host,
+                                             string community,
+                                             int maxRepetitions,
+                                             CancellationToken cancellationToken)
+  {
+    var descriptions = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                              community: community,
+                                                              oid: "1.3.6.1.2.1.31.1.1.1.18",
+                                                              cancellationToken: cancellationToken,
+                                                              repetitions: maxRepetitions);
+
+    if (descriptions.Count == 0)
+      return;
+
+    var portsDict = networkDevice.PortsOfNetworkDevice
+                                 .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    var macToPort = descriptions.Select(response => new
+    {
+      portNumber = OIDGetNumbers.HandleLast(response.OID),
+      description = response.Data
+    }).ToList();
+
+    foreach (var pair in macToPort)
+    {
+      if (portsDict.TryGetValue(pair.portNumber, out var port))
+      {
+        port.Description = pair.description;
+      }
+    }
+  }
+
+  private async Task FillMACAddressForPorts(NetworkDevice networkDevice,
+                                          string host,
+                                          string community,
+                                          int maxRepetitions,
+                                          CancellationToken cancellationToken)
+  {
+    var MACAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                              community: community,
+                                                              oid: "1.3.6.1.2.1.2.2.1.6",
+                                                              cancellationToken: cancellationToken,
+                                                              toHex: true,
+                                                              repetitions: maxRepetitions);
+
+    if (MACAddresses.Count == 0)
+      return;
+
+    var portsDict = networkDevice.PortsOfNetworkDevice
+                                 .ToDictionary(port => port.InterfaceNumber, port => port);
+
+    var macToPort = MACAddresses.Select(response => new
+    {
+      portNumber = OIDGetNumbers.HandleLast(response.OID),
+      mac = response.Data.Replace(' ', ':')
+    }).ToList();
+
+    foreach (var pair in macToPort)
+    {
+      if (portsDict.TryGetValue(pair.portNumber, out var port))
+      {
+        port.MACAddress = pair.mac;
+      }
+    }
   }
 
   private async Task FillMACTableForPorts(NetworkDevice networkDevice,

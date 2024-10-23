@@ -7,6 +7,8 @@ public class Port : BaseEntity
   public PortType InterfaceType { get; set; } // "Ethernet"
   public PortStatus InterfaceStatus { get; set; } // "Up"
   public ulong InterfaceSpeed { get; set; } // "1 Gbps"
+  public string MACAddress { get; set; } = string.Empty;
+  public string Description { get; set; } = string.Empty;
 
   public ICollection<ARPEntity> ARPTableOfInterface { get; set; } = [];
   public ICollection<MACEntity> MACTable { get; set; } = [];

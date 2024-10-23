@@ -9,6 +9,8 @@ public class PortDTO : IMapWith<Port>
   public string InterfaceStatus { get; set; } = string.Empty; // "Up"
   public ulong InterfaceSpeed { get; set; } // "1 Gbps"
   public bool IsAggregated { get; set; }
+  public string MACAddress { get; set; } = string.Empty;
+  public string Description { get; set; } = string.Empty;
 
   public ICollection<PortDTO> AggregatedPorts { get; set; } = [];
   public ICollection<string> MacTable { get; set; } = [];
@@ -34,6 +36,10 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.InterfaceSpeed))
            .ForMember(dest => dest.IsAggregated,
                       opt => opt.MapFrom(src => src.AggregatedPorts.Count != 0))
+           .ForMember(dest => dest.MACAddress,
+                      opt => opt.MapFrom(src => src.MACAddress))
+           .ForMember(dest => dest.Description,
+                      opt => opt.MapFrom(src => src.Description))
            .ForMember(dest => dest.AggregatedPorts,
                       opt => opt.MapFrom(src => src.AggregatedPorts))
            .ForMember(dest => dest.MacTable,

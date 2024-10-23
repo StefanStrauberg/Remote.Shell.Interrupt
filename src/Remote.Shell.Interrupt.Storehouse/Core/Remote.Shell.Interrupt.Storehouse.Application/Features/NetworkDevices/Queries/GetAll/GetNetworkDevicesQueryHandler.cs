@@ -15,27 +15,27 @@ internal class GetNetworkDevicesQueryHandler(IUnitOfWork unitOfWork,
     var networkDevices = await _unitOfWork.NetworkDevices
                                           .GetAllWithChildrenAsync(cancellationToken);
 
-    // Фильтруем порты для каждого устройства
-    foreach (var device in networkDevices)
-    {
-      // Получаем уникальные идентификаторы портов из AggregatedPorts
-      HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
-          .Where(port => port.AggregatedPorts.Count != 0)
-          .SelectMany(port => port.AggregatedPorts)
-          .Select(item => item.Id)
-          .ToHashSet();
+    // // Фильтруем порты для каждого устройства
+    // foreach (var device in networkDevices)
+    // {
+    //   // Получаем уникальные идентификаторы портов из AggregatedPorts
+    //   HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
+    //       .Where(port => port.AggregatedPorts.Count != 0)
+    //       .SelectMany(port => port.AggregatedPorts)
+    //       .Select(item => item.Id)
+    //       .ToHashSet();
 
-      // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
-      device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice
-          .Where(port => !aggregatedPortsIds.Contains(port.Id))
-          .OrderBy(port => port.InterfaceName)];
+    //   // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
+    //   device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice
+    //       .Where(port => !aggregatedPortsIds.Contains(port.Id))
+    //       .OrderBy(port => port.InterfaceName)];
 
-      // Сортируем AggregatedPorts по InterfaceName
-      foreach (var port in device.PortsOfNetworkDevice)
-      {
-        port.AggregatedPorts = [.. port.AggregatedPorts.OrderBy(aggregatedPort => aggregatedPort.InterfaceName)];
-      }
-    }
+    //   // Сортируем AggregatedPorts по InterfaceName
+    //   foreach (var port in device.PortsOfNetworkDevice)
+    //   {
+    //     port.AggregatedPorts = [.. port.AggregatedPorts.OrderBy(aggregatedPort => aggregatedPort.InterfaceName)];
+    //   }
+    // }
 
     var networkDevicesDTOs = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
 
