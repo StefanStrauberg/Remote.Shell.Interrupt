@@ -49,16 +49,14 @@ public class PortDTO : IMapWith<Port>
            .ForMember(dest => dest.ARPTableOfPort,
                       opt => opt.MapFrom(src => src.ARPTableOfInterface
                                                    .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
-                                                   .ToDictionary(
-                                                       grp => grp.Key, // MAC-адрес как ключ
-                                                       grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
+                                                   .ToDictionary(grp => grp.Key, // MAC-адрес как ключ
+                                                                 grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
                                                    .GroupBy(net => ConvertToString(net.NetworkAddress))
-                                                   .ToDictionary(
-                                                     grp => grp.Key,
-                                                     grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
+                                                   .ToDictionary(grp => grp.Key,
+                                                                 grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
                                                    )));
   }
 

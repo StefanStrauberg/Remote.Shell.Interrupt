@@ -4,6 +4,7 @@ public class NetworkDeviceDTO : IMapWith<NetworkDevice>
 {
   public Guid Id { get; set; }
   public required string Host { get; set; }
+  public string TypeOfNetworkDevice { get; set; } = string.Empty;
   public string NetworkDeviceName { get; set; } = string.Empty;
   public string GeneralInformation { get; set; } = string.Empty;
   public List<PortDTO> PortsOfNetworkDevice { get; set; } = [];
@@ -17,6 +18,8 @@ public class NetworkDeviceDTO : IMapWith<NetworkDevice>
                       opt => opt.MapFrom(src => src.NetworkDeviceName))
            .ForMember(dest => dest.Host,
                       opt => opt.MapFrom(src => src.Host))
+           .ForMember(dest => dest.TypeOfNetworkDevice,
+                      opt => opt.MapFrom(src => src.TypeOfNetworkDevice.ToString()))
            .ForMember(dest => dest.GeneralInformation,
                       opt => opt.MapFrom(src => src.GeneralInformation))
            .ForMember(dest => dest.PortsOfNetworkDevice,
