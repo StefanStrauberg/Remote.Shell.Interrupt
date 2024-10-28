@@ -1058,7 +1058,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     // Выполняем SNMP-запрос для получения VLAN Egress Ports
     dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
-                                                                        oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
+                                                                        oid: "1.3.6.1.2.1.17.7.1.4.2.1.4.0",
                                                                         cancellationToken,
                                                                         toHex: true,
                                                                         repetitions: maxRepetitions);
@@ -1084,7 +1084,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                    {
                                                      VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
                                                      VlanName = vlanName.Data,
-                                                     EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
+                                                     EgressPorts = FormatEgressPorts.ParseHexStringToVlans(egressPorts.Data)
                                                    })
                                               .ToList();
 

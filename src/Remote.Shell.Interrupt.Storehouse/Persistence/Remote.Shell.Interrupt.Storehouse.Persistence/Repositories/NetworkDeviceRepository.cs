@@ -41,7 +41,8 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
 
   async Task<NetworkDevice> IGenericRepository<NetworkDevice>.FirstAsync(Expression<Func<NetworkDevice, bool>> predicate,
                                                                          CancellationToken cancellationToken)
-    => await _dbSet.Include(nd => nd.PortsOfNetworkDevice)
+    => await _dbSet.AsNoTracking()
+                   .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(port => port.ARPTableOfInterface)
                    .Include(nd => nd.PortsOfNetworkDevice)
                      .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
