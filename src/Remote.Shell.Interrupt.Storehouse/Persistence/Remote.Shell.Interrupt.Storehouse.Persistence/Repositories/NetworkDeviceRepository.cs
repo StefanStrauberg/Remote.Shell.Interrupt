@@ -5,15 +5,6 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
 {
   async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetAllWithChildrenAsync(CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()
-                   //  .Include(nd => nd.PortsOfNetworkDevice)
-                   //    .ThenInclude(port => port.ARPTableOfInterface)
-                   //  .Include(nd => nd.PortsOfNetworkDevice)
-                   //    .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
-                   //  .Include(nd => nd.PortsOfNetworkDevice)
-                   //    .ThenInclude(vln => vln.VLANs)
-                   //  .Include(nd => nd.PortsOfNetworkDevice)
-                   //    .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
-                   //    .ThenInclude(aggregatedPort => aggregatedPort.VLANs) // Включаем VLAN для агрегированных портов
                    .ToListAsync(cancellationToken);
 
   void IGenericRepository<NetworkDevice>.DeleteOne(NetworkDevice entity)
@@ -41,18 +32,18 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
 
   async Task<NetworkDevice> IGenericRepository<NetworkDevice>.FirstAsync(Expression<Func<NetworkDevice, bool>> predicate,
                                                                          CancellationToken cancellationToken)
-    => await _dbSet.AsNoTracking()
-                   .Include(nd => nd.PortsOfNetworkDevice)
-                     .ThenInclude(port => port.ARPTableOfInterface)
-                   .Include(nd => nd.PortsOfNetworkDevice)
-                     .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
-                   .Include(nd => nd.PortsOfNetworkDevice)
-                     .ThenInclude(vln => vln.VLANs)
-                   .Include(nd => nd.PortsOfNetworkDevice)
-                     .ThenInclude(vln => vln.MACTable)
-                   .Include(nd => nd.PortsOfNetworkDevice)
-                     .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
-                   .FirstAsync(predicate, cancellationToken);
+  => await _dbSet.AsNoTracking()
+                 .Include(nd => nd.PortsOfNetworkDevice)
+                   .ThenInclude(port => port.ARPTableOfInterface)
+                 .Include(nd => nd.PortsOfNetworkDevice)
+                   .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
+                 .Include(nd => nd.PortsOfNetworkDevice)
+                   .ThenInclude(vln => vln.VLANs)
+                 .Include(nd => nd.PortsOfNetworkDevice)
+                   .ThenInclude(vln => vln.MACTable)
+                 .Include(nd => nd.PortsOfNetworkDevice)
+                   .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
+                 .FirstAsync(predicate, cancellationToken);
 
   async Task<NetworkDevice> INetworkDeviceRepository.FindOneWithChildrenAsync(Expression<Func<NetworkDevice, bool>> filterExpression,
                                                                               CancellationToken cancellationToken)

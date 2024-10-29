@@ -1,4 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
+
 public class VLAN : BaseEntity
 {
   public int VLANTag { get; set; } // 10
