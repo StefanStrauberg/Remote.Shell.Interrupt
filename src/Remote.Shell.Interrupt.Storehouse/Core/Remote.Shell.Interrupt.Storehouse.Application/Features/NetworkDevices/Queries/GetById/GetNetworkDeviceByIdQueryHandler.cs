@@ -13,8 +13,8 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
   {
     var requestExpression = (Expression<Func<NetworkDevice, bool>>)(x => x.Id == request.Id);
 
-    var networkDevice = await _unitOfWork.NetworkDevices.FirstAsync(requestExpression,
-                                                                    cancellationToken)
+    var networkDevice = await _unitOfWork.NetworkDevices.FindOneWithChildrenAsync(requestExpression,
+                                                                                  cancellationToken)
       ?? throw new EntityNotFoundException(new ExpressionToStringConverter<NetworkDevice>().Convert(requestExpression));
 
     // Получаем уникальные идентификаторы портов из AggregatedPorts

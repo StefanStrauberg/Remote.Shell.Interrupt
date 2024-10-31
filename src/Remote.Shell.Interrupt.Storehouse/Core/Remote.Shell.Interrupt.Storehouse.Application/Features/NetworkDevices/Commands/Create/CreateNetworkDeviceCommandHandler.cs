@@ -49,6 +49,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme.ToString())
       maxRepetitions = _configuration.GetValue<int>("Repetitions:Extreme");
 
+    var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
+
     // Обрабатываем дерево бизнес-правил
     await ProcessBusinessRuleTree(rootRule,
                                   businessRules,
@@ -113,6 +115,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                    request.Host,
                                    request.Community,
                                    maxRepetitions,
+                                   huaweiNew,
                                    cancellationToken);
 
       await LinkAgregationPortsForHuawei(networkDevice,
@@ -893,7 +896,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                             repetitions: maxRepetitions);
 
       var aggKeys = ifStackTable.Select(x => (aeEnum: OIDGetNumbers.HandleLast(x.OID),
-                                              portNums: FormatEgressPorts.HandleHuaweiHexString(x.Data)))
+                                              portNums: FormatEgressPorts.HandleHuaweiHexStringOld(x.Data)))
                                 .Where(x => x.portNums.Length != 0)
                                 .ToList();
 
@@ -1027,6 +1030,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                     string host,
                                     string community,
                                     int maxRepetitions,
+                                    bool huaweiNew,
                                     CancellationToken cancellationToken)
   {
     List<SNMPResponse> dot1dBasePort = [];
@@ -1084,7 +1088,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                    {
                                                      VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
                                                      VlanName = vlanName.Data,
-                                                     EgressPorts = FormatEgressPorts.ParseHexStringToVlans(egressPorts.Data)
+                                                     EgressPorts = huaweiNew == true ? FormatEgressPorts.HandleHuaweiHexStringNew(egressPorts.Data) : FormatEgressPorts.HandleHuaweiHexStringOld(egressPorts.Data)
+                                                     //EgressPorts = FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data)
                                                    })
                                               .ToList();
 

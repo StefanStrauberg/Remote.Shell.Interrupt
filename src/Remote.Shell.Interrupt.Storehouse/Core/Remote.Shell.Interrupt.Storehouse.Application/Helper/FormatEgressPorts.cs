@@ -16,7 +16,7 @@ public static class FormatEgressPorts
                 .ToArray();
   }
 
-  public static int[] HandleHuaweiHexString(string input)
+  public static int[] HandleHuaweiHexStringOld(string input)
   {
     // Разбиваем строку на отдельные байты
     var hexValues = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -48,7 +48,7 @@ public static class FormatEgressPorts
     return [.. activePorts]; // Возвращаем активные порты в виде массива
   }
 
-  public static int[] ParseHexStringToVlans(string hexString)
+  public static int[] HandleHuaweiHexStringNew(string hexString)
   {
     // Разбиваем строку на отдельные байты
     var hexValues = hexString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
