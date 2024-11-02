@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import classes from './Router.module.css';
 import { ROUTES } from '../../data/routes';
 export default function Router({ data }) {
-    const titlePort = (port) => {
+    /*  const titlePort = (port) => {
         const {
             interfaceName,
             interfaceNumber,
@@ -23,7 +23,7 @@ export default function Router({ data }) {
         }
 
         return res;
-    };
+    }; */
     return (
         <Link
             to={`${
@@ -33,26 +33,37 @@ export default function Router({ data }) {
             state={data}
         >
             <div className={classes.wrapper}>
-                <div className={classes.title}>{data.host}</div>
-                <div className={classes.routerFlex}>
-                    <div className={classes.router}>
-                        <div className={classes.state}>
-                            <div className={classes.off}></div>
-                            <div className={classes.on}></div>
-                        </div>
-                        <div className={classes.ports}>
-                            {data.portsOfNetworkDevice.map((port) => {
-                                return (
-                                    <div
-                                        className={classes.port}
-                                        key={port.id}
-                                        title={titlePort(port)}
-                                    ></div>
-                                );
-                            })}
-                        </div>
+                <div>
+                    <div className={classes.title}>Host: {data.host}</div>
+                    <div className={classes.title}>
+                        Name: {data.networkDeviceName}
+                    </div>
+                    <div className={classes.title}>
+                        Type: {data.typeOfNetworkDevice}
                     </div>
                 </div>
+
+                {
+                    <div className={classes.routerFlex}>
+                        <div className={classes.router}>
+                            <div className={classes.state}>
+                                <div className={classes.off}></div>
+                                <div className={classes.on}></div>
+                            </div>
+                            {/* <div className={classes.ports}>
+                                {data.portsOfNetworkDevice.map((port) => {
+                                    return (
+                                        <div
+                                            className={classes.port}
+                                            key={port.id}
+                                            title={titlePort(port)}
+                                        ></div>
+                                    );
+                                })}
+                            </div> */}
+                        </div>
+                    </div>
+                }
             </div>
         </Link>
     );

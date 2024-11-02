@@ -6,7 +6,15 @@
     flex-wrap: wrap;
 }
 
-.loading {
-    margin-top: 2rem;
-    font-size: 2rem;
+.grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }

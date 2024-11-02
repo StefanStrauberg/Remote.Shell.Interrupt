@@ -16,6 +16,7 @@
     color: rgba(255, 255, 255, 0.85);
     font-size: 18px;
     font-weight: 600;
+    font-size: 2rem;
 }
 
 .routerInfoDescr {
@@ -47,9 +48,19 @@
     display: none;
 }
 
-.lansBtn {
+.btn {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
     background: rgba(255, 255, 255, 0.3);
     font-size: 2rem;
+}
+
+.aggregatedPort {
+    margin-left: 2rem;
+}
+
+.port {
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    margin-top: 1rem;
 }

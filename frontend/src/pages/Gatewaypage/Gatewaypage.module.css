@@ -14,19 +14,9 @@
 
 .routerInfoTitle {
     color: rgba(255, 255, 255, 0.85);
-    font-size: 18px;
+    font-size: 2rem;
     font-weight: 600;
 }
-
 .routerInfoDescr {
     margin-left: 2rem;
-}
-
-.routerInfoText {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 1.2rem;
-}
-
-.bold {
-    color: #fff;
 }

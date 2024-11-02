@@ -17,7 +17,7 @@ export const GATEWAYS = {
     GATEWAYS: import.meta.env.VITE_ASSIGNMENT_API_URL + '/NetworkDevices',
     GET_ALL_GATEWAYS: '/GetNetworkDevices',
     GET_BY_IP_GATEWAY: '/GetNetworkDevicesByIP',
-    GET_BY_ID_GATEWAY: '/GetNetworkDevicesById',
+    GET_BY_ID_GATEWAY: '/GetNetworkDevicesByID',
     CREATE_GATEWAY: '/CreateNetworkDevice',
     DELETE_GATEWAY: '/DeleteNetworkDeviceById',
 };
