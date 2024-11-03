@@ -23,7 +23,6 @@ export default function Gatewaypage() {
             })
             .then((data) => {
                 setData(data);
-                console.log(data);
             })
             .catch(() => {
                 setIsError(true);

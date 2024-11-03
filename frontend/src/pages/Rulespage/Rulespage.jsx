@@ -1,63 +1,40 @@
-import Tree from 'react-d3-tree';
 import classes from './Rulespage.module.css';
-import { useEffect, useRef, useState } from 'react';
-import Button from '../../components/UI/Button/Button';
-import Text from '../../components/Text/Text';
+import { useEffect, useState } from 'react';
+import { getRules } from '../../services/rules.service';
+import { transformInTree } from '../../utils/transformInTree';
+import Loader from '../../components/Loader/Loader';
+import { Tree } from 'primereact/tree';
 import { Link } from 'react-router-dom';
+import Button from '../../components/UI/Button/Button';
+import './Rulespage.css';
+export default function Rulespage() {
+    const [data, setData] = useState(null);
+    const [expandedKeys, setExpandedKeys] = useState({});
+    const expandAll = (nodes) => {
+        const _expandedKeys = {};
+        nodes.forEach((node) => (_expandedKeys[node.key] = true));
+        setExpandedKeys(_expandedKeys);
+    };
+    useEffect(() => {
+        getRules()
+            .then((res) => res.json())
+            .then((data) => {
+                setData(transformInTree(data));
+                expandAll(data);
+            });
+    }, []);
 
-const data = {
-    name: 'Root',
-    children: [
-        {
-            name: 'Chiiohgjfoihjfdoihjofgidhold 1',
-            condition: 'condition',
-            children: [
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-                {
-                    name: 'Grandchild 2',
-                    children: [
-                        {
-                            name: '123',
-                            condition: 'last',
-                            children: [
-                                {
-                                    name: '123',
-                                    children: [
-                                        { name: '123', condition: 'last' },
-                                    ],
-                                    condition: 'last',
-                                },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    name: 'Grandchild 1',
-                    condition: 'condition 2',
-                    children: [{ name: '123', condition: 'last' }],
-                },
-            ],
-        },
-    ],
-};
-
-const renderRectSvgNode = ({ nodeDatum }) => (
-    <g>
-        <foreignObject width={200} height={200} x={-20} y={-20}>
-            <div className={classes.block}>
-                <Text>
-                    <span className={classes.bold}>Name:</span> {nodeDatum.name}
-                </Text>
-                {nodeDatum.condition && (
-                    <Text>
-                        <span className={classes.bold}>Condition:</span>{' '}
-                        {nodeDatum.condition}
-                    </Text>
-                )}
+    const nodeTemplate = (node) => {
+        return (
+            <div className={classes.node}>
+                <div className={classes.bold}>Id: {node.id}</div>
+                <div className={classes.bold}>Name: {node.name}</div>
+                <div className={classes.bold}>
+                    ParentId: {node.parentId ?? 'null'}
+                </div>
+                <div className={classes.bold}>
+                    Assignment id: {node.assignmentId}
+                </div>
                 <div className={classes.btns}>
                     <Link to={'/rules/edit'}>
                         {' '}
@@ -68,53 +45,20 @@ const renderRectSvgNode = ({ nodeDatum }) => (
                     </Button>
                 </div>
             </div>
-        </foreignObject>
-    </g>
-);
+        );
+    };
 
-export default function Rulespage() {
-    const treeRef = useRef();
-    const [x, setX] = useState(0);
-    const [y, setY] = useState(0);
-    useEffect(() => {
-        if (treeRef.current) {
-            setX(
-                treeRef.current.children[0].children[1].children[0].getBBox()
-                    .width
-            );
-            setY(
-                treeRef.current.children[0].children[1].children[0].getBBox()
-                    .height
-            );
-        }
-    }, []);
-
-    return (
-        <div
-            className={classes.tree}
-            style={{
-                width: `${1.2 * x}px`,
-                height: `${1.2 * y}px`,
-                background: '#fff',
-                borderRadius: '10px',
-            }}
-            ref={treeRef}
-        >
+    return data ? (
+        <div className={classes.treeWrapper}>
             <Tree
-                data={data}
-                renderCustomNodeElement={renderRectSvgNode}
-                orientation="vertical"
-                translate={{
-                    x: x / 2,
-                    y: y / 10,
-                }}
-                draggable={false}
-                zoomable={false}
-                separation={{
-                    siblings: 2,
-                }}
-                pathFunc={'elbow'}
+                value={[data]}
+                expandedKeys={expandedKeys}
+                nodeTemplate={nodeTemplate}
+                onToggle={() => true}
+                className={`${classes.tree} custom-tree`}
             />
         </div>
+    ) : (
+        <Loader />
     );
 }
