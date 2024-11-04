@@ -21,10 +21,8 @@ export function deleteAssignment(id) {
     });
 }
 
-export function getByIpGateway(data) {
-    console.log(data);
-    return fetch(GATEWAYS.GATEWAYS + GATEWAYS.GET_BY_IP_GATEWAY, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    });
+export function getByIpGateway(address) {
+    return fetch(
+        GATEWAYS.GATEWAYS + GATEWAYS.GET_BY_IP_GATEWAY + `/${address}`
+    );
 }

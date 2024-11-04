@@ -9,7 +9,6 @@ export default function Assigmentspage() {
             .then((res) => res.json())
             .then((data) => {
                 setAssignments(data);
-                console.log(data);
             });
     }, []);
     return (
