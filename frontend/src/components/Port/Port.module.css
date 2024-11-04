@@ -1,0 +1,66 @@
+.routerWrapper {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.routerInfoWrapper:first-child {
+    margin-top: 0;
+}
+
+.routerInfoWrapper {
+    margin-top: 8px;
+}
+
+.routerInfoTitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 18px;
+    font-weight: 600;
+    font-size: 2rem;
+}
+
+.routerInfoDescr {
+    margin-left: 2rem;
+}
+
+.routerInfoText {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem;
+}
+
+.bold {
+    color: #fff;
+}
+
+.lan {
+    margin-top: 1rem;
+    padding: 1rem 0;
+    padding-left: 1rem;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0.5rem;
+}
+.lan * {
+    color: #fff;
+    font-weight: bold;
+}
+
+.none {
+    display: none;
+}
+
+.btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.3);
+    font-size: 2rem;
+}
+
+.aggregatedPort {
+    margin-left: 2rem;
+}
+
+.port {
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    margin-top: 1rem;
+}

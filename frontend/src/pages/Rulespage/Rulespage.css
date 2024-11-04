@@ -1,0 +1,12 @@
+.p-treenode {
+    padding-left: 50px !important; /* Увеличьте отступ для вложенных узлов */
+}
+
+.p-tree-container,
+.p-treenode-children {
+    list-style-type: none;
+}
+
+.p-tree-toggler {
+    display: none;
+}

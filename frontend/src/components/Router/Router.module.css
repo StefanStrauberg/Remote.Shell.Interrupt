@@ -1,0 +1,81 @@
+.link {
+    flex: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.title {
+    justify-self: flex-start;
+    font-size: 2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.routerFlex {
+    width: 100%;
+}
+.router {
+    position: relative;
+    padding: 1rem;
+    background-color: #f4f4f4;
+    border-radius: 5px;
+    min-height: 40px;
+    align-items: center;
+    display: inline-flex;
+    gap: 2rem;
+    width: 100%;
+}
+
+.state {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.on,
+.off {
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+}
+
+.off {
+    background-color: #d03b25;
+}
+
+.on {
+    background-color: #7fba50;
+}
+
+.ports {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.port {
+    width: 24px;
+    height: 24px;
+    background-color: #0d2a4c;
+    border-radius: 2px;
+}
+
+.activePort {
+    background-color: #7fba50;
+}
+
+.portWrapper {
+    display: flex;
+    gap: 4px;
+    flex-direction: row;
+}
