@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Stor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor", "src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor.csproj", "{5339FE80-6FCB-4019-9BE8-50493819851F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.Dapper.Persistence", "src\Remote.Shell.Interrupt.Storehouse\Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.csproj", "{065632C1-E858-4A32-88C1-1F3DDB3B82BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{5339FE80-6FCB-4019-9BE8-50493819851F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5339FE80-6FCB-4019-9BE8-50493819851F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5339FE80-6FCB-4019-9BE8-50493819851F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{065632C1-E858-4A32-88C1-1F3DDB3B82BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{065632C1-E858-4A32-88C1-1F3DDB3B82BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{065632C1-E858-4A32-88C1-1F3DDB3B82BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{065632C1-E858-4A32-88C1-1F3DDB3B82BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6B2A4B2F-BF7D-4791-B432-8826EB4498A7} = {C52B33CB-FB28-401F-B6F3-1CDE325E1C6E}
@@ -70,5 +76,6 @@ Global
 		{8AF9EBCE-6BB0-483A-9453-20C645324909} = {798BABB2-64F1-4D92-A9A2-22E603075675}
 		{D93B7E0C-783F-43D4-83AF-287784663098} = {6B2A4B2F-BF7D-4791-B432-8826EB4498A7}
 		{5339FE80-6FCB-4019-9BE8-50493819851F} = {556EBA07-93A9-4124-B572-A11DBD1FBFDD}
+		{065632C1-E858-4A32-88C1-1F3DDB3B82BE} = {798BABB2-64F1-4D92-A9A2-22E603075675}
 	EndGlobalSection
 EndGlobal
