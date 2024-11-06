@@ -1,14 +1,42 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Context;
 
-public class DapperContext
+internal class DapperContext : IDisposable
 {
-  private readonly IConfiguration _configuration;
-  private readonly string _connectionString;
+  readonly IConfiguration _configuration;
+  readonly string _connectionString;
+  NpgsqlConnection _connection = null!;
+  bool _disposed = false;
+
   public DapperContext(IConfiguration configuration)
   {
     _configuration = configuration;
-    _connectionString = _configuration.GetConnectionString("SqlConnection")!;
+    _connectionString = _configuration.GetConnectionString("DefaultConnection")!;
   }
-  public IDbConnection CreateConnection()
-      => new NpgsqlConnection(_connectionString);
+  public NpgsqlConnection CreateConnection()
+  {
+    _connection ??= new NpgsqlConnection(_connectionString);
+    return _connection;
+  }
+
+  public void Dispose()
+  {
+    Dispose(true);
+    GC.SuppressFinalize(this);
+  }
+
+  protected virtual void Dispose(bool disposing)
+  {
+    if (!_disposed)
+    {
+      if (disposing)
+        _connection?.Dispose();
+
+      _disposed = true;
+    }
+  }
+
+  ~DapperContext()
+  {
+    Dispose(false);
+  }
 }

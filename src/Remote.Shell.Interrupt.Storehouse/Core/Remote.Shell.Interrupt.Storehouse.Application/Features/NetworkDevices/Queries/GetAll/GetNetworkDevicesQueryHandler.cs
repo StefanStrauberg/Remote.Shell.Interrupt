@@ -13,7 +13,8 @@ internal class GetNetworkDevicesQueryHandler(IUnitOfWork unitOfWork,
                                                                                                                           CancellationToken cancellationToken)
   {
     var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetAllWithChildrenAsync(cancellationToken);
+                                          .GetAllAsync(cancellationToken);
+    //.GetAllWithChildrenAsync(cancellationToken);
 
     // // Фильтруем порты для каждого устройства
     // foreach (var device in networkDevices)

@@ -9,3 +9,8 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.Common;
 global using Dapper;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
+global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
+global using System.ComponentModel.DataAnnotations;
+global using System.ComponentModel.DataAnnotations.Schema;
+global using System.Reflection;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Work;

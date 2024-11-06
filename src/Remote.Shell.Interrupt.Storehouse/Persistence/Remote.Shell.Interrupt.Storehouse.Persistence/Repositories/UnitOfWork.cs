@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Persistence.Repositories;
 
 internal class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork, IDisposable
@@ -19,7 +18,7 @@ internal class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork, IDispos
   public void Dispose()
   {
     Dispose(true);
-    GC.SuppressFinalize(this); // Предотвращаем финализацию
+    GC.SuppressFinalize(this);
   }
 
   protected virtual void Dispose(bool disposing)
@@ -27,12 +26,7 @@ internal class UnitOfWork(ApplicationDbContext dbContext) : IUnitOfWork, IDispos
     if (!disposed)
     {
       if (disposing)
-      {
-        // Освобождение управляемых ресурсов
         _dbContext.Dispose();
-      }
-
-      // Освобождение неуправляемых ресурсов (если есть)
 
       disposed = true;
     }
