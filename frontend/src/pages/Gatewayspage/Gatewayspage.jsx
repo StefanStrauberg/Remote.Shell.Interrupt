@@ -2,19 +2,23 @@ import { useEffect, useState } from 'react';
 import classes from './Gatewayspage.module.css';
 import { getByIpGateway, getGateways } from '../../services/gateways.service';
 import Loader from '../../components/Loader/Loader';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Error from '../../components/Error/Error';
 import Router from '../../components/Router/Router';
 import Gateway from '../../components/Gateway/Gateway';
+import { GATEWAY_SEARCH_ADDRESS_ACTIONS } from '../../store/gatewaySearchAddressReducer';
 
 export default function Gatewayspage() {
     const [gateways, setGateways] = useState([]);
     const [loading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
+    const dispatch = useDispatch();
     const gatewaySearchAddress = useSelector(
         (state) => state.gatewaySearchAddressReducer
     );
+
     useEffect(() => {
+        if (!gatewaySearchAddress.isSearch) return;
         setIsLoading(true);
         setIsError(false);
         if (gatewaySearchAddress.value === '') {
@@ -50,14 +54,18 @@ export default function Gatewayspage() {
                 })
                 .finally(() => setIsLoading(false));
         }
+        dispatch({ type: GATEWAY_SEARCH_ADDRESS_ACTIONS.RESET_SEARCH });
+        dispatch({
+            type: GATEWAY_SEARCH_ADDRESS_ACTIONS.TRANSFER_VALUE_TO_OLD_VALUE,
+        });
     }, [gatewaySearchAddress]);
     if (isError) return <Error />;
+    if (loading) return <Loader />;
+
     return (
         <>
             <section className={classes.gatewaysInfo}>
-                {loading ? (
-                    <Loader />
-                ) : gatewaySearchAddress.value === '' ? (
+                {gatewaySearchAddress.oldValue === '' ? (
                     <div className={classes.grid}>
                         {gateways.length
                             ? gateways.map((gateway) => (
