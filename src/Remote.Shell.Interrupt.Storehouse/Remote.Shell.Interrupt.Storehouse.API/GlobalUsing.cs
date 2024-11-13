@@ -24,6 +24,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Middleware;
 global using Remote.Shell.Interrupt.Storehouse.AppLogger;
 global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
 global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor;
-//global using Remote.Shell.Interrupt.Storehouse.Persistence;
-global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
+global using Remote.Shell.Interrupt.Storehouse.Persistence;
 global using Serilog;

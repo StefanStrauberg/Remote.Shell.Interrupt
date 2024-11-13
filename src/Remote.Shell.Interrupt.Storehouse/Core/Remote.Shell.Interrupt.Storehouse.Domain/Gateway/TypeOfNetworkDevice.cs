@@ -5,5 +5,6 @@ public enum TypeOfNetworkDevice
   Huawei,
   Juniper,
   Extreme,
-  Cisco
+  Cisco,
+  FortiGate
 }
