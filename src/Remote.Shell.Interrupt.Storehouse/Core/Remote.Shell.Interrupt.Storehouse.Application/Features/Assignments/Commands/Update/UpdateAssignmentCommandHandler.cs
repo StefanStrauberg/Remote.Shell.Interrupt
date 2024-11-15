@@ -1,5 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Update;
 
+public record UpdateAssignmentCommand(UpdateAssignmentDTO UpdateAssignmentDTO) : ICommand;
+
 internal class UpdateAssignmentCommandHandler(IUnitOfWork unitOfWork,
                                               IMapper mapper)
   : ICommandHandler<UpdateAssignmentCommand, Unit>
@@ -12,40 +14,38 @@ internal class UpdateAssignmentCommandHandler(IUnitOfWork unitOfWork,
   async Task<Unit> IRequestHandler<UpdateAssignmentCommand, Unit>.Handle(UpdateAssignmentCommand request,
                                                                          CancellationToken cancellationToken)
   {
-    // Создание фильтра для поиска назначения по его ID
-    var filterByID = (Expression<Func<Assignment, bool>>)(x => x.Id == request.UpdateAssignmentDTO.Id);
-
-    // Проверка существует ли назначение с указанным ID
+    // Проверка существования назначения с указанным ID
     var existingUpdatingAssignmentById = await _unitOfWork.Assignments
-                                                          .AnyAsync(filterByID, cancellationToken);
+                                                          .AnyByIdAsync(request.UpdateAssignmentDTO.Id,
+                                                                        cancellationToken);
 
-    // Если назначение с таким ID не найдено, выбрасываем исключение
+    // Если назначение не найдено — исключение
     if (!existingUpdatingAssignmentById)
-      throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(filterByID));
+      throw new EntityNotFoundById(typeof(Assignment),
+                                   request.UpdateAssignmentDTO.Id.ToString());
 
-    // Создание фильтра для проверки уникальности имени назначения
-    // Проверка существует ли назначение с таким же именем, но с другим ID
-    var filterUniqueName = (Expression<Func<Assignment, bool>>)(x => x.Name == request.UpdateAssignmentDTO
-                                                                                      .Name &&
-                                                                     x.Id != request.UpdateAssignmentDTO.Id);
+    // Проверка, существует ли назначение с таким же именем и другим ID
     var existingUpdatingAssignmentByName = await _unitOfWork.Assignments
-                                                            .AnyAsync(filterUniqueName, cancellationToken);
+                                                            .AnyWithTheSameNameAndDifferentIdAsync(request.UpdateAssignmentDTO.Id,
+                                                                                                   request.UpdateAssignmentDTO.Name,
+                                                                                                   cancellationToken);
 
-    // Если назначение с таким именем уже существует и это не то назначение
-    // которое обновляется, выбрасываем исключение
+    // Если назначение с таким именем и другим ID существует — исключение
     if (existingUpdatingAssignmentByName)
-      throw new EntityAlreadyExists(new ExpressionToStringConverter<Assignment>().Convert(filterUniqueName));
+      throw new EntityAlreadyExists($"the name \"{request.UpdateAssignmentDTO.Name}\" and with the Id \"{request.UpdateAssignmentDTO.Id}\"");
 
     // Получаем назначение для обновления
     var assignment = await _unitOfWork.Assignments
-                                      .FirstAsync(filterByID, cancellationToken);
+                                      .FirstByIdAsync(request.UpdateAssignmentDTO.Id,
+                                                      cancellationToken);
 
-    // Преобразование DTO в доменную модель назначения
+    // Преобразуем DTO в доменную модель назначения
     _mapper.Map(request.UpdateAssignmentDTO, assignment);
 
-    // Обновление назначения в репозитории
+    // Обновляем назначение в базе данных
     _unitOfWork.Assignments.ReplaceOne(assignment);
 
+    // Подтверждаем изменения
     await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции

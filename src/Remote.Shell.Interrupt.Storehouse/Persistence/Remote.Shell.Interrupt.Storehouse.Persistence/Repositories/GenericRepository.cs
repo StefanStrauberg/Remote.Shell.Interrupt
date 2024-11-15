@@ -14,17 +14,10 @@ internal class GenericRepository<T>(ApplicationDbContext dbContext)
   void IGenericRepository<T>.DeleteOne(T entity)
     => _dbSet.Remove(entity);
 
-  async Task<bool> IGenericRepository<T>.AnyAsync(Expression<Func<T, bool>> predicate,
-                                                  CancellationToken cancellationToken)
+  async Task<bool> IGenericRepository<T>.AnyAsync(CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()
-                   .AnyAsync(predicate: predicate,
+                   .AnyAsync(predicate: x => true,
                              cancellationToken: cancellationToken);
-
-  async Task<T> IGenericRepository<T>.FirstAsync(Expression<Func<T, bool>> predicate,
-                                                 CancellationToken cancellationToken)
-    => await _dbSet.AsNoTracking()
-                   .FirstAsync(predicate: predicate,
-                               cancellationToken: cancellationToken);
 
   async Task<IEnumerable<T>> IGenericRepository<T>.GetAllAsync(CancellationToken cancellationToken)
    => await _dbSet.AsNoTracking()
@@ -38,4 +31,16 @@ internal class GenericRepository<T>(ApplicationDbContext dbContext)
 
   void IGenericRepository<T>.ReplaceOne(T entity)
     => _dbSet.Update(entity);
+
+  public async Task<T> FirstByIdAsync(Guid id,
+                                      CancellationToken cancellationToken)
+    => await _dbSet.AsNoTracking()
+                   .FirstAsync(x => x.Id == id,
+                               cancellationToken);
+
+  public async Task<bool> AnyByIdAsync(Guid id,
+                                       CancellationToken cancellationToken)
+    => await _dbSet.AsNoTracking()
+                   .AnyAsync(x => x.Id == id,
+                             cancellationToken);
 }

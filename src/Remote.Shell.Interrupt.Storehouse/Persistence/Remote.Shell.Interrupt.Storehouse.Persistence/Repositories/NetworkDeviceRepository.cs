@@ -30,20 +30,6 @@ internal class NetworkDeviceRepository(ApplicationDbContext dbContext)
     _dbSet.Remove(entity);
   }
 
-  async Task<NetworkDevice> IGenericRepository<NetworkDevice>.FirstAsync(Expression<Func<NetworkDevice, bool>> predicate,
-                                                                         CancellationToken cancellationToken)
-  => await _dbSet.Include(nd => nd.PortsOfNetworkDevice)
-                   .ThenInclude(port => port.ARPTableOfInterface)
-                 .Include(nd => nd.PortsOfNetworkDevice)
-                   .ThenInclude(arpTable => arpTable.NetworkTableOfInterface)
-                 .Include(nd => nd.PortsOfNetworkDevice)
-                   .ThenInclude(vln => vln.VLANs)
-                 .Include(nd => nd.PortsOfNetworkDevice)
-                   .ThenInclude(vln => vln.MACTable)
-                 .Include(nd => nd.PortsOfNetworkDevice)
-                   .ThenInclude(port => port.AggregatedPorts) // Добавлено для загрузки агрегированных портов
-                 .FirstAsync(predicate, cancellationToken);
-
   async Task<NetworkDevice> INetworkDeviceRepository.FindOneWithChildrenAsync(Expression<Func<NetworkDevice, bool>> filterExpression,
                                                                               CancellationToken cancellationToken)
     => await _dbSet.AsNoTracking()

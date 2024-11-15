@@ -16,7 +16,7 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetBusinessRuleById(Guid id,
                                                        CancellationToken cancellationToken)
-  => Ok(await _sender.Send(new GetBusinessRuleByExpressionQuery(x => x.Id == id),
+  => Ok(await _sender.Send(new GetBusinessRuleByIdQuery(id),
                            cancellationToken));
 
   [HttpPost]
@@ -38,6 +38,6 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteBusinessRuleById(Guid id,
                                                           CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new DeleteBusinessRuleByExpressionCommand(x => x.Id == id),
+    => Ok(await _sender.Send(new DeleteBusinessRuleByIdCommand(id),
                              cancellationToken));
 }

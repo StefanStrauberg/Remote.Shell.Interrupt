@@ -1,5 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Create;
 
+public record CreateBusinessRuleCommand(CreateBusinessRuleDTO CreateBusinessRuleDTO) : ICommand;
+
 internal class CreateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
                                                 IMapper mapper)
   : ICommandHandler<CreateBusinessRuleCommand, Unit>
@@ -15,21 +17,21 @@ internal class CreateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
     // Проверка, указан ли ID назначения для бизнес-правила
     if (request.CreateBusinessRuleDTO.AssignmentId != null)
     {
-      // Создание фильтра для проверки наличия назначения по указанному ID
-      var assignmentFilter = (Expression<Func<Assignment, bool>>)(x => x.Id == request.CreateBusinessRuleDTO
-                                                                                      .AssignmentId);
       // Проверка существует ли назначение с указанным ID
       var existingAssignment = await _unitOfWork.Assignments
-                                                .AnyAsync(assignmentFilter, cancellationToken);
+                                                .AnyByIdAsync(request.CreateBusinessRuleDTO.AssignmentId.Value, cancellationToken);
+
       // Если назначение не найдено, выбрасываем исключение
       if (!existingAssignment)
-        throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(assignmentFilter));
+        throw new EntityNotFoundById(typeof(Assignment), request.CreateBusinessRuleDTO.AssignmentId.ToString()!);
     }
 
     // Преобразование DTO в сущность бизнес-правила
     var addingBusinessRule = _mapper.Map<BusinessRule>(request.CreateBusinessRuleDTO);
+
+    // Проверка существуют ли какие либо бизнес-правила
     var isAny = await _unitOfWork.BusinessRules
-                                 .AnyAsync(x => true, cancellationToken);
+                                 .AnyAsync(cancellationToken);
 
     if (!isAny)
     {
@@ -42,12 +44,19 @@ internal class CreateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
     // Проверка наличия родительского бизнес-правила
     if (request.CreateBusinessRuleDTO.ParentId != null && isAny)
     {
-      // Поиск родительского бизнес-правила
-      var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == request.CreateBusinessRuleDTO
-                                                                                    .ParentId);
+      // Проверка существует ли бизнес-правило с указанным ID
+      var existingBusinessRuleById = await _unitOfWork.BusinessRules.AnyByIdAsync(request.CreateBusinessRuleDTO.ParentId.Value,
+                                                                                  cancellationToken);
+
+      // Если назначение с таким ID не найдено, выбрасываем исключение
+      if (!existingBusinessRuleById)
+        throw new EntityNotFoundById(typeof(BusinessRule),
+                                     request.CreateBusinessRuleDTO.ParentId.Value.ToString());
+
+      // Получаем бизнес правило 
       var parentBusinessRule = await _unitOfWork.BusinessRules
-                                                .FirstAsync(parentFilter, cancellationToken)
-        ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(parentFilter));
+                                                .FirstByIdAsync(request.CreateBusinessRuleDTO.ParentId.Value,
+                                                                cancellationToken);
 
       // Вставка нового бизнес-правила в репозиторий
       _unitOfWork.BusinessRules

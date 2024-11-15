@@ -10,7 +10,8 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
   {
     var context = new ValidationContext<TRequest>(request);
     var errorsDictionary = _validators.Select(x => x.ValidateAsync(context,
-                                                                   cancellationToken).Result)
+                                                                   cancellationToken)
+                                                    .Result)
                                       .SelectMany(x => x.Errors)
                                       .Where(x => x != null)
                                       .GroupBy(x => x.PropertyName,
@@ -20,7 +21,8 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
                                                  Key = PropertyName,
                                                  Values = ErrorMessage
                                                })
-                                      .ToDictionary(x => x.Key, x => x.Values);
+                                      .ToDictionary(x => x.Key,
+                                                    x => x.Values);
 
     if (errorsDictionary.Count != 0)
       throw new ValidationException(errorsDictionary);

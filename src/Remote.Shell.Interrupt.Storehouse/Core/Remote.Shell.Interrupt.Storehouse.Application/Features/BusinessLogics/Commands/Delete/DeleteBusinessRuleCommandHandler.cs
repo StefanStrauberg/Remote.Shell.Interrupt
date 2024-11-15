@@ -1,29 +1,47 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Commands.Delete;
 
-public record DeleteBusinessRuleByExpressionCommand(Expression<Func<BusinessRule, bool>> FilterExpression)
+public record DeleteBusinessRuleByIdCommand(Guid Id)
   : ICommand;
 
-internal class DeleteBusinessRuleByExpressionCommandHandler(IUnitOfWork unitOfWork)
-  : ICommandHandler<DeleteBusinessRuleByExpressionCommand, Unit>
+internal class DeleteBusinessRuleByIdCommandHandler(IUnitOfWork unitOfWork)
+  : ICommandHandler<DeleteBusinessRuleByIdCommand, Unit>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-  async Task<Unit> IRequestHandler<DeleteBusinessRuleByExpressionCommand, Unit>.Handle(DeleteBusinessRuleByExpressionCommand request,
-                                                                                       CancellationToken cancellationToken)
+  async Task<Unit> IRequestHandler<DeleteBusinessRuleByIdCommand, Unit>.Handle(DeleteBusinessRuleByIdCommand request,
+                                                                               CancellationToken cancellationToken)
   {
-    // Найти сущность, которую нужно удалить, по фильтру из команды
-    var businessRuleToDelete = await _unitOfWork.BusinessRules
-                                                .FirstAsync(request.FilterExpression, cancellationToken)
-      ?? throw new EntityNotFoundException(new ExpressionToStringConverter<BusinessRule>().Convert(request.FilterExpression));
+    // Проверка существования бизнес-правила с данным ID
+    var existingBusinessRuleById = await _unitOfWork.BusinessRules.AnyByIdAsync(request.Id,
+                                                                                cancellationToken);
 
-    // Проверить, есть ли у сущности родитель
+    // Если бизнес-правило не найдено — исключение
+    if (!existingBusinessRuleById)
+      throw new EntityNotFoundById(typeof(BusinessRule),
+                                   request.Id.ToString());
+
+    // Получаем бизнес-правило для удаления
+    var businessRuleToDelete = await _unitOfWork.BusinessRules
+                                                .FirstByIdAsync(request.Id,
+                                                                cancellationToken);
+
+    // Если у сущности есть родитель
     if (businessRuleToDelete.Parent != null)
     {
-      // Создать фильтр для поиска родительской сущности
-      var parentFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == businessRuleToDelete.ParentId);
+      // Проверка существования родителя бизнес-правила
+      var existingParntBusinessRuleById = await _unitOfWork.BusinessRules.AnyByIdAsync(request.Id,
+                                                                                       cancellationToken);
+
+      // Если родитель бизнес-правило с таким ID не найдено, выбрасываем исключение
+      if (!existingBusinessRuleById)
+        throw new EntityNotFoundById(typeof(BusinessRule),
+                                     request.Id.ToString());
+
+      // Получаем родитель бизнес-правило
       var parentBusinessRule = await _unitOfWork.BusinessRules
-                                                .FirstAsync(parentFilter, cancellationToken);
+                                                .FirstByIdAsync(businessRuleToDelete.ParentId!.Value,
+                                                                cancellationToken);
 
       // Удалить ID текущей сущности из списка дочерних узлов родителя
       parentBusinessRule.Children
@@ -43,10 +61,20 @@ internal class DeleteBusinessRuleByExpressionCommandHandler(IUnitOfWork unitOfWo
     // Обновить дочерние узлы текущей сущности, чтобы установить их нового родителя
     foreach (var child in businessRuleToDelete.Children)
     {
-      // Создать фильтр для поиска дочерней сущности
-      var childFilter = (Expression<Func<BusinessRule, bool>>)(x => x.Id == child.Id);
+      // Проверка существует ли дочернее бизнес-правило
+      var existingAssignment = await _unitOfWork.BusinessRules
+                                                .AnyByIdAsync(child.Id,
+                                                              cancellationToken);
+
+      // Если дочернее бизнес-правило не найдено, выбрасываем исключение
+      if (!existingAssignment)
+        throw new EntityNotFoundById(typeof(Assignment),
+                                     child.Id.ToString());
+
+      // Находим дочернее бизнес-правило
       var childBusinessRule = await _unitOfWork.BusinessRules
-                                               .FirstAsync(childFilter, cancellationToken);
+                                               .FirstByIdAsync(child.Id,
+                                                               cancellationToken);
 
       // Установить родителя для дочерней сущности
       childBusinessRule.ParentId = businessRuleToDelete.ParentId;

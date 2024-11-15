@@ -14,7 +14,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
   [HttpGet("{id}")]
   [ProducesResponseType(typeof(List<NetworkDeviceDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetNetworkDevicesByID(Guid id,
+  public async Task<IActionResult> GetNetworkDevicesById(Guid id,
                                                          CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetNetworkDeviceByIdQuery(id),
                              cancellationToken));
@@ -30,7 +30,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
   [HttpPost]
   [ProducesResponseType(StatusCodes.Status200OK)]
   public async Task<IActionResult> CreateNetworkDevice(CreateNetworkDeviceCommand createNetworkDeviceCommand,
-                                                      CancellationToken cancellationToken)
+                                                       CancellationToken cancellationToken)
     => Ok(await _sender.Send(createNetworkDeviceCommand,
                              cancellationToken));
 
@@ -39,6 +39,6 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteNetworkDeviceById(Guid id,
                                                            CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new DeleteNetworkDeviceByExpressionCommand(x => x.Id == id),
+    => Ok(await _sender.Send(new DeleteNetworkDeviceByIdCommand(id),
                              cancellationToken));
 }

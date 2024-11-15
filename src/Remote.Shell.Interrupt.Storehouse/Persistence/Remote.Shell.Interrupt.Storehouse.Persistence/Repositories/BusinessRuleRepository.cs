@@ -9,11 +9,4 @@ internal class BusinessRuleRepository(ApplicationDbContext dbContext)
             .Include(br => br.Children)
             .Include(br => br.Assignment)
             .ToListAsync(cancellationToken);
-
-  async Task<BusinessRule> IGenericRepository<BusinessRule>.FirstAsync(Expression<Func<BusinessRule, bool>> filterExpression,
-                                                                       CancellationToken cancellationToken)
-    => await _dbSet.Include(br => br.Children)
-                   .Include(br => br.Parent)
-                   .Include(br => br.Assignment)
-                   .FirstAsync(filterExpression, cancellationToken);
 }

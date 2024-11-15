@@ -1,5 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Commands.Create;
 
+public record CreateAssignmentCommand(CreateAssignmentDTO CreateAssignmentDTO) : ICommand;
+
 internal class CreateAssignmentCommandHandler(IUnitOfWork unitOfWork,
                                               IMapper mapper)
   : ICommandHandler<CreateAssignmentCommand, Unit>
@@ -12,24 +14,23 @@ internal class CreateAssignmentCommandHandler(IUnitOfWork unitOfWork,
   async Task<Unit> IRequestHandler<CreateAssignmentCommand, Unit>.Handle(CreateAssignmentCommand request,
                                                                          CancellationToken cancellationToken)
   {
-    // Создание фильтра для проверки уникальности имени назначения
-    Expression<Func<Assignment, bool>> filter = x => x.Name == request.CreateAssignmentDTO
-                                                                      .Name;
-    // Проверка существует ли уже назначение с таким именем
+    // Проверка существования назначения с таким именем
     var existingAssignment = await _unitOfWork.Assignments
-                                              .AnyAsync(filter, cancellationToken);
+                                              .AnyWithTheSameNameAsync(request.CreateAssignmentDTO.Name,
+                                                                       cancellationToken);
 
-    // Если назначение с таким именем уже существует, выбрасываем исключение
+    // Если назначение с таким именем существует — исключение
     if (existingAssignment)
-      throw new EntityAlreadyExists(new ExpressionToStringConverter<Assignment>().Convert(filter));
+      throw new EntityAlreadyExists($"the name \"{request.CreateAssignmentDTO.Name}\"");
 
-    // Преобразование DTO в доменную модель назначения
+    // Преобразование DTO в доменную модель
     var assignment = _mapper.Map<Assignment>(request.CreateAssignmentDTO);
 
-    // Вставка нового назначения в репозиторий
+    // Сохранение назначения в базе данных
     _unitOfWork.Assignments
                .InsertOne(assignment);
 
+    // Подтверждение изменений
     await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции

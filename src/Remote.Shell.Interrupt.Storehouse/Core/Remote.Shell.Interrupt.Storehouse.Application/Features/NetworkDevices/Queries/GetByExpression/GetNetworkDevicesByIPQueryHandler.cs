@@ -1,5 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 
+public record GetNetworkDevicesByIPQuery(string IpAddress) : IQuery<IEnumerable<NetworkDeviceDTO>>;
+
 internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
                                                  IMapper mapper)
   : IQueryHandler<GetNetworkDevicesByIPQuery, IEnumerable<NetworkDeviceDTO>>

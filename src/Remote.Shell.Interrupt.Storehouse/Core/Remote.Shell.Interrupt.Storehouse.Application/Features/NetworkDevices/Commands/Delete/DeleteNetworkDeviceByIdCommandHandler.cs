@@ -1,25 +1,31 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Delete;
 
-internal class DeleteNetworkDeviceByExpressionCommandHandler(IUnitOfWork unitOfWork)
-  : ICommandHandler<DeleteNetworkDeviceByExpressionCommand, Unit>
+public record DeleteNetworkDeviceByIdCommand(Guid Id)
+  : ICommand;
+
+internal class DeleteNetworkDeviceByIdCommandHandler(IUnitOfWork unitOfWork)
+  : ICommandHandler<DeleteNetworkDeviceByIdCommand, Unit>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
 
-  async Task<Unit> IRequestHandler<DeleteNetworkDeviceByExpressionCommand, Unit>.Handle(DeleteNetworkDeviceByExpressionCommand request,
-                                                                                        CancellationToken cancellationToken)
+  async Task<Unit> IRequestHandler<DeleteNetworkDeviceByIdCommand, Unit>.Handle(DeleteNetworkDeviceByIdCommand request,
+                                                                                CancellationToken cancellationToken)
   {
     // Проверяем, существует ли устройство, соответствующее выражению фильтра
     var existingDeletingNetworkDevice = await _unitOfWork.NetworkDevices
-                                                         .AnyAsync(request.FilterExpression, cancellationToken);
+                                                         .AnyByIdAsync(request.Id,
+                                                                       cancellationToken);
 
     // Если устройство не найдено, выбрасываем исключение
     if (!existingDeletingNetworkDevice)
-      throw new EntityNotFoundException(request.ToString());
+      throw new EntityNotFoundById(typeof(NetworkDevice),
+                                   request.Id.ToString());
 
-    // Находим устройство, которое нужно удалить, по выражению фильтра
+    // Получаем устройство для удаления
     var networkDeviceToDelete = await _unitOfWork.NetworkDevices
-                                                 .FirstAsync(request.FilterExpression, cancellationToken);
+                                                 .FirstByIdAsync(request.Id,
+                                                                 cancellationToken);
 
     // Удаляем найденное устройство из репозитория
     _unitOfWork.NetworkDevices

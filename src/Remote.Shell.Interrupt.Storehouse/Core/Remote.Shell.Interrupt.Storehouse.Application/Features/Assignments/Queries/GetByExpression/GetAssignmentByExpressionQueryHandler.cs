@@ -1,26 +1,39 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Assignments.Queries.GetByExpression;
 
-public record GetAssignmentByExpressionQuery(Expression<Func<Assignment, bool>> FilterExpression)
+public record GetAssignmentByIdQuery(Guid Id)
   : IQuery<AssignmentDetailDTO>;
 
-internal class GetAssignmentByExpressionQueryHandler(IUnitOfWork unitOfWork,
+internal class GetAssignmentByIdQueryHandler(IUnitOfWork unitOfWork,
                                                      IMapper mapper)
-  : IQueryHandler<GetAssignmentByExpressionQuery, AssignmentDetailDTO>
+  : IQueryHandler<GetAssignmentByIdQuery, AssignmentDetailDTO>
 {
-  readonly IUnitOfWork _uniOfWork = unitOfWork
+  readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<AssignmentDetailDTO> IRequestHandler<GetAssignmentByExpressionQuery, AssignmentDetailDTO>.Handle(GetAssignmentByExpressionQuery request,
-                                                                                                              CancellationToken cancellationToken)
+  async Task<AssignmentDetailDTO> IRequestHandler<GetAssignmentByIdQuery, AssignmentDetailDTO>.Handle(GetAssignmentByIdQuery request,
+                                                                                                      CancellationToken cancellationToken)
   {
-    var assignment = await _uniOfWork.Assignments
-                                     .FirstAsync(request.FilterExpression, cancellationToken)
-      ?? throw new EntityNotFoundException(new ExpressionToStringConverter<Assignment>().Convert(request.FilterExpression));
+    // Проверка существования назначения с данным ID
+    var existingAssignment = await _unitOfWork.Assignments
+                                              .AnyByIdAsync(request.Id,
+                                                            cancellationToken);
 
+    // Если назначение не найдено — исключение
+    if (!existingAssignment)
+      throw new EntityNotFoundById(typeof(Assignment),
+                                   request.Id.ToString());
+
+    // Получаем назначение из базы данных
+    var assignment = await _unitOfWork.Assignments
+                                      .FirstByIdAsync(request.Id,
+                                                      cancellationToken);
+
+    // Преобразуем назначение в DTO
     var assignmentDetailDTO = _mapper.Map<AssignmentDetailDTO>(assignment);
 
+    // Возвращаем DTO
     return assignmentDetailDTO;
   }
 }

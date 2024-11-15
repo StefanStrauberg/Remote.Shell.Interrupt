@@ -14,11 +14,14 @@ internal class GetAssignmentsQueryHandler(IUnitOfWork unitOfWork,
   async Task<IEnumerable<AssignmentDTO>> IRequestHandler<GetAssignmentsQuery, IEnumerable<AssignmentDTO>>.Handle(GetAssignmentsQuery request,
                                                                                                                  CancellationToken cancellationToken)
   {
+    // Получаем все назначения из репозитория
     var assignments = await _unitOfWork.Assignments
                                        .GetAllAsync(cancellationToken);
 
+    // Преобразуем доменные модели в DTO
     var assignmentsDTOs = _mapper.Map<IEnumerable<AssignmentDTO>>(assignments);
 
+    // Возвращаем список DTO
     return assignmentsDTOs;
   }
 }

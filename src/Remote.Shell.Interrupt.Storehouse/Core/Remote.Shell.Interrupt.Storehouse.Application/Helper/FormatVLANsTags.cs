@@ -1,5 +1,3 @@
-
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Helper;
 
 public static class OIDGetNumbers

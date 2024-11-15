@@ -1,5 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetById;
 
+public record GetNetworkDeviceByIdQuery(Guid Id) : IQuery<NetworkDeviceDTO>;
+
 internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
                                                 IMapper mapper)
   : IQueryHandler<GetNetworkDeviceByIdQuery, NetworkDeviceDTO>
@@ -15,7 +17,8 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
 
     var networkDevice = await _unitOfWork.NetworkDevices.FindOneWithChildrenAsync(requestExpression,
                                                                                   cancellationToken)
-      ?? throw new EntityNotFoundException(new ExpressionToStringConverter<NetworkDevice>().Convert(requestExpression));
+      ?? throw new EntityNotFoundById(typeof(NetworkDevice),
+                                      request.Id.ToString());
 
     // Получаем уникальные идентификаторы портов из AggregatedPorts
     HashSet<Guid> aggregatedPortsIds = networkDevice.PortsOfNetworkDevice

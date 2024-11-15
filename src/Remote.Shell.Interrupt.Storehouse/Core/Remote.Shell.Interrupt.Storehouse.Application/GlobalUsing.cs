@@ -30,3 +30,4 @@ global using System.ComponentModel;
 global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
 global using System.Net;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
+global using Microsoft.Extensions.Configuration;

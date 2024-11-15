@@ -16,7 +16,7 @@ public class AssignmentsController(ISender sender) : BaseAPIController
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetAssignmentById(Guid id,
                                                      CancellationToken cancellationToken)
-  => Ok(await _sender.Send(new GetAssignmentByExpressionQuery(x => x.Id == id),
+  => Ok(await _sender.Send(new GetAssignmentByIdQuery(id),
                            cancellationToken));
 
   [HttpPost]
@@ -38,6 +38,6 @@ public class AssignmentsController(ISender sender) : BaseAPIController
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteAssignmentById(Guid id,
                                                         CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new DeleteAssignmentByExpressionCommand(x => x.Id == id),
+    => Ok(await _sender.Send(new DeleteAssignmentByIdCommand(id),
                              cancellationToken));
 }

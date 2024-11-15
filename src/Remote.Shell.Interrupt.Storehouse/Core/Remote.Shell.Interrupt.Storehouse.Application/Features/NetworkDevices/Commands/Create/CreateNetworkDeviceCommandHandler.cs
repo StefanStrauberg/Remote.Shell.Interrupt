@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Configuration;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.Create;
+
+public record CreateNetworkDeviceCommand(string Host, string Community, string TypeOfNetworkDevice) : ICommand;
 
 internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpCommandExecutor,
                                                  IUnitOfWork unitOfWork,

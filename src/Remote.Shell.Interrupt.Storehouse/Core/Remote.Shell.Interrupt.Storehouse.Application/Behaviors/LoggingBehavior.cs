@@ -24,10 +24,10 @@ public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRe
       _logger.LogWarning("[PERFORMANCE] The request {Request} took {TimeTaken}",
                          typeof(TRequest).Name,
                          timeTaken.Seconds);
-
-    _logger.LogInformation("[END] Handle {Request} with {Response}",
-                           typeof(TRequest).Name,
-                           typeof(TResponse).Name);
+    else
+      _logger.LogInformation("[END] Handle {Request} with {Response}",
+                             typeof(TRequest).Name,
+                             typeof(TResponse).Name);
 
     return response;
   }
