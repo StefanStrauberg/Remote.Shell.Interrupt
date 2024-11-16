@@ -32,12 +32,6 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
           .Where(port => !aggregatedPortsIds.Contains(port.Id))
           .OrderBy(port => port.InterfaceName)];
 
-    // // Сортируем AggregatedPorts по InterfaceName
-    // foreach (var port in networkDevice.PortsOfNetworkDevice)
-    // {
-    //   port.AggregatedPorts = [.. port.AggregatedPorts.OrderBy(aggregatedPort => aggregatedPort.InterfaceName)];
-    // }
-
     var networkDeviceDTO = _mapper.Map<NetworkDeviceDTO>(networkDevice);
 
     return networkDeviceDTO;

@@ -32,7 +32,7 @@ internal class UpdateAssignmentCommandHandler(IUnitOfWork unitOfWork,
 
     // Если назначение с таким именем и другим ID существует — исключение
     if (existingUpdatingAssignmentByName)
-      throw new EntityAlreadyExists($"the name \"{request.UpdateAssignmentDTO.Name}\" and with the Id \"{request.UpdateAssignmentDTO.Id}\"");
+      throw new EntityAlreadyExists($"the name \"{request.UpdateAssignmentDTO.Name}\"");
 
     // Получаем назначение для обновления
     var assignment = await _unitOfWork.Assignments

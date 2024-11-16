@@ -1,0 +1,15 @@
+global using Microsoft.Extensions.Configuration;
+global using System.Data;
+global using Npgsql;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Common;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Context;
+global using System.Text;
+global using Dapper;
+global using Microsoft.Extensions.DependencyInjection;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Work;
+global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
+global using System.Linq.Expressions;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
+global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;

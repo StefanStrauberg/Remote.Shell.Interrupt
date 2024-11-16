@@ -4,7 +4,7 @@ public class AssignmentDetailDTO : IMapWith<Assignment>
 {
   public Guid Id { get; set; }
   public DateTime Created { get; set; }
-  public DateTime Modified { get; set; }
+  public DateTime? Modified { get; set; }
   public string Name { get; set; } = string.Empty;
   public TypeOfRequest TypeOfRequest { get; set; }
   public string TargetFieldName { get; set; } = string.Empty;
