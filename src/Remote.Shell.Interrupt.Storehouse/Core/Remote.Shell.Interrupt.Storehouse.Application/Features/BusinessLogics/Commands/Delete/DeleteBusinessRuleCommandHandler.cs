@@ -23,25 +23,25 @@ internal class DeleteBusinessRuleByIdCommandHandler(IUnitOfWork unitOfWork)
 
     // Получаем бизнес-правило для удаления
     var businessRuleToDelete = await _unitOfWork.BusinessRules
-                                                .FirstByIdAsync(request.Id,
-                                                                cancellationToken);
+                                                .GetBusinessRulesNodeByIdAsync(request.Id,
+                                                                               cancellationToken);
 
     // Если у сущности есть родитель
-    if (businessRuleToDelete.Parent != null)
+    if (businessRuleToDelete.ParentId != null)
     {
       // Проверка существования родителя бизнес-правила
-      var existingParntBusinessRuleById = await _unitOfWork.BusinessRules.AnyByIdAsync(request.Id,
-                                                                                       cancellationToken);
+      var existingParentBusinessRuleById = await _unitOfWork.BusinessRules.AnyByIdAsync(businessRuleToDelete.ParentId.Value,
+                                                                                        cancellationToken);
 
       // Если родитель бизнес-правило с таким ID не найдено, выбрасываем исключение
-      if (!existingBusinessRuleById)
+      if (!existingParentBusinessRuleById)
         throw new EntityNotFoundById(typeof(BusinessRule),
-                                     request.Id.ToString());
+                                     businessRuleToDelete.ParentId.Value.ToString());
 
       // Получаем родитель бизнес-правило
       var parentBusinessRule = await _unitOfWork.BusinessRules
-                                                .FirstByIdAsync(businessRuleToDelete.ParentId!.Value,
-                                                                cancellationToken);
+                                                .GetBusinessRulesNodeByIdAsync(businessRuleToDelete.ParentId.Value,
+                                                                               cancellationToken);
 
       // Удалить ID текущей сущности из списка дочерних узлов родителя
       parentBusinessRule.Children

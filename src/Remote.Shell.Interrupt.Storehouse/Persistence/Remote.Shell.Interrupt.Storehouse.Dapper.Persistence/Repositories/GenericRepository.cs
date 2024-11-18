@@ -1,4 +1,5 @@
 using System.Reflection;
+using AutoMapper.Internal;
 
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
@@ -67,7 +68,12 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
   public void InsertMany(IEnumerable<T> entities)
   {
-    throw new NotImplementedException();
+    string tableName = GetTableName();
+    string columns = GetColumnsAsProperties(excludeKey: true);
+    string properties = GetPropertyNames(excludeKey: true);
+    var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties})";
+    using var connection = _context.CreateConnection();
+    connection.Execute(query, entities);
   }
 
   public void InsertOne(T entity)
@@ -127,12 +133,12 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     {
       var property = properties[i];
 
-      // Игнорируем свойства, которые являются классами
-      if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
-        continue;
+      // Проверяем, является ли свойство классом или коллекцией
+      bool isClass = property.PropertyType.IsClass && property.PropertyType != typeof(string);
+      bool isCollection = typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string);
 
-      // Если excludeKey = true и свойство имеет имя "ID", пропускаем его
-      if (excludeKey && property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase))
+      // Если свойство является классом или коллекцией, пропускаем его
+      if (isClass || isCollection)
         continue;
 
       sb.Append($"\"{property.Name}\"");
@@ -164,12 +170,12 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     {
       var property = properties[i];
 
-      // Игнорируем свойства, которые являются классами
-      if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
-        continue;
+      // Проверяем, является ли свойство классом или коллекцией
+      bool isClass = property.PropertyType.IsClass && property.PropertyType != typeof(string);
+      bool isCollection = typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string);
 
-      // Если excludeKey = true и свойство имеет имя "ID", пропускаем его
-      if (excludeKey && property.Name.Equals("Id", StringComparison.OrdinalIgnoreCase))
+      // Если свойство является классом или коллекцией, пропускаем его
+      if (isClass || isCollection)
         continue;
 
       sb.Append($"@{property.Name}");
@@ -199,8 +205,12 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     {
       var property = properties[i];
 
-      // Игнорируем свойства, которые являются классами
-      if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+      // Проверяем, является ли свойство классом или коллекцией
+      bool isClass = property.PropertyType.IsClass && property.PropertyType != typeof(string);
+      bool isCollection = typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string);
+
+      // Если свойство является классом или коллекцией, пропускаем его
+      if (isClass || isCollection)
         continue;
 
       // Используем интерполяцию строк для формирования записи

@@ -31,16 +31,16 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                          .GetBusinessRulesTreeAsync(cancellationToken)
       ?? throw new InvalidOperationException($"Busness Rules collection is empty.");
 
-    var maxRepetitions = _configuration.GetValue<int>("Repetitions:Default");
+    int maxRepetitions;
 
     if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper.ToString())
       maxRepetitions = _configuration.GetValue<int>("Repetitions:Juniper");
-
-    if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei.ToString())
+    else if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei.ToString())
       maxRepetitions = _configuration.GetValue<int>("Repetitions:Huawei");
-
-    if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme.ToString())
+    else if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme.ToString())
       maxRepetitions = _configuration.GetValue<int>("Repetitions:Extreme");
+    else
+      maxRepetitions = _configuration.GetValue<int>("Repetitions:Default");
 
     var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
