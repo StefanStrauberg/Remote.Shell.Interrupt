@@ -26,6 +26,7 @@ public class AssignmentsController(ISender sender) : BaseAPIController
     => Ok(await _sender.Send(new CreateAssignmentCommand(createAssignmentDTO),
                              cancellationToken));
 
+  [HttpPut]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateAssignment([FromBody] UpdateAssignmentDTO updateAssignmentDTO,

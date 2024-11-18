@@ -6,7 +6,6 @@ public class UpdateBusinessRuleDTO : IMapWith<BusinessRule>
   public string Name { get; set; } = string.Empty;
   public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
-  public List<Guid> Children { get; set; } = [];
   public Guid AssignmentId { get; set; }
 
   void IMapWith<BusinessRule>.Mapping(Profile profile)

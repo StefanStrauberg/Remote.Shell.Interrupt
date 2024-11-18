@@ -27,8 +27,9 @@ internal class GetBusinessRuleByIdQueryHandler(IUnitOfWork unitOfWork,
                                    request.Id.ToString());
 
     // Находим бизнес правило
-    var businessRule = await _unitOfWork.BusinessRules.FirstByIdAsync(request.Id,
-                                                                      cancellationToken);
+    var businessRule = await _unitOfWork.BusinessRules
+                                        .GetBusinessRulesNodeByIdAsync(request.Id,
+                                                                    cancellationToken);
 
     var businessRuleDTO = _mapper.Map<BusinessRuleDetailDTO>(businessRule);
 

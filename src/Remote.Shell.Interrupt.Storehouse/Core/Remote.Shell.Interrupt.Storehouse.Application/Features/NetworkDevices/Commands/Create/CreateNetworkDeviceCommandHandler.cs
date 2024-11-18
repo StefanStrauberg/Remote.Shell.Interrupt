@@ -28,15 +28,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var assignments = await _unitOfWork.Assignments
                                        .GetAllAsync(cancellationToken);
     var businessRules = await _unitOfWork.BusinessRules
-                                         .GetAllWithChildrenAsync(cancellationToken);
-
-    // Проверяем наличие бизнес-правил
-    if (!businessRules.Any())
-      throw new InvalidOperationException($"Busness Rules collection is empty.");
-
-    // Находим корневое бизнес-правило
-    var rootRule = businessRules.FirstOrDefault(x => x.IsRoot == true)
-      ?? throw new InvalidOperationException($"Busness Rules collection doesn't have root element.");
+                                         .GetBusinessRulesTreeAsync(cancellationToken)
+      ?? throw new InvalidOperationException($"Busness Rules collection is empty.");
 
     var maxRepetitions = _configuration.GetValue<int>("Repetitions:Default");
 
@@ -52,8 +45,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
     // Обрабатываем дерево бизнес-правил
-    await ProcessBusinessRuleTree(rootRule,
-                                  businessRules,
+    await ProcessBusinessRuleTree(businessRules,
                                   assignments,
                                   networkDevice,
                                   request,
@@ -343,7 +335,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   }
 
   async Task ProcessBusinessRuleTree(BusinessRule rule,
-                                     IEnumerable<BusinessRule> allRules,
                                      IEnumerable<Assignment> assignments,
                                      NetworkDevice networkDevice,
                                      CreateNetworkDeviceCommand request,
@@ -393,11 +384,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     // Рекурсивно обрабатываем дочерние правила
     foreach (var child in rule.Children)
     {
-      var childRule = allRules.FirstOrDefault(x => x.Id == child.Id);
-
-      if (childRule != null)
-        await ProcessBusinessRuleTree(childRule,
-                                      allRules,
+      if (child != null)
+        await ProcessBusinessRuleTree(child,
                                       assignments,
                                       networkDevice,
                                       request,

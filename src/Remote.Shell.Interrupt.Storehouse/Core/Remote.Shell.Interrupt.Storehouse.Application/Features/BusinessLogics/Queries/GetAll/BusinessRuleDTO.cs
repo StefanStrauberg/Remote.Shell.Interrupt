@@ -6,7 +6,7 @@ public class BusinessRuleDTO : IMapWith<BusinessRule>
   public string Name { get; set; } = string.Empty;
   public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
-  public List<Guid> Children { get; set; } = [];
+  public List<BusinessRuleDTO> Children { get; set; } = [];
   public Guid? AssignmentId { get; set; }
   public bool IsRoot { get; set; }
 
@@ -22,7 +22,7 @@ public class BusinessRuleDTO : IMapWith<BusinessRule>
            .ForMember(businessRuleDTO => businessRuleDTO.ParentId,
                       opt => opt.MapFrom(businessRule => businessRule.ParentId))
            .ForMember(businessRuleDTO => businessRuleDTO.Children,
-                      opt => opt.MapFrom(businessRule => businessRule.Children.Select(x => x.Id)))
+                      opt => opt.MapFrom(businessRule => businessRule.Children))
            .ForMember(businessRuleDTO => businessRuleDTO.AssignmentId,
                       opt => opt.MapFrom(businessRule => businessRule.AssignmentId))
            .ForMember(businessRuleDTO => businessRuleDTO.IsRoot,

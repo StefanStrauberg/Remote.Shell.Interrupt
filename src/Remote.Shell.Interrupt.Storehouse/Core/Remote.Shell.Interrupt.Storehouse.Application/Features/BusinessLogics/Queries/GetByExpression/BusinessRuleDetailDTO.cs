@@ -8,7 +8,7 @@ public class BusinessRuleDetailDTO : IMapWith<BusinessRule>
   public string Name { get; set; } = string.Empty;
   public TypeOfNetworkDevice? Vendor { get; set; }
   public Guid? ParentId { get; set; }
-  public List<Guid> Children { get; set; } = [];
+  public List<BusinessRuleDTO> Children { get; set; } = [];
   public Guid? AssignmentId { get; set; }
   public bool IsRoot { get; set; }
 

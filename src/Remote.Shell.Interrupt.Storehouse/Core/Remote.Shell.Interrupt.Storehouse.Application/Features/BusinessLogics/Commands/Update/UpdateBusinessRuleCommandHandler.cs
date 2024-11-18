@@ -24,15 +24,29 @@ internal class UpdateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
       throw new EntityNotFoundById(typeof(BusinessRule),
                                    request.UpdateBusinessRule.Id.ToString());
 
-
     // Проверка существует ли назначение с указанным ID
     var existingAssignment = await _unitOfWork.Assignments
                                               .AnyByIdAsync(request.UpdateBusinessRule.AssignmentId,
                                                             cancellationToken);
+
     // Если назначение не найдено, выбрасываем исключение
     if (!existingAssignment)
       throw new EntityNotFoundById(typeof(Assignment),
                                    request.UpdateBusinessRule.AssignmentId.ToString()!);
+
+    // Проверка существует ли родительское бизнес-правило
+    if (request.UpdateBusinessRule.ParentId is not null)
+    {
+      // Проверка существует ли родительское бизнес-правило с указанным ID
+      var existingParentOfUpdatingBusinessRule = await _unitOfWork.BusinessRules
+                                                                  .AnyByIdAsync(request.UpdateBusinessRule.ParentId.Value,
+                                                                                cancellationToken);
+
+      // Если родительское бизнес-правило не найдено, выбрасываем исключение
+      if (!existingParentOfUpdatingBusinessRule)
+        throw new EntityNotFoundById(typeof(BusinessRule),
+                                     request.UpdateBusinessRule.Id.ToString());
+    }
 
     // Получаем бизнес правило для обновления
     var businessRule = await _unitOfWork.BusinessRules
@@ -46,6 +60,7 @@ internal class UpdateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
     _unitOfWork.BusinessRules
                .ReplaceOne(businessRule);
 
+    // Подтверждаем изменения
     await _unitOfWork.CompleteAsync(cancellationToken);
 
     // Возврат успешного завершения операции

@@ -8,7 +8,7 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<BusinessRuleDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetBusinessRules(CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new GetBusinessRulesQuery(),
+    => Ok(await _sender.Send(new GetBusinessRulesTreeQuery(),
                              cancellationToken));
 
   [HttpGet("{id}")]
@@ -26,6 +26,7 @@ public class BusinessRulesController(ISender sender) : BaseAPIController
     => Ok(await _sender.Send(new CreateBusinessRuleCommand(createBusinessRuleDTO),
                              cancellationToken));
 
+  [HttpPut]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateBusinessRule([FromBody] UpdateBusinessRuleDTO updateBusinessRuleDTO,

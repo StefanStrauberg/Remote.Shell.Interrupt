@@ -1,23 +1,23 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Queries.GetAll;
 
-public record GetBusinessRulesQuery() : IQuery<IEnumerable<BusinessRuleDTO>>;
+public record GetBusinessRulesTreeQuery() : IQuery<BusinessRuleDTO>;
 
 internal class GetBusinessRulesQueryHandler(IUnitOfWork unitOfWork,
                                             IMapper mapper)
-  : IQueryHandler<GetBusinessRulesQuery, IEnumerable<BusinessRuleDTO>>
+  : IQueryHandler<GetBusinessRulesTreeQuery, BusinessRuleDTO>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<BusinessRuleDTO>> IRequestHandler<GetBusinessRulesQuery, IEnumerable<BusinessRuleDTO>>.Handle(GetBusinessRulesQuery request,
-                                                                                                                       CancellationToken cancellationToken)
+  async Task<BusinessRuleDTO> IRequestHandler<GetBusinessRulesTreeQuery, BusinessRuleDTO>.Handle(GetBusinessRulesTreeQuery request,
+                                                                                                 CancellationToken cancellationToken)
   {
     var businessRules = await _unitOfWork.BusinessRules
-                                         .GetAllWithChildrenAsync(cancellationToken);
+                                         .GetBusinessRulesTreeAsync(cancellationToken);
 
-    var businessRulesDTOs = _mapper.Map<IEnumerable<BusinessRuleDTO>>(businessRules);
+    var businessRulesDTOs = _mapper.Map<BusinessRuleDTO>(businessRules);
 
     return businessRulesDTOs;
   }
