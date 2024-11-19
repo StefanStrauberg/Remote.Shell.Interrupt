@@ -1,6 +1,3 @@
-using System.Reflection;
-using AutoMapper.Internal;
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class GenericRepository<T>(DapperContext context) : IGenericRepository<T> where T : BaseEntity
@@ -11,37 +8,37 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
   public async Task<bool> AnyAsync(CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
-    var query = $@"SELECT EXISTS ( " +
-                $"SELECT 1 " +
-                $"FROM \"{tableName}\")";
-    using var connection = _context.CreateConnection();
-    var exists = await connection.ExecuteScalarAsync<bool>(query);
-    return exists;
+    var query = $"SELECT COUNT(1) FROM \"{tableName}\"";
+    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var count = await connection.ExecuteScalarAsync<int>(query);
+    return count > 0;
   }
 
   public async Task<bool> AnyByIdAsync(Guid id,
                                        CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
-    var query = $@"SELECT EXISTS ( " +
-                $"SELECT 1 " +
-                $"FROM \"{tableName}\" " +
-                "WHERE \"Id\"=@Id)";
-    using var connection = _context.CreateConnection();
-    var exists = await connection.ExecuteScalarAsync<bool>(query, new { Id = id });
-    return exists;
+    var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Id\"=@Id";
+    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var count = await connection.ExecuteScalarAsync<int>(query, new { Id = id });
+    return count > 0;
   }
 
   public void DeleteMany(IEnumerable<T> entities)
   {
-    throw new NotImplementedException();
+    _context.BeginTransaction();
+    foreach (var entity in entities)
+    {
+      DeleteOne(entity);
+    }
   }
 
   public void DeleteOne(T entity)
   {
+    _context.BeginTransaction();
     string tableName = GetTableName();
     var query = $"DELETE FROM \"{tableName}\" WHERE \"Id\"=@Id";
-    using var connection = _context.CreateConnection();
+    var connection = _context.CreateConnection();
     connection.Execute(query, new { Id = entity.Id });
   }
 
@@ -51,9 +48,8 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
     var query = $"SELECT {columns} FROM \"{tableName}\" WHERE \"Id\"=@Id";
-    using var connection = _context.CreateConnection();
-    var company = await connection.QuerySingleAsync<T>(query, new { Id = id });
-    return company;
+    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    return await connection.QuerySingleAsync<T>(query, new { Id = id });
   }
 
   public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
@@ -61,39 +57,39 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
     var query = $"SELECT {columns} FROM \"{tableName}\"";
-    using var connection = _context.CreateConnection();
-    var companies = await connection.QueryAsync<T>(query);
-    return companies.ToList();
+    var connection = _context.CreateConnection();
+    return await connection.QueryAsync<T>(query);
   }
 
   public void InsertMany(IEnumerable<T> entities)
   {
-    string tableName = GetTableName();
-    string columns = GetColumnsAsProperties(excludeKey: true);
-    string properties = GetPropertyNames(excludeKey: true);
-    var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties})";
-    using var connection = _context.CreateConnection();
-    connection.Execute(query, entities);
+    _context.BeginTransaction();
+    foreach (var entity in entities)
+    {
+      InsertOne(entity);
+    }
   }
 
   public void InsertOne(T entity)
   {
-    entity.CreatedAt = DateTime.Now;
+    _context.BeginTransaction();
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties(excludeKey: true);
     string properties = GetPropertyNames(excludeKey: true);
-    var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties})";
-    using var connection = _context.CreateConnection();
-    connection.Execute(query, entity);
+    var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties}) RETURNING \"Id\"";
+    var connection = _context.CreateConnection();
+    var entityId = connection.ExecuteScalar<Guid>(query, entity);
+    entity.Id = entityId;
   }
 
   public void ReplaceOne(T entity)
   {
+    _context.BeginTransaction();
     entity.UpdatedAt = DateTime.Now;
     string tableName = GetTableName();
-    string updateProperties = GetUpdateProperties();
+    string updateProperties = GetUpdateProperties(excludeKey: true);
     var query = $"UPDATE \"{tableName}\" SET {updateProperties} WHERE \"Id\"=@Id";
-    using var connection = _context.CreateConnection();
+    var connection = _context.CreateConnection();
     connection.Execute(query, entity);
   }
 
@@ -141,6 +137,17 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
       if (isClass || isCollection)
         continue;
 
+      // Проверяем, является ли свойство Id
+      bool isGuuid = property.Name.Equals("Id");
+
+      // Если свойство является GUUID и excludeKey = true, пропускаем его
+      if (excludeKey && isGuuid)
+        continue;
+
+      // Если свойство CreatedAt, пропускаем его
+      if (property.Name.Equals("CreatedAt"))
+        continue;
+
       sb.Append($"\"{property.Name}\"");
 
       // Если это не последнее свойство, добавляем запятую
@@ -178,6 +185,17 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
       if (isClass || isCollection)
         continue;
 
+      // Проверяем, является ли свойство Id
+      bool isGuuid = property.Name.Equals("Id");
+
+      // Если свойство является GUUID и excludeKey = true, пропускаем его
+      if (excludeKey && isGuuid)
+        continue;
+
+      // Если свойство CreatedAt, пропускаем его
+      if (property.Name.Equals("CreatedAt"))
+        continue;
+
       sb.Append($"@{property.Name}");
 
       // Если это не последнее свойство, добавляем запятую
@@ -188,7 +206,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return sb.ToString();
   }
 
-  string GetUpdateProperties()
+  string GetUpdateProperties(bool excludeKey = false)
   {
     StringBuilder sb = new();
     Type type = typeof(T);
@@ -211,6 +229,17 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
       // Если свойство является классом или коллекцией, пропускаем его
       if (isClass || isCollection)
+        continue;
+
+      // Проверяем, является ли свойство Id
+      bool isGuuid = property.Name.Equals("Id");
+
+      // Если свойство является GUUID и excludeKey = true, пропускаем его
+      if (excludeKey && isGuuid)
+        continue;
+
+      // Если свойство CreatedAt, пропускаем его
+      if (property.Name.Equals("CreatedAt"))
         continue;
 
       // Используем интерполяцию строк для формирования записи

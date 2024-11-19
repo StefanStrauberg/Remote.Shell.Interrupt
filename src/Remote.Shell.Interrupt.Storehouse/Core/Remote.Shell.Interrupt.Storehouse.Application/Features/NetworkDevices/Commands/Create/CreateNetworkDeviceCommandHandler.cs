@@ -24,13 +24,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       Host = request.Host
     };
 
-    // Получаем назначения и бизнес-правила
-    var assignments = await _unitOfWork.Assignments
-                                       .GetAllAsync(cancellationToken);
-    var businessRules = await _unitOfWork.BusinessRules
-                                         .GetBusinessRulesTreeAsync(cancellationToken)
-      ?? throw new InvalidOperationException($"Busness Rules collection is empty.");
-
     int maxRepetitions;
 
     if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper.ToString())
@@ -44,25 +37,25 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
-    // Обрабатываем дерево бизнес-правил
-    await ProcessBusinessRuleTree(businessRules,
-                                  assignments,
-                                  networkDevice,
-                                  request,
-                                  maxRepetitions,
-                                  cancellationToken);
-
-    await FillMACAddressForPorts(networkDevice,
+    await FillNetworkDevicesName(networkDevice,
                                  request.Host,
                                  request.Community,
                                  maxRepetitions,
                                  cancellationToken);
 
-    await FillDescriptionForPorts(networkDevice,
-                                  request.Host,
-                                  request.Community,
-                                  maxRepetitions,
-                                  cancellationToken);
+    // Вставляем новое сетевое устройство в репозиторий
+    _unitOfWork.NetworkDevices
+               .InsertOne(networkDevice);
+
+    await FillPortsOfNetworkDevice(networkDevice,
+                                   request.Host,
+                                   request.Community,
+                                   maxRepetitions,
+                                   cancellationToken);
+
+    // Вставляем порты сетевого устройство в репозиторий
+    _unitOfWork.Ports
+               .InsertMany(networkDevice.PortsOfNetworkDevice);
 
     // Заполняем ARP таблицу интерфейсов
     await FillARPTableForPorts(networkDevice,
@@ -71,17 +64,29 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                maxRepetitions,
                                cancellationToken);
 
+    _unitOfWork.ARPEntities
+               .InsertMany(networkDevice.PortsOfNetworkDevice
+                                        .SelectMany(x => x.ARPTableOfInterface));
+
     await FillMACTableForPorts(networkDevice,
                                request.Host,
                                request.Community,
                                maxRepetitions,
                                cancellationToken);
 
+    _unitOfWork.MACEntities
+               .InsertMany(networkDevice.PortsOfNetworkDevice
+                                        .SelectMany(x => x.MACTable));
+
     await FillNetworkTableOfPort(networkDevice,
                                  request.Host,
                                  request.Community,
                                  maxRepetitions,
                                  cancellationToken);
+
+    _unitOfWork.TerminatedNetworkEntities
+               .InsertMany(networkDevice.PortsOfNetworkDevice
+                                        .SelectMany(x => x.NetworkTableOfInterface));
 
     if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
     {
@@ -135,79 +140,147 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                           cancellationToken);
     }
 
-    // Вставляем новое сетевое устройство в репозиторий
-    _unitOfWork.NetworkDevices
-                     .InsertOne(networkDevice);
-
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
     return Unit.Value;
   }
 
-  private async Task FillDescriptionForPorts(NetworkDevice networkDevice,
-                                             string host,
-                                             string community,
-                                             int maxRepetitions,
-                                             CancellationToken cancellationToken)
+  private async Task FillNetworkDevicesName(NetworkDevice networkDevice,
+                                            string host,
+                                            string community,
+                                            int maxRepetitions,
+                                            CancellationToken cancellationToken)
   {
-    var descriptions = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                              community: community,
-                                                              oid: "1.3.6.1.2.1.31.1.1.1.18",
-                                                              cancellationToken: cancellationToken,
-                                                              repetitions: maxRepetitions);
-
-    if (descriptions.Count == 0)
-      return;
-
-    var portsDict = networkDevice.PortsOfNetworkDevice
-                                 .ToDictionary(port => port.InterfaceNumber, port => port);
-
-    var macToPort = descriptions.Select(response => new
-    {
-      portNumber = OIDGetNumbers.HandleLast(response.OID),
-      description = response.Data
-    }).ToList();
-
-    foreach (var pair in macToPort)
-    {
-      if (portsDict.TryGetValue(pair.portNumber, out var port))
-      {
-        port.Description = pair.description;
-      }
-    }
+    var networkDeviceName = await _snmpCommandExecutor.GetCommand(host: host,
+                                                                  community: community,
+                                                                  oid: "1.3.6.1.2.1.1.5.0",
+                                                                  cancellationToken: cancellationToken);
+    networkDevice.NetworkDeviceName = networkDeviceName.Data;
   }
 
-  private async Task FillMACAddressForPorts(NetworkDevice networkDevice,
-                                          string host,
-                                          string community,
-                                          int maxRepetitions,
-                                          CancellationToken cancellationToken)
+  private async Task FillPortsOfNetworkDevice(NetworkDevice networkDevice,
+                                            string host,
+                                            string community,
+                                            int maxRepetitions,
+                                            CancellationToken cancellationToken)
   {
-    var MACAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
-                                                              community: community,
-                                                              oid: "1.3.6.1.2.1.2.2.1.6",
-                                                              cancellationToken: cancellationToken,
-                                                              toHex: true,
-                                                              repetitions: maxRepetitions);
+    var interfacesNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                   community: community,
+                                                                   oid: "1.3.6.1.2.1.2.2.1.1",
+                                                                   cancellationToken: cancellationToken,
+                                                                   repetitions: maxRepetitions);
 
-    if (MACAddresses.Count == 0)
+    var interfacesNames = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                 community: community,
+                                                                 oid: "1.3.6.1.2.1.2.2.1.2",
+                                                                 cancellationToken: cancellationToken,
+                                                                 repetitions: maxRepetitions);
+
+    var interfacesTypes = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                 community: community,
+                                                                 oid: "1.3.6.1.2.1.2.2.1.3",
+                                                                 cancellationToken: cancellationToken,
+                                                                 repetitions: maxRepetitions);
+
+    var interfacesSpeed = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                 community: community,
+                                                                 oid: "1.3.6.1.2.1.2.2.1.5",
+                                                                 cancellationToken: cancellationToken,
+                                                                 repetitions: maxRepetitions);
+
+    var interfaceMacAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                       community: community,
+                                                                       oid: "1.3.6.1.2.1.2.2.1.6",
+                                                                       cancellationToken: cancellationToken,
+                                                                       toHex: true,
+                                                                       repetitions: maxRepetitions);
+
+    var interfacesStatuses = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                    community: community,
+                                                                    oid: "1.3.6.1.2.1.2.2.1.8",
+                                                                    cancellationToken: cancellationToken,
+                                                                    repetitions: maxRepetitions);
+
+    var interfaceDescriptions = await _snmpCommandExecutor.WalkCommand(host: host,
+                                                                       community: community,
+                                                                       oid: "1.3.6.1.2.1.31.1.1.1.18",
+                                                                       cancellationToken: cancellationToken,
+                                                                       repetitions: maxRepetitions);
+
+
+    // Упаковка коллекций с использованием Zip
+    var zippedCollection = interfacesNumbers.Zip(interfacesNames, (number, name) =>
+                                                                  new
+                                                                  {
+                                                                    number = int.Parse(number.Data),
+                                                                    name = name.Data
+                                                                  })
+                                            .Zip(interfacesTypes, (first, response) =>
+                                                                  new
+                                                                  {
+                                                                    first.number,
+                                                                    first.name,
+                                                                    type = Enum.Parse<PortType>(response.Data)
+                                                                  })
+                                            .Zip(interfacesSpeed, (second, response) =>
+                                                                  new
+                                                                  {
+                                                                    second.number,
+                                                                    second.name,
+                                                                    second.type,
+                                                                    speed = long.Parse(response.Data),
+                                                                  })
+                                            .Zip(interfacesStatuses, (third, response) =>
+                                                                     new
+                                                                     {
+                                                                       third.number,
+                                                                       third.name,
+                                                                       third.type,
+                                                                       third.speed,
+                                                                       status = Enum.Parse<PortStatus>(response.Data)
+                                                                     })
+                                            .Zip(interfaceMacAddresses, (fourth, response) =>
+                                                               new
+                                                               {
+                                                                 fourth.number,
+                                                                 fourth.name,
+                                                                 fourth.type,
+                                                                 fourth.speed,
+                                                                 fourth.status,
+                                                                 mac = response.Data.Replace(' ', ':')
+                                                               })
+                                            .Zip(interfaceDescriptions, (fifth, response) =>
+                                                               new
+                                                               {
+                                                                 fifth.number,
+                                                                 fifth.name,
+                                                                 fifth.type,
+                                                                 fifth.speed,
+                                                                 fifth.status,
+                                                                 fifth.mac,
+                                                                 description = response.Data
+                                                               })
+                                            .ToList();
+
+    if (zippedCollection.Count == 0)
       return;
 
-    var portsDict = networkDevice.PortsOfNetworkDevice
-                                 .ToDictionary(port => port.InterfaceNumber, port => port);
+    var ports = new List<Port>(zippedCollection.Count);
 
-    var macToPort = MACAddresses.Select(response => new
+    for (var i = 0; i < zippedCollection.Count; i++)
     {
-      portNumber = OIDGetNumbers.HandleLast(response.OID),
-      mac = response.Data.Replace(' ', ':')
-    }).ToList();
-
-    foreach (var pair in macToPort)
-    {
-      if (portsDict.TryGetValue(pair.portNumber, out var port))
+      ports.Add(new Port
       {
-        port.MACAddress = pair.mac;
-      }
+        NetworkDeviceId = networkDevice.Id,
+        NetworkDevice = networkDevice,
+        InterfaceNumber = zippedCollection[i].number,
+        InterfaceName = zippedCollection[i].name,
+        InterfaceSpeed = zippedCollection[i].speed,
+        InterfaceStatus = zippedCollection[i].status,
+        MACAddress = zippedCollection[i].mac,
+        Description = zippedCollection[i].description
+      });
     }
+    networkDevice.PortsOfNetworkDevice = ports;
   }
 
   private async Task FillMACTableForPorts(NetworkDevice networkDevice,
@@ -267,7 +340,13 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         {
           foreach (var mac in macs)
           {
-            port.MACTable.Add(new MACEntity { MACAddress = mac });
+            port.MACTable
+                .Add(new MACEntity
+                {
+                  MACAddress = mac,
+                  PortId = port.Id,
+                  Port = port
+                });
           }
         }
       }
@@ -334,197 +413,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                            port.InterfaceName.StartsWith("VLAN"));
   }
 
-  async Task ProcessBusinessRuleTree(BusinessRule rule,
-                                     IEnumerable<Assignment> assignments,
-                                     NetworkDevice networkDevice,
-                                     CreateNetworkDeviceCommand request,
-                                     int maxRepetitions,
-                                     CancellationToken cancellationToken)
-  {
-    // Проверяем условие бизнес-правила
-    bool resultOfEvaluateCondition = rule.Vendor == null || rule.Vendor == networkDevice.TypeOfNetworkDevice;
-
-    // Если у бизнес-правила есть задание
-    if (resultOfEvaluateCondition && rule.Assignment != null)
-    {
-      var assignment = assignments.Single(x => x.Id == rule.AssignmentId);
-
-      // Выполняем задание в зависимости от типа запроса
-      switch (assignment.TypeOfRequest)
-      {
-        case TypeOfRequest.get:
-          {
-
-            var singleValueToSet = (await _snmpCommandExecutor.GetCommand(request.Host,
-                                                                          request.Community,
-                                                                          assignment.OID,
-                                                                          cancellationToken)).Data;
-            HandleAssignment(networkDevice,
-                             assignment,
-                             singleValueToSet);
-            break;
-          }
-        case TypeOfRequest.walk:
-          {
-            var multiplyValuesToSet = (await _snmpCommandExecutor.WalkCommand(request.Host,
-                                                                              request.Community,
-                                                                              assignment.OID,
-                                                                              cancellationToken,
-                                                                              repetitions: maxRepetitions))
-                                                                 .Select(x => x.Data)
-                                                                 .ToList();
-            HandleAssignment(networkDevice,
-                             assignment,
-                             multiplyValuesToSet);
-            break;
-          }
-      }
-    }
-
-    // Рекурсивно обрабатываем дочерние правила
-    foreach (var child in rule.Children)
-    {
-      if (child != null)
-        await ProcessBusinessRuleTree(child,
-                                      assignments,
-                                      networkDevice,
-                                      request,
-                                      maxRepetitions,
-                                      cancellationToken);
-    }
-  }
-
-  // Обработка задания с одним значением
-  static void HandleAssignment(NetworkDevice networkDevice,
-                               Assignment assignment,
-                               string valueToSet)
-  {
-    // Проверка корректности TargetFieldName
-    if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
-      throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
-
-    // Получение типа сетевого устройства
-    var deviceType = typeof(NetworkDevice);
-
-    // Получение свойства по имени из TargetFieldName
-    var property = deviceType.GetProperty(assignment.TargetFieldName, BindingFlags.Public | BindingFlags.Instance)
-      ?? throw new InvalidOperationException($"Property '{assignment.TargetFieldName}' not found on {deviceType.Name}.");
-
-    // Конвертация значения и установка свойства
-    var convertedValue = Convert.ChangeType(valueToSet, property.PropertyType);
-
-    property.SetValue(obj: networkDevice,
-                      value: convertedValue);
-  }
-
-  // Обработка задания со списком значений
-  static void HandleAssignment(NetworkDevice networkDevice,
-                               Assignment assignment,
-                               List<string> valueToSet)
-  {
-    // Проверка корректности TargetFieldName
-    if (assignment == null || string.IsNullOrWhiteSpace(assignment.TargetFieldName))
-      throw new ArgumentException("Assignment or TargetFieldName cannot be null or empty.");
-
-    // Разделение имени свойства на часть для NetworkDevice и Port
-    string[] parts = assignment.TargetFieldName.Split('.');
-
-    if (parts.Length != 2)
-      throw new ArgumentException("TargetFieldName must be in the format 'Property.Field'.");
-
-    string networkDeviceFieldName = parts[0]; // поле networkDevice
-    string portFieldName = parts[1]; // поле Port
-
-    // Получение типа NetworkDevice
-    Type networkDeviceType = typeof(NetworkDevice);
-
-    // Проверка существования свойства в NetworkDevice
-    PropertyInfo portsProperty = networkDeviceType.GetProperty(networkDeviceFieldName, BindingFlags.Public | BindingFlags.Instance)!
-      ?? throw new ArgumentException($"Property '{networkDeviceFieldName}' not found on {networkDeviceType.Name}.");
-
-    // Проверка, является ли свойство коллекцией
-    if (!typeof(IEnumerable).IsAssignableFrom(portsProperty.PropertyType) || portsProperty.PropertyType == typeof(string))
-      throw new ArgumentException($"Property '{networkDeviceFieldName}' is not a collection.");
-
-    // Получение типа элементов коллекции
-    Type collectionType = portsProperty.PropertyType
-                                       .GetGenericArguments()
-                                       .FirstOrDefault()
-      ?? throw new ArgumentException($"Cannot determine collection item type of {portFieldName}.");
-
-    // Проверка существования свойства в типе элементов коллекции
-    PropertyInfo portProperty = collectionType.GetProperty(portFieldName)!
-      ?? throw new ArgumentException($"Property '{portFieldName}' not found on {collectionType.Name}.");
-
-    // Проверка является ли свойства в типе элементов коллекции перечислением
-    bool isEnumPortProperty = portProperty.PropertyType
-                                          .IsEnum;
-
-    // Получение текущей коллекции
-    var collection = (ICollection)portsProperty.GetValue(networkDevice)!
-      ?? throw new ArgumentException("Collection is null.");
-
-    // Получение списка элементов коллекции
-    var items = collection.Cast<object>()
-                          .ToList();
-
-    if (collection.Count == 0)
-    {
-      // Если коллекция пуста, создаем новые элементы и добавляем их в коллекцию
-      for (int i = 0; i < valueToSet.Count; i++)
-      {
-        // Создание нового элемента коллекции
-        var item = Activator.CreateInstance(collectionType);
-
-        if (item != null)
-        {
-          if (isEnumPortProperty)
-          {
-            // Преобразование строки в значение enum
-            var enumValue = Enum.Parse(portProperty.PropertyType, valueToSet[i]);
-            portProperty.SetValue(item, enumValue);
-          }
-          else
-          {
-            // Конвертация строки в значение нужного типа
-            var convertedValue = Convert.ChangeType(valueToSet[i], portProperty.PropertyType);
-            portProperty.SetValue(item, convertedValue);
-
-          }
-          // Добавление элемента в коллекцию
-          collection.GetType()
-                    .GetMethod("Add")?
-                    .Invoke(collection,
-                            [item]);
-        }
-      }
-    }
-    else
-    {
-      // Если коллекция не пуста, обновляем существующие элементы
-      for (int i = 0; i < items.Count; i++)
-      {
-        if (i >= valueToSet.Count)
-          break;
-
-        var item = items[i];
-
-        if (isEnumPortProperty)
-        {
-          // Обновление значения свойства, если это перечисление
-          var enumValue = Enum.Parse(portProperty.PropertyType, valueToSet[i]);
-          portProperty.SetValue(item, enumValue);
-        }
-        else
-        {
-          // Конвертация и установка нового значения
-          var convertedValue = Convert.ChangeType(valueToSet[i], portProperty.PropertyType);
-          portProperty.SetValue(item, convertedValue);
-        }
-      }
-    }
-  }
-
   async Task FillARPTableForPorts(NetworkDevice networkDevice,
                                   string host,
                                   string community,
@@ -560,14 +448,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var arpEntries = interfaceNumbers.Zip(second: macAddresses,
                                           resultSelector: (iface, mac) => new
                                           {
-                                            iface,
-                                            mac
+                                            Interface = int.Parse(iface.Data),
+                                            Mac = FormatMACAddress.Handle(mac.Data)
                                           })
                                      .Zip(second: ipAddresses,
                                           resultSelector: (firstPair, ip) => new
                                           {
-                                            Interface = int.Parse(firstPair.iface.Data),
-                                            Mac = FormatMACAddress.Handle(firstPair.mac.Data),
+                                            firstPair.Interface,
+                                            firstPair.Mac,
                                             Ip = ip.Data
                                           });
     // Проверяем, что хотя бы один из запросов не вернул пустые данные
@@ -590,7 +478,9 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                .Select(entry => new ARPEntity
                                {
                                  MAC = entry.Key,
-                                 IPAddress = entry.Value
+                                 IPAddress = entry.Value,
+                                 PortId = port.Id,
+                                 Port = port
                                })
                                .ToList();
 
@@ -639,14 +529,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var ipTableEntries = interfaceNumbers.Zip(ipAddresses,
                                               (iface, address) => new
                                               {
-                                                iface,
-                                                address
+                                                Interface = int.Parse(iface.Data),
+                                                Address = address.Data
                                               })
                                          .Zip(netMasks,
                                               (firstPair, mask) => new
                                               {
-                                                Interface = int.Parse(firstPair.iface.Data),
-                                                Address = firstPair.address.Data,
+                                                firstPair.Interface,
+                                                firstPair.Address,
                                                 Mask = mask.Data
                                               });
 
@@ -673,6 +563,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         {
           var terminatedNetwork = new TerminatedNetworkEntity();
           terminatedNetwork.SetAddressAndMask(entry.Key, entry.Value);
+          terminatedNetwork.PortId = port.Id;
+          terminatedNetwork.Port = port;
           networkTable.Add(terminatedNetwork);
         }
 

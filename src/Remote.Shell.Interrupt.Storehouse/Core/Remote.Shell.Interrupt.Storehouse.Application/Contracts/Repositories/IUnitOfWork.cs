@@ -6,5 +6,10 @@ public interface IUnitOfWork
   IBusinessRuleRepository BusinessRules { get; }
   INetworkDeviceRepository NetworkDevices { get; }
   IVLANRepository VLANs { get; }
-  Task CompleteAsync(CancellationToken cancellationToken);
+  IPortRepository Ports { get; }
+  IARPEntityRepository ARPEntities { get; }
+  IMACEntityRepository MACEntities { get; }
+  ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
+
+  void Complete();
 }

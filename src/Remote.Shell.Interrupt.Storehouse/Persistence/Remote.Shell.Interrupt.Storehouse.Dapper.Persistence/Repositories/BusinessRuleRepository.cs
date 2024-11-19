@@ -29,7 +29,7 @@ internal class BusinessRuleRepository(DapperContext context) : GenericRepository
                 ") " +
                 "SELECT * " +
                 "FROM RecursiveBusinessRules;";
-    using var connection = _context.CreateConnection();
+    var connection = _context.CreateConnection();
     var businessRulesDictionary = new Dictionary<Guid, BusinessRule>();
     var businessRules = await connection.QueryAsync<BusinessRule>(query);
     // Организуем категории в иерархическую структуру
@@ -82,7 +82,7 @@ internal class BusinessRuleRepository(DapperContext context) : GenericRepository
                 ") " +
                 "SELECT * " +
                 "FROM RecursiveBusinessRules;";
-    using var connection = _context.CreateConnection();
+    var connection = _context.CreateConnection();
     var businessRulesDictionary = new Dictionary<Guid, BusinessRule>();
     var businessRules = await connection.QueryAsync<BusinessRule>(query, new { Id = id });
     // Организуем категории в иерархическую структуру

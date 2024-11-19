@@ -14,10 +14,18 @@ internal class UnitOfWork(DapperContext context) : IUnitOfWork, IDisposable
     => new NetworkDeviceRepository(context);
   public IVLANRepository VLANs
     => new VLANRepository(context);
+  public IPortRepository Ports
+    => new PortRepository(context);
+  public IARPEntityRepository ARPEntities
+    => new ARPEntityRepository(context);
+  public IMACEntityRepository MACEntities
+    => new MACEntityRepository(context);
+  public ITerminatedNetworkEntityRepository TerminatedNetworkEntities
+    => new TerminatedNetworkEntityRepository(context);
 
-  public Task CompleteAsync(CancellationToken cancellationToken)
+  public void Complete()
   {
-    return Task.CompletedTask;
+    _context.CompleteTransaction();
   }
 
   public void Dispose()

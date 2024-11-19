@@ -31,7 +31,7 @@ internal class DeleteNetworkDeviceByIdCommandHandler(IUnitOfWork unitOfWork)
     _unitOfWork.NetworkDevices
                .DeleteOne(networkDeviceToDelete);
 
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возвращаем успешный результат выполнения команды
     return Unit.Value;

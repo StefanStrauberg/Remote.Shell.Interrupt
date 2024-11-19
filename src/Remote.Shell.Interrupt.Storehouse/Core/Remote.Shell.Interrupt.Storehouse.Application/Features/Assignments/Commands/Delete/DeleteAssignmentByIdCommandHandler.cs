@@ -29,7 +29,7 @@ internal class DeleteAssignmentByIdCommandHandler(IUnitOfWork unitOfWork)
 
     // Удаление назначения
     _unitOfWork.Assignments.DeleteOne(entity: assignmentToDelete);
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возврат успешного завершения операции
     return Unit.Value;

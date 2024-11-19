@@ -31,7 +31,7 @@ internal class CreateAssignmentCommandHandler(IUnitOfWork unitOfWork,
                .InsertOne(assignment);
 
     // Подтверждение изменений
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возврат успешного завершения операции
     return Unit.Value;

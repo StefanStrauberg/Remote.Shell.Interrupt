@@ -61,7 +61,7 @@ internal class UpdateBusinessRuleCommandHandler(IUnitOfWork unitOfWork,
                .ReplaceOne(businessRule);
 
     // Подтверждаем изменения
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возврат успешного завершения операции
     return Unit.Value;

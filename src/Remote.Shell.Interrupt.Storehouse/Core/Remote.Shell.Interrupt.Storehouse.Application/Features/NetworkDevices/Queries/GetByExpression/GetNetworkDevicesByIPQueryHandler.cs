@@ -15,62 +15,63 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
       GetNetworkDevicesByIPQuery request,
       CancellationToken cancellationToken)
   {
-    // Проверка формата IP-адреса
-    if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
-      throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
+    // // Проверка формата IP-адреса
+    // if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
+    //   throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
 
-    var ipToCheckNum = BitConverter.ToUInt32(ipToCheck.GetAddressBytes()
-                                                      .Reverse()
-                                                      .ToArray(), 0);
-    // Определяем фильтрационное выражение
-    var filterExpression = GetFilterExpression(ipToCheckNum);
+    // var ipToCheckNum = BitConverter.ToUInt32(ipToCheck.GetAddressBytes()
+    //                                                   .Reverse()
+    //                                                   .ToArray(), 0);
+    // // Определяем фильтрационное выражение
+    // var filterExpression = GetFilterExpression(ipToCheckNum);
 
-    // Получаем сетевые устройства
-    var networkDevice = await _unitOfWork.NetworkDevices
-                                         .FindOneWithChildrenAsync(filterExpression: filterExpression,
-                                                                   cancellationToken: cancellationToken)
-      ?? throw new EntityNotFoundException(filterExpression.Name!);
+    // // Получаем сетевые устройства
+    // var networkDevice = await _unitOfWork.NetworkDevices
+    //                                      .GetFirstWithChildrensByIdAsync(filterExpression: filterExpression,
+    //                                                                      cancellationToken: cancellationToken)
+    //   ?? throw new EntityNotFoundException(filterExpression.Name!);
 
-    FilterPorts(networkDevice, ipToCheckNum, out HashSet<int> tags);
+    // FilterPorts(networkDevice, ipToCheckNum, out HashSet<int> tags);
 
-    // Определяем фильтрационное выражение
-    filterExpression = GetRelatedFilterExpression(currentDevice: networkDevice.Id,
-                                                  tags: tags);
+    // // Определяем фильтрационное выражение
+    // filterExpression = GetRelatedFilterExpression(currentDevice: networkDevice.Id,
+    //                                               tags: tags);
 
-    // Получаем связанные сетевые устройства на основе тегов VLAN
-    var relatedDevices = await _unitOfWork.NetworkDevices
-                                          .FindManyWithChildrenAsync(filterExpression: filterExpression,
-                                                                     cancellationToken: cancellationToken);
+    // // Получаем связанные сетевые устройства на основе тегов VLAN
+    // var relatedDevices = await _unitOfWork.NetworkDevices
+    //                                       .FindManyWithChildrenAsync(filterExpression: filterExpression,
+    //                                                                  cancellationToken: cancellationToken);
 
-    FilterPorts(relatedDevices, tags);
+    // FilterPorts(relatedDevices, tags);
 
-    List<NetworkDevice> networkDevices = [networkDevice, .. relatedDevices];
+    // List<NetworkDevice> networkDevices = [networkDevice, .. relatedDevices];
 
-    // Фильтруем порты для каждого устройства
-    foreach (var device in networkDevices)
-    {
-      // Получаем уникальные идентификаторы портов из AggregatedPorts
-      HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
-                                               .Where(port => port.AggregatedPorts.Count != 0)
-                                               .SelectMany(port => port.AggregatedPorts)
-                                               .Select(item => item.Id)
-                                               .ToHashSet();
+    // // Фильтруем порты для каждого устройства
+    // foreach (var device in networkDevices)
+    // {
+    //   // Получаем уникальные идентификаторы портов из AggregatedPorts
+    //   HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
+    //                                            .Where(port => port.AggregatedPorts.Count != 0)
+    //                                            .SelectMany(port => port.AggregatedPorts)
+    //                                            .Select(item => item.Id)
+    //                                            .ToHashSet();
 
-      HashSet<Guid> portsWith101Vlan = device.PortsOfNetworkDevice
-                                             .SelectMany(port => port.VLANs)
-                                             .Where(vlan => vlan.VLANTag == 101)
-                                             .Select(item => item.Id)
-                                             .ToHashSet();
+    //   HashSet<Guid> portsWith101Vlan = device.PortsOfNetworkDevice
+    //                                          .SelectMany(port => port.VLANs)
+    //                                          .Where(vlan => vlan.VLANTag == 101)
+    //                                          .Select(item => item.Id)
+    //                                          .ToHashSet();
 
-      // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
-      device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
-          .Where(port => !aggregatedPortsIds.Contains(port.Id))
-          //.Where(port => !port.VLANs.Any(vlan => portsWith101Vlan.Contains(vlan.Id)))
-          .ToList();
-    }
+    //   // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
+    //   device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
+    //       .Where(port => !aggregatedPortsIds.Contains(port.Id))
+    //       //.Where(port => !port.VLANs.Any(vlan => portsWith101Vlan.Contains(vlan.Id)))
+    //       .ToList();
+    // }
 
-    // Преобразуем в DTO с использованием AutoMapper
-    return _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
+    // // Преобразуем в DTO с использованием AutoMapper
+    // return _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
+    return null;
   }
 
   private static Expression<Func<NetworkDevice, bool>> GetRelatedFilterExpression(Guid currentDevice,

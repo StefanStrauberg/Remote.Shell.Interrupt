@@ -11,6 +11,7 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IBusinessRuleRepository, BusinessRuleRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
     services.AddScoped<IVLANRepository, VLANRepository>();
+    services.AddScoped<IPortRepository, PortRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
 
     return services;

@@ -87,7 +87,7 @@ internal class DeleteBusinessRuleByIdCommandHandler(IUnitOfWork unitOfWork)
     _unitOfWork.BusinessRules
                .DeleteOne(businessRuleToDelete);
 
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возвратить успешное завершение операции
     return Unit.Value;

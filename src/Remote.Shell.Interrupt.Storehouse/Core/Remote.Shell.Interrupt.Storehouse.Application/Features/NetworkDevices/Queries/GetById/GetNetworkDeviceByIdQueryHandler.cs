@@ -13,10 +13,8 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
 
   public async Task<NetworkDeviceDTO> Handle(GetNetworkDeviceByIdQuery request, CancellationToken cancellationToken)
   {
-    var requestExpression = (Expression<Func<NetworkDevice, bool>>)(x => x.Id == request.Id);
-
-    var networkDevice = await _unitOfWork.NetworkDevices.FindOneWithChildrenAsync(requestExpression,
-                                                                                  cancellationToken)
+    var networkDevice = await _unitOfWork.NetworkDevices.GetFirstWithChildrensByIdAsync(request.Id,
+                                                                                        cancellationToken)
       ?? throw new EntityNotFoundById(typeof(NetworkDevice),
                                       request.Id.ToString());
 

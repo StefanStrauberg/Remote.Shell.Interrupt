@@ -13,3 +13,5 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
 global using System.Linq.Expressions;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
+global using System.Reflection;
+global using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;

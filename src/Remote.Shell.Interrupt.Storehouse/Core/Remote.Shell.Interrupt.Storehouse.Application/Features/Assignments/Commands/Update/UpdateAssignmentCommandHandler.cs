@@ -46,7 +46,7 @@ internal class UpdateAssignmentCommandHandler(IUnitOfWork unitOfWork,
     _unitOfWork.Assignments.ReplaceOne(assignment);
 
     // Подтверждаем изменения
-    await _unitOfWork.CompleteAsync(cancellationToken);
+    _unitOfWork.Complete();
 
     // Возврат успешного завершения операции
     return Unit.Value;

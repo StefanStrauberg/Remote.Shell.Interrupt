@@ -7,11 +7,8 @@ internal class AssignmentRepository(DapperContext context) : GenericRepository<A
                                                                 CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
-    var query = $@"SELECT EXISTS ( " +
-                $"SELECT 1 " +
-                $"FROM \"{tableName}\" " +
-                "WHERE \"Name\"=@Name AND \"Id\"!=@Id)";
-    using var connection = _context.CreateConnection();
+    var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name AND \"Id\"!=@Id";
+    var connection = _context.CreateConnection();
     var exists = await connection.ExecuteScalarAsync<bool>(query, new { Name = name, Id = id });
     return exists;
   }
@@ -19,11 +16,8 @@ internal class AssignmentRepository(DapperContext context) : GenericRepository<A
   public async Task<bool> AnyWithTheSameNameAsync(string name, CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
-    var query = $@"SELECT EXISTS ( " +
-                $"SELECT 1 " +
-                $"FROM \"{tableName}\" " +
-                "WHERE \"Name\"=@Name)";
-    using var connection = _context.CreateConnection();
+    var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name";
+    var connection = _context.CreateConnection();
     var exists = await connection.ExecuteScalarAsync<bool>(query, new { Name = name });
     return exists;
   }

@@ -7,7 +7,7 @@ public class PortDTO : IMapWith<Port>
   public string InterfaceName { get; set; } = string.Empty; // "GigabitEthernet0/1"
   public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
   public string InterfaceStatus { get; set; } = string.Empty; // "Up"
-  public ulong InterfaceSpeed { get; set; } // "1 Gbps"
+  public long InterfaceSpeed { get; set; } // "1 Gbps"
   public bool IsAggregated { get; set; }
   public string MACAddress { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
@@ -60,7 +60,7 @@ public class PortDTO : IMapWith<Port>
                                                    )));
   }
 
-  private static string ConvertToString(uint address)
+  private static string ConvertToString(long address)
   {
     var bytes = BitConverter.GetBytes(address);
     Array.Reverse(bytes); // Изменяем порядок байтов

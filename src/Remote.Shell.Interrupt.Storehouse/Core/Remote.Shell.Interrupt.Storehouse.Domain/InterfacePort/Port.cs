@@ -6,7 +6,7 @@ public class Port : BaseEntity
   public string InterfaceName { get; set; } = string.Empty; // "GigabitEthernet0/1"
   public PortType InterfaceType { get; set; } // "Ethernet"
   public PortStatus InterfaceStatus { get; set; } // "Up"
-  public ulong InterfaceSpeed { get; set; } // "1 Gbps"
+  public long InterfaceSpeed { get; set; } // "1 Gbps"
   public string MACAddress { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
 
