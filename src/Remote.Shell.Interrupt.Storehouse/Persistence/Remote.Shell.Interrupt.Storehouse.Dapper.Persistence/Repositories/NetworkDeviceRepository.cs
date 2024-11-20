@@ -109,14 +109,8 @@ internal class NetworkDeviceRepository(DapperContext context) : GenericRepositor
           }
 
           // Добавление VLAN в PortsOfNetworkDevice
-          if (pv is not null && v is not null)
-          {
-            // Добавляем VLAN в список портов
-            if (!portEntry.VLANs.Where(x => x.Id == v.Id).Any())
-            {
-              portEntry.VLANs.Add(v);
-            }
-          }
+          if (v is not null && !portEntry.VLANs.Any(x => x.Id == v.Id))
+            portEntry.VLANs.Add(v);
 
           return networkDeviceEntry;
         },
