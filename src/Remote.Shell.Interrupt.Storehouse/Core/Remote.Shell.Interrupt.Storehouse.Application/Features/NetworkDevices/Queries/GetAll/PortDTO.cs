@@ -63,6 +63,7 @@ public class PortDTO : IMapWith<Port>
   private static string ConvertToString(long address)
   {
     var bytes = BitConverter.GetBytes(address);
+    Array.Resize(ref bytes, 4);
     Array.Reverse(bytes); // Изменяем порядок байтов
     return new IPAddress(bytes).ToString();
   }

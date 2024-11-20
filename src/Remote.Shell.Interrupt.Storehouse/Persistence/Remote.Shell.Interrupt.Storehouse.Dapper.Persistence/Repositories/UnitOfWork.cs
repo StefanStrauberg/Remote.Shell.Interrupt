@@ -22,6 +22,8 @@ internal class UnitOfWork(DapperContext context) : IUnitOfWork, IDisposable
     => new MACEntityRepository(context);
   public ITerminatedNetworkEntityRepository TerminatedNetworkEntities
     => new TerminatedNetworkEntityRepository(context);
+  public IPortVlanRepository PortVlans
+    => new PortVlanRepository(context);
 
   public void Complete()
   {

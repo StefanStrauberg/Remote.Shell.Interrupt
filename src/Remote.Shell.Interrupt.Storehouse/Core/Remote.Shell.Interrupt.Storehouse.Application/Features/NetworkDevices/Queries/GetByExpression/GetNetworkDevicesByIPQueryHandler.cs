@@ -71,7 +71,7 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
 
     // // Преобразуем в DTO с использованием AutoMapper
     // return _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
-    return null;
+    return null!;
   }
 
   private static Expression<Func<NetworkDevice, bool>> GetRelatedFilterExpression(Guid currentDevice,

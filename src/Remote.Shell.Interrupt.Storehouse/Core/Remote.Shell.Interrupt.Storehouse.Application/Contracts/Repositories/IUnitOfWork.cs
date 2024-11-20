@@ -10,6 +10,7 @@ public interface IUnitOfWork
   IARPEntityRepository ARPEntities { get; }
   IMACEntityRepository MACEntities { get; }
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
+  IPortVlanRepository PortVlans { get; }
 
   void Complete();
 }

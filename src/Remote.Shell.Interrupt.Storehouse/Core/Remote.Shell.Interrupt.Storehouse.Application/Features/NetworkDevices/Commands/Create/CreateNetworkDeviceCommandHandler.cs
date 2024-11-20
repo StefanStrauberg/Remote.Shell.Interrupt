@@ -140,6 +140,23 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                           cancellationToken);
     }
 
+    _unitOfWork.VLANs
+               .InsertMany(networkDevice.PortsOfNetworkDevice
+                                        .SelectMany(x => x.VLANs));
+
+    List<PortVlan> portVlans = networkDevice.PortsOfNetworkDevice
+                                            .Where(port => port.VLANs.Count > 0) // Фильтруем порты с VLAN
+                                            .SelectMany(port => port.VLANs,
+                                                        (port, vlan) => new PortVlan
+                                                        {
+                                                          PortId = port.Id,
+                                                          VLANId = vlan.Id
+                                                        })
+                                            .ToList();
+
+    _unitOfWork.PortVlans
+               .InsertMany(portVlans);
+
     _unitOfWork.Complete();
     return Unit.Value;
   }
@@ -219,14 +236,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                   {
                                                                     first.number,
                                                                     first.name,
-                                                                    type = Enum.Parse<PortType>(response.Data)
+                                                                    interfaceType = Enum.Parse<PortType>(response.Data)
                                                                   })
                                             .Zip(interfacesSpeed, (second, response) =>
                                                                   new
                                                                   {
                                                                     second.number,
                                                                     second.name,
-                                                                    second.type,
+                                                                    second.interfaceType,
                                                                     speed = long.Parse(response.Data),
                                                                   })
                                             .Zip(interfacesStatuses, (third, response) =>
@@ -234,7 +251,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                      {
                                                                        third.number,
                                                                        third.name,
-                                                                       third.type,
+                                                                       third.interfaceType,
                                                                        third.speed,
                                                                        status = Enum.Parse<PortStatus>(response.Data)
                                                                      })
@@ -243,7 +260,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                {
                                                                  fourth.number,
                                                                  fourth.name,
-                                                                 fourth.type,
+                                                                 fourth.interfaceType,
                                                                  fourth.speed,
                                                                  fourth.status,
                                                                  mac = response.Data.Replace(' ', ':')
@@ -253,7 +270,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                {
                                                                  fifth.number,
                                                                  fifth.name,
-                                                                 fifth.type,
+                                                                 fifth.interfaceType,
                                                                  fifth.speed,
                                                                  fifth.status,
                                                                  fifth.mac,
@@ -277,7 +294,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         InterfaceSpeed = zippedCollection[i].speed,
         InterfaceStatus = zippedCollection[i].status,
         MACAddress = zippedCollection[i].mac,
-        Description = zippedCollection[i].description
+        Description = zippedCollection[i].description,
+        InterfaceType = zippedCollection[i].interfaceType
       });
     }
     networkDevice.PortsOfNetworkDevice = ports;
@@ -667,9 +685,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         }
       }
     }
-
-    _unitOfWork.VLANs
-               .InsertMany(vlansToAdd);
   }
 
   async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice,
@@ -1006,9 +1021,6 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         }
       }
     }
-
-    _unitOfWork.VLANs
-               .InsertMany(vlansToAdd);
   }
 
   async Task FillPortVLANSForExtreme(NetworkDevice networkDevice,
@@ -1115,8 +1127,5 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         }
       }
     }
-
-    _unitOfWork.VLANs
-               .InsertMany(vlansToAdd);
   }
 }
