@@ -23,37 +23,13 @@ internal class NetworkDeviceRepository(DapperContext context) : GenericRepositor
     var connection = await _context.CreateConnectionAsync(cancellationToken);
 
     var query = $"SELECT " +
-                 "nd.\"Id\", " +
-                 "nd.\"Host\", " +
-                 "nd.\"TypeOfNetworkDevice\", " +
-                 "nd.\"NetworkDeviceName\", " +
-                 "nd.\"GeneralInformation\", " +
-                 "p.\"Id\", " +
-                 "p.\"InterfaceNumber\", " +
-                 "p.\"InterfaceName\", " +
-                 "p.\"InterfaceType\", " +
-                 "p.\"InterfaceStatus\", " +
-                 "p.\"InterfaceSpeed\", " +
-                 "p.\"NetworkDeviceId\", " +
-                 "p.\"ParentPortId\", " +
-                 "p.\"MACAddress\", " +
-                 "arp.\"Id\", " +
-                 "arp.\"MAC\", " +
-                 "arp.\"IPAddress\", " +
-                 "arp.\"PortId\", " +
-                 "mac.\"Id\", " +
-                 "mac.\"MACAddress\", " +
-                 "mac.\"PortId\", " +
-                 "tn.\"Id\", " +
-                 "tn.\"NetworkAddress\", " +
-                 "tn.\"Netmask\", " +
-                 "tn.\"PortId\", " +
-                 "pv.\"Id\", " +
-                 "pv.\"PortId\", " +
-                 "pv.\"VLANId\", " +
-                 "v.\"Id\", " +
-                 "v.\"VLANTag\", " +
-                 "v.\"VLANName\" " +
+                 "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
+                 "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
+                 "arp.\"Id\", arp.\"MAC\", arp.\"IPAddress\", arp.\"PortId\", " +
+                 "mac.\"Id\", mac.\"MACAddress\", mac.\"PortId\", " +
+                 "tn.\"Id\", tn.\"NetworkAddress\", tn.\"Netmask\", tn.\"PortId\", " +
+                 "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
+                 "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
                  "FROM \"NetworkDevices\" as nd " +
                  "LEFT JOIN \"Ports\" AS p on p.\"NetworkDeviceId\" = nd.\"Id\" " +
                  "LEFT JOIN \"ARPEntities\" AS arp on arp.\"PortId\" = p.\"Id\" " +
