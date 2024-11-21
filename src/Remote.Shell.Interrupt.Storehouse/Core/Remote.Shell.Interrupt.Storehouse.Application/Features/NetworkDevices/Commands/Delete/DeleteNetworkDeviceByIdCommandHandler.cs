@@ -24,12 +24,12 @@ internal class DeleteNetworkDeviceByIdCommandHandler(IUnitOfWork unitOfWork)
 
     // Получаем устройство для удаления
     var networkDeviceToDelete = await _unitOfWork.NetworkDevices
-                                                 .FirstByIdAsync(request.Id,
-                                                                 cancellationToken);
+                                                 .GetFirstWithChildrensByIdAsync(request.Id,
+                                                                                 cancellationToken);
 
     // Удаляем найденное устройство из репозитория
     _unitOfWork.NetworkDevices
-               .DeleteOne(networkDeviceToDelete);
+               .DeleteOneWithChilren(networkDeviceToDelete);
 
     _unitOfWork.Complete();
 

@@ -24,21 +24,21 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
                                    request.Id.ToString());
 
     var networkDevice = await _unitOfWork.NetworkDevices.GetFirstWithChildrensByIdAsync(request.Id,
-                                                                                        cancellationToken)
-      ?? throw new EntityNotFoundById(typeof(NetworkDevice),
-                                      request.Id.ToString());
+                                                                                        cancellationToken);
 
-    // // Получаем уникальные идентификаторы портов из AggregatedPorts
-    // HashSet<Guid> aggregatedPortsIds = networkDevice.PortsOfNetworkDevice
-    //     .Where(port => port.AggregatedPorts.Count != 0)
-    //     .SelectMany(port => port.AggregatedPorts)
-    //     .Select(item => item.Id)
-    //     .ToHashSet();
+    HashSet<Guid> aggregatedPortsIds = [];
 
-    // // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
-    // networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
-    //       .Where(port => !aggregatedPortsIds.Contains(port.Id))
-    //       .OrderBy(port => port.InterfaceName)];
+    foreach (var port in networkDevice.PortsOfNetworkDevice.Where(x => x.ParentPortId is not null))
+    {
+      var parentPort = networkDevice.PortsOfNetworkDevice.First(x => x.Id == port.ParentPortId);
+      parentPort.AggregatedPorts.Add(port);
+      aggregatedPortsIds.Add(port.Id);
+    }
+
+    // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
+    networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
+          .Where(port => !aggregatedPortsIds.Contains(port.Id))
+          .OrderBy(port => port.InterfaceName)];
 
     var networkDeviceDTO = _mapper.Map<NetworkDeviceDTO>(networkDevice);
 

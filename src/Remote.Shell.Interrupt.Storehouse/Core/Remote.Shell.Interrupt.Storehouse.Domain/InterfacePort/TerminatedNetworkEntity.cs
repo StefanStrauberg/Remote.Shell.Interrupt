@@ -6,7 +6,6 @@ public class TerminatedNetworkEntity : BaseEntity
   public long Netmask { get; set; }
 
   public Guid PortId { get; set; }
-  public Port Port { get; set; } = null!;
 
   // Метод для установки сетевого адреса и маски из строкового представления
   public void SetAddressAndMask(string ipAddress, string netmask)

@@ -6,5 +6,4 @@ public class ARPEntity : BaseEntity
   public string IPAddress { get; set; } = string.Empty;
 
   public Guid PortId { get; set; }
-  public Port Port { get; set; } = null!;
 }

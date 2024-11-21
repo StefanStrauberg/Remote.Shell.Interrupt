@@ -85,7 +85,6 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
   public void ReplaceOne(T entity)
   {
     _context.BeginTransaction();
-    entity.UpdatedAt = DateTime.Now;
     string tableName = GetTableName();
     string updateProperties = GetUpdateProperties(excludeKey: true);
     var query = $"UPDATE \"{tableName}\" SET {updateProperties} WHERE \"Id\"=@Id";
@@ -93,7 +92,16 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     connection.Execute(query, entity);
   }
 
-  protected string GetTableName()
+  public void ReplaceMany(IEnumerable<T> entities)
+  {
+    _context.BeginTransaction();
+    foreach (var entity in entities)
+    {
+      ReplaceOne(entity);
+    }
+  }
+
+  static protected string GetTableName()
   {
     StringBuilder sb = new();
     var name = typeof(T).Name;
@@ -112,7 +120,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return sb.ToString();
   }
 
-  protected string GetColumnsAsProperties(bool excludeKey = false)
+  static protected string GetColumnsAsProperties(bool excludeKey = false)
   {
     StringBuilder sb = new();
     Type type = typeof(T);
@@ -146,21 +154,24 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
       // Если свойство CreatedAt, пропускаем его
       if (property.Name.Equals("CreatedAt"))
+        continue;
+
+      // Если свойство UpdatedAt, пропускаем его
+      if (property.Name.Equals("UpdatedAt"))
         continue;
 
       sb.Append($"\"{property.Name}\"");
 
-      // Если это не последнее свойство, добавляем запятую
-      if (i < properties.Length - 1)
-      {
-        sb.Append(',');
-      }
+      sb.Append(',');
     }
+
+    if (sb[^1] == ',')
+      sb.Length--;
 
     return sb.ToString();
   }
 
-  protected string GetPropertyNames(bool excludeKey = false)
+  static protected string GetPropertyNames(bool excludeKey = false)
   {
     StringBuilder sb = new();
     Type type = typeof(T);
@@ -194,19 +205,24 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
       // Если свойство CreatedAt, пропускаем его
       if (property.Name.Equals("CreatedAt"))
+        continue;
+
+      // Если свойство UpdatedAt, пропускаем его
+      if (property.Name.Equals("UpdatedAt"))
         continue;
 
       sb.Append($"@{property.Name}");
 
-      // Если это не последнее свойство, добавляем запятую
-      if (i < properties.Length - 1)
-        sb.Append(',');
+      sb.Append(',');
     }
+
+    if (sb[^1] == ',')
+      sb.Length--;
 
     return sb.ToString();
   }
 
-  string GetUpdateProperties(bool excludeKey = false)
+  static string GetUpdateProperties(bool excludeKey = false)
   {
     StringBuilder sb = new();
     Type type = typeof(T);
@@ -240,15 +256,20 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
       // Если свойство CreatedAt, пропускаем его
       if (property.Name.Equals("CreatedAt"))
+        continue;
+
+      // Если свойство UpdatedAt, пропускаем его
+      if (property.Name.Equals("UpdatedAt"))
         continue;
 
       // Используем интерполяцию строк для формирования записи
       sb.Append($"\"{property.Name}\"=@{property.Name}");
 
-      // Если это не последнее свойство, добавляем запятую
-      if (i < properties.Length - 1)
-        sb.Append(", ");
+      sb.Append(", ");
     }
+
+    if (sb[^1] == ' ')
+      sb.Length -= 2;
 
     return sb.ToString();
   }

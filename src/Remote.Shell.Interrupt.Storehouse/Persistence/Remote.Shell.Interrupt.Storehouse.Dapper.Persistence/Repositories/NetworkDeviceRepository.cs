@@ -1,25 +1,29 @@
-
-using System.Collections;
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class NetworkDeviceRepository(DapperContext context) : GenericRepository<NetworkDevice>(context), INetworkDeviceRepository
 {
-  public Task<IEnumerable<NetworkDevice>> FindManyWithChildrenAsync(Expression<Func<NetworkDevice, bool>> filterExpression, CancellationToken cancellationToken)
+  public void DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
-    throw new NotImplementedException();
-  }
-
-  public Task<IEnumerable<NetworkDevice>> GetAllWithChildrenAsync(CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
+    _context.BeginTransaction();
+    var connection = _context.CreateConnection();
+    var vlans = networkDeviceToDelete.PortsOfNetworkDevice.SelectMany(x => x.VLANs);
+    var query = $"DELETE FROM \"VLANs\" WHERE \"Id\"=@Id";
+    foreach (var vlan in vlans)
+    {
+      connection.Execute(query, new { Id = vlan.Id });
+    }
+    query = $"DELETE FROM \"PortVlans\" WHERE \"VLANId\"=@Id";
+    foreach (var vlan in vlans)
+    {
+      connection.Execute(query, new { Id = vlan.Id });
+    }
+    query = $"DELETE FROM \"NetworkDevices\" WHERE \"Id\"=@Id";
+    connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
   public async Task<NetworkDevice> GetFirstWithChildrensByIdAsync(Guid id,
                                                                   CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
-    string columns = GetColumnsAsProperties();
     var connection = await _context.CreateConnectionAsync(cancellationToken);
 
     var query = $"SELECT " +

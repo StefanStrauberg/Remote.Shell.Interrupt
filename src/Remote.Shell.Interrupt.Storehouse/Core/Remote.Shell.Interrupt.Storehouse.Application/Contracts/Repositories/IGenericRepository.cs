@@ -12,6 +12,7 @@ public interface IGenericRepository<T> where T : BaseEntity
     void InsertMany(IEnumerable<T> entities);
 
     void ReplaceOne(T entity);
+    void ReplaceMany(IEnumerable<T> entities);
 
     void DeleteOne(T entity);
 

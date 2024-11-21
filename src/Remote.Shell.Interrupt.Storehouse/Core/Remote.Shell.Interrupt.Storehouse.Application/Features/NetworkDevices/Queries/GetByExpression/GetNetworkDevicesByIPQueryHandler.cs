@@ -15,17 +15,17 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
       GetNetworkDevicesByIPQuery request,
       CancellationToken cancellationToken)
   {
-    // // Проверка формата IP-адреса
-    // if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
-    //   throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
+    // Проверка формата IP-адреса
+    if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
+      throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
 
-    // var ipToCheckNum = BitConverter.ToUInt32(ipToCheck.GetAddressBytes()
-    //                                                   .Reverse()
-    //                                                   .ToArray(), 0);
-    // // Определяем фильтрационное выражение
-    // var filterExpression = GetFilterExpression(ipToCheckNum);
+    var ipToCheckNum = BitConverter.ToInt64(ipToCheck.GetAddressBytes()
+                                                     .Reverse()
+                                                     .ToArray(), 0);
+    // Определяем фильтрационное выражение
+    //var filterExpression = GetFilterExpression(ipToCheckNum);
 
-    // // Получаем сетевые устройства
+    // Получаем сетевые устройства
     // var networkDevice = await _unitOfWork.NetworkDevices
     //                                      .GetFirstWithChildrensByIdAsync(filterExpression: filterExpression,
     //                                                                      cancellationToken: cancellationToken)
