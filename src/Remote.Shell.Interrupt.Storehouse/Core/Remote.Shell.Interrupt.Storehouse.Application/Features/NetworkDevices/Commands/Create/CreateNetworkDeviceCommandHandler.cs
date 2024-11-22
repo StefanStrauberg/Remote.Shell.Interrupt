@@ -37,11 +37,15 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
+    // Заполняем основноую информацию устройства
+    await FillNetworkDevicesGeneralInformation(networkDevice,
+                                               request.Host,
+                                               request.Community,
+                                               cancellationToken);
     // Заполняем имя устройства
     await FillNetworkDevicesName(networkDevice,
                                  request.Host,
                                  request.Community,
-                                 maxRepetitions,
                                  cancellationToken);
 
     // Вставляем новое сетевое устройство в репозиторий
@@ -186,11 +190,22 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     return Unit.Value;
   }
 
+  private async Task FillNetworkDevicesGeneralInformation(NetworkDevice networkDevice,
+                                                          string host,
+                                                          string community,
+                                                          CancellationToken cancellationToken)
+  {
+    var networkDeviceName = await _snmpCommandExecutor.GetCommand(host: host,
+                                                                  community: community,
+                                                                  oid: "1.3.6.1.2.1.1.1.0",
+                                                                  cancellationToken: cancellationToken);
+    networkDevice.GeneralInformation = networkDeviceName.Data;
+  }
+
   private async Task FillNetworkDevicesName(NetworkDevice networkDevice,
-                                            string host,
-                                            string community,
-                                            int maxRepetitions,
-                                            CancellationToken cancellationToken)
+                                          string host,
+                                          string community,
+                                          CancellationToken cancellationToken)
   {
     var networkDeviceName = await _snmpCommandExecutor.GetCommand(host: host,
                                                                   community: community,
