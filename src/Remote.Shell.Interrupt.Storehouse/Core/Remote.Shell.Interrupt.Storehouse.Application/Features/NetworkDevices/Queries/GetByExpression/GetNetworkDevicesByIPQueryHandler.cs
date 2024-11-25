@@ -1,3 +1,5 @@
+using System.Runtime.ConstrainedExecution;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 
 public record GetNetworkDevicesByIPQuery(string IpAddress) : IQuery<IEnumerable<NetworkDeviceDTO>>;
@@ -19,125 +21,60 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
       throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
 
-    var ipToCheckNum = BitConverter.ToInt64(ipToCheck.GetAddressBytes()
-                                                     .Reverse()
-                                                     .ToArray(), 0);
-    // Определяем фильтрационное выражение
-    //var filterExpression = GetFilterExpression(ipToCheckNum);
+    var interfaceName = await _unitOfWork.Ports
+                                         .LookingForInterfaceNameByIP(request.IpAddress,
+                                                                      cancellationToken);
 
-    // Получаем сетевые устройства
-    // var networkDevice = await _unitOfWork.NetworkDevices
-    //                                      .GetFirstWithChildrensByIdAsync(filterExpression: filterExpression,
-    //                                                                      cancellationToken: cancellationToken)
-    //   ?? throw new EntityNotFoundException(filterExpression.Name!);
+    var vlanTag = TryGetVlanNumber(interfaceName);
 
-    // FilterPorts(networkDevice, ipToCheckNum, out HashSet<int> tags);
+    if (vlanTag == 0)
+      return null!;
 
-    // // Определяем фильтрационное выражение
-    // filterExpression = GetRelatedFilterExpression(currentDevice: networkDevice.Id,
-    //                                               tags: tags);
+    var networkDevices = await _unitOfWork.NetworkDevices
+                                          .GetFirstWithChildrensByVLANTagAsync(vlanTag,
+                                                                               cancellationToken);
 
-    // // Получаем связанные сетевые устройства на основе тегов VLAN
-    // var relatedDevices = await _unitOfWork.NetworkDevices
-    //                                       .FindManyWithChildrenAsync(filterExpression: filterExpression,
-    //                                                                  cancellationToken: cancellationToken);
+    PrepareAndCleanAggregationPorts(networkDevices);
 
-    // FilterPorts(relatedDevices, tags);
-
-    // List<NetworkDevice> networkDevices = [networkDevice, .. relatedDevices];
-
-    // // Фильтруем порты для каждого устройства
-    // foreach (var device in networkDevices)
-    // {
-    //   // Получаем уникальные идентификаторы портов из AggregatedPorts
-    //   HashSet<Guid> aggregatedPortsIds = device.PortsOfNetworkDevice
-    //                                            .Where(port => port.AggregatedPorts.Count != 0)
-    //                                            .SelectMany(port => port.AggregatedPorts)
-    //                                            .Select(item => item.Id)
-    //                                            .ToHashSet();
-
-    //   HashSet<Guid> portsWith101Vlan = device.PortsOfNetworkDevice
-    //                                          .SelectMany(port => port.VLANs)
-    //                                          .Where(vlan => vlan.VLANTag == 101)
-    //                                          .Select(item => item.Id)
-    //                                          .ToHashSet();
-
-    //   // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
-    //   device.PortsOfNetworkDevice = device.PortsOfNetworkDevice
-    //       .Where(port => !aggregatedPortsIds.Contains(port.Id))
-    //       //.Where(port => !port.VLANs.Any(vlan => portsWith101Vlan.Contains(vlan.Id)))
-    //       .ToList();
-    // }
-
-    // // Преобразуем в DTO с использованием AutoMapper
-    // return _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
-    return null!;
+    var reuslt = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
+    return reuslt;
   }
 
-  private static Expression<Func<NetworkDevice, bool>> GetRelatedFilterExpression(Guid currentDevice,
-                                                                                  HashSet<int> tags)
+  static void PrepareAndCleanAggregationPorts(IEnumerable<NetworkDevice> networkDevices)
   {
-    return device => device.Id != currentDevice &&
-           device.PortsOfNetworkDevice
-                 .Any(port => port.VLANs
-                                  .Any(vlan => tags.Contains(vlan.VLANTag)));
-  }
-
-  private static Expression<Func<NetworkDevice, bool>> GetFilterExpression(uint ipToCheckNum)
-  {
-    return x => x.PortsOfNetworkDevice.Any(port => port.NetworkTableOfInterface
-                                                       .Any(networkEntry => (ipToCheckNum & networkEntry.Netmask) ==
-                                                                            (networkEntry.NetworkAddress & networkEntry.Netmask)));
-  }
-
-  private static void FilterPorts(NetworkDevice networkDevice, uint ipToCheckNum, out HashSet<int> tags)
-  {
-    var filteredPorts = new List<Port>();
-    tags = [];
-
-    // Фильтруем порты по IP
-    var filterByIp = networkDevice.PortsOfNetworkDevice
-                                  .Where(port => port.NetworkTableOfInterface
-                                                     .Any(networkEntry => (ipToCheckNum & networkEntry.Netmask) ==
-                                                                          (networkEntry.NetworkAddress & networkEntry.Netmask)))
-                                  .OrderBy(x => x.InterfaceName)
-                                  .ToList();
-
-    filteredPorts.AddRange(filterByIp);
-
-    foreach (var port in filterByIp)
+    foreach (var networkDevice in networkDevices)
     {
-      if (TryExtractNumber(port.InterfaceName, out int tag))
+      HashSet<Guid> aggregatedPortsIds = [];
+
+      foreach (var port in networkDevice.PortsOfNetworkDevice.Where(x => x.ParentPortId is not null))
       {
-        // Фильтруем порты по VLAN Tag
-        var filterByVlanTag = networkDevice.PortsOfNetworkDevice
-            .Where(p => p.VLANs.Any(vlan => vlan.VLANTag == tag));
-        filteredPorts.AddRange(filterByVlanTag);
-        tags.Add(tag);
+        var parentPort = networkDevice.PortsOfNetworkDevice.First(x => x.Id == port.ParentPortId);
+        parentPort.AggregatedPorts.Add(port);
+        aggregatedPortsIds.Add(port.Id);
+      }
+
+      // Фильтруем PortsOfNetworkDevice, исключая повторяющиеся порты
+      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
+          .Where(port => !aggregatedPortsIds.Contains(port.Id))
+          .OrderBy(port => port.InterfaceName)];
+    }
+  }
+
+  static int TryGetVlanNumber(string interfaceName)
+  {
+    StringBuilder result = new();
+
+    foreach (char c in interfaceName)
+    {
+      if (char.IsDigit(c))  // Проверяем, является ли символ цифрой
+      {
+        result.Append(c);  // Добавляем цифру в результат
       }
     }
 
-    networkDevice.PortsOfNetworkDevice = filteredPorts;
-  }
-
-  private static void FilterPorts(IEnumerable<NetworkDevice> networkDevices, HashSet<int> tags)
-  {
-    foreach (var device in networkDevices)
-    {
-      // Фильтруем порты по VLANTag
-      var filterByVLANTag = device.PortsOfNetworkDevice
-                                  .Where(port => port.VLANs
-                                                     .Any(vlan => tags.Contains(vlan.VLANTag)))
-                                  .OrderBy(x => x.InterfaceName)
-                                  .ToList();
-
-      device.PortsOfNetworkDevice = filterByVLANTag;
-    }
-  }
-
-  public static bool TryExtractNumber(string input, out int result)
-  {
-    string numberString = new(input.Where(char.IsDigit).ToArray());
-    return int.TryParse(numberString, out result);
+    if (int.TryParse(result.ToString(), out int vlanTag))
+      return vlanTag;
+    else
+      return 0;
   }
 }
