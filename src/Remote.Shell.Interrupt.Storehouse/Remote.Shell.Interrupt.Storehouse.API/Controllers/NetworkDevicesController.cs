@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
+
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 public class NetworkDevicesController(ISender sender) : BaseAPIController
@@ -12,7 +14,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{id}")]
-  [ProducesResponseType(typeof(List<NetworkDeviceDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDevicesById(Guid id,
                                                          CancellationToken cancellationToken)
@@ -20,11 +22,19 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{address}")]
-  [ProducesResponseType(typeof(List<NetworkDeviceDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDevicesByIP(string address,
                                                          CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetNetworkDevicesByIPQuery(address),
+                             cancellationToken));
+
+  [HttpGet("{VLANTag}")]
+  [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> GetNetworkDevicesByVlanTag(int VLANTag,
+                                                              CancellationToken cancellationToken)
+    => Ok(await _sender.Send(new GetNetworkDeviceByVlanTagQuery(VLANTag),
                              cancellationToken));
 
   [HttpPost]

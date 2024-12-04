@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class BusinessRuleRepository(DapperContext context) : GenericRepository<BusinessRule>(context), IBusinessRuleRepository
 {
-  public async Task<BusinessRule> GetBusinessRulesTreeAsync(CancellationToken cancellationToken)
+  async Task<BusinessRule> IBusinessRuleRepository.GetBusinessRulesTreeAsync(CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
@@ -54,8 +54,8 @@ internal class BusinessRuleRepository(DapperContext context) : GenericRepository
     return businessRulesDictionary.Values.First(c => c.ParentId == null);
   }
 
-  public async Task<BusinessRule> GetBusinessRulesNodeByIdAsync(Guid id,
-                                                                CancellationToken cancellationToken)
+  async Task<BusinessRule> IBusinessRuleRepository.GetBusinessRulesNodeByIdAsync(Guid id,
+                                                                                 CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();

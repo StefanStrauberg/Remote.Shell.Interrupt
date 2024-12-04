@@ -2,9 +2,9 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class AssignmentRepository(DapperContext context) : GenericRepository<Assignment>(context), IAssignmentRepository
 {
-  public async Task<bool> AnyWithTheSameNameAndDifferentIdAsync(Guid id,
-                                                                string name,
-                                                                CancellationToken cancellationToken)
+  async Task<bool> IAssignmentRepository.AnyWithTheSameNameAndDifferentIdAsync(Guid id,
+                                                                               string name,
+                                                                               CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name AND \"Id\"!=@Id";
@@ -13,7 +13,8 @@ internal class AssignmentRepository(DapperContext context) : GenericRepository<A
     return exists;
   }
 
-  public async Task<bool> AnyWithTheSameNameAsync(string name, CancellationToken cancellationToken)
+  async Task<bool> IAssignmentRepository.AnyWithTheSameNameAsync(string name,
+                                                                 CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name";

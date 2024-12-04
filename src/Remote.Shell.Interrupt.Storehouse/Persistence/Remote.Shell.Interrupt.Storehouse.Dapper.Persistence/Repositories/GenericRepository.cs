@@ -5,7 +5,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
   protected readonly DapperContext _context = context
     ?? throw new ArgumentNullException(nameof(context));
 
-  public async Task<bool> AnyAsync(CancellationToken cancellationToken)
+  async Task<bool> IGenericRepository<T>.AnyAsync(CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\"";
@@ -14,7 +14,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return count > 0;
   }
 
-  public async Task<bool> AnyByIdAsync(Guid id,
+  async Task<bool> IGenericRepository<T>.AnyByIdAsync(Guid id,
                                        CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
@@ -24,16 +24,16 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return count > 0;
   }
 
-  public void DeleteMany(IEnumerable<T> entities)
+  void IGenericRepository<T>.DeleteMany(IEnumerable<T> entities)
   {
     _context.BeginTransaction();
     foreach (var entity in entities)
     {
-      DeleteOne(entity);
+      ((IGenericRepository<T>)this).DeleteOne(entity);
     }
   }
 
-  public void DeleteOne(T entity)
+  void IGenericRepository<T>.DeleteOne(T entity)
   {
     _context.BeginTransaction();
     string tableName = GetTableName();
@@ -42,8 +42,8 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     connection.Execute(query, new { Id = entity.Id });
   }
 
-  public async Task<T> FirstByIdAsync(Guid id,
-                                      CancellationToken cancellationToken)
+  async Task<T> IGenericRepository<T>.FirstByIdAsync(Guid id,
+                                                     CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
@@ -52,7 +52,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return await connection.QuerySingleAsync<T>(query, new { Id = id });
   }
 
-  public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken)
+  async Task<IEnumerable<T>> IGenericRepository<T>.GetAllAsync(CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
@@ -61,16 +61,16 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     return await connection.QueryAsync<T>(query);
   }
 
-  public void InsertMany(IEnumerable<T> entities)
+  void IGenericRepository<T>.InsertMany(IEnumerable<T> entities)
   {
     _context.BeginTransaction();
     foreach (var entity in entities)
     {
-      InsertOne(entity);
+      ((IGenericRepository<T>)this).InsertOne(entity);
     }
   }
 
-  public void InsertOne(T entity)
+  void IGenericRepository<T>.InsertOne(T entity)
   {
     _context.BeginTransaction();
     string tableName = GetTableName();
@@ -82,7 +82,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     entity.Id = entityId;
   }
 
-  public void ReplaceOne(T entity)
+  void IGenericRepository<T>.ReplaceOne(T entity)
   {
     _context.BeginTransaction();
     string tableName = GetTableName();
@@ -92,12 +92,12 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     connection.Execute(query, entity);
   }
 
-  public void ReplaceMany(IEnumerable<T> entities)
+  void IGenericRepository<T>.ReplaceMany(IEnumerable<T> entities)
   {
     _context.BeginTransaction();
     foreach (var entity in entities)
     {
-      ReplaceOne(entity);
+      ((IGenericRepository<T>)this).ReplaceOne(entity);
     }
   }
 

@@ -22,7 +22,7 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
       throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
 
     var interfaceName = await _unitOfWork.Ports
-                                         .LookingForInterfaceNameByIP(request.IpAddress,
+                                         .LookingForInterfaceNameByIPAsync(request.IpAddress,
                                                                       cancellationToken);
 
     var vlanTag = TryGetVlanNumber(interfaceName);
@@ -31,7 +31,7 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
       return null!;
 
     var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetFirstWithChildrensByVLANTagAsync(vlanTag,
+                                          .GetAllWithChildrensByVLANTagAsync(vlanTag,
                                                                                cancellationToken);
 
     PrepareAndCleanAggregationPorts(networkDevices);

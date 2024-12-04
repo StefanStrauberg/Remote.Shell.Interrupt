@@ -5,6 +5,6 @@ public interface INetworkDeviceRepository : IGenericRepository<NetworkDevice>
   Task<NetworkDevice> GetFirstWithChildrensByIdAsync(Guid id,
                                                      CancellationToken cancellationToken);
   void DeleteOneWithChilren(NetworkDevice networkDeviceToDelete);
-  Task<IEnumerable<NetworkDevice>> GetFirstWithChildrensByVLANTagAsync(int vlanTag,
+  Task<IEnumerable<NetworkDevice>> GetAllWithChildrensByVLANTagAsync(int vlanTag,
                                                                        CancellationToken cancellationToken);
 }
