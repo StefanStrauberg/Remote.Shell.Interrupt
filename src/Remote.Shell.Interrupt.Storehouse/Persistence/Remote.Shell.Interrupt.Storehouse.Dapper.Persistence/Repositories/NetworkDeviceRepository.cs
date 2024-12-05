@@ -80,11 +80,11 @@ internal class NetworkDeviceRepository(DapperContext context) : GenericRepositor
                  "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
                  "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
                  "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
-                 "FROM \"NetworkDevices\" as nd " +
-                 "LEFT JOIN \"Ports\" AS p on p.\"NetworkDeviceId\" = nd.\"Id\" " +
-                 "LEFT JOIN \"PortVlans\" AS pv on pv.\"PortId\" = p.\"Id\" " +
-                 "LEFT JOIN \"VLANs\" AS v on v.\"Id\" = pv.\"VLANId\" " +
-                 "WHERE v.\"VLANTag\"=@VLANTag";
+                 "FROM \"NetworkDevices\" AS nd " +
+                 "LEFT JOIN \"Ports\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
+                 "LEFT JOIN \"PortVlans\" AS pv ON pv.\"PortId\" = p.\"Id\" " +
+                 "LEFT JOIN \"VLANs\" AS v ON v.\"Id\" = pv.\"VLANId\" " +
+                 "WHERE v.\"VLANTag\" = @VLANTag";
 
     var ndDictionary = new Dictionary<Guid, NetworkDevice>();
     var pDicotionary = new Dictionary<Guid, Port>();

@@ -9,9 +9,9 @@ internal class PortRepository(DapperContext context) : GenericRepository<Port>(c
   {
     var connection = await _context.CreateConnectionAsync(cancellationToken);
     var ids = GetStringIds(Ids);
-    var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\" \"Description\" " +
+    var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
                 "FROM \"Ports\" " +
-                $"WHERE \"ParentPortId\" in ({ids})";
+                $"WHERE \"ParentPortId\" IN ({ids})";
     return await connection.QueryAsync<Port>(query);
   }
 
@@ -19,7 +19,7 @@ internal class PortRepository(DapperContext context) : GenericRepository<Port>(c
                                                                              CancellationToken cancellationToken)
   {
     var connection = await _context.CreateConnectionAsync(cancellationToken);
-    var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\" \"Description\" " +
+    var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
                 "FROM \"Ports\" " +
                 "WHERE \"ParentPortId\" = @Id";
     return await connection.QueryAsync<Port>(query, new { Id = id });
@@ -35,7 +35,7 @@ internal class PortRepository(DapperContext context) : GenericRepository<Port>(c
                 "AND tn.\"Netmask\" IS NOT NULL " +
                 "AND tn.\"NetworkAddress\" <> 0 " +
                 "AND tn.\"Netmask\" <> 0 " +
-                "AND((tn.\"NetworkAddress\" & tn.\"Netmask\") = ((@IP::inet - '0.0.0.0'::inet) & tn.\"Netmask\"))";
+                "AND ((tn.\"NetworkAddress\" & tn.\"Netmask\") = ((@IP::inet - '0.0.0.0'::inet) & tn.\"Netmask\"))";
     var reuslt = await connection.ExecuteScalarAsync<string>(query, new { IP = ipAddress });
     return reuslt ?? string.Empty;
   }
@@ -52,5 +52,44 @@ internal class PortRepository(DapperContext context) : GenericRepository<Port>(c
         sb.Append(',');
     }
     return sb.ToString();
+  }
+
+  static string GetStringHosts(List<string> hosts)
+  {
+    var sb = new StringBuilder();
+    for (int i = 0; i < hosts.Count; i++)
+    {
+      sb.Append('\'');
+      sb.Append(hosts[i].ToString());
+      sb.Append('\'');
+      if (i != hosts.Count - 1)
+        sb.Append(',');
+    }
+    return sb.ToString();
+  }
+
+  public async Task<Port> GetPortWithNameAsync(string name,
+                                               CancellationToken cancellationToken)
+  {
+    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
+                "FROM \"Ports\" " +
+                $"WHERE \"InterfaceName\" LIKE '%{name}%'";
+    return await connection.QueryFirstAsync<Port>(query);
+  }
+
+  public async Task<IEnumerable<Port>> GetPortsWithWithMacAddressesAndSpecificHostsAsync(string MACAddress,
+                                                                                         List<string> hosts,
+                                                                                         CancellationToken cancellationToken)
+  {
+    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var hostsToDelete = GetStringHosts(hosts);
+    var query = "SELECT p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\",  p.\"MACAddress\", p.\"Description\" " +
+                "FROM \"NetworkDevices\" AS nd " +
+                "LEFT JOIN \"Ports\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
+                "LEFT JOIN \"MACEntities\" AS mac ON mac.\"PortId\" = p.\"Id\" " +
+                "WHERE mac.\"MACAddress\" = @MAC " +
+                $"AND nd.\"Host\" in ({hostsToDelete})";
+    return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });
   }
 }

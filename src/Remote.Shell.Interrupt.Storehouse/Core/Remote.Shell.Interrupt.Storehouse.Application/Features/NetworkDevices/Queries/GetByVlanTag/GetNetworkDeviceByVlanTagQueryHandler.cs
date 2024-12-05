@@ -20,15 +20,50 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     var networkDevices = await _unitOfWork.NetworkDevices
                                           .GetAllWithChildrensByVLANTagAsync(request.VLANTag,
-                                                                               cancellationToken);
+                                                                             cancellationToken);
 
     PrepareAndCleanAggregationPorts(networkDevices);
 
+    var deletePortBase = await _unitOfWork.Ports.GetPortWithNameAsync(request.VLANTag.ToString(),
+                                                                      cancellationToken);
+
+    if (deletePortBase is not null)
+    {
+      networkDevices = networkDevices.Where(x => x.Id != deletePortBase.NetworkDeviceId);
+
+      var portsToDelete = await _unitOfWork.Ports.GetPortsWithWithMacAddressesAndSpecificHostsAsync(deletePortBase.MACAddress,
+                                                                                                    networkDevices.Select(x => x.Host)
+                                                                                                                  .ToList(),
+                                                                                                    cancellationToken);
+
+      foreach (var port in portsToDelete)
+      {
+        var nd = networkDevices.Where(x => x.Id == port.NetworkDeviceId)
+                               .FirstOrDefault();
+        if (nd is null)
+          continue;
+
+        var portToDelete = nd.PortsOfNetworkDevice
+                             .Where(x => x.Id == port.Id)
+                             .FirstOrDefault();
+
+        if (portToDelete is null)
+          continue;
+
+        nd.PortsOfNetworkDevice.Remove(portToDelete);
+
+        if (nd.PortsOfNetworkDevice.Count == 0)
+        {
+          networkDevices = networkDevices.Where(x => x.Id != nd.Id);
+        }
+      }
+    }
+
     var portIdsToQuery = networkDevices.SelectMany(nd => nd.PortsOfNetworkDevice)
-                                       .Where(port => port.AggregatedPorts.Count == 0)
-                                       .Select(port => port.Id)
-                                       .Distinct()
-                                       .ToList();
+                                      .Where(port => port.AggregatedPorts.Count == 0)
+                                      .Select(port => port.Id)
+                                      .Distinct()
+                                      .ToList();
 
     if (portIdsToQuery.Count > 0)
     {

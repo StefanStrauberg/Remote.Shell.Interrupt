@@ -9,6 +9,11 @@ public interface IPortRepository : IGenericRepository<Port>
                                                          CancellationToken cancellationToken);
   Task<IEnumerable<Port>> GetAllAggregatedPortsByListAsync(List<Guid> Ids,
                                                            CancellationToken cancellationToken);
+  Task<IEnumerable<Port>> GetPortsWithWithMacAddressesAndSpecificHostsAsync(string mACAddress,
+                                                                            List<string> hosts,
+                                                                            CancellationToken cancellationToken);
+  Task<Port> GetPortWithNameAsync(string name,
+                                  CancellationToken cancellationToken);
   Task<string> LookingForInterfaceNameByIPAsync(string ipAddress,
                                                 CancellationToken cancellationToken);
 }
