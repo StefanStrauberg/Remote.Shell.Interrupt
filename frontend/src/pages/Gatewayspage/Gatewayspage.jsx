@@ -23,33 +23,31 @@ export default function Gatewayspage() {
         setIsError(false);
         if (gatewaySearchAddress.value === '') {
             getGateways()
-                .then((res) => {
-                    if (res.status !== 200) {
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data?.Status) {
+                        setGateways(data);
+                        setIsError(false);
+                    } else {
                         setIsError(true);
                     }
-                    return res.json();
                 })
-                .then((data) => {
-                    setGateways(data);
-                })
-                .catch((err) => {
-                    console.log(err);
+                .catch(() => {
                     setIsError(true);
                 })
                 .finally(() => setIsLoading(false));
         } else {
             getByIpGateway(gatewaySearchAddress.value)
-                .then((res) => {
-                    if (res.status !== 200) {
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data?.Status) {
+                        setGateways(data);
+                        setIsError(false);
+                    } else {
                         setIsError(true);
                     }
-                    return res.json();
                 })
-                .then((data) => {
-                    setGateways(data);
-                })
-                .catch((err) => {
-                    console.log(err);
+                .catch(() => {
                     setIsError(true);
                 })
                 .finally(() => setIsLoading(false));
@@ -68,14 +66,14 @@ export default function Gatewayspage() {
                 {gatewaySearchAddress.oldValue === '' ? (
                     <div className={classes.grid}>
                         {gateways.length
-                            ? gateways.map((gateway) => (
+                            ? gateways?.map((gateway) => (
                                   <Router key={gateway.id} data={gateway} />
                               ))
                             : null}
                     </div>
                 ) : (
                     <div className={classes.wrapper}>
-                        {gateways.map((gateway) => (
+                        {gateways?.map((gateway) => (
                             <Gateway data={gateway} key={gateway.id} />
                         ))}
                     </div>

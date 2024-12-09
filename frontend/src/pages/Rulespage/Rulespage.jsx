@@ -7,21 +7,22 @@ import { Tree } from 'primereact/tree';
 import { Link } from 'react-router-dom';
 import Button from '../../components/UI/Button/Button';
 import './Rulespage.css';
+import Error from '../../components/Error/Error';
 export default function Rulespage() {
     const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [expandedKeys, setExpandedKeys] = useState({});
-    const expandAll = (nodes) => {
-        const _expandedKeys = {};
-        nodes.forEach((node) => (_expandedKeys[node.key] = true));
-        setExpandedKeys(_expandedKeys);
-    };
     useEffect(() => {
+        setIsLoading(true);
         getRules()
             .then((res) => res.json())
             .then((data) => {
-                setData(transformInTree(data));
-                expandAll(data);
-            });
+                if (!data?.Status) {
+                    setData(transformInTree(data)[0]);
+                    setExpandedKeys(transformInTree(data)[1]);
+                }
+            })
+            .finally(() => setIsLoading(false));
     }, []);
 
     const nodeTemplate = (node) => {
@@ -47,18 +48,17 @@ export default function Rulespage() {
             </div>
         );
     };
-
-    return data ? (
+    if (isLoading) return <Loader />;
+    if (!data) return <Error />;
+    console.log(data, expandedKeys);
+    return (
         <div className={classes.treeWrapper}>
             <Tree
                 value={[data]}
                 expandedKeys={expandedKeys}
                 nodeTemplate={nodeTemplate}
-                onToggle={() => true}
                 className={`${classes.tree} custom-tree`}
             />
         </div>
-    ) : (
-        <Loader />
     );
 }

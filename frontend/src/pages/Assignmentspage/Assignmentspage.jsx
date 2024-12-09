@@ -8,12 +8,14 @@ export default function Assigmentspage() {
         getAssignments()
             .then((res) => res.json())
             .then((data) => {
-                setAssignments(data);
+                if (!data?.Status) {
+                    setAssignments(data);
+                }
             });
     }, []);
     return (
         <div className={classes.wrapper}>
-            {assignments.map((assignment) => (
+            {assignments?.map((assignment) => (
                 <AssignmentItem
                     key={assignment.id}
                     id={assignment.id}
