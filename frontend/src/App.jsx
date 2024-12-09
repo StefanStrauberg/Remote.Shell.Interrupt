@@ -12,8 +12,6 @@ import { AssignmentEditpage } from './pages/AssignmentEditpage/AssignmentEditpag
 import { AssignmentCreatepage } from './pages/AssignmentCreatepage/AssignmentCreatepage';
 
 function App() {
-    console.log('app');
-
     return (
         <>
             <Routes>
