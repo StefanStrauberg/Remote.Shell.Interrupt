@@ -1,18 +1,20 @@
 export const transformInTree = (data) => {
-    const root = data.find((el) => el.isRoot === true);
-    root.key = self.crypto.randomUUID();
-    return BFS(data, root);
+    const keys = {};
+    data.key = self.crypto.randomUUID();
+    keys[data.key] = true;
+    data.label = 'Test';
+    BFS(data, keys);
+    return [data, keys];
 };
 
-const BFS = (data, currNode) => {
+const BFS = (currNode, keys) => {
+    if (!currNode || !currNode?.children) return;
     const queue = [...currNode.children];
-    currNode.children = [];
-    while (queue.length) {
-        const nodeId = queue.shift();
-        const node = data.find((el) => el.id === nodeId);
+    for (let i = 0; i < queue.length; i++) {
+        const node = queue[i];
         node.key = self.crypto.randomUUID();
-        currNode.children.push(node);
-        BFS(data, node);
+        node.label = 'test';
+        keys[node.key] = true;
+        BFS(node, keys);
     }
-    return currNode;
 };
