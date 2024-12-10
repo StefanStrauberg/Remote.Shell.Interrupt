@@ -24,6 +24,8 @@ internal class UnitOfWork(DapperContext context) : IUnitOfWork, IDisposable
     => new TerminatedNetworkEntityRepository(context);
   public IPortVlanRepository PortVlans
     => new PortVlanRepository(context);
+  public IClientRepository Clients
+    => throw new NotImplementedException();
 
   public void Complete()
   {

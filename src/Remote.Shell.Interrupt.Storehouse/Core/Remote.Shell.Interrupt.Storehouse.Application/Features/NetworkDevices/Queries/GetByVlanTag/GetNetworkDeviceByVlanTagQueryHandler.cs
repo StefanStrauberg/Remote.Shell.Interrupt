@@ -60,10 +60,10 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     }
 
     var portIdsToQuery = networkDevices.SelectMany(nd => nd.PortsOfNetworkDevice)
-                                      .Where(port => port.AggregatedPorts.Count == 0)
-                                      .Select(port => port.Id)
-                                      .Distinct()
-                                      .ToList();
+                                       .Where(port => port.AggregatedPorts.Count == 0)
+                                       .Select(port => port.Id)
+                                       .Distinct()
+                                       .ToList();
 
     if (portIdsToQuery.Count > 0)
     {
