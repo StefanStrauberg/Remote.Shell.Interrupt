@@ -1,15 +1,15 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class GenericRepository<T>(DapperContext context) : IGenericRepository<T> where T : BaseEntity
+internal class GenericRepository<T>(PostgreSQLDapperContext postgreSQLDapperContext) : IGenericRepository<T> where T : BaseEntity
 {
-  protected readonly DapperContext _context = context
-    ?? throw new ArgumentNullException(nameof(context));
+  protected readonly PostgreSQLDapperContext _postgreSQLDapperContext = postgreSQLDapperContext
+    ?? throw new ArgumentNullException(nameof(postgreSQLDapperContext));
 
   async Task<bool> IGenericRepository<T>.AnyAsync(CancellationToken cancellationToken)
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\"";
-    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query);
     return count > 0;
   }
@@ -19,14 +19,14 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Id\"=@Id";
-    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query, new { Id = id });
     return count > 0;
   }
 
   void IGenericRepository<T>.DeleteMany(IEnumerable<T> entities)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     foreach (var entity in entities)
     {
       ((IGenericRepository<T>)this).DeleteOne(entity);
@@ -35,10 +35,10 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
   void IGenericRepository<T>.DeleteOne(T entity)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     string tableName = GetTableName();
     var query = $"DELETE FROM \"{tableName}\" WHERE \"Id\"=@Id";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, new { Id = entity.Id });
   }
 
@@ -48,7 +48,7 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
     var query = $"SELECT {columns} FROM \"{tableName}\" WHERE \"Id\"=@Id";
-    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     return await connection.QuerySingleAsync<T>(query, new { Id = id });
   }
 
@@ -57,13 +57,13 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
     var query = $"SELECT {columns} FROM \"{tableName}\"";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     return await connection.QueryAsync<T>(query);
   }
 
   void IGenericRepository<T>.InsertMany(IEnumerable<T> entities)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     foreach (var entity in entities)
     {
       ((IGenericRepository<T>)this).InsertOne(entity);
@@ -72,29 +72,29 @@ internal class GenericRepository<T>(DapperContext context) : IGenericRepository<
 
   void IGenericRepository<T>.InsertOne(T entity)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     string tableName = GetTableName();
     string columns = GetColumnsAsProperties(excludeKey: true);
     string properties = GetPropertyNames(excludeKey: true);
     var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties}) RETURNING \"Id\"";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var entityId = connection.ExecuteScalar<Guid>(query, entity);
     entity.Id = entityId;
   }
 
   void IGenericRepository<T>.ReplaceOne(T entity)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     string tableName = GetTableName();
     string updateProperties = GetUpdateProperties(excludeKey: true);
     var query = $"UPDATE \"{tableName}\" SET {updateProperties} WHERE \"Id\"=@Id";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, entity);
   }
 
   void IGenericRepository<T>.ReplaceMany(IEnumerable<T> entities)
   {
-    _context.BeginTransaction();
+    _postgreSQLDapperContext.BeginTransaction();
     foreach (var entity in entities)
     {
       ((IGenericRepository<T>)this).ReplaceOne(entity);

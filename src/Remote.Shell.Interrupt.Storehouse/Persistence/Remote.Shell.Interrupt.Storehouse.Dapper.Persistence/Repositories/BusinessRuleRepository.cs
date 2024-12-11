@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class BusinessRuleRepository(DapperContext context) : GenericRepository<BusinessRule>(context), IBusinessRuleRepository
+internal class BusinessRuleRepository(PostgreSQLDapperContext context) : GenericRepository<BusinessRule>(context), IBusinessRuleRepository
 {
   async Task<BusinessRule> IBusinessRuleRepository.GetBusinessRulesTreeAsync(CancellationToken cancellationToken)
   {
@@ -29,7 +29,7 @@ internal class BusinessRuleRepository(DapperContext context) : GenericRepository
                 ") " +
                 "SELECT * " +
                 "FROM RecursiveBusinessRules;";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var businessRulesDictionary = new Dictionary<Guid, BusinessRule>();
     var businessRules = await connection.QueryAsync<BusinessRule>(query);
     // Организуем категории в иерархическую структуру
@@ -82,7 +82,7 @@ internal class BusinessRuleRepository(DapperContext context) : GenericRepository
                 ") " +
                 "SELECT * " +
                 "FROM RecursiveBusinessRules;";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var businessRulesDictionary = new Dictionary<Guid, BusinessRule>();
     var businessRules = await connection.QueryAsync<BusinessRule>(query, new { Id = id });
     // Организуем категории в иерархическую структуру

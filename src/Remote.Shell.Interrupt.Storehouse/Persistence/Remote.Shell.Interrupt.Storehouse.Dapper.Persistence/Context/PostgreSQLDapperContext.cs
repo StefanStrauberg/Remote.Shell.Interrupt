@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Context;
 
-internal class DapperContext(IConfiguration configuration) : IDisposable
+internal class PostgreSQLDapperContext(IConfiguration configuration) : IDisposable
 {
   readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")!
     ?? throw new ArgumentException(nameof(configuration));
@@ -85,7 +85,7 @@ internal class DapperContext(IConfiguration configuration) : IDisposable
     }
   }
 
-  public void Dispose()
+  void IDisposable.Dispose()
   {
     Dispose(true);
     GC.SuppressFinalize(this);

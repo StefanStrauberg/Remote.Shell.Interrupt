@@ -5,7 +5,8 @@ public static class PersistenceServicesRegistration
   public static IServiceCollection AddPersistenceServices(this IServiceCollection services,
                                                           IConfiguration configuration)
   {
-    services.AddSingleton<DapperContext>();
+    services.AddScoped<PostgreSQLDapperContext>();
+    services.AddScoped<MySQLDapperContext>();
     services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     services.AddScoped<IAssignmentRepository, AssignmentRepository>();
     services.AddScoped<IBusinessRuleRepository, BusinessRuleRepository>();
@@ -13,6 +14,7 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IVLANRepository, VLANRepository>();
     services.AddScoped<IPortRepository, PortRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
+    services.AddScoped<IClientRepository, ClientRepository>();
 
     return services;
   }

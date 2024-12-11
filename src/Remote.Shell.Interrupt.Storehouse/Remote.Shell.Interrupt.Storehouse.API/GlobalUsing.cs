@@ -26,3 +26,5 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
 global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
 global using Serilog;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;

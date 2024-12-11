@@ -16,7 +16,7 @@ public class PortDTO : IMapWith<Port>
   public ICollection<string> MacTable { get; set; } = [];
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
-  public IDictionary<string, HashSet<string>> NetworkTableOfPort { get; set; } = null!;
+  public IDictionary<string, string> NetworkTableOfPort { get; set; } = null!;
   public ICollection<VLANDTO> VLANs { get; set; } = null!;
 
   void IMapWith<Port>.Mapping(Profile profile)
@@ -54,10 +54,7 @@ public class PortDTO : IMapWith<Port>
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
-                                                   .GroupBy(net => ConvertToString(net.NetworkAddress))
-                                                   .ToDictionary(grp => grp.Key,
-                                                                 grp => new HashSet<string>(grp.Select(net => ConvertToString(net.Netmask)))
-                                                   )));
+                                                   .Select(x => new { x.NetworkAddress, x.Netmask })));
   }
 
   private static string ConvertToString(long address)

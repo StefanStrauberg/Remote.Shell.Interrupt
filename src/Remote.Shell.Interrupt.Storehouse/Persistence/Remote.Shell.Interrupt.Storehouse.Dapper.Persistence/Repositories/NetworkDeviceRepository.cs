@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class NetworkDeviceRepository(DapperContext context) : GenericRepository<NetworkDevice>(context), INetworkDeviceRepository
+internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : GenericRepository<NetworkDevice>(context), INetworkDeviceRepository
 {
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
-    _context.BeginTransaction();
-    var connection = _context.CreateConnection();
+    _postgreSQLDapperContext.BeginTransaction();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var vlans = networkDeviceToDelete.PortsOfNetworkDevice.SelectMany(x => x.VLANs);
     var query = $"DELETE FROM \"VLANs\" WHERE \"Id\"=@Id";
     foreach (var vlan in vlans)
@@ -24,7 +24,7 @@ internal class NetworkDeviceRepository(DapperContext context) : GenericRepositor
   async Task<NetworkDevice> INetworkDeviceRepository.GetFirstWithChildrensByIdAsync(Guid id,
                                                                                     CancellationToken cancellationToken)
   {
-    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
     var query = $"SELECT " +
                  "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
@@ -73,7 +73,7 @@ internal class NetworkDeviceRepository(DapperContext context) : GenericRepositor
   async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetAllWithChildrensByVLANTagAsync(int vlanTag,
                                                                                                     CancellationToken cancellationToken)
   {
-    var connection = await _context.CreateConnectionAsync(cancellationToken);
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
     var query = $"SELECT " +
                  "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +

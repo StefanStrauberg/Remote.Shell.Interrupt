@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class AssignmentRepository(DapperContext context) : GenericRepository<Assignment>(context), IAssignmentRepository
+internal class AssignmentRepository(PostgreSQLDapperContext context) : GenericRepository<Assignment>(context), IAssignmentRepository
 {
   async Task<bool> IAssignmentRepository.AnyWithTheSameNameAndDifferentIdAsync(Guid id,
                                                                                string name,
@@ -8,7 +8,7 @@ internal class AssignmentRepository(DapperContext context) : GenericRepository<A
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name AND \"Id\"!=@Id";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var exists = await connection.ExecuteScalarAsync<bool>(query, new { Name = name, Id = id });
     return exists;
   }
@@ -18,7 +18,7 @@ internal class AssignmentRepository(DapperContext context) : GenericRepository<A
   {
     string tableName = GetTableName();
     var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Name\"=@Name";
-    var connection = _context.CreateConnection();
+    var connection = _postgreSQLDapperContext.CreateConnection();
     var exists = await connection.ExecuteScalarAsync<bool>(query, new { Name = name });
     return exists;
   }

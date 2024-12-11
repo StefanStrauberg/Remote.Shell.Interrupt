@@ -1,35 +1,37 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class UnitOfWork(DapperContext context) : IUnitOfWork, IDisposable
+internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQLDapperContext mySQLDapperContext) : IUnitOfWork, IDisposable
 {
-  readonly DapperContext _context = context
-    ?? throw new ArgumentNullException(nameof(context));
+  readonly PostgreSQLDapperContext _postgreSQLDapperContext = postgreSQLDapperContext
+    ?? throw new ArgumentNullException(nameof(postgreSQLDapperContext));
+  readonly MySQLDapperContext _mysqlContext = mySQLDapperContext
+    ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
   bool disposed = false;
 
   public IAssignmentRepository Assignments
-  => new AssignmentRepository(context);
+  => new AssignmentRepository(_postgreSQLDapperContext);
   public IBusinessRuleRepository BusinessRules
-    => new BusinessRuleRepository(context);
+    => new BusinessRuleRepository(_postgreSQLDapperContext);
   public INetworkDeviceRepository NetworkDevices
-    => new NetworkDeviceRepository(context);
+    => new NetworkDeviceRepository(_postgreSQLDapperContext);
   public IVLANRepository VLANs
-    => new VLANRepository(context);
+    => new VLANRepository(_postgreSQLDapperContext);
   public IPortRepository Ports
-    => new PortRepository(context);
+    => new PortRepository(_postgreSQLDapperContext);
   public IARPEntityRepository ARPEntities
-    => new ARPEntityRepository(context);
+    => new ARPEntityRepository(_postgreSQLDapperContext);
   public IMACEntityRepository MACEntities
-    => new MACEntityRepository(context);
+    => new MACEntityRepository(_postgreSQLDapperContext);
   public ITerminatedNetworkEntityRepository TerminatedNetworkEntities
-    => new TerminatedNetworkEntityRepository(context);
+    => new TerminatedNetworkEntityRepository(_postgreSQLDapperContext);
   public IPortVlanRepository PortVlans
-    => new PortVlanRepository(context);
+    => new PortVlanRepository(_postgreSQLDapperContext);
   public IClientRepository Clients
-    => throw new NotImplementedException();
+    => new ClientRepository(_mysqlContext);
 
   public void Complete()
   {
-    _context.CompleteTransaction();
+    _postgreSQLDapperContext.CompleteTransaction();
   }
 
   public void Dispose()
@@ -43,7 +45,7 @@ internal class UnitOfWork(DapperContext context) : IUnitOfWork, IDisposable
     if (!disposed)
     {
       if (disposing)
-        _context.Dispose();
+        ((IDisposable)_postgreSQLDapperContext).Dispose();
 
       disposed = true;
     }
