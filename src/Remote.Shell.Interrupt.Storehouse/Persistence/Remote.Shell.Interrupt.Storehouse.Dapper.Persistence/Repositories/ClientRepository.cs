@@ -7,7 +7,8 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
 
   async Task<IEnumerable<ClientCOD>> IClientRepository.GetAllAsync(CancellationToken cancellationToken)
   {
-    var query = $"SELECT id_client AS \"Id\", name AS \"Name\", contact_T AS \"Contact\", t_email AS \"Email\" FROM client_cod";
+    var query = $"SELECT id_client AS \"Id\", name AS \"Name\", contact_T AS \"Contact\", t_email AS \"Email\" " +
+                "FROM client_cod";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
     var result = await connection.QueryAsync<ClientCOD>(query);
     return result;
@@ -16,16 +17,23 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
   async Task<ClientCOD> IClientRepository.GetById(int id,
                                                   CancellationToken cancellationToken)
   {
-    var query = $"SELECT id_client AS \"Id\", name AS \"Name\", contact_T AS \"Contact\", t_email AS \"Email\" FROM client_cod" +
-                "WHERE \"Id\" = @Id";
+    var query = $"SELECT id_client AS \"Id\", name AS \"Name\", contact_T AS \"Contact\", t_email AS \"Email\" " +
+                "FROM client_cod " +
+                "WHERE id_client = @Id";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
     var result = await connection.QueryFirstAsync<ClientCOD>(query, new { Id = id });
     return result;
   }
 
-  Task<ClientCOD> IClientRepository.GetByVlanTag(int tag,
-                                                 CancellationToken cancellationToken)
+  async Task<ClientCOD> IClientRepository.GetByVlanTag(int tag,
+                                                       CancellationToken cancellationToken)
   {
-    throw new NotImplementedException();
+    var query = $"SELECT cc.id_client AS \"Id\", cc.name AS \"Name\", cc.contact_T AS \"Contact\", cc.t_email AS \"Email\" " +
+                "FROM client_cod AS cc " +
+                "LEFT JOIN `_spr_vlan` AS sv ON sv.id_client = cc.id_client " +
+                "WHERE sv.id_vlan = @Tag";
+    var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
+    var result = await connection.QueryFirstAsync<ClientCOD>(query, new { Tag = tag });
+    return result;
   }
 }
