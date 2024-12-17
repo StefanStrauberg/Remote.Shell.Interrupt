@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
-
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 public class NetworkDevicesController(ISender sender) : BaseAPIController

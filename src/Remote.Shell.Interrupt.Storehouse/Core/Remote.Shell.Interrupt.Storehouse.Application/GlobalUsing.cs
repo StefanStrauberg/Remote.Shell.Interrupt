@@ -31,3 +31,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevic
 global using Microsoft.Extensions.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.BusinessLogics.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
