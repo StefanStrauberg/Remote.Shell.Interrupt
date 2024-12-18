@@ -37,12 +37,6 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
     return result;
   }
 
-  Task<ClientCOD> IClientRepository.GetByIdAsync(int id,
-                                                 CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
-
   async Task<string?> IClientRepository.GetClientNameByVlanTagAsync(int tag,
                                                                     CancellationToken cancellationToken)
   {

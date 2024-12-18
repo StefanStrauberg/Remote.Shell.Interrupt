@@ -1,28 +1,29 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByName;
 
-public record GetOrganizationByNameQuery(string Name) : IQuery<ClientCODDTO>;
+public record GetOrganizationByNameQuery(string Name) : IQuery<IEnumerable<ClientCODDTO>>;
 
 internal class GetOrganizationsByNameQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
-  : IQueryHandler<GetOrganizationByNameQuery, ClientCODDTO>
+  : IQueryHandler<GetOrganizationByNameQuery, IEnumerable<ClientCODDTO>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<ClientCODDTO> IRequestHandler<GetOrganizationByNameQuery, ClientCODDTO>.Handle(GetOrganizationByNameQuery request,
-                                                                                            CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetOrganizationByNameQuery, IEnumerable<ClientCODDTO>>.Handle(GetOrganizationByNameQuery request,
+                                                                                                                      CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.Clients
                                    .GetAllByNameAsync(request.Name,
                                                       cancellationToken);
 
-    var client = clients.FirstOrDefault(x => !string.IsNullOrEmpty(x.VLANTags));
+    clients = clients.Where(x => !string.IsNullOrEmpty(x.VLANTags))
+                     .ToList();
 
-    if (client is null)
+    if (!clients.Any())
       throw new EntityNotFoundException($"Name = {request.Name}");
 
-    var result = _mapper.Map<ClientCODDTO>(client);
+    var result = _mapper.Map<IEnumerable<ClientCODDTO>>(clients);
 
     return result;
   }

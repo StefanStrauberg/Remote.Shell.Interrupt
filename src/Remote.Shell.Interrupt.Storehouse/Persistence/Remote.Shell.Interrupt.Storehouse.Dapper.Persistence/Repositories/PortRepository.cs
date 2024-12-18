@@ -92,4 +92,14 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
                 $"AND nd.\"Host\" in ({hostsToDelete})";
     return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });
   }
+
+  async Task<bool> IPortRepository.ExistsPortWithNameAsync(string name,
+                                                           CancellationToken cancellationToken)
+  {
+    string tableName = GetTableName();
+    var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"InterfaceName\" like '%{name}%'";
+    var connection = _postgreSQLDapperContext.CreateConnection();
+    var exists = await connection.ExecuteScalarAsync<bool>(query);
+    return exists;
+  }
 }

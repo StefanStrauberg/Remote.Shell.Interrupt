@@ -24,37 +24,45 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     PrepareAndCleanAggregationPorts(networkDevices);
 
-    var deletePortBase = await _unitOfWork.Ports.GetPortWithNameAsync(request.VLANTag.ToString(),
-                                                                      cancellationToken);
+    var existsDeletePortBase = await _unitOfWork.Ports
+                                                .ExistsPortWithNameAsync(request.VLANTag.ToString(),
+                                                                         cancellationToken);
 
-    if (deletePortBase is not null)
+    if (existsDeletePortBase)
     {
-      networkDevices = networkDevices.Where(x => x.Id != deletePortBase.NetworkDeviceId);
+      var deletePortBase = await _unitOfWork.Ports
+                                            .GetPortWithNameAsync(request.VLANTag.ToString(),
+                                                                  cancellationToken);
 
-      var portsToDelete = await _unitOfWork.Ports.GetPortsWithWithMacAddressesAndSpecificHostsAsync(deletePortBase.MACAddress,
-                                                                                                    networkDevices.Select(x => x.Host)
-                                                                                                                  .ToList(),
-                                                                                                    cancellationToken);
-
-      foreach (var port in portsToDelete)
+      if (deletePortBase is not null)
       {
-        var nd = networkDevices.Where(x => x.Id == port.NetworkDeviceId)
-                               .FirstOrDefault();
-        if (nd is null)
-          continue;
+        networkDevices = networkDevices.Where(x => x.Id != deletePortBase.NetworkDeviceId);
 
-        var portToDelete = nd.PortsOfNetworkDevice
-                             .Where(x => x.Id == port.Id)
-                             .FirstOrDefault();
+        var portsToDelete = await _unitOfWork.Ports.GetPortsWithWithMacAddressesAndSpecificHostsAsync(deletePortBase.MACAddress,
+                                                                                                      networkDevices.Select(x => x.Host)
+                                                                                                                    .ToList(),
+                                                                                                      cancellationToken);
 
-        if (portToDelete is null)
-          continue;
-
-        nd.PortsOfNetworkDevice.Remove(portToDelete);
-
-        if (nd.PortsOfNetworkDevice.Count == 0)
+        foreach (var port in portsToDelete)
         {
-          networkDevices = networkDevices.Where(x => x.Id != nd.Id);
+          var nd = networkDevices.Where(x => x.Id == port.NetworkDeviceId)
+                                 .FirstOrDefault();
+          if (nd is null)
+            continue;
+
+          var portToDelete = nd.PortsOfNetworkDevice
+                               .Where(x => x.Id == port.Id)
+                               .FirstOrDefault();
+
+          if (portToDelete is null)
+            continue;
+
+          nd.PortsOfNetworkDevice.Remove(portToDelete);
+
+          if (nd.PortsOfNetworkDevice.Count == 0)
+          {
+            networkDevices = networkDevices.Where(x => x.Id != nd.Id);
+          }
         }
       }
     }

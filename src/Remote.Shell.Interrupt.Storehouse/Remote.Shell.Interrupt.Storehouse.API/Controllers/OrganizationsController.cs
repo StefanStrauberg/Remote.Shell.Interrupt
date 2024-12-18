@@ -12,7 +12,7 @@ public class OrganizationsController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{name}")]
-  [ProducesResponseType(typeof(ClientCOD), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<ClientCOD>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetOrganizationsByName(string name,
                                                           CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetOrganizationByNameQuery(name),

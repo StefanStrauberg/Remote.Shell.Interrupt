@@ -14,6 +14,8 @@ public interface IPortRepository : IGenericRepository<Port>
                                                                             CancellationToken cancellationToken);
   Task<Port> GetPortWithNameAsync(string name,
                                   CancellationToken cancellationToken);
+  Task<bool> ExistsPortWithNameAsync(string name,
+                                     CancellationToken cancellationToken);
   Task<string> LookingForInterfaceNameByIPAsync(string ipAddress,
                                                 CancellationToken cancellationToken);
 }
