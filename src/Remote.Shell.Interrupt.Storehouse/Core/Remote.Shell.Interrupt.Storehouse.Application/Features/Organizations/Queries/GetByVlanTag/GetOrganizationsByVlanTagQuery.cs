@@ -20,6 +20,13 @@ internal class GetOrganizationsByVlanTagQueryHandler(IUnitOfWork unitOfWork, IMa
     if (clientName is null)
       throw new EntityNotFoundException($"VlanTag = {request.VlanTag}");
 
+    string? name = null;
+
+    while (name is null)
+    {
+
+    }
+
     var client = await _unitOfWork.Clients
                                   .GetByNameAsync(clientName,
                                                   cancellationToken);

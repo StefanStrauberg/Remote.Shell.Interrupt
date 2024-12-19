@@ -6,6 +6,7 @@ public class ClientCODDTO : IMapWith<ClientCOD>
   public string Name { get; set; } = string.Empty;
   public string Contact { get; set; } = string.Empty;
   public string Email { get; set; } = string.Empty;
+  public string TPlan { get; set; } = string.Empty;
   public string VLANTags { get; set; } = string.Empty;
 
   void IMapWith<ClientCOD>.Mapping(Profile profile)
@@ -19,6 +20,8 @@ public class ClientCODDTO : IMapWith<ClientCOD>
                       opt => opt.MapFrom(src => src.Contact.TrimEnd()))
            .ForMember(dest => dest.Email,
                       opt => opt.MapFrom(src => src.Email.TrimEnd()))
+           .ForMember(dest => dest.TPlan,
+                      opt => opt.MapFrom(src => src.TPlan.TrimEnd()))
            .ForMember(dest => dest.VLANTags,
                       opt => opt.MapFrom(src => src.VLANTags));
   }
