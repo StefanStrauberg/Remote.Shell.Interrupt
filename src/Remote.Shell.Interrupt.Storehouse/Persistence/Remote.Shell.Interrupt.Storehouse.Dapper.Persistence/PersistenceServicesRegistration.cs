@@ -15,6 +15,7 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IPortRepository, PortRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
     services.AddScoped<IClientRepository, ClientRepository>();
+    services.AddScoped<IOrganizationsRepository, OrganizationsRepository>();
 
     return services;
   }

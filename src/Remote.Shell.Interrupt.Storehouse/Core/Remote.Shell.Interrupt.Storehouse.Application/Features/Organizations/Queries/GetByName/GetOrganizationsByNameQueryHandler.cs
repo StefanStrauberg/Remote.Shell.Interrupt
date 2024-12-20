@@ -17,9 +17,6 @@ internal class GetOrganizationsByNameQueryHandler(IUnitOfWork unitOfWork, IMappe
                                    .GetAllByNameAsync(request.Name,
                                                       cancellationToken);
 
-    // clients = clients.Where(x => !string.IsNullOrEmpty(x.VLANTags))
-    //                  .ToList();
-
     if (!clients.Any())
       throw new EntityNotFoundException($"Name = {request.Name}");
 

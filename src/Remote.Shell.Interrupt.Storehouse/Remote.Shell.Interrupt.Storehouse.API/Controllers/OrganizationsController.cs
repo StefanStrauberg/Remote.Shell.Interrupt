@@ -19,9 +19,15 @@ public class OrganizationsController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{vlanTag}")]
-  [ProducesResponseType(typeof(ClientCOD), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetOrganizationsByVlanTag(int vlanTag,
                                                              CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetOrganizationByVlanTagQuery(vlanTag),
                              cancellationToken));
+
+  [HttpPut]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> UpdateOrganizations(CancellationToken cancellationToken)
+    => Ok(await _sender.Send(new UpdateOrganizationsLocalDbCommand(), cancellationToken));
 }

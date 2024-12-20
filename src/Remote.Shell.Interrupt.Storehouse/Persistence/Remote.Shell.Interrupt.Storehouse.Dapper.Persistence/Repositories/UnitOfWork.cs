@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
+
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQLDapperContext mySQLDapperContext) : IUnitOfWork, IDisposable
@@ -8,33 +10,35 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
   bool disposed = false;
 
-  public IAssignmentRepository Assignments
+  IAssignmentRepository IUnitOfWork.Assignments
   => new AssignmentRepository(_postgreSQLDapperContext);
-  public IBusinessRuleRepository BusinessRules
+  IBusinessRuleRepository IUnitOfWork.BusinessRules
     => new BusinessRuleRepository(_postgreSQLDapperContext);
-  public INetworkDeviceRepository NetworkDevices
+  INetworkDeviceRepository IUnitOfWork.NetworkDevices
     => new NetworkDeviceRepository(_postgreSQLDapperContext);
-  public IVLANRepository VLANs
+  IVLANRepository IUnitOfWork.VLANs
     => new VLANRepository(_postgreSQLDapperContext);
-  public IPortRepository Ports
+  IPortRepository IUnitOfWork.Ports
     => new PortRepository(_postgreSQLDapperContext);
-  public IARPEntityRepository ARPEntities
+  IARPEntityRepository IUnitOfWork.ARPEntities
     => new ARPEntityRepository(_postgreSQLDapperContext);
-  public IMACEntityRepository MACEntities
+  IMACEntityRepository IUnitOfWork.MACEntities
     => new MACEntityRepository(_postgreSQLDapperContext);
-  public ITerminatedNetworkEntityRepository TerminatedNetworkEntities
+  ITerminatedNetworkEntityRepository IUnitOfWork.TerminatedNetworkEntities
     => new TerminatedNetworkEntityRepository(_postgreSQLDapperContext);
-  public IPortVlanRepository PortVlans
+  IPortVlanRepository IUnitOfWork.PortVlans
     => new PortVlanRepository(_postgreSQLDapperContext);
-  public IClientRepository Clients
+  IClientRepository IUnitOfWork.Clients
     => new ClientRepository(_mysqlContext);
+  IOrganizationsRepository IUnitOfWork.Organizations
+    => new OrganizationsRepository(_postgreSQLDapperContext);
 
-  public void Complete()
+  void IUnitOfWork.Complete()
   {
     _postgreSQLDapperContext.CompleteTransaction();
   }
 
-  public void Dispose()
+  void IDisposable.Dispose()
   {
     Dispose(true);
     GC.SuppressFinalize(this);

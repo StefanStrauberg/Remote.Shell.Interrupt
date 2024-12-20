@@ -12,6 +12,7 @@ public interface IUnitOfWork
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
   IPortVlanRepository PortVlans { get; }
   IClientRepository Clients { get; }
+  IOrganizationsRepository Organizations { get; }
 
   void Complete();
 }
