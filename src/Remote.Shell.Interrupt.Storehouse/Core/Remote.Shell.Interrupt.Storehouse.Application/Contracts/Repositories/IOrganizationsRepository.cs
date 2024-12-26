@@ -1,5 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
 
-public interface IOrganizationsRepository : IGenericRepository<Organization>
+public interface IOrganizationsRepository : IGenericRepository<ClientCod>
 {
 }

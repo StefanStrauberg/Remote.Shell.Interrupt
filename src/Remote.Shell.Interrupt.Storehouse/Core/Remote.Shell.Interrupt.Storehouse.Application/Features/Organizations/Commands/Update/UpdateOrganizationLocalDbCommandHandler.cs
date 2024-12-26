@@ -15,15 +15,15 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
   {
     var allClients = await _unitOfWork.Clients.GetAllAsync(cancellationToken);
 
-    List<Organization> organizations = [];
+    List<ClientCod> organizations = [];
 
     foreach (var client in allClients)
     {
-      organizations.Add(new Organization
+      organizations.Add(new ClientCod
       {
         IdClient = client.Id,
         Name = client.Name,
-        Contact = client.Contact,
+        ContactC = client.Contact,
         Email = client.Email,
         TPlan = client.TPlan,
         VLANTags = ConvertStringToIntArray(client.VLANTags)
