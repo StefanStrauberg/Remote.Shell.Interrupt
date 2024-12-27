@@ -1,28 +1,50 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
 
-public class ClientCODDTO : IMapWith<ClientCOD>
+public class ClientCODDTO : IMapWith<ClientCod>
 {
-  public int Id { get; set; }
+  public int IdClient { get; set; }
   public string Name { get; set; } = string.Empty;
-  public string Contact { get; set; } = string.Empty;
-  public string Email { get; set; } = string.Empty;
-  public string TPlan { get; set; } = string.Empty;
-  public string VLANTags { get; set; } = string.Empty;
+  public string ContactC { get; set; } = string.Empty;
+  public string TelephoneC { get; set; } = string.Empty;
+  public string ContactT { get; set; } = string.Empty;
+  public string TelephoneT { get; set; } = string.Empty;
+  public string EmailC { get; set; } = string.Empty;
+  public bool Working { get; set; }
+  public string EmailT { get; set; } = string.Empty;
+  public int IdCOD { get; set; }
+  public COD COD { get; set; } = null!;
+  public int IdTPlan { get; set; }
+  public string History { get; set; } = string.Empty;
+  public bool AntiDDOS { get; set; }
 
-  void IMapWith<ClientCOD>.Mapping(Profile profile)
+  void IMapWith<ClientCod>.Mapping(Profile profile)
   {
-    profile.CreateMap<ClientCOD, ClientCODDTO>()
-           .ForMember(dest => dest.Id,
-                      opt => opt.MapFrom(src => src.Id))
+    profile.CreateMap<ClientCod, ClientCODDTO>()
+           .ForMember(dest => dest.IdClient,
+                      opt => opt.MapFrom(src => src.IdClient))
            .ForMember(dest => dest.Name,
                       opt => opt.MapFrom(src => src.Name.TrimEnd()))
-           .ForMember(dest => dest.Contact,
-                      opt => opt.MapFrom(src => src.Contact.TrimEnd()))
-           .ForMember(dest => dest.Email,
-                      opt => opt.MapFrom(src => src.Email.TrimEnd()))
-           .ForMember(dest => dest.TPlan,
-                      opt => opt.MapFrom(src => src.TPlan.TrimEnd()))
-           .ForMember(dest => dest.VLANTags,
-                      opt => opt.MapFrom(src => src.VLANTags));
+           .ForMember(dest => dest.ContactC,
+                      opt => opt.MapFrom(src => src.ContactC.TrimEnd()))
+           .ForMember(dest => dest.TelephoneC,
+                      opt => opt.MapFrom(src => src.TelephoneC.TrimEnd()))
+           .ForMember(dest => dest.ContactT,
+                      opt => opt.MapFrom(src => src.ContactT.TrimEnd()))
+           .ForMember(dest => dest.EmailC,
+                      opt => opt.MapFrom(src => src.EmailC.TrimEnd()))
+           .ForMember(dest => dest.Working,
+                      opt => opt.MapFrom(src => src.Working))
+           .ForMember(dest => dest.EmailT,
+                      opt => opt.MapFrom(src => src.EmailT.TrimEnd()))
+           .ForMember(dest => dest.IdCOD,
+                      opt => opt.MapFrom(src => src.IdCOD))
+           .ForMember(dest => dest.COD,
+                      opt => opt.MapFrom(src => src.COD))
+           .ForMember(dest => dest.IdTPlan,
+                      opt => opt.MapFrom(src => src.IdTPlan))
+           .ForMember(dest => dest.History,
+                      opt => opt.MapFrom(src => src.History.TrimEnd()))
+           .ForMember(dest => dest.AntiDDOS,
+                      opt => opt.MapFrom(src => src.AntiDDOS));
   }
 }

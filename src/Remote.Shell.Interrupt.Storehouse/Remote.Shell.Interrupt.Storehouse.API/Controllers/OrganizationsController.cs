@@ -6,23 +6,23 @@ public class OrganizationsController(ISender sender) : BaseAPIController
     ?? throw new ArgumentNullException(nameof(sender));
 
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<ClientCOD>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetOrganizations(CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new GetOrganizationsQuery(),
+  [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
+  public async Task<IActionResult> GetClientsCOD(CancellationToken cancellationToken)
+    => Ok(await _sender.Send(new GetClientsCODQuery(),
                              cancellationToken));
 
   [HttpGet("{name}")]
-  [ProducesResponseType(typeof(IEnumerable<ClientCOD>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetOrganizationsByName(string name,
+  [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
+  public async Task<IActionResult> GetClientsCODByName(string name,
                                                           CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new GetOrganizationByNameQuery(name),
+    => Ok(await _sender.Send(new GetClientsCODByNameQuery(name),
                              cancellationToken));
 
   [HttpGet("{vlanTag}")]
   [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetOrganizationsByVlanTag(int vlanTag,
+  public async Task<IActionResult> GetClientsCODByVlanTag(int vlanTag,
                                                              CancellationToken cancellationToken)
-    => Ok(await _sender.Send(new GetOrganizationByVlanTagQuery(vlanTag),
+    => Ok(await _sender.Send(new GetClientsCODByVlanTagQuery(vlanTag),
                              cancellationToken));
 
   [HttpPut]

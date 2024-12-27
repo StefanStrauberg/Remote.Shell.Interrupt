@@ -13,20 +13,19 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
   async Task<Unit> IRequestHandler<UpdateOrganizationsLocalDbCommand, Unit>.Handle(UpdateOrganizationsLocalDbCommand request,
                                                                                    CancellationToken cancellationToken)
   {
-    var allClients = await _unitOfWork.Clients.GetAllAsync(cancellationToken);
+    var allClients = await _unitOfWork.ClientCODs.GetAllAsync(cancellationToken);
 
-    List<ClientCod> organizations = [];
+    List<Organization> organizations = [];
 
     foreach (var client in allClients)
     {
-      organizations.Add(new ClientCod
+      organizations.Add(new Organization
       {
-        IdClient = client.Id,
+        IdClient = client.IdClient,
         Name = client.Name,
-        ContactC = client.Contact,
-        Email = client.Email,
-        TPlan = client.TPlan,
-        VLANTags = ConvertStringToIntArray(client.VLANTags)
+        ContactC = client.ContactT,
+        EmailC = client.EmailC,
+        IdTPlan = client.IdTPlan
       });
     }
 
@@ -39,14 +38,5 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     _unitOfWork.Complete();
 
     return Unit.Value;
-  }
-  static int[] ConvertStringToIntArray(string input)
-  {
-    if (string.IsNullOrEmpty(input))
-      return [];
-
-    return input.Split(',')
-                .Select(x => int.Parse(x.Trim()))
-                .ToArray();
   }
 }

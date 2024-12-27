@@ -1,19 +1,20 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByName;
 
-public record GetOrganizationByNameQuery(string Name) : IQuery<IEnumerable<ClientCODDTO>>;
+public record GetClientsCODByNameQuery(string Name) : IQuery<IEnumerable<ClientCODDTO>>;
 
-internal class GetOrganizationsByNameQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
-  : IQueryHandler<GetOrganizationByNameQuery, IEnumerable<ClientCODDTO>>
+internal class GetClientsCODByNameQueryHandler(IUnitOfWork unitOfWork,
+                                               IMapper mapper)
+  : IQueryHandler<GetClientsCODByNameQuery, IEnumerable<ClientCODDTO>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetOrganizationByNameQuery, IEnumerable<ClientCODDTO>>.Handle(GetOrganizationByNameQuery request,
-                                                                                                                      CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODByNameQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODByNameQuery request,
+                                                                                                                    CancellationToken cancellationToken)
   {
-    var clients = await _unitOfWork.Clients
+    var clients = await _unitOfWork.ClientCODs
                                    .GetAllByNameAsync(request.Name,
                                                       cancellationToken);
 

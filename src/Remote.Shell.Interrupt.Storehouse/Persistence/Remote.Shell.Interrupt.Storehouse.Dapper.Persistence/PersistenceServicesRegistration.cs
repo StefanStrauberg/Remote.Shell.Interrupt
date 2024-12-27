@@ -14,8 +14,8 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IVLANRepository, VLANRepository>();
     services.AddScoped<IPortRepository, PortRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
-    services.AddScoped<IClientRepository, ClientRepository>();
-    services.AddScoped<IOrganizationsRepository, OrganizationsRepository>();
+    services.AddScoped<IClientCODRepository, ClientRepository>();
+    services.AddScoped<IClientCODRepository, ClientCODRepository>();
 
     return services;
   }

@@ -1,19 +1,20 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 
-public record GetOrganizationByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<ClientCODDTO>>;
+public record GetClientsCODByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<ClientCODDTO>>;
 
-internal class GetOrganizationsByVlanTagQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
-  : IQueryHandler<GetOrganizationByVlanTagQuery, IEnumerable<ClientCODDTO>>
+internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
+                                                  IMapper mapper)
+  : IQueryHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetOrganizationByVlanTagQuery, IEnumerable<ClientCODDTO>>.Handle(GetOrganizationByVlanTagQuery request,
-                                                                                                                         CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODByVlanTagQuery request,
+                                                                                                                       CancellationToken cancellationToken)
   {
-    var clientName = await _unitOfWork.Clients
+    var clientName = await _unitOfWork.ClientCODs
                                       .GetClientNameByVlanTagAsync(request.VlanTag,
                                                                    cancellationToken);
 
@@ -22,7 +23,7 @@ internal class GetOrganizationsByVlanTagQueryHandler(IUnitOfWork unitOfWork, IMa
 
     var name = ExtractNameInQuotes(clientName.TrimEnd());
 
-    var clients = await _unitOfWork.Clients
+    var clients = await _unitOfWork.ClientCODs
                                    .GetAllByNameAsync(name,
                                                       cancellationToken);
 

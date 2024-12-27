@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClientRepository
+internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClientCODRepository
 {
   protected readonly MySQLDapperContext _mySQLDapperContext = mySQLDapperContext
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
 
-  async Task<IEnumerable<ClientCOD>> IClientRepository.GetAllByNameAsync(string name,
+  async Task<IEnumerable<ClientCod>> IClientCODRepository.GetAllByNameAsync(string name,
                                                                          CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
@@ -22,12 +22,12 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
                 "AND cc.`_working` = 1 " +
                 "GROUP BY cc.id_client, cc.name, cc.telefon_T, cc.t_email";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<ClientCOD>(query);
+    var result = await connection.QueryAsync<ClientCod>(query);
 
     return result;
   }
 
-  async Task<IEnumerable<ClientCOD>> IClientRepository.GetAllAsync(CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCod>> IClientCODRepository.GetAllAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT cc.id_client AS \"Id\", cc.name AS \"Name\", cc.telefon_T AS \"Contact\", cc.t_email AS \"Email\", " +
                 "tp.name_tplan AS \"TPlan\", " +
@@ -38,12 +38,12 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
                 "WHERE cc.`_working` = 1 " +
                 "GROUP BY cc.id_client, cc.name, cc.telefon_T, cc.t_email";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<ClientCOD>(query);
+    var result = await connection.QueryAsync<ClientCod>(query);
 
     return result;
   }
 
-  async Task<string?> IClientRepository.GetClientNameByVlanTagAsync(int tag,
+  async Task<string?> IClientCODRepository.GetClientNameByVlanTagAsync(int tag,
                                                                     CancellationToken cancellationToken)
   {
     var query = $"SELECT " +

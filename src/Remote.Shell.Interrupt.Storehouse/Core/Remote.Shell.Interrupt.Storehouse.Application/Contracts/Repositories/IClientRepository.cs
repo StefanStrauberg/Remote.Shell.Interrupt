@@ -1,9 +1,9 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
 
-public interface IClientRepository
+public interface IClientCODRepository
 {
-  Task<IEnumerable<ClientCOD>> GetAllAsync(CancellationToken cancellationToken);
-  Task<IEnumerable<ClientCOD>> GetAllByNameAsync(string name,
+  Task<IEnumerable<ClientCod>> GetAllAsync(CancellationToken cancellationToken);
+  Task<IEnumerable<ClientCod>> GetAllByNameAsync(string name,
                                                  CancellationToken cancellationToken);
   Task<string?> GetClientNameByVlanTagAsync(int tag,
                                             CancellationToken cancellationToken);

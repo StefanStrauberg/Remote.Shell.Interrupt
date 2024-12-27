@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQLDapperContext mySQLDapperContext) : IUnitOfWork, IDisposable
@@ -28,10 +26,10 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     => new TerminatedNetworkEntityRepository(_postgreSQLDapperContext);
   IPortVlanRepository IUnitOfWork.PortVlans
     => new PortVlanRepository(_postgreSQLDapperContext);
-  IClientRepository IUnitOfWork.Clients
+  IClientCODRepository IUnitOfWork.ClientCODs
     => new ClientRepository(_mysqlContext);
-  IOrganizationsRepository IUnitOfWork.Organizations
-    => new OrganizationsRepository(_postgreSQLDapperContext);
+  IOrganizationRepository IUnitOfWork.Organizations
+    => new OrganizationRepository(_postgreSQLDapperContext);
 
   void IUnitOfWork.Complete()
   {

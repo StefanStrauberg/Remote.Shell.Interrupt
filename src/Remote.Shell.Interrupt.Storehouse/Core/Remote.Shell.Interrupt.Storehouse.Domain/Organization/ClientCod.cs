@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class ClientCOD
+public class ClientCod
 {
   public int IdClient { get; set; }
   public string Name { get; set; } = string.Empty;
@@ -12,6 +12,7 @@ public class ClientCOD
   public bool Working { get; set; }
   public string EmailT { get; set; } = string.Empty;
   public int IdCOD { get; set; }
+  public COD COD { get; set; } = null!;
   public int IdTPlan { get; set; }
   public string History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
