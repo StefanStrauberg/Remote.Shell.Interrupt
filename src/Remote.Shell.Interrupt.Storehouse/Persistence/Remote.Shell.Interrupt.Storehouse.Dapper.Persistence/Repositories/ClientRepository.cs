@@ -9,18 +9,22 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
                                                                          CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "cc.id_client AS \"Id\", " +
-                "cc.name AS \"Name\", " +
-                "cc.telefon_T AS \"Contact\", " +
-                "cc.t_email AS \"Email\", " +
-                "tp.name_tplan AS \"TPlan\", " +
-                "GROUP_CONCAT(CAST(vl.id_vlan AS INT) ORDER BY vl.id_vlan) AS \"VLANTags\" " +
-                "FROM client_cod AS cc " +
-                "LEFT JOIN `_spr_vlan` AS vl ON vl.id_client = cc.id_client " +
-                "LEFT JOIN `_tf_plan` AS tp ON tp.id_tplan = cc.id_tplan " +
+                "cc.id_client as \"IdClient\", " +
+                "cc.name as \"Name\", " +
+                "cc.contact_C as \"ContactC\", " +
+                "cc.telefon_C as \"TelephoneC\", " +
+                "cc.contact_T as \"ContactT\", " +
+                "cc.telefon_T as \"TelephoneT\", " +
+                "cc.c_email as \"EmailC\", " +
+                "cc.`_working` as \"Working\", " +
+                "cc.t_email as \"EmailT\", " +
+                "cc.id_cod as \"IdCOD\", " +
+                "cc.id_tplan as \"IdTPlan\", " +
+                "cc.history as \"History\", " +
+                "cc.ad as \"AntiDDOS\" " +
+                "FROM client_cod as cc " +
                 $"WHERE cc.name like '%{name}%' " +
-                "AND cc.`_working` = 1 " +
-                "GROUP BY cc.id_client, cc.name, cc.telefon_T, cc.t_email";
+                "AND cc.`_working` = 1 ";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
     var result = await connection.QueryAsync<ClientCod>(query);
 
@@ -51,7 +55,7 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
   }
 
   async Task<string?> IClientCODRepository.GetClientNameByVlanTagAsync(int tag,
-                                                                    CancellationToken cancellationToken)
+                                                                       CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
                 "cc.name AS \"Name\"" +
