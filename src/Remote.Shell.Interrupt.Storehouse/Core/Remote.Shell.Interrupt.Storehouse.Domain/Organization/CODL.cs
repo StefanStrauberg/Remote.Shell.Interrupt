@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class COD
+public class CODL : BaseEntity
 {
   public int IdCOD { get; set; }
   public string NameCOD { get; set; } = string.Empty;

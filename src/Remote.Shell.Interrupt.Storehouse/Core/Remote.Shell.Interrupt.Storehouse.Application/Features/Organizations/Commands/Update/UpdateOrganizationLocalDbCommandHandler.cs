@@ -15,17 +15,27 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
   {
     var allClients = await _unitOfWork.ClientCODs.GetAllAsync(cancellationToken);
 
-    List<Organization> organizations = [];
+    List<ClientCodL> organizations = [];
 
     foreach (var client in allClients)
     {
-      organizations.Add(new Organization
+      organizations.Add(new ClientCodL
       {
-        IdClient = client.IdClient,
+        IdClient = client.Id,
         Name = client.Name,
-        ContactC = client.ContactT,
+        ContactC = client.ContactC,
+        TelephoneC = client.TelephoneC,
+        ContactT = client.ContactT,
+        TelephoneT = client.TelephoneT,
         EmailC = client.EmailC,
-        IdTPlan = client.IdTPlan
+        Working = client.Working,
+        EmailT = client.EmailT,
+        History = client.History,
+        AntiDDOS = client.AntiDDOS,
+        IdCOD = client.IdCOD,
+        COD = client.COD,
+        IdTPlan = client.IdTfPlan,
+        TfPlanL = client.TfPlan,
       });
     }
 

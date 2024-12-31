@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class TfPlan
+public class TfPlanL : BaseEntity
 {
   public int IdTfPlan { get; set; }
   public string NameTfPlan { get; set; } = string.Empty;

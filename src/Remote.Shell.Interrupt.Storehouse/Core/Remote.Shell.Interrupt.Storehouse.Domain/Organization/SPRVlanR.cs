@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class SPRVlan
+public class SPRVlanR
 {
   public int IdVlan { get; set; }
   public int IdClient { get; set; }
