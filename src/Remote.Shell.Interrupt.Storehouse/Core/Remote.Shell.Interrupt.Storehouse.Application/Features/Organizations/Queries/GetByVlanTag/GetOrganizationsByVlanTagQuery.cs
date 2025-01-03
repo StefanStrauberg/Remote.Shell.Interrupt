@@ -14,7 +14,7 @@ internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
   async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODByVlanTagQuery request,
                                                                                                                        CancellationToken cancellationToken)
   {
-    var clientName = await _unitOfWork.ClientCODs
+    var clientName = await _unitOfWork.ClientCODRs
                                       .GetClientNameByVlanTagAsync(request.VlanTag,
                                                                    cancellationToken);
 
@@ -23,7 +23,7 @@ internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     var name = ExtractNameInQuotes(clientName.TrimEnd());
 
-    var clients = await _unitOfWork.ClientCODs
+    var clients = await _unitOfWork.ClientCODRs
                                    .GetAllByNameAsync(name,
                                                       cancellationToken);
 

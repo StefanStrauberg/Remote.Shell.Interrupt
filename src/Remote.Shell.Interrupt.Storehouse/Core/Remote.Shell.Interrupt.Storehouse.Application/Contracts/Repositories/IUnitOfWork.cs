@@ -11,7 +11,9 @@ public interface IUnitOfWork
   IMACEntityRepository MACEntities { get; }
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
   IPortVlanRepository PortVlans { get; }
-  IClientCODRepository ClientCODs { get; }
+  IClientCODRepository ClientCODRs { get; }
+  ICODRRepository CODRs { get; }
+  ITfPlanRRepository TfPlanRs { get; }
   IOrganizationRepository Organizations { get; }
 
   void Complete();

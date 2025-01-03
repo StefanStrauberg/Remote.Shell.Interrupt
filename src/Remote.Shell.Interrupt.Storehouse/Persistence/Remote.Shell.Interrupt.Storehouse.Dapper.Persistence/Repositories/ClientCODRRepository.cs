@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClientCODRepository
+internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : IClientCODRepository
 {
   protected readonly MySQLDapperContext _mySQLDapperContext = mySQLDapperContext
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
@@ -46,56 +46,13 @@ internal class ClientRepository(MySQLDapperContext mySQLDapperContext) : IClient
                 "cc.id_cod as \"IdCOD\", " +
                 "cc.id_tplan as \"IdTfPlan\", " +
                 "cc.history as \"History\", " +
-                "cc.ad as \"AntiDDOS\", " +
-                "c.ID_cod AS \"Id\", " +
-                "c.name_cod AS \"NameCOD\", " +
-                "c.telephone AS \"Telephone\", " +
-                "c.e_mail AS \"Email1\", " +
-                "c.e_mail2 AS \"Email2\", " +
-                "c.contact AS \"Contact\", " +
-                "c.description AS \"Description\", " +
-                "c.region AS \"Region\", " +
-                "tp.id_tplan AS \"Id\", " +
-                "tp.name_tplan AS \"NameTfPlan\", " +
-                "tp.descr_tplan AS \"DescTfPlan\" " +
-                "FROM client_cod as cc " +
-                "LEFT JOIN `_cods`AS c ON c.ID_cod = cc.id_cod " +
-                "LEFT JOIN `_tf_plan` AS tp ON tp.id_tplan = cc.id_tplan";
+                "cc.ad as \"AntiDDOS\" " +
+                "FROM client_cod AS cc";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var ccDictionary = new Dictionary<int, ClientCodR>();
-    var cDicotionary = new Dictionary<int, CODR>();
-    var tpDictionary = new Dictionary<int, TfPlanR>();
+    var result = await connection.QueryAsync<ClientCodR>(query);
 
-    await connection.QueryAsync(
-        query,
-        (Func<ClientCodR, CODR, TfPlanR, ClientCodR>)((cc, c, tp) =>
-        {
-          if (!ccDictionary.TryGetValue(cc.Id, out var clientCodR))
-          {
-            clientCodR = cc;
-            ccDictionary.Add(clientCodR.Id, clientCodR);
-          }
-
-          if (c is not null && !cDicotionary.TryGetValue(c.Id, out var CODR))
-          {
-            CODR = c;
-            clientCodR.COD = c;
-            cDicotionary.Add(CODR.Id, CODR);
-          }
-
-          if (tp is not null && !tpDictionary.TryGetValue(tp.Id, out var TfPlanR))
-          {
-            TfPlanR = tp;
-            clientCodR.TfPlan = tp;
-            tpDictionary.Add(TfPlanR.Id, TfPlanR);
-          }
-
-          return clientCodR;
-        }),
-        splitOn: "Id, Id, Id");
-
-    return ccDictionary.Values.ToList();
+    return result;
   }
 
   async Task<string?> IClientCODRepository.GetClientNameByVlanTagAsync(int tag,

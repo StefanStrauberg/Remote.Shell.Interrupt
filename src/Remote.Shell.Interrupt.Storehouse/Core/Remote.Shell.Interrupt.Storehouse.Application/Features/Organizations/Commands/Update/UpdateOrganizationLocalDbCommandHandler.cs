@@ -13,7 +13,11 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
   async Task<Unit> IRequestHandler<UpdateOrganizationsLocalDbCommand, Unit>.Handle(UpdateOrganizationsLocalDbCommand request,
                                                                                    CancellationToken cancellationToken)
   {
-    var allClients = await _unitOfWork.ClientCODs.GetAllAsync(cancellationToken);
+    var allClients = await _unitOfWork.ClientCODRs.GetAllAsync(cancellationToken);
+    var allCODs = await _unitOfWork.CODRs.GetAllAsync(cancellationToken);
+    var allTfPlans = await _unitOfWork.TfPlanRs.GetAllAsync(cancellationToken);
+
+
 
     List<ClientCodL> organizations = [];
 
