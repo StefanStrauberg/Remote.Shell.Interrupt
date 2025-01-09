@@ -4,7 +4,7 @@ public interface IClientCODRepository
 {
   Task<IEnumerable<ClientCodR>> GetAllAsync(CancellationToken cancellationToken);
   Task<IEnumerable<ClientCodR>> GetAllByNameAsync(string name,
-                                                 CancellationToken cancellationToken);
+                                                  CancellationToken cancellationToken);
   Task<string?> GetClientNameByVlanTagAsync(int tag,
                                             CancellationToken cancellationToken);
 }

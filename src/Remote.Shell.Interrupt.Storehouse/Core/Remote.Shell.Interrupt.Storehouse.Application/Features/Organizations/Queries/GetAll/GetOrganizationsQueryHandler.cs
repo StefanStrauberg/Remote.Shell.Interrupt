@@ -14,7 +14,7 @@ internal class GetClientsCODQueryHandler(IUnitOfWork unitOfWork,
   async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODQuery request,
                                                                                                               CancellationToken cancellationToken)
   {
-    var clients = await _unitOfWork.ClientCODRs
+    var clients = await _unitOfWork.ClientCodLs
                                    .GetAllAsync(cancellationToken);
 
     var result = _mapper.Map<IEnumerable<ClientCODDTO>>(clients);

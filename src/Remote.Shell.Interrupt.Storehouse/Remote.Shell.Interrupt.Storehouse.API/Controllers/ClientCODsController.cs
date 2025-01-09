@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
-public class OrganizationsController(ISender sender) : BaseAPIController
+public class ClientCODsController(ISender sender) : BaseAPIController
 {
   readonly ISender _sender = sender
     ?? throw new ArgumentNullException(nameof(sender));

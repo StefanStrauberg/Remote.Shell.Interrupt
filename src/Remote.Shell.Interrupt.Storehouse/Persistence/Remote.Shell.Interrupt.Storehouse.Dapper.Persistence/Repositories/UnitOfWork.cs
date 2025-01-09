@@ -29,7 +29,7 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
   IClientCODRepository IUnitOfWork.ClientCODRs
     => new ClientCODRRepository(_mysqlContext);
   IClientCodLRepository IUnitOfWork.ClientCodLs
-    => new OrganizationRepository(_postgreSQLDapperContext);
+    => new ClientCodLRepository(_postgreSQLDapperContext);
   ICODRRepository IUnitOfWork.CODRs
     => new CODRRepository(_mysqlContext);
   ICODLRepository IUnitOfWork.CODLs

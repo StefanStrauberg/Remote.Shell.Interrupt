@@ -14,7 +14,7 @@ internal class GetClientsCODByNameQueryHandler(IUnitOfWork unitOfWork,
   async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODByNameQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODByNameQuery request,
                                                                                                                     CancellationToken cancellationToken)
   {
-    var clients = await _unitOfWork.ClientCODRs
+    var clients = await _unitOfWork.ClientCodLs
                                    .GetAllByNameAsync(request.Name,
                                                       cancellationToken);
 

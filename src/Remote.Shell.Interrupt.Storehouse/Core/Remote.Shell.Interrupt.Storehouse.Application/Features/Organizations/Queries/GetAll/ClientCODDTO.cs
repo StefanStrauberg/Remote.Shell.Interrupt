@@ -16,27 +16,27 @@ public class ClientCODDTO : IMapWith<ClientCodR>
 
   void IMapWith<ClientCodR>.Mapping(Profile profile)
   {
-    profile.CreateMap<ClientCodR, ClientCODDTO>()
+    profile.CreateMap<ClientCodL, ClientCODDTO>()
            .ForMember(dest => dest.IdClient,
-                      opt => opt.MapFrom(src => src.Id))
+                      opt => opt.MapFrom(src => src.IdClient))
            .ForMember(dest => dest.Name,
                       opt => opt.MapFrom(src => src.Name.TrimEnd()))
            .ForMember(dest => dest.ContactC,
-                      opt => opt.MapFrom(src => src.ContactC.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.ContactC ?? "").TrimEnd()))
            .ForMember(dest => dest.TelephoneC,
-                      opt => opt.MapFrom(src => src.TelephoneC.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.TelephoneC ?? "").TrimEnd()))
            .ForMember(dest => dest.ContactT,
-                      opt => opt.MapFrom(src => src.ContactT.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.ContactT ?? "").TrimEnd()))
            .ForMember(dest => dest.TelephoneT,
-                      opt => opt.MapFrom(src => src.TelephoneT.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.TelephoneT ?? "").TrimEnd()))
            .ForMember(dest => dest.EmailC,
-                      opt => opt.MapFrom(src => src.EmailC.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.EmailC ?? "").TrimEnd()))
            .ForMember(dest => dest.Working,
                       opt => opt.MapFrom(src => src.Working))
            .ForMember(dest => dest.EmailT,
-                      opt => opt.MapFrom(src => src.EmailT.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.EmailT ?? "").TrimEnd()))
            .ForMember(dest => dest.History,
-                      opt => opt.MapFrom(src => src.History.TrimEnd()))
+                      opt => opt.MapFrom(src => (src.History ?? "").TrimEnd()))
            .ForMember(dest => dest.AntiDDOS,
                       opt => opt.MapFrom(src => src.AntiDDOS));
   }
