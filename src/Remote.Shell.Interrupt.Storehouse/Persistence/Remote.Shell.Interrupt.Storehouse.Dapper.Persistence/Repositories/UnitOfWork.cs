@@ -28,12 +28,16 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     => new PortVlanRepository(_postgreSQLDapperContext);
   IClientCODRepository IUnitOfWork.ClientCODRs
     => new ClientCODRRepository(_mysqlContext);
-  IOrganizationRepository IUnitOfWork.Organizations
+  IClientCodLRepository IUnitOfWork.ClientCodLs
     => new OrganizationRepository(_postgreSQLDapperContext);
   ICODRRepository IUnitOfWork.CODRs
     => new CODRRepository(_mysqlContext);
+  ICODLRepository IUnitOfWork.CODLs
+    => new CODLRepository(_postgreSQLDapperContext);
   ITfPlanRRepository IUnitOfWork.TfPlanRs
     => new TfPlanRRepository(_mysqlContext);
+  ITfPlanLRepository IUnitOfWork.TfPlanLs
+    => new TfPlanLRepository(_postgreSQLDapperContext);
 
   void IUnitOfWork.Complete()
   {

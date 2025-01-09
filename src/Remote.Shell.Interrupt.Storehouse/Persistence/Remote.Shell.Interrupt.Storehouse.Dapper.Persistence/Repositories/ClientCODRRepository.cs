@@ -9,7 +9,7 @@ internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : ICl
                                                                          CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "cc.id_client as \"IdClient\", " +
+                "cc.id_client as \"Id\", " +
                 "cc.name as \"Name\", " +
                 "cc.contact_C as \"ContactC\", " +
                 "cc.telefon_C as \"TelephoneC\", " +

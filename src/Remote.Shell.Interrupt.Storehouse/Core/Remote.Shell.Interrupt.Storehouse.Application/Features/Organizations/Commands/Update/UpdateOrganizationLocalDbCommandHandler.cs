@@ -13,42 +13,82 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
   async Task<Unit> IRequestHandler<UpdateOrganizationsLocalDbCommand, Unit>.Handle(UpdateOrganizationsLocalDbCommand request,
                                                                                    CancellationToken cancellationToken)
   {
-    var allClients = await _unitOfWork.ClientCODRs.GetAllAsync(cancellationToken);
-    var allCODs = await _unitOfWork.CODRs.GetAllAsync(cancellationToken);
-    var allTfPlans = await _unitOfWork.TfPlanRs.GetAllAsync(cancellationToken);
+    var allClientCODRs = await _unitOfWork.ClientCODRs.GetAllAsync(cancellationToken);
+    var allCODRs = await _unitOfWork.CODRs.GetAllAsync(cancellationToken);
+    var allTfPlanRs = await _unitOfWork.TfPlanRs.GetAllAsync(cancellationToken);
 
+    var CODLsToDel = await _unitOfWork.CODLs.GetAllAsync(cancellationToken);
+    if (CODLsToDel.Any())
+      _unitOfWork.CODLs.DeleteMany(CODLsToDel);
 
+    var TfPlanLsToDel = await _unitOfWork.TfPlanLs.GetAllAsync(cancellationToken);
+    if (TfPlanLsToDel.Any())
+      _unitOfWork.TfPlanLs.DeleteMany(TfPlanLsToDel);
 
-    List<ClientCodL> organizations = [];
+    var ClientCodLstoDel = await _unitOfWork.ClientCodLs.GetAllAsync(cancellationToken);
+    if (ClientCodLstoDel.Any())
+      _unitOfWork.ClientCodLs.DeleteMany(ClientCodLstoDel);
 
-    foreach (var client in allClients)
+    List<CODL> CODLsToCre = [];
+    List<TfPlanL> TfPlanLs = [];
+    List<ClientCodL> ClientCodLsToCre = [];
+
+    foreach (var cod in allCODRs)
     {
-      organizations.Add(new ClientCodL
+      CODLsToCre.Add(new CODL
       {
-        IdClient = client.Id,
-        Name = client.Name,
-        ContactC = client.ContactC,
-        TelephoneC = client.TelephoneC,
-        ContactT = client.ContactT,
-        TelephoneT = client.TelephoneT,
-        EmailC = client.EmailC,
-        Working = client.Working,
-        EmailT = client.EmailT,
-        History = client.History,
-        AntiDDOS = client.AntiDDOS,
-        IdCOD = client.IdCOD,
-        COD = client.COD,
-        IdTPlan = client.IdTfPlan,
-        TfPlanL = client.TfPlan,
+        IdCOD = cod.Id,
+        NameCOD = cod.NameCOD.TrimEnd(),
+        Telephone = cod.Telephone.TrimEnd(),
+        Email1 = cod.Email1.TrimEnd(),
+        Email2 = cod.Email2.TrimEnd(),
+        Contact = cod.Contact.TrimEnd(),
+        Description = cod.Description.TrimEnd(),
+        Region = cod.Region.TrimEnd()
       });
     }
 
-    var toDelete = await _unitOfWork.Organizations.GetAllAsync(cancellationToken);
+    _unitOfWork.CODLs.InsertMany(CODLsToCre);
 
-    if (toDelete.Any())
-      _unitOfWork.Organizations.DeleteMany(toDelete);
+    foreach (var tfPlan in allTfPlanRs)
+    {
+      TfPlanLs.Add(new TfPlanL
+      {
+        IdTfPlan = tfPlan.Id,
+        NameTfPlan = tfPlan.NameTfPlan.TrimEnd(),
+        DescTfPlan = tfPlan.DescTfPlan.TrimEnd().Replace("\0", "")
+      });
+    }
 
-    _unitOfWork.Organizations.InsertMany(organizations);
+    _unitOfWork.TfPlanLs.InsertMany(TfPlanLs);
+
+    foreach (var client in allClientCODRs)
+    {
+      ClientCodLsToCre.Add(new ClientCodL
+      {
+        IdClient = client.Id,
+        Name = client.Name.TrimEnd(),
+        ContactC = client.ContactC.TrimEnd(),
+        TelephoneC = client.TelephoneC.TrimEnd(),
+        ContactT = client.ContactT.TrimEnd(),
+        TelephoneT = client.TelephoneT.TrimEnd(),
+        EmailC = client.EmailC.TrimEnd(),
+        Working = client.Working,
+        EmailT = client.EmailT.TrimEnd(),
+        History = client.History.TrimEnd().Replace("\0", ""),
+        AntiDDOS = client.AntiDDOS,
+        IdCOD = CODLsToCre.Where(x => x.IdCOD == client.IdCOD)
+                          .Select(x => x.Id)
+                          .First(),
+        COD = client.COD,
+        IdTPlan = TfPlanLs.Where(x => x.IdTfPlan == client.IdTfPlan)
+                          .Select(x => x.Id)
+                          .FirstOrDefault(),
+        TfPlanL = client.TfPlan,
+      });
+    }
+    _unitOfWork.ClientCodLs.InsertMany(ClientCodLsToCre);
+
     _unitOfWork.Complete();
 
     return Unit.Value;

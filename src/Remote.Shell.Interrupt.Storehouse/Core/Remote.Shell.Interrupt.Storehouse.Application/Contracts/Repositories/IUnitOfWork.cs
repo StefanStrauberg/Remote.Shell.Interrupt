@@ -12,9 +12,11 @@ public interface IUnitOfWork
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
   IPortVlanRepository PortVlans { get; }
   IClientCODRepository ClientCODRs { get; }
+  IClientCodLRepository ClientCodLs { get; }
   ICODRRepository CODRs { get; }
+  ICODLRepository CODLs { get; }
   ITfPlanRRepository TfPlanRs { get; }
-  IOrganizationRepository Organizations { get; }
+  ITfPlanLRepository TfPlanLs { get; }
 
   void Complete();
 }
