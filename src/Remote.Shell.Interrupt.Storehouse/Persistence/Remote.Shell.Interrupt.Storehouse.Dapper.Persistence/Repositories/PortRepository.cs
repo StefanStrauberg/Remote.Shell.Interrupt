@@ -1,5 +1,3 @@
-
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class PortRepository(PostgreSQLDapperContext context) : GenericRepository<Port>(context), IPortRepository

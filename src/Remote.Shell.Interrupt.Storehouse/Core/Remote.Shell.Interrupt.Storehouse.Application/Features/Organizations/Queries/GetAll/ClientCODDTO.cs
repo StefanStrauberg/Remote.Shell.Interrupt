@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
 
-public class ClientCODDTO : IMapWith<ClientCodR>
+public class ClientCODDTO : IMapWith<ClientCODR>
 {
   public int IdClient { get; set; }
   public string Name { get; set; } = string.Empty;
@@ -14,9 +14,9 @@ public class ClientCODDTO : IMapWith<ClientCodR>
   public string History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
 
-  void IMapWith<ClientCodR>.Mapping(Profile profile)
+  void IMapWith<ClientCODR>.Mapping(Profile profile)
   {
-    profile.CreateMap<ClientCodL, ClientCODDTO>()
+    profile.CreateMap<ClientCODL, ClientCODDTO>()
            .ForMember(dest => dest.IdClient,
                       opt => opt.MapFrom(src => src.IdClient))
            .ForMember(dest => dest.Name,

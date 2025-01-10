@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class ClientCodL : BaseEntity
+public class ClientCODL : BaseEntity
 {
   public int IdClient { get; set; }
   public string Name { get; set; } = string.Empty;

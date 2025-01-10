@@ -1,9 +1,9 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class GenericRepository<T>(PostgreSQLDapperContext postgreSQLDapperContext) : IGenericRepository<T> where T : BaseEntity
+internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericRepository<T> where T : BaseEntity
 {
-  protected readonly PostgreSQLDapperContext _postgreSQLDapperContext = postgreSQLDapperContext
-    ?? throw new ArgumentNullException(nameof(postgreSQLDapperContext));
+  protected readonly PostgreSQLDapperContext _postgreSQLDapperContext = context
+    ?? throw new ArgumentNullException(nameof(context));
 
   async Task<bool> IGenericRepository<T>.AnyAsync(CancellationToken cancellationToken)
   {

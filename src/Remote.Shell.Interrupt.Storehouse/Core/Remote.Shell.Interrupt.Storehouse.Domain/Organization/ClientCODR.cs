@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 
-public class ClientCodR
+public class ClientCODR
 {
   public int Id { get; set; }
   public string Name { get; set; } = string.Empty;

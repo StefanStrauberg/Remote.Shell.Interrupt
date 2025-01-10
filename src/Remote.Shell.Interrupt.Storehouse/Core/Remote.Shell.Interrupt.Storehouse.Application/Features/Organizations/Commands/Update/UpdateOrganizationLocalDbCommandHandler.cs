@@ -16,6 +16,7 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     var allClientCODRs = await _unitOfWork.ClientCODRs.GetAllAsync(cancellationToken);
     var allCODRs = await _unitOfWork.CODRs.GetAllAsync(cancellationToken);
     var allTfPlanRs = await _unitOfWork.TfPlanRs.GetAllAsync(cancellationToken);
+    var allSPRVlanRs = await _unitOfWork.SPRVlanRs.GetAllAsync(cancellationToken);
 
     var CODLsToDel = await _unitOfWork.CODLs.GetAllAsync(cancellationToken);
     if (CODLsToDel.Any())
@@ -25,13 +26,18 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     if (TfPlanLsToDel.Any())
       _unitOfWork.TfPlanLs.DeleteMany(TfPlanLsToDel);
 
-    var ClientCodLstoDel = await _unitOfWork.ClientCodLs.GetAllAsync(cancellationToken);
+    var ClientCodLstoDel = await _unitOfWork.ClientCODLs.GetAllAsync(cancellationToken);
     if (ClientCodLstoDel.Any())
-      _unitOfWork.ClientCodLs.DeleteMany(ClientCodLstoDel);
+      _unitOfWork.ClientCODLs.DeleteMany(ClientCodLstoDel);
+
+    var SPRVlanLsToDel = await _unitOfWork.SPRVlanLs.GetAllAsync(cancellationToken);
+    if (SPRVlanLsToDel.Any())
+      _unitOfWork.SPRVlanLs.DeleteMany(SPRVlanLsToDel);
 
     List<CODL> CODLsToCre = [];
-    List<TfPlanL> TfPlanLs = [];
-    List<ClientCodL> ClientCodLsToCre = [];
+    List<TfPlanL> TfPlanLsToCre = [];
+    List<ClientCODL> ClientCodLsToCre = [];
+    List<SPRVlanL> SPRVlanLsToCre = [];
 
     foreach (var cod in allCODRs)
     {
@@ -52,7 +58,7 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
 
     foreach (var tfPlan in allTfPlanRs)
     {
-      TfPlanLs.Add(new TfPlanL
+      TfPlanLsToCre.Add(new TfPlanL
       {
         IdTfPlan = tfPlan.Id,
         NameTfPlan = tfPlan.NameTfPlan.TrimEnd(),
@@ -60,11 +66,11 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
       });
     }
 
-    _unitOfWork.TfPlanLs.InsertMany(TfPlanLs);
+    _unitOfWork.TfPlanLs.InsertMany(TfPlanLsToCre);
 
     foreach (var client in allClientCODRs)
     {
-      ClientCodLsToCre.Add(new ClientCodL
+      ClientCodLsToCre.Add(new ClientCODL
       {
         IdClient = client.Id,
         Name = client.Name.TrimEnd(),
@@ -81,13 +87,29 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
                           .Select(x => x.Id)
                           .First(),
         COD = client.COD,
-        IdTPlan = TfPlanLs.Where(x => x.IdTfPlan == client.IdTfPlan)
+        IdTPlan = TfPlanLsToCre.Where(x => x.IdTfPlan == client.IdTfPlan)
                           .Select(x => x.Id)
                           .FirstOrDefault(),
         TfPlanL = client.TfPlan,
       });
     }
-    _unitOfWork.ClientCodLs.InsertMany(ClientCodLsToCre);
+
+    _unitOfWork.ClientCODLs.InsertMany(ClientCodLsToCre);
+
+    foreach (var SPRVlan in allSPRVlanRs)
+    {
+      SPRVlanLsToCre.Add(new SPRVlanL
+      {
+        IdVlan = SPRVlan.IdVlan,
+        IdClient = ClientCodLsToCre.Where(x => x.IdClient == SPRVlan.IdClient)
+                                   .Select(x => x.Id)
+                                   .FirstOrDefault(),
+        UseClient = SPRVlan.UseClient,
+        UseCOD = SPRVlan.UseCOD
+      });
+    }
+
+    _unitOfWork.SPRVlanLs.InsertMany(SPRVlanLsToCre);
 
     _unitOfWork.Complete();
 

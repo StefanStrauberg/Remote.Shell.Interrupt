@@ -1,37 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : IClientCODRepository
+internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : IClientCODRRepository
 {
   protected readonly MySQLDapperContext _mySQLDapperContext = mySQLDapperContext
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
 
-  async Task<IEnumerable<ClientCodR>> IClientCODRepository.GetAllByNameAsync(string name,
-                                                                         CancellationToken cancellationToken)
-  {
-    var query = $"SELECT " +
-                "cc.id_client as \"Id\", " +
-                "cc.name as \"Name\", " +
-                "cc.contact_C as \"ContactC\", " +
-                "cc.telefon_C as \"TelephoneC\", " +
-                "cc.contact_T as \"ContactT\", " +
-                "cc.telefon_T as \"TelephoneT\", " +
-                "cc.c_email as \"EmailC\", " +
-                "cc.`_working` as \"Working\", " +
-                "cc.t_email as \"EmailT\", " +
-                "cc.id_cod as \"IdCOD\", " +
-                "cc.id_tplan as \"IdTPlan\", " +
-                "cc.history as \"History\", " +
-                "cc.ad as \"AntiDDOS\" " +
-                "FROM client_cod as cc " +
-                $"WHERE cc.name like '%{name}%' " +
-                "AND cc.`_working` = 1 ";
-    var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<ClientCodR>(query);
-
-    return result;
-  }
-
-  async Task<IEnumerable<ClientCodR>> IClientCODRepository.GetAllAsync(CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODR>> IClientCODRRepository.GetAllAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
                 "cc.id_client as \"Id\", " +
@@ -50,22 +24,8 @@ internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : ICl
                 "FROM client_cod AS cc";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var result = await connection.QueryAsync<ClientCodR>(query);
+    var result = await connection.QueryAsync<ClientCODR>(query);
 
-    return result;
-  }
-
-  async Task<string?> IClientCODRepository.GetClientNameByVlanTagAsync(int tag,
-                                                                       CancellationToken cancellationToken)
-  {
-    var query = $"SELECT " +
-                "cc.name AS \"Name\"" +
-                "FROM client_cod AS cc " +
-                "LEFT JOIN `_spr_vlan` AS vl ON vl.id_client = cc.id_client " +
-                "WHERE vl.id_vlan = @Tag " +
-                "AND cc.`_working` = 1";
-    var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.ExecuteScalarAsync<string>(query, new { Tag = tag });
     return result;
   }
 }
