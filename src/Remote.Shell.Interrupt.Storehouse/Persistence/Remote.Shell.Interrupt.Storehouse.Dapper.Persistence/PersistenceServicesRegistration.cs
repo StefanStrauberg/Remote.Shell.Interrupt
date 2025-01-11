@@ -17,7 +17,7 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IClientCODRRepository, ClientCODRRepository>();
     services.AddScoped<ICODRRepository, CODRRepository>();
     services.AddScoped<ITfPlanRRepository, TfPlanRRepository>();
-    services.AddScoped<IClientCodLRepository, ClientCODLRepository>();
+    services.AddScoped<IClientCODLRepository, ClientCODLRepository>();
 
     return services;
   }

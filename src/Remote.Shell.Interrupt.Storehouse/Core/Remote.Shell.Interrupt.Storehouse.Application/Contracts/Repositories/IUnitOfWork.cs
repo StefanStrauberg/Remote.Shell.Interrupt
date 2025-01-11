@@ -12,7 +12,7 @@ public interface IUnitOfWork
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
   IPortVlanRepository PortVlans { get; }
   IClientCODRRepository ClientCODRs { get; }
-  IClientCodLRepository ClientCODLs { get; }
+  IClientCODLRepository ClientCODLs { get; }
   ICODRRepository CODRs { get; }
   ICODLRepository CODLs { get; }
   ITfPlanRRepository TfPlanRs { get; }

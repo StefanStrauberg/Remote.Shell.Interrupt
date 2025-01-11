@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
 
-public interface IClientCodLRepository : IGenericRepository<ClientCODL>
+public interface IClientCODLRepository : IGenericRepository<ClientCODL>
 {
   Task<IEnumerable<ClientCODL>> GetAllByNameAsync(string name,
                                                   CancellationToken cancellationToken);

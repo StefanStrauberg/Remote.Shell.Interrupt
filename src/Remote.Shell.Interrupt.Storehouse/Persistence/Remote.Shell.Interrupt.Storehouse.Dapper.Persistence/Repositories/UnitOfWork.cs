@@ -28,7 +28,7 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     => new PortVlanRepository(_postgreSQLDapperContext);
   IClientCODRRepository IUnitOfWork.ClientCODRs
     => new ClientCODRRepository(_mysqlContext);
-  IClientCodLRepository IUnitOfWork.ClientCODLs
+  IClientCODLRepository IUnitOfWork.ClientCODLs
     => new ClientCODLRepository(_postgreSQLDapperContext);
   ICODRRepository IUnitOfWork.CODRs
     => new CODRRepository(_mysqlContext);
