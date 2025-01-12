@@ -14,7 +14,7 @@ public class ClientCODL : BaseEntity
   public string? History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
   public Guid IdCOD { get; set; }
-  public CODR COD { get; set; } = null!;
+  public CODL COD { get; set; } = null!;
   public Guid? IdTPlan { get; set; } = null!;
-  public TfPlanR? TfPlanL { get; set; } = null!;
+  public TfPlanL? TfPlanL { get; set; } = null!;
 }

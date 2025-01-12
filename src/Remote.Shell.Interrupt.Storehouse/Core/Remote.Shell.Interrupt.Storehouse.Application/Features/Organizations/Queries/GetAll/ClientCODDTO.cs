@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
 
-public class ClientCODDTO : IMapWith<ClientCODR>
+public class ClientCODDTO : IMapWith<ClientCODL>
 {
   public int IdClient { get; set; }
   public string Name { get; set; } = string.Empty;
@@ -13,31 +13,43 @@ public class ClientCODDTO : IMapWith<ClientCODR>
   public string EmailT { get; set; } = string.Empty;
   public string History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
+  public Guid IdCOD { get; set; }
+  public CODDTO COD { get; set; } = null!;
+  public Guid? IdTPlan { get; set; } = null!;
+  public TfPlanDTO? TfPlan { get; set; } = null!;
 
-  void IMapWith<ClientCODR>.Mapping(Profile profile)
+  void IMapWith<ClientCODL>.Mapping(Profile profile)
   {
     profile.CreateMap<ClientCODL, ClientCODDTO>()
            .ForMember(dest => dest.IdClient,
                       opt => opt.MapFrom(src => src.IdClient))
            .ForMember(dest => dest.Name,
-                      opt => opt.MapFrom(src => src.Name.TrimEnd()))
+                      opt => opt.MapFrom(src => src.Name))
            .ForMember(dest => dest.ContactC,
-                      opt => opt.MapFrom(src => (src.ContactC ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.ContactC))
            .ForMember(dest => dest.TelephoneC,
-                      opt => opt.MapFrom(src => (src.TelephoneC ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.TelephoneC))
            .ForMember(dest => dest.ContactT,
-                      opt => opt.MapFrom(src => (src.ContactT ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.ContactT))
            .ForMember(dest => dest.TelephoneT,
-                      opt => opt.MapFrom(src => (src.TelephoneT ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.TelephoneT))
            .ForMember(dest => dest.EmailC,
-                      opt => opt.MapFrom(src => (src.EmailC ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.EmailC))
            .ForMember(dest => dest.Working,
                       opt => opt.MapFrom(src => src.Working))
            .ForMember(dest => dest.EmailT,
-                      opt => opt.MapFrom(src => (src.EmailT ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.EmailT))
            .ForMember(dest => dest.History,
-                      opt => opt.MapFrom(src => (src.History ?? "").TrimEnd()))
+                      opt => opt.MapFrom(src => src.History))
            .ForMember(dest => dest.AntiDDOS,
-                      opt => opt.MapFrom(src => src.AntiDDOS));
+                      opt => opt.MapFrom(src => src.AntiDDOS))
+           .ForMember(dest => dest.IdCOD,
+                      opt => opt.MapFrom(src => src.IdCOD))
+           .ForMember(dest => dest.COD,
+                      opt => opt.MapFrom(src => src.COD))
+           .ForMember(dest => dest.IdTPlan,
+                      opt => opt.MapFrom(src => src.IdTPlan))
+           .ForMember(dest => dest.TfPlan,
+                      opt => opt.MapFrom(src => src.TfPlanL));
   }
 }

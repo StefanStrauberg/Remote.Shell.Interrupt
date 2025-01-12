@@ -43,14 +43,14 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     {
       CODLsToCre.Add(new CODL
       {
-        IdCOD = cod.Id,
+        IdCOD = cod.IdCOD,
         NameCOD = cod.NameCOD.TrimEnd(),
-        Telephone = cod.Telephone.TrimEnd(),
-        Email1 = cod.Email1.TrimEnd(),
-        Email2 = cod.Email2.TrimEnd(),
-        Contact = cod.Contact.TrimEnd(),
-        Description = cod.Description.TrimEnd(),
-        Region = cod.Region.TrimEnd()
+        Telephone = cod.Telephone?.TrimEnd() ?? string.Empty,
+        Email1 = cod.Email1?.TrimEnd() ?? string.Empty,
+        Email2 = cod.Email2?.TrimEnd() ?? string.Empty,
+        Contact = cod.Contact?.TrimEnd() ?? string.Empty,
+        Description = cod.Description?.TrimEnd() ?? string.Empty,
+        Region = cod.Region?.TrimEnd() ?? string.Empty
       });
     }
 
@@ -86,11 +86,13 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
         IdCOD = CODLsToCre.Where(x => x.IdCOD == client.IdCOD)
                           .Select(x => x.Id)
                           .First(),
-        COD = client.COD,
+        COD = CODLsToCre.Where(x => x.IdCOD == client.IdCOD)
+                        .First(),
         IdTPlan = TfPlanLsToCre.Where(x => x.IdTfPlan == client.IdTfPlan)
                           .Select(x => x.Id)
                           .FirstOrDefault(),
-        TfPlanL = client.TfPlan,
+        TfPlanL = TfPlanLsToCre.Where(x => x.IdTfPlan == client.IdTfPlan)
+                               .First(),
       });
     }
 
