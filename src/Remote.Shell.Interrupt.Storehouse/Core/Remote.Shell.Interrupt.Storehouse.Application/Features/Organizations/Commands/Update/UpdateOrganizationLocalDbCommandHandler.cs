@@ -60,7 +60,7 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     {
       TfPlanLsToCre.Add(new TfPlanL
       {
-        IdTfPlan = tfPlan.Id,
+        IdTfPlan = tfPlan.IdTfPlan,
         NameTfPlan = tfPlan.NameTfPlan.TrimEnd(),
         DescTfPlan = tfPlan.DescTfPlan.TrimEnd().Replace("\0", "")
       });
@@ -72,7 +72,7 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
     {
       ClientCodLsToCre.Add(new ClientCODL
       {
-        IdClient = client.Id,
+        IdClient = client.IdClient,
         Name = client.Name.TrimEnd(),
         ContactC = client.ContactC.TrimEnd(),
         TelephoneC = client.TelephoneC.TrimEnd(),
@@ -83,16 +83,8 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
         EmailT = client.EmailT.TrimEnd(),
         History = client.History.TrimEnd().Replace("\0", ""),
         AntiDDOS = client.AntiDDOS,
-        IdCOD = CODLsToCre.Where(x => x.IdCOD == client.IdCOD)
-                          .Select(x => x.Id)
-                          .First(),
-        COD = CODLsToCre.Where(x => x.IdCOD == client.IdCOD)
-                        .First(),
-        IdTPlan = TfPlanLsToCre.Where(x => x.IdTfPlan == client.IdTfPlan)
-                          .Select(x => x.Id)
-                          .FirstOrDefault(),
-        TfPlanL = TfPlanLsToCre.Where(x => x.IdTfPlan == client.IdTfPlan)
-                               .First(),
+        Id_COD = client.Id_COD,
+        Id_TfPlan = client.Id_TfPlan,
       });
     }
 
@@ -103,9 +95,7 @@ internal class UpdateOrganizationLocalDbCommandHandler(IUnitOfWork unitOfWork, I
       SPRVlanLsToCre.Add(new SPRVlanL
       {
         IdVlan = SPRVlan.IdVlan,
-        IdClient = ClientCodLsToCre.Where(x => x.IdClient == SPRVlan.IdClient)
-                                   .Select(x => x.Id)
-                                   .FirstOrDefault(),
+        IdClient = SPRVlan.IdClient,
         UseClient = SPRVlan.UseClient,
         UseCOD = SPRVlan.UseCOD
       });

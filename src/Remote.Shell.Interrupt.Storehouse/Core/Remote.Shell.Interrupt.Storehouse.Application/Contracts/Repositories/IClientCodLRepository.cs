@@ -6,4 +6,6 @@ public interface IClientCODLRepository : IGenericRepository<ClientCODL>
                                                   CancellationToken cancellationToken);
   Task<string?> GetClientNameByVlanTagAsync(int tag,
                                             CancellationToken cancellationToken);
+
+  Task<IEnumerable<ClientCODL>> GetAllWithChildrensAsync(CancellationToken cancellationToken);
 }

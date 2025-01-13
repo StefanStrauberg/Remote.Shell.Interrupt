@@ -13,8 +13,8 @@ public class ClientCODL : BaseEntity
   public string? EmailT { get; set; } = string.Empty;
   public string? History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
-  public Guid IdCOD { get; set; }
+  public int Id_COD { get; set; }
   public CODL COD { get; set; } = null!;
-  public Guid? IdTPlan { get; set; } = null!;
+  public int? Id_TfPlan { get; set; } = null!;
   public TfPlanL? TfPlanL { get; set; } = null!;
 }

@@ -15,7 +15,7 @@ internal class GetClientsCODQueryHandler(IUnitOfWork unitOfWork,
                                                                                                               CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.ClientCODLs
-                                   .GetAllAsync(cancellationToken);
+                                   .GetAllWithChildrensAsync(cancellationToken);
 
     var result = _mapper.Map<List<ClientCODDTO>>(clients);
 

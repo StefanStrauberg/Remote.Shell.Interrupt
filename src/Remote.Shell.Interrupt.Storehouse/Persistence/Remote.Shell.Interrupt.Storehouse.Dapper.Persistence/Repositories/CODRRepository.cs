@@ -8,7 +8,7 @@ internal class CODRRepository(MySQLDapperContext mySQLDapperContext) : ICODRRepo
   async Task<IEnumerable<CODR>> ICODRRepository.GetAllAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "c.ID_cod AS \"Id\"," +
+                "c.ID_cod AS \"IdCOD\"," +
                 "c.name_cod AS \"NameCOD\", " +
                 "c.telephone AS \"Telephone\", " +
                 "c.e_mail AS \"Email1\", " +

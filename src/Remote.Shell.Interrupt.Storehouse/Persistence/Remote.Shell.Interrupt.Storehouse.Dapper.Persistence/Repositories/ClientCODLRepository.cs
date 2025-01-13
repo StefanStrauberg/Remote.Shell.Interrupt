@@ -2,39 +2,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRepository<ClientCODL>(context), IClientCODLRepository
 {
-  async Task<IEnumerable<ClientCODL>> IGenericRepository<ClientCODL>.GetAllAsync(System.Threading.CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllWithChildrensAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "cc.\"Id\", " +
-                "cc.\"IdClient\", " +
-                "cc.\"Name\", " +
-                "cc.\"ContactC\", " +
-                "cc.\"TelephoneC\", " +
-                "cc.\"ContactT\", " +
-                "cc.\"TelephoneT\", " +
-                "cc.\"EmailC\", " +
-                "cc.\"Working\", " +
-                "cc.\"EmailT\", " +
-                "cc.\"History\", " +
-                "cc.\"AntiDDOS\", " +
-                "cc.\"IdCOD\", " +
-                "cc.\"IdTPlan\", " +
-                "c.\"Id\", " +
-                "c.\"IdCOD\", " +
-                "c.\"NameCOD\", " +
-                "c.\"Telephone\", " +
-                "c.\"Email1\", " +
-                "c.\"Email2\", " +
-                "c.\"Contact\", " +
-                "c.\"Description\", " +
-                "c.\"Region\", " +
-                "tf.\"Id\", " +
-                "tf.\"IdTfPlan\", " +
-                "tf.\"NameTfPlan\", " +
-                "tf.\"DescTfPlan\" " +
+                "cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactC\", cc.\"TelephoneC\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailC\", cc.\"Working\", cc.\"EmailT\", cc.\"History\", cc.\"AntiDDOS\", cc.\"Id_COD\", cc.\"Id_TfPlan\", " +
+                "c.\"Id\", c.\"IdCOD\", c.\"NameCOD\", c.\"Telephone\", c.\"Email1\", c.\"Email2\", c.\"Contact\", c.\"Description\", c.\"Region\", " +
+                "tf.\"Id\", tf.\"IdTfPlan\", tf.\"NameTfPlan\", tf.\"DescTfPlan\" " +
                 "FROM \"ClientCODLs\" AS cc " +
-                "LEFT JOIN \"CODLs\" AS c ON c.\"Id\" = cc.\"IdCOD\" " +
-                "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"Id\" = cc.\"IdTPlan\"";
+                "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
+                "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
     var ccDictionary = new Dictionary<Guid, ClientCODL>();
@@ -45,27 +21,27 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
         query,
         (cc, c, tf) =>
         {
-          if (!ccDictionary.TryGetValue(cc.Id, out var ClientCODL))
+          if (!ccDictionary.TryGetValue(cc.Id, out var clientCODL))
           {
-            ClientCODL = cc;
-            ccDictionary.Add(ClientCODL.Id, ClientCODL);
+            clientCODL = cc;
+            ccDictionary.Add(clientCODL.Id, clientCODL);
           }
 
-          if (!cDicotionary.TryGetValue(c.Id, out var CODL))
+          if (!cDicotionary.TryGetValue(c.Id, out var codL))
           {
-            CODL = c;
-            ClientCODL.COD = c;
-            cDicotionary.Add(CODL.Id, CODL);
+            codL = c;
+            clientCODL.COD = c;
+            cDicotionary.Add(codL.Id, codL);
           }
 
-          if (!tfDictionary.TryGetValue(tf.Id, out var tfPlanL))
+          if (tf is not null && !tfDictionary.TryGetValue(tf.Id, out var tfPlanL))
           {
             tfPlanL = tf;
-            ClientCODL.TfPlanL = tfPlanL;
-            tfDictionary.Add(tfPlanL.Id, tfPlanL);
+            clientCODL.TfPlanL = tf;
+            tfDictionary.Add(codL.Id, tfPlanL);
           }
 
-          return ClientCODL;
+          return clientCODL;
         },
         splitOn: "Id, Id, Id");
 
@@ -100,8 +76,8 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
                 "\"EmailC\", " +
                 "\"Working\", " +
                 "\"EmailT\", " +
-                "\"IdCOD\", " +
-                "\"IdTPlan\", " +
+                "\"Id_COD\", " +
+                "\"Id_TfPlan\", " +
                 "\"History\", " +
                 "\"AntiDDOS\" " +
                 "FROM \"ClientCODLs\" " +

@@ -8,7 +8,7 @@ internal class TfPlanRRepository(MySQLDapperContext mySQLDapperContext) : ITfPla
   async Task<IEnumerable<TfPlanR>> ITfPlanRRepository.GetAllAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "tp.id_tplan AS \"Id\", " +
+                "tp.id_tplan AS \"IdTfPlan\", " +
                 "tp.name_tplan AS \"NameTfPlan\", " +
                 "tp.descr_tplan AS \"DescTfPlan\" " +
                 "FROM `_tf_plan` as tp";

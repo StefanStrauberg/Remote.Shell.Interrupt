@@ -8,7 +8,7 @@ internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : ICl
   async Task<IEnumerable<ClientCODR>> IClientCODRRepository.GetAllAsync(CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
-                "cc.id_client as \"Id\", " +
+                "cc.id_client as \"IdClient\", " +
                 "cc.name as \"Name\", " +
                 "cc.contact_C as \"ContactC\", " +
                 "cc.telefon_C as \"TelephoneC\", " +
@@ -17,8 +17,8 @@ internal class ClientCODRRepository(MySQLDapperContext mySQLDapperContext) : ICl
                 "cc.c_email as \"EmailC\", " +
                 "cc.`_working` as \"Working\", " +
                 "cc.t_email as \"EmailT\", " +
-                "cc.id_cod as \"IdCOD\", " +
-                "cc.id_tplan as \"IdTfPlan\", " +
+                "cc.id_cod as \"Id_COD\", " +
+                "cc.id_tplan as \"Id_TfPlan\", " +
                 "cc.history as \"History\", " +
                 "cc.ad as \"AntiDDOS\" " +
                 "FROM client_cod AS cc";

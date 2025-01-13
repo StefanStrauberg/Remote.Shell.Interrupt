@@ -13,9 +13,9 @@ public class ClientCODDTO : IMapWith<ClientCODL>
   public string EmailT { get; set; } = string.Empty;
   public string History { get; set; } = string.Empty;
   public bool AntiDDOS { get; set; }
-  public Guid IdCOD { get; set; }
+  public int Id_COD { get; set; }
   public CODDTO COD { get; set; } = null!;
-  public Guid? IdTPlan { get; set; } = null!;
+  public int? Id_TPlan { get; set; } = null!;
   public TfPlanDTO? TfPlan { get; set; } = null!;
 
   void IMapWith<ClientCODL>.Mapping(Profile profile)
@@ -43,12 +43,12 @@ public class ClientCODDTO : IMapWith<ClientCODL>
                       opt => opt.MapFrom(src => src.History))
            .ForMember(dest => dest.AntiDDOS,
                       opt => opt.MapFrom(src => src.AntiDDOS))
-           .ForMember(dest => dest.IdCOD,
-                      opt => opt.MapFrom(src => src.IdCOD))
+           .ForMember(dest => dest.Id_COD,
+                      opt => opt.MapFrom(src => src.Id_COD))
            .ForMember(dest => dest.COD,
                       opt => opt.MapFrom(src => src.COD))
-           .ForMember(dest => dest.IdTPlan,
-                      opt => opt.MapFrom(src => src.IdTPlan))
+           .ForMember(dest => dest.Id_TPlan,
+                      opt => opt.MapFrom(src => src.Id_TfPlan))
            .ForMember(dest => dest.TfPlan,
                       opt => opt.MapFrom(src => src.TfPlanL));
   }

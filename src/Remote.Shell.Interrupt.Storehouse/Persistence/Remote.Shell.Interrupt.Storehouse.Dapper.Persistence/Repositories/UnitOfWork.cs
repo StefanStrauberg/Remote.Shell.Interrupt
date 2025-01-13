@@ -39,7 +39,7 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
   ITfPlanLRepository IUnitOfWork.TfPlanLs
     => new TfPlanLRepository(_postgreSQLDapperContext);
   ISPRVlanRsRepository IUnitOfWork.SPRVlanRs
-    => new SPRVlanRsRepository(_mysqlContext);
+    => new SPRVlanRRepository(_mysqlContext);
   ISPRVlanLsRepository IUnitOfWork.SPRVlanLs
     => new SPRVlanLsRepository(_postgreSQLDapperContext);
 
