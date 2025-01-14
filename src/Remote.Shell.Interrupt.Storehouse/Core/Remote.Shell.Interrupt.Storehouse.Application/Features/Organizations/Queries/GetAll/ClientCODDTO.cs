@@ -17,6 +17,7 @@ public class ClientCODDTO : IMapWith<ClientCODL>
   public CODDTO COD { get; set; } = null!;
   public int? Id_TPlan { get; set; } = null!;
   public TfPlanDTO? TfPlan { get; set; } = null!;
+  public List<SPRVlanDTO> SPRVlans { get; set; } = [];
 
   void IMapWith<ClientCODL>.Mapping(Profile profile)
   {

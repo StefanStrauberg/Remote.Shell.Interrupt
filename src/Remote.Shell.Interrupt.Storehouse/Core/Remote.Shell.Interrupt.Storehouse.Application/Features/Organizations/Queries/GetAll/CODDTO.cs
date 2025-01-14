@@ -2,7 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 
 public class CODDTO : IMapWith<CODL>
 {
-  public int Id { get; set; }
   public string NameCOD { get; set; } = string.Empty;
   public string Telephone { get; set; } = string.Empty;
   public string Email1 { get; set; } = string.Empty;
@@ -14,8 +13,6 @@ public class CODDTO : IMapWith<CODL>
   void IMapWith<CODL>.Mapping(Profile profile)
   {
     profile.CreateMap<CODL, CODDTO>()
-           .ForMember(dest => dest.Id,
-                      opt => opt.MapFrom(src => src.Id))
            .ForMember(dest => dest.NameCOD,
                       opt => opt.MapFrom(src => src.NameCOD))
            .ForMember(dest => dest.Telephone,

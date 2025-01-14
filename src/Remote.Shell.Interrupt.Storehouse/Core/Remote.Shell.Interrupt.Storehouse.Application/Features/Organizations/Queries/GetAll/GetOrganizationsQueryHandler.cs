@@ -17,7 +17,17 @@ internal class GetClientsCODQueryHandler(IUnitOfWork unitOfWork,
     var clients = await _unitOfWork.ClientCODLs
                                    .GetAllWithChildrensAsync(cancellationToken);
 
+    var sprVlanLs = await _unitOfWork.SPRVlanLs.GetAllAsync(cancellationToken);
+
+    var vlans = _mapper.Map<List<SPRVlanDTO>>(sprVlanLs);
+
     var result = _mapper.Map<List<ClientCODDTO>>(clients);
+
+    foreach (var vlan in vlans)
+    {
+      var client = result.First(x => x.IdClient == vlan.IdClient);
+      client.SPRVlans.Add(vlan);
+    }
 
     return result;
   }

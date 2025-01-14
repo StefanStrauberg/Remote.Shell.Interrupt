@@ -15,13 +15,25 @@ internal class GetClientsCODByNameQueryHandler(IUnitOfWork unitOfWork,
                                                                                                                     CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.ClientCODLs
-                                   .GetAllByNameAsync(request.Name,
-                                                      cancellationToken);
+                                   .GetAllByNameWithChildrensAsync(request.Name,
+                                                                   cancellationToken);
 
     if (!clients.Any())
       throw new EntityNotFoundException($"Name = {request.Name}");
 
     var result = _mapper.Map<IEnumerable<ClientCODDTO>>(clients);
+
+    var clientIds = result.Select(x => x.IdClient).ToList();
+
+    var sprVlanLs = await _unitOfWork.SPRVlanLs.GetAllByIdsAsync(clientIds, cancellationToken);
+
+    var vlans = _mapper.Map<IEnumerable<SPRVlanDTO>>(sprVlanLs);
+
+    foreach (var vlan in vlans)
+    {
+      var client = result.First(x => x.IdClient == vlan.IdClient);
+      client.SPRVlans.Add(vlan);
+    }
 
     return result;
   }
