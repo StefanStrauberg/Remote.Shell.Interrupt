@@ -1,22 +1,18 @@
-using System.Runtime.ConstrainedExecution;
-using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 
-public record GetNetworkDevicesByIPQuery(string IpAddress) : IQuery<IEnumerable<NetworkDeviceDTO>>;
+public record GetNetworkDevicesByIPQuery(string IpAddress) : IQuery<CompoundObjectDTO>;
 
 internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
                                                  IMapper mapper)
-  : IQueryHandler<GetNetworkDevicesByIPQuery, IEnumerable<NetworkDeviceDTO>>
+  : IQueryHandler<GetNetworkDevicesByIPQuery, CompoundObjectDTO>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesByIPQuery, IEnumerable<NetworkDeviceDTO>>.Handle(
-      GetNetworkDevicesByIPQuery request,
-      CancellationToken cancellationToken)
+  async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDevicesByIPQuery, CompoundObjectDTO>.Handle(GetNetworkDevicesByIPQuery request,
+                                                                                                    CancellationToken cancellationToken)
   {
     // Проверка формата IP-адреса
     if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
@@ -36,16 +32,24 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     var clientsCODByVlanTagQuery = new GetClientsCODByVlanTagQuery(vlanTag);
     var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
                                                                                                                                           cancellationToken);
-
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
+    List<NetworkDevice> networkDevices = [];
 
-    var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetAllWithChildrensByVLANTagAsync(vlanTag,
-                                                                               cancellationToken);
+    foreach (var tag in vlanTags)
+    {
+      networkDevices.AddRange(await _unitOfWork.NetworkDevices
+                                               .GetAllWithChildrensByVLANTagAsync(tag,
+                                                                                  cancellationToken));
+    }
 
     PrepareAndCleanAggregationPorts(networkDevices);
 
-    var reuslt = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
+    var reuslt = new CompoundObjectDTO()
+    {
+      NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
+      ClientCODs = clients
+    };
+
     return reuslt;
   }
 

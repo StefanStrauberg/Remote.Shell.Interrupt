@@ -1,28 +1,27 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
+namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.OrganizationName;
 
-public record GetNetworkDeviceByVlanTagQuery(int VLANTag) : IQuery<CompoundObjectDTO>;
+public record GetNetworkDeviceByOrganizationNameQuery(string OrganizationName) : IQuery<CompoundObjectDTO>;
 
-internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
-                                                     IMapper mapper)
-  : IQueryHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>
+internal class GetNetworkDeviceByOrganizationNameQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+  : IQueryHandler<GetNetworkDeviceByOrganizationNameQuery, CompoundObjectDTO>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByVlanTagQuery request,
-                                                                                                        CancellationToken cancellationToken)
+  async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByOrganizationNameQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByOrganizationNameQuery request,
+                                                                                                                   CancellationToken cancellationToken)
   {
-    if (request.VLANTag == 0)
-      throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VLANTag));
+    if (string.IsNullOrWhiteSpace(request.OrganizationName))
+      throw new ArgumentException("Invalid organization name.", nameof(request.OrganizationName));
 
-    var clientsCODByVlanTagQueryHandler = new GetClientsCODByVlanTagQueryHandler(_unitOfWork,
-                                                                                 _mapper);
-    var clientsCODByVlanTagQuery = new GetClientsCODByVlanTagQuery(request.VLANTag);
-    var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
-                                                                                                                                          cancellationToken);
+    var clientsCODByNameQuery = new GetClientsCODByNameQuery(request.OrganizationName);
+    var clientsCODByNameQueryHandler = new GetClientsCODByNameQueryHandler(_unitOfWork, _mapper);
+    var clients = await ((IRequestHandler<GetClientsCODByNameQuery, IEnumerable<ClientCODDTO>>)clientsCODByNameQueryHandler).Handle(clientsCODByNameQuery,
+                                                                                                                                    cancellationToken);
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
+
     List<NetworkDevice> networkDevices = [];
 
     foreach (var tag in vlanTags)

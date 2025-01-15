@@ -20,7 +20,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{address}")]
-  [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDevicesByIP(string address,
                                                          CancellationToken cancellationToken)
@@ -28,11 +28,19 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController
                              cancellationToken));
 
   [HttpGet("{VLANTag}")]
-  [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDevicesByVlanTag(int VLANTag,
                                                               CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetNetworkDeviceByVlanTagQuery(VLANTag),
+                             cancellationToken));
+
+  [HttpGet("{OrganizationName}")]
+  [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> GetNetworkDevicesByOrganizationName(string OrganizationName,
+                                                                       CancellationToken cancellationToken)
+    => Ok(await _sender.Send(new GetNetworkDeviceByOrganizationNameQuery(OrganizationName),
                              cancellationToken));
 
   [HttpPost]

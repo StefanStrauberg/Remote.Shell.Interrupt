@@ -27,8 +27,8 @@ global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecuto
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
 global using Serilog;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
-global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByName;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Update;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.OrganizationName;
