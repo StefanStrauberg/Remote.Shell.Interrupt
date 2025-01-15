@@ -32,26 +32,29 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
         },
         splitOn: "Id, Id, Id");
 
-    return ccDictionary.Values.ToList();
+    return [.. ccDictionary.Values];
   }
 
-  async Task<string?> IClientCODLRepository.GetClientNameByClientIdAsync(int clientId,
-                                                                         CancellationToken cancellationToken)
+  async Task<IEnumerable<string>> IClientCODLRepository.GetClientsNamesByClientIdsAsync(IEnumerable<int> clientId,
+                                                                                        CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
                 "cc.\"Name\" " +
                 "FROM \"ClientCODLs\" AS cc " +
-                $"WHERE cc.\"IdClient\" = '{clientId}' " +
+                $"WHERE cc.\"IdClient\" IN ({JoinIds(clientId)}) " +
                 "AND \"Working\" = true";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var result = await connection.ExecuteScalarAsync<string>(query);
+    var result = await connection.QueryAsync<string>(query);
 
     return result;
   }
 
+  static string JoinIds(IEnumerable<int> ids)
+    => string.Join(", ", ids);
+
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllByNameAsync(string name,
-                                                                            CancellationToken cancellationToken)
+                                                                              CancellationToken cancellationToken)
   {
     var query = $"SELECT " +
                 "cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactC\", cc.\"TelephoneC\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailC\", cc.\"Working\", cc.\"EmailT\", cc.\"History\", cc.\"AntiDDOS\", cc.\"Id_COD\", cc.\"Id_TfPlan\", " +
@@ -60,7 +63,7 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
                 "FROM \"ClientCODLs\" AS cc " +
                 "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
                 "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\" " +
-                $"WHERE cc.\"Name\" ILIKE '%{name}%' " +
+                "WHERE cc.\"Name\" ILIKE @value " +
                 "AND cc.\"Working\" = true";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
@@ -81,10 +84,38 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
 
           return clientCODL;
         },
+        new
+        { Value = AddPercentSigns(name) },
         splitOn: "Id, Id, Id");
 
-    return ccDictionary.Values.ToList();
+    return [.. ccDictionary.Values];
   }
+
+  static string AddPercentSigns(string input)
+  {
+    StringBuilder sb = new();
+
+    sb.Append('%');
+    sb.Append(input);
+    sb.Append('%');
+
+    return sb.ToString();
+  }
+
+  async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllByNamesAsync(IEnumerable<string> names,
+                                                                               CancellationToken cancellationToken)
+  {
+    List<ClientCODL> clients = [];
+    foreach (var name in names)
+    {
+      clients.AddRange(await ((IClientCODLRepository)this).GetAllByNameAsync(name, cancellationToken));
+    }
+
+    return [.. clients.Distinct()];
+  }
+
+  static string JoinNames(IEnumerable<string> names)
+    => string.Join(", ", names);
 
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllByNameWithChildrensAsync(string name,
                                                                                            CancellationToken cancellationToken)
@@ -119,6 +150,6 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
         },
         splitOn: "Id, Id, Id");
 
-    return ccDictionary.Values.ToList();
+    return [.. ccDictionary.Values];
   }
 }

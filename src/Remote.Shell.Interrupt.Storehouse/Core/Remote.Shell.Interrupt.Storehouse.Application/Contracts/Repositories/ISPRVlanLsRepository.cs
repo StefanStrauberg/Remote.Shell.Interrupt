@@ -6,6 +6,6 @@ public interface ISPRVlanLsRepository : IGenericRepository<SPRVlanL>
                                CancellationToken cancellationToken);
   Task<IEnumerable<SPRVlanL>> GetAllByIdsAsync(IEnumerable<int> ids,
                                              CancellationToken cancellationToken);
-  Task<SPRVlanL> GetByVlanTagAsync(int id,
-                                   CancellationToken cancellationToken);
+  Task<IEnumerable<int>> GetClientsIdsByVlantTag(int vlanTag,
+                                                 CancellationToken cancellationToken);
 }

@@ -24,44 +24,69 @@ internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
       throw new EntityNotFoundById(typeof(SPRVlanL),
                                    request.VlanTag.ToString());
 
-    var vlan = await _unitOfWork.SPRVlanLs
-                                .GetByVlanTagAsync(request.VlanTag,
-                                                   cancellationToken);
-    var clientName = await _unitOfWork.ClientCODLs
-                                      .GetClientNameByClientIdAsync(vlan.IdClient,
-                                                                    cancellationToken);
+    var clientIds = await _unitOfWork.SPRVlanLs
+                                     .GetClientsIdsByVlantTag(request.VlanTag,
+                                                              cancellationToken);
 
-    if (clientName is null)
-      throw new EntityNotFoundException($"VlanTag = {request.VlanTag}");
+    var clientNames = await _unitOfWork.ClientCODLs
+                                       .GetClientsNamesByClientIdsAsync(clientIds,
+                                                                        cancellationToken);
+    var names = ExtractNameInQuotes(clientNames);
 
-    var name = ExtractNameInQuotes(clientName);
-    var clients = await _unitOfWork.ClientCODLs
-                                   .GetAllByNameAsync(name,
-                                                      cancellationToken);
+    var namesAreEquals = AllStringsAreEqual(names);
+
+    IEnumerable<ClientCODL> clients;
+
+    if (namesAreEquals)
+    {
+      clients = await _unitOfWork.ClientCODLs
+                                 .GetAllByNameAsync(names.First(),
+                                                    cancellationToken);
+    }
+    else
+    {
+      clients = await _unitOfWork.ClientCODLs
+                                 .GetAllByNamesAsync(names,
+                                                     cancellationToken);
+    }
+
     var result = _mapper.Map<IEnumerable<ClientCODDTO>>(clients);
-    var clientIds = result.Select(x => x.IdClient).ToList();
-    var sprVlanLs = await _unitOfWork.SPRVlanLs.GetAllByIdsAsync(clientIds, cancellationToken);
+    var ids = result.Select(x => x.IdClient).ToList();
+    var sprVlanLs = await _unitOfWork.SPRVlanLs.GetAllByIdsAsync(ids, cancellationToken);
     var vlans = _mapper.Map<IEnumerable<SPRVlanDTO>>(sprVlanLs);
 
-    foreach (var item in vlans)
+    foreach (var vlan in vlans)
     {
-      var client = result.First(x => x.IdClient == item.IdClient);
-      client.SPRVlans.Add(item);
+      var client = result.First(x => x.IdClient == vlan.IdClient);
+      client.SPRVlans.Add(vlan);
     }
 
     return result;
   }
-
-  static string ExtractNameInQuotes(string input)
+  static bool AllStringsAreEqual(IEnumerable<string> strings)
   {
-    var regex = new Regex(@"^(.*?)\s*\(");
-    var match = regex.Match(input);
+    // Получаем первую строку для сравнения
+    string firstString = strings.First();
 
-    if (match.Success)
+    // Проверяем, все ли остальные строки одинаковы с первой
+    return strings.All(s => s == firstString);
+  }
+
+  static List<string> ExtractNameInQuotes(IEnumerable<string> inputs)
+  {
+    var result = new List<string>();
+
+    foreach (var input in inputs)
     {
-      return match.Groups[1].Value;
+      var regex = new Regex(@"^(.*?)\s*\(");
+      var match = regex.Match(input);
+
+      if (match.Success)
+      {
+        result.Add(match.Groups[1].Value);
+      }
     }
 
-    return input;
+    return result;
   }
 }
