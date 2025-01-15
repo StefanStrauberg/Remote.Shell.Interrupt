@@ -18,7 +18,7 @@ public class ClientCODL : BaseEntity
   public int? Id_TfPlan { get; set; } = null!;
   public TfPlanL? TfPlanL { get; set; } = null!;
 
-  public override bool Equals(object obj)
+  public override bool Equals(object? obj)
   {
     if (obj is ClientCODL other)
       return this.IdClient == other.IdClient;
@@ -27,7 +27,5 @@ public class ClientCODL : BaseEntity
   }
 
   public override int GetHashCode()
-  {
-    return IdClient.GetHashCode();
-  }
+    => IdClient.GetHashCode();
 }

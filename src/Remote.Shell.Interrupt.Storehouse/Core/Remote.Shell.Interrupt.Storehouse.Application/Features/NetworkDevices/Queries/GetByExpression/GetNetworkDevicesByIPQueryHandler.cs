@@ -1,4 +1,5 @@
 using System.Runtime.ConstrainedExecution;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 
@@ -23,12 +24,20 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
 
     var interfaceName = await _unitOfWork.Ports
                                          .LookingForInterfaceNameByIPAsync(request.IpAddress,
-                                                                      cancellationToken);
+                                                                           cancellationToken);
 
     var vlanTag = TryGetVlanNumber(interfaceName);
 
     if (vlanTag == 0)
       return null!;
+
+    var clientsCODByVlanTagQueryHandler = new GetClientsCODByVlanTagQueryHandler(_unitOfWork,
+                                                                                 _mapper);
+    var clientsCODByVlanTagQuery = new GetClientsCODByVlanTagQuery(vlanTag);
+    var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
+                                                                                                                                          cancellationToken);
+
+    List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
 
     var networkDevices = await _unitOfWork.NetworkDevices
                                           .GetAllWithChildrensByVLANTagAsync(vlanTag,
