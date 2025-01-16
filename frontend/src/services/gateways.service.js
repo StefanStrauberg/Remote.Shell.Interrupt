@@ -26,3 +26,6 @@ export function getByIpGateway(address) {
         GATEWAYS.GATEWAYS + GATEWAYS.GET_BY_IP_GATEWAY + `/${address}`
     );
 }
+export const getByTagGateway = (tag) => {
+    return fetch(GATEWAYS.GATEWAYS + GATEWAYS.GET_BY_TAG + `/${tag}`);
+};

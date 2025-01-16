@@ -3,4 +3,5 @@ export const ROUTES = {
     RULES: '/rules',
     TESTING: '/testing',
     GATEWAYS: '/gateways',
+    ORDGANIZATIONS: '/organizations',
 };
