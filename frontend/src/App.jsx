@@ -10,7 +10,8 @@ import { ROUTES } from './data/routes';
 import { NotFoundpage } from './pages/NotFoundpage/NotFoundpage';
 import { AssignmentEditpage } from './pages/AssignmentEditpage/AssignmentEditpage';
 import { AssignmentCreatepage } from './pages/AssignmentCreatepage/AssignmentCreatepage';
-
+import Organizationspage from './pages/Organizationspage/Organizationpage';
+import './App.css';
 function App() {
     return (
         <>
@@ -66,6 +67,10 @@ function App() {
                         }
                     />
                     <Route path={ROUTES.TESTING} element={<Testingpage />} />
+                    <Route
+                        path={ROUTES.ORDGANIZATIONS}
+                        element={<Organizationspage />}
+                    />
                     <Route path="*" element={<NotFoundpage />} />
                 </Route>
             </Routes>

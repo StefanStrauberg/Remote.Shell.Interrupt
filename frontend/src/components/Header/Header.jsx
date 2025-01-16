@@ -33,6 +33,18 @@ export default function Header() {
     return (
         <header className={classes.header}>
             <div className={classes.pages}>
+                <Link
+                    to={ROUTES.ORDGANIZATIONS}
+                    className={`${classes.page} ${
+                        location.pathname
+                            .toLowerCase()
+                            .includes('organizations')
+                            ? classes.activePage
+                            : ''
+                    } `}
+                >
+                    Organizations
+                </Link>
                 <Link to={'/'}>
                     <div
                         className={`${classes.page} ${
@@ -94,16 +106,21 @@ export default function Header() {
             ) : null}
 
             {
-                <div
-                    className={classes.btns}
-                    style={{
-                        pointerEvents: location.pathname.includes('/testing')
-                            ? 'none'
-                            : 'auto',
-                        opacity: location.pathname.includes('/testing') ? 0 : 1,
-                    }}
-                >
+                <div>
                     <Link
+                        className={classes.btns}
+                        style={{
+                            pointerEvents:
+                                location.pathname.includes('/testing') ||
+                                location.pathname.includes('/organizations')
+                                    ? 'none'
+                                    : 'auto',
+                            opacity:
+                                location.pathname.includes('/testing') ||
+                                location.pathname.includes('/organizations')
+                                    ? 0
+                                    : 1,
+                        }}
                         to={
                             location.pathname.includes('create')
                                 ? location.pathname
@@ -115,7 +132,7 @@ export default function Header() {
                                 : 'rules/create'
                         }
                     >
-                        <Button>Create new</Button>
+                        <Button classNames={'padding-auto'}>Create new</Button>
                     </Link>
                 </div>
             }

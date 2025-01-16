@@ -1,6 +1,10 @@
+import LoadingSpin from 'react-loading-spin';
+
 const Loader = () => {
     return (
-        <div style={{ marginTop: '2rem', fontSize: '2rem' }}>Loading...</div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <LoadingSpin />
+        </div>
     );
 };
 
