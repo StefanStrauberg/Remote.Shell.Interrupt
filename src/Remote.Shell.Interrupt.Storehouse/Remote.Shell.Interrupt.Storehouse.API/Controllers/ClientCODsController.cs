@@ -14,14 +14,14 @@ public class ClientCODsController(ISender sender) : BaseAPIController
   [HttpGet("{name}")]
   [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetClientsCODByName(string name,
-                                                          CancellationToken cancellationToken)
+                                                       CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetClientsCODByNameQuery(name),
                              cancellationToken));
 
   [HttpGet("{vlanTag}")]
   [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetClientsCODByVlanTag(int vlanTag,
-                                                             CancellationToken cancellationToken)
+                                                          CancellationToken cancellationToken)
     => Ok(await _sender.Send(new GetClientsCODByVlanTagQuery(vlanTag),
                              cancellationToken));
 

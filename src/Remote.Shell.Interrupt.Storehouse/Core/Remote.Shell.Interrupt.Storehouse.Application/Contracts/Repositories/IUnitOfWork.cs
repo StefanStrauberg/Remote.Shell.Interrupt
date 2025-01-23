@@ -19,6 +19,7 @@ public interface IUnitOfWork
   ITfPlanLRepository TfPlanLs { get; }
   ISPRVlanRsRepository SPRVlanRs { get; }
   ISPRVlanLsRepository SPRVlanLs { get; }
+  IGateRepository GateRepository { get; }
 
   void Complete();
 }

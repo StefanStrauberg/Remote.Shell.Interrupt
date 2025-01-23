@@ -42,6 +42,8 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     => new SPRVlanRRepository(_mysqlContext);
   ISPRVlanLsRepository IUnitOfWork.SPRVlanLs
     => new SPRVlanLsRepository(_postgreSQLDapperContext);
+  IGateRepository IUnitOfWork.GateRepository
+    => new GateRepository(_postgreSQLDapperContext);
 
   void IUnitOfWork.Complete()
   {
