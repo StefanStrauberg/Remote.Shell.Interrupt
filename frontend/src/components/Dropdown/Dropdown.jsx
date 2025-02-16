@@ -1,7 +1,7 @@
 import { useDropdown } from '../../hooks/useDropdown';
 import Button from '../UI/Button/Button';
 import classes from './Dropdown.module.css';
-const Dropdown = ({ children, activeText, hideText }) => {
+const Dropdown = ({ children, activeText, hideText, classNames }) => {
     const dropdown = useDropdown();
     return (
         <>

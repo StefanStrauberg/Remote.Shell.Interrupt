@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './Gatewayspage.module.css';
 import {
     getByIpGateway,
@@ -13,6 +13,9 @@ import Gateway from '../../components/Gateway/Gateway';
 import { GATEWAY_SEARCH_ADDRESS_ACTIONS } from '../../store/gatewaySearchAddressReducer';
 import Input from '../../components/UI/Input/Input';
 import Button from '../../components/UI/Button/Button';
+import Wrapper from '../../components/Wrapper/Wrapper';
+import Item from '../Gatewaypage/components/Item/Item';
+import Cod from '../../components/Cod';
 
 export default function Gatewayspage() {
     const [gateways, setGateways] = useState([]);
@@ -22,6 +25,7 @@ export default function Gatewayspage() {
     const [isLastSearchTag, setIsLastSearchTag] = useState(false);
     const [oldResultTag, setOldResultTag] = useState('');
     const [tag, setTag] = useState('');
+    const [cods, setCods] = useState();
     const dispatch = useDispatch();
     const gatewaySearchAddress = useSelector(
         (state) => state.gatewaySearchAddressReducer
@@ -31,8 +35,10 @@ export default function Gatewayspage() {
         getByTagGateway(tag)
             .then((res) => res.json())
             .then((data) => {
-                if (!data?.status) {
-                    setGateways(data);
+                if (!data?.Status) {
+                    console.log(data);
+                    setGateways(data.networkDevices);
+                    setCods(data.clientCODs);
                     setIsError(false);
                 } else {
                     setIsError(true);
@@ -45,12 +51,13 @@ export default function Gatewayspage() {
         if (!gatewaySearchAddress.isSearch) return;
         setIsLoading(true);
         setIsError(false);
+        setCods();
         if (gatewaySearchAddress.value === '') {
             getGateways()
                 .then((res) => res.json())
                 .then((data) => {
                     if (!data?.Status) {
-                        setGateways(data);
+                        setGateways(data.networkDevices);
                         setIsError(false);
                     } else {
                         setIsError(true);
@@ -65,7 +72,9 @@ export default function Gatewayspage() {
                 .then((res) => res.json())
                 .then((data) => {
                     if (!data?.Status) {
-                        setGateways(data);
+                        console.log(data?.networkDevices);
+                        setGateways(data?.networkDevices);
+                        setCods(data?.clientCODs);
                         setIsError(false);
                     } else {
                         setIsError(true);
@@ -89,6 +98,7 @@ export default function Gatewayspage() {
             if (tag) {
                 fetchByTag();
             } else {
+                setCods();
                 setIsLoading(true);
                 getGateways()
                     .then((res) => res.json())
@@ -136,12 +146,19 @@ export default function Gatewayspage() {
                         <div className={classes.grid}>
                             {gateways?.length
                                 ? gateways?.map((gateway) => (
-                                      <Router key={gateway.id} data={gateway} />
+                                      <React.Fragment key={gateway.id}>
+                                          <Router data={gateway} />
+                                      </React.Fragment>
                                   ))
                                 : null}
                         </div>
                     ) : (
                         <div className={classes.wrapper}>
+                            <div>
+                                {cods?.map((cod, index) => (
+                                    <Cod cod={cod} key={index} />
+                                ))}
+                            </div>
                             {gateways?.map((gateway) => (
                                 <Gateway data={gateway} key={gateway.id} />
                             ))}
