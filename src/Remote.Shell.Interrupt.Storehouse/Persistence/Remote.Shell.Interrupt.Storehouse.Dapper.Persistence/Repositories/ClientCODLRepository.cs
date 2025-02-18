@@ -63,7 +63,7 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
                 "FROM \"ClientCODLs\" AS cc " +
                 "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
                 "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\" " +
-                "WHERE cc.\"Name\" ILIKE @value " +
+                $"WHERE cc.\"Name\" ILIKE '%{name}%' " +
                 "AND cc.\"Working\" = true";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 
@@ -84,8 +84,6 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
 
           return clientCODL;
         },
-        new
-        { Value = AddPercentSigns(name) },
         splitOn: "Id, Id, Id");
 
     return [.. ccDictionary.Values];
