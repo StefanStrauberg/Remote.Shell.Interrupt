@@ -8,8 +8,6 @@ global using System.Text;
 global using Dapper;
 global using Microsoft.Extensions.DependencyInjection;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
-global using Remote.Shell.Interrupt.Storehouse.Domain.Work;
-global using Remote.Shell.Interrupt.Storehouse.Domain.BusinessLogic;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
 global using System.Reflection;

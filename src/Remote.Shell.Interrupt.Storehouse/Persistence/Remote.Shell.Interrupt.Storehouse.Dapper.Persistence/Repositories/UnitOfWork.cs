@@ -8,10 +8,6 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));
   bool disposed = false;
 
-  IAssignmentRepository IUnitOfWork.Assignments
-  => new AssignmentRepository(_postgreSQLDapperContext);
-  IBusinessRuleRepository IUnitOfWork.BusinessRules
-    => new BusinessRuleRepository(_postgreSQLDapperContext);
   INetworkDeviceRepository IUnitOfWork.NetworkDevices
     => new NetworkDeviceRepository(_postgreSQLDapperContext);
   IVLANRepository IUnitOfWork.VLANs
