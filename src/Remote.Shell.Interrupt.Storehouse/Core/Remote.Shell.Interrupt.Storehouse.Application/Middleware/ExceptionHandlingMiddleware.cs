@@ -48,7 +48,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
 
   static IReadOnlyDictionary<string, string[]>? GetErrors(Exception exception)
   {
-    IReadOnlyDictionary<string, IEnumerable<string>>? errors = null;
+    IReadOnlyDictionary<string, string[]>? errors = null;
 
     if (exception is ValidationException validationException)
     {

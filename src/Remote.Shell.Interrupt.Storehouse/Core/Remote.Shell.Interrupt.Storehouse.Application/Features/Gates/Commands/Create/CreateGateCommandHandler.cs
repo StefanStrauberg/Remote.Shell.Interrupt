@@ -11,7 +11,8 @@ internal class CreateGateCommandHandler(IUnitOfWork unitOfWork,
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  public async Task<Unit> Handle(CreateGateCommand request, CancellationToken cancellationToken)
+  public async Task<Unit> Handle(CreateGateCommand request,
+                                 CancellationToken cancellationToken)
   {
     var existingTheSameIPAddress = await _unitOfWork.GateRepository
                                                     .AnyByIPAddressAsync(request.CreateGateDTO.IPAddress,

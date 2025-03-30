@@ -22,7 +22,7 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
                                                  Values = ErrorMessage
                                                })
                                       .ToDictionary(x => x.Key,
-                                                    x => x.Values);
+                                                    x => x.Values.ToArray());
 
     if (errorsDictionary.Count != 0)
       throw new ValidationException(errorsDictionary);

@@ -32,4 +32,5 @@ global using System.Text.RegularExpressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByName;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.GetAll;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Create;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
