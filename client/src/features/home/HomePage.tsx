@@ -9,7 +9,7 @@ export default function HomePage() {
         color: "white",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 3,
         alignItems: "center",
         alignContent: "center",
         justifyContent: "center",
@@ -32,10 +32,10 @@ export default function HomePage() {
       </Box>
       <Button
         component={Link}
-        to="/NetworkDeviceList"
+        to="/networkDevices"
         size="large"
         variant="contained"
-        sx={{ height: 80, borderRadius: 4, fontSize: "1.5rem" }}
+        sx={{ height: 60, borderRadius: 2, fontSize: "1.5rem" }}
       >
         Check up Network Devices
       </Button>

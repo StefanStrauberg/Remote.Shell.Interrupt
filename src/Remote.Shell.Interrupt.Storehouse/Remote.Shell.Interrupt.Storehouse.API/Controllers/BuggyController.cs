@@ -2,21 +2,21 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 public class BuggyController : BaseAPIController
 {
-    [HttpGet("not-found")]
-    public ActionResult GetNotFound()
-        => NotFound("Testing a not found error");
+    [HttpGet]
+    public IActionResult GetNotFound()
+        => NotFound(new ApiErrorResponse(404, "Not Found", "Testing a not found error", null));
 
-    [HttpGet("bad-request")]
-    public ActionResult GetBadRequest()
-        => BadRequest("Testing a bad request");
+    [HttpGet]
+    public IActionResult GetBadRequest()
+        => BadRequest(new ApiErrorResponse(400, "Bad Request", "Testing a bad request", null));
 
-    [HttpGet("server-error")]
-    public ActionResult GetServerError()
+    [HttpGet]
+    public IActionResult GetServerError()
     {
         throw new Exception("Testing a server error");
     }
 
-    [HttpGet("unauthorised")]
-    public ActionResult GetUnauthorised()
-        => Unauthorized("Testing an unauthorized error");
+    [HttpGet]
+    public IActionResult GetUnauthorized()
+        => Unauthorized(new ApiErrorResponse(401, "Unauthorized", "Testing  an unauthorized error", null));
 }

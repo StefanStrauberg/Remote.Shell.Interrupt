@@ -36,12 +36,10 @@ export default function NavBar() {
               </MenuItem>
             </Box>
             <Box sx={{ display: "flex" }}>
-              <MenuItemLinks to="/NetworkDeviceList">
-                NetworkDevices
-              </MenuItemLinks>
-              <MenuItemLinks to="/GateList">Gates</MenuItemLinks>
+              <MenuItemLinks to="/networkdevices">NetworkDevices</MenuItemLinks>
+              <MenuItemLinks to="/gates">Gates</MenuItemLinks>
+              <MenuItemLinks to="/errors">Errors</MenuItemLinks>
             </Box>
-            <MenuItem>User menu</MenuItem>
           </Toolbar>
         </Container>
       </AppBar>
