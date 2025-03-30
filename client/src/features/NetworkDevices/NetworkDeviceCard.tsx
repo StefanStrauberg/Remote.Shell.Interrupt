@@ -9,7 +9,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { NetworkDevice } from "../../../lib/types/NetworkDevice";
+import { NetworkDevice } from "../../lib/types/NetworkDevice";
 
 type Props = {
   networkDevice: NetworkDevice;
