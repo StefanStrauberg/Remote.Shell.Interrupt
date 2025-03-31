@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Button,
   ButtonGroup,
@@ -8,7 +9,7 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { Checklist, LocalLibrary, Place, Storage } from "@mui/icons-material";
+import { Checklist, LocalLibrary, Badge } from "@mui/icons-material";
 import { Gate } from "../../lib/types/Gate";
 import { Link } from "react-router";
 import { useGates } from "../../lib/hooks/useGates";
@@ -33,19 +34,66 @@ export default function GateCard({ gate }: Props) {
     }
   };
 
+  const processAltText = (typeOfNetworkDevice: string) => {
+    switch (typeOfNetworkDevice) {
+      case "Huawei":
+        return "Huawei networks logo";
+      case "Juniper":
+        return "Juniper networks logo";
+      case "Extreme":
+        return "Extreme networks logo";
+      default:
+        return "Undefined type of network device";
+    }
+  };
+
+  const processSrcImg = (typeOfNetworkDevice: string) => {
+    switch (typeOfNetworkDevice) {
+      case "Huawei":
+        return "images/Huawei_Logo.png";
+      case "Juniper":
+        return "images/Juniper_Networks_Logo.png";
+      case "Extreme":
+        return "images/Extreme_Networks_Logo.png";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Card elevation={5} sx={{ borderRadius: 4, fontSize: 18 }}>
       <CardHeader
-        avatar={<Storage />}
+        avatar={
+          <Avatar
+            sx={{
+              height: 100,
+              width: 100,
+              overflow: "hidden",
+              position: "relative",
+              bgcolor: "transparent",
+            }}
+          >
+            <img
+              alt={processAltText(gate.typeOfNetworkDevice)}
+              src={processSrcImg(gate.typeOfNetworkDevice)}
+              style={{
+                height: "100%",
+                width: "100%", // Maintain aspect ratio
+              }}
+            />
+          </Avatar>
+        }
         title={
-          <Typography sx={{ fontWeight: "bold" }}>Name: {gate.name}</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>
+            IP Address: {gate.ipAddress}
+          </Typography>
         }
       />
       <Divider />
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Place sx={{ mr: 1 }} />
-          <Typography variant="body2">IP Address: {gate.ipAddress}</Typography>
+          <Badge sx={{ mr: 1 }} />
+          <Typography variant="body2">Name: {gate.name}</Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
