@@ -1,18 +1,18 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 
-public record GetClientsCODByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<ClientCODDTO>>;
+public record GetClientsCODByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<ClientCODDTODetail>>;
 
 internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                                   IMapper mapper)
-  : IQueryHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>
+  : IQueryHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTODetail>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<ClientCODDTO>> IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>.Handle(GetClientsCODByVlanTagQuery request,
-                                                                                                                       CancellationToken cancellationToken)
+  async Task<IEnumerable<ClientCODDTODetail>> IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTODetail>>.Handle(GetClientsCODByVlanTagQuery request,
+                                                                                                                                   CancellationToken cancellationToken)
   {
     // Проверка существования назначения влан с ID
     var existingVlan = await _unitOfWork.SPRVlanLs
@@ -50,7 +50,7 @@ internal class GetClientsCODByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                                      cancellationToken);
     }
 
-    var result = _mapper.Map<IEnumerable<ClientCODDTO>>(clients);
+    var result = _mapper.Map<IEnumerable<ClientCODDTODetail>>(clients);
     var ids = result.Select(x => x.IdClient).ToList();
     var sprVlanLs = await _unitOfWork.SPRVlanLs.GetAllByIdsAsync(ids, cancellationToken);
     var vlans = _mapper.Map<IEnumerable<SPRVlanDTO>>(sprVlanLs);

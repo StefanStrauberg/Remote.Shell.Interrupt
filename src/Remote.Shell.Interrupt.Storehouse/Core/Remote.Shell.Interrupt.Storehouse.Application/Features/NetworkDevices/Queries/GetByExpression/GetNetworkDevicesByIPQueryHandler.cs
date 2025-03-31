@@ -30,8 +30,8 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     var clientsCODByVlanTagQueryHandler = new GetClientsCODByVlanTagQueryHandler(_unitOfWork,
                                                                                  _mapper);
     var clientsCODByVlanTagQuery = new GetClientsCODByVlanTagQuery(vlanTag);
-    var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
-                                                                                                                                          cancellationToken);
+    var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTODetail>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
+                                                                                                                                                cancellationToken);
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
     List<NetworkDevice> networkDevices = [];
 

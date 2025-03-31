@@ -3,5 +3,5 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 public class CompoundObjectDTO
 {
   public IEnumerable<NetworkDeviceDTO> NetworkDevices { get; set; } = [];
-  public IEnumerable<ClientCODDTO> ClientCODs { get; set; } = [];
+  public IEnumerable<ClientCODDTODetail> ClientCODs { get; set; } = [];
 }
