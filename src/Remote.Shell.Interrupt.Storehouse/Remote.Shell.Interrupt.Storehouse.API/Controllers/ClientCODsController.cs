@@ -1,12 +1,11 @@
-using System.Text.Json;
-
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 public class ClientCODsController : BaseAPIController
 {
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetClientsCOD([FromQuery] RequestParameters requestParameters,CancellationToken cancellationToken)
+  public async Task<IActionResult> GetClientsCOD([FromQuery] RequestParameters requestParameters,
+                                                 CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetClientsCODQuery(requestParameters),
                                    cancellationToken);

@@ -21,4 +21,5 @@ public interface IGenericRepository<T> where T : BaseEntity
     Task<bool> AnyAsync(CancellationToken cancellationToken);
     Task<bool> AnyByIdAsync(Guid id,
                             CancellationToken cancellationToken);
+    Task<int> GetCountAsync(CancellationToken cancellationToken);
 }

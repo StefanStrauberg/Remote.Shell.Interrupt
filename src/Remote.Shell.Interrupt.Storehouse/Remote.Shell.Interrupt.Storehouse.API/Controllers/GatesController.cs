@@ -4,9 +4,25 @@ public class GatesController : BaseAPIController
 {
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetGates(CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetGatesQuery(),
-                            cancellationToken));
+  public async Task<IActionResult> GetGates([FromQuery] RequestParameters requestParameters,
+                                            CancellationToken cancellationToken)
+  {
+    var result = await Sender.Send(new GetGatesQuery(requestParameters),
+                                   cancellationToken);
+    var metadata = new
+    {
+        result.TotalCount,
+        result.PageSize,
+        result.CurrentPage,
+        result.TotalPages,
+        result.HasNext,
+        result.HasPrevious
+    };
+    Response.Headers
+            .Append("X-Pagination",
+                    JsonSerializer.Serialize(metadata));
+    return Ok(result);
+  }  
 
   [HttpGet("{id}")]
   [ProducesResponseType(typeof(GateDTO), StatusCodes.Status200OK)]

@@ -166,12 +166,4 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
 
     return result;
   }
-
-  async Task<int> IClientCODLRepository.GetCountAsync(CancellationToken cancellationToken)
-  {
-    var query = "SELECT COUNT(\"Id\") AS total_count FROM \"ClientCODLs\"";
-    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QuerySingleAsync<int>(query);
-    return result;
-  }
 }

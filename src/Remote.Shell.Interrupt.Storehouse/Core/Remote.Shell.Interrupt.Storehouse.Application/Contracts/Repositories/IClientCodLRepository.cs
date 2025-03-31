@@ -14,5 +14,4 @@ public interface IClientCODLRepository : IGenericRepository<ClientCODL>
   Task<IEnumerable<ClientCODL>> GetAllWithChildrensAsync(CancellationToken cancellationToken);
   Task<IEnumerable<ClientCODL>> GetAllShortAsync(RequestParameters requestParameters,
                                                  CancellationToken cancellationToken);
-  Task<int> GetCountAsync(CancellationToken cancellationToken);
 }

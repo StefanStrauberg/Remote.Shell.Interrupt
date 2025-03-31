@@ -30,3 +30,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Comman
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helper;
+global using System.Text.Json;
