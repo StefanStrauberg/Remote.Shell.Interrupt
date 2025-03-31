@@ -1,6 +1,9 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Helper;
+
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRepository<ClientCODL>(context), IClientCODLRepository
+internal class ClientCODLRepository(PostgreSQLDapperContext context) 
+  : GenericRepository<ClientCODL>(context), IClientCODLRepository
 {
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllWithChildrensAsync(CancellationToken cancellationToken)
   {
@@ -149,5 +152,26 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context) : GenericRe
         splitOn: "Id, Id, Id");
 
     return [.. ccDictionary.Values];
+  }
+
+  async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllShortAsync(RequestParameters requestParameters,
+                                                                             CancellationToken cancellationToken)
+  {
+    var offset = (requestParameters.PageNumber - 1) * requestParameters.PageSize;
+    var query = $"SELECT cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailT\", cc.\"Working\", cc.\"AntiDDOS\" " +
+                "FROM \"ClientCODLs\" AS cc " +
+                $"LIMIT {requestParameters.PageSize} OFFSET {offset}";
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+    var result = await connection.QueryAsync<ClientCODL>(query);
+
+    return result;
+  }
+
+  async Task<int> IClientCODLRepository.GetCountAsync(CancellationToken cancellationToken)
+  {
+    var query = "SELECT COUNT(\"Id\") AS total_count FROM \"ClientCODLs\"";
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+    var result = await connection.QuerySingleAsync<int>(query);
+    return result;
   }
 }

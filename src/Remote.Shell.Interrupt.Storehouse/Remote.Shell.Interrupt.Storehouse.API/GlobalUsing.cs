@@ -29,3 +29,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Comman
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Update;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helper;

@@ -8,10 +8,10 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { Organization } from "../../lib/types/Organizations";
+import { OrganizationShort } from "../../lib/types/Organizations";
 
 type Props = {
-  organization: Organization;
+  organization: OrganizationShort;
 };
 
 export default function OrganizationCard({ organization }: Props) {
@@ -26,22 +26,6 @@ export default function OrganizationCard({ organization }: Props) {
       />
       <Divider />
       <CardContent sx={{ p: 0 }}>
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Typography variant="body2">
-            Контакт: {organization.contactC}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Typography variant="body2">
-            Телефон: {organization.telephoneC}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Typography variant="body2">Email: {organization.emailC}</Typography>
-        </Box>
-        <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Typography variant="body2">
             Контакт технический: {organization.contactT}
@@ -69,7 +53,11 @@ export default function OrganizationCard({ organization }: Props) {
       </CardContent>
       <CardContent>
         <Box display="flex" justifyContent="space-between">
-          <Box display="flex" alignItems="center"></Box>
+          <Box display="flex" alignItems="center">
+            <Typography variant="body2">
+              AntiDDOS: {organization.antiDDOS ? "Да" : "Нет"}
+            </Typography>
+          </Box>
           <ButtonGroup variant="contained" aria-label="Basic button group">
             <Button>View</Button>
             <Button>Edit</Button>

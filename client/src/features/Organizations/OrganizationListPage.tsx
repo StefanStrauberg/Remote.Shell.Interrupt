@@ -32,7 +32,7 @@ export default function OrganizationListPage() {
             color: "white",
           }}
         >
-          <Typography variant="h3">There is no one gate</Typography>
+          <Typography variant="h3">There is no one organization</Typography>
         </Box>
         <Button
           component={Link}
@@ -40,21 +40,21 @@ export default function OrganizationListPage() {
           variant="contained"
           sx={{ height: 60, borderRadius: 2, fontSize: "1.5rem" }}
         >
-          Create new one
+          Update organizations
         </Button>
       </Paper>
     );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Box alignSelf="end" mr={3}>
+      <Box alignSelf="end" mr={2}>
         <Button
           variant="contained"
-          color="success"
+          color="error"
           component={Link}
           to="/createGate"
         >
-          Create new organization
+          Update all organizations
         </Button>
       </Box>
       <Box

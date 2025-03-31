@@ -47,7 +47,7 @@ export default function GateListPage() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Box alignSelf="end" mr={3}>
+      <Box alignSelf="end" mr={2}>
         <Button
           variant="contained"
           color="success"
