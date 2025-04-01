@@ -1,4 +1,10 @@
 import {
+  AlternateEmail,
+  CheckBox,
+  ContactPage,
+  ContactPhone,
+} from "@mui/icons-material";
+import {
   Box,
   Button,
   Card,
@@ -7,19 +13,17 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { OrganizationShort } from "../../lib/types/OrganizationShort";
-import {
-  AlternateEmail,
-  CheckBox,
-  ContactPage,
-  ContactPhone,
-} from "@mui/icons-material";
+import { useParams } from "react-router";
+import { useOrganizations } from "../../lib/hooks/useOrganizations";
 
-type Props = {
-  organization: OrganizationShort;
-};
+export default function OrganizationDetailPage() {
+  const { id } = useParams();
+  const { organization, isLoadingOrganization } = useOrganizations(0, 0, id);
 
-export default function OrganizationCard({ organization }: Props) {
+  if (isLoadingOrganization) return <Typography>Loading...</Typography>;
+
+  if (!organization) return <Typography>Activity not found</Typography>;
+
   return (
     <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
       <CardHeader

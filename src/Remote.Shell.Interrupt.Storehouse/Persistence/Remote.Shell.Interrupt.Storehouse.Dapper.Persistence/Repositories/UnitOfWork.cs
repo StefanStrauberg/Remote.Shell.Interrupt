@@ -22,22 +22,22 @@ internal class UnitOfWork(PostgreSQLDapperContext postgreSQLDapperContext, MySQL
     => new TerminatedNetworkEntityRepository(_postgreSQLDapperContext);
   IPortVlanRepository IUnitOfWork.PortVlans
     => new PortVlanRepository(_postgreSQLDapperContext);
-  IClientCODRRepository IUnitOfWork.ClientCODRs
-    => new ClientCODRRepository(_mysqlContext);
-  IClientCODLRepository IUnitOfWork.ClientCODLs
-    => new ClientCODLRepository(_postgreSQLDapperContext);
-  ICODRRepository IUnitOfWork.CODRs
-    => new CODRRepository(_mysqlContext);
-  ICODLRepository IUnitOfWork.CODLs
-    => new CODLRepository(_postgreSQLDapperContext);
-  ITfPlanRRepository IUnitOfWork.TfPlanRs
-    => new TfPlanRRepository(_mysqlContext);
-  ITfPlanLRepository IUnitOfWork.TfPlanLs
-    => new TfPlanLRepository(_postgreSQLDapperContext);
-  ISPRVlanRsRepository IUnitOfWork.SPRVlanRs
-    => new SPRVlanRRepository(_mysqlContext);
-  ISPRVlanLsRepository IUnitOfWork.SPRVlanLs
-    => new SPRVlanLsRepository(_postgreSQLDapperContext);
+  IRemoteClientsRepository IUnitOfWork.RemoteClients
+    => new RemoteClientsRepository(_mysqlContext);
+  IClientsRepository IUnitOfWork.Clients
+    => new ClientsRepository(_postgreSQLDapperContext);
+  IRemoteCODRepository IUnitOfWork.RemoteCODs
+    => new RemoteCODRepository(_mysqlContext);
+  ICODRepository IUnitOfWork.CODs
+    => new CODRepository(_postgreSQLDapperContext);
+  IRemoteTfPlanRepository IUnitOfWork.RemoteTfPlans
+    => new RemoteTfPlanRepository(_mysqlContext);
+  ITfPlanRepository IUnitOfWork.TfPlans
+    => new TfPlanRepository(_postgreSQLDapperContext);
+  IRemoteSPRVlansRepository IUnitOfWork.RemoteSPRVlans
+    => new RemoteSPRVlansRepository(_mysqlContext);
+  ISPRVlansRepository IUnitOfWork.SPRVlans
+    => new SPRVlansRepository(_postgreSQLDapperContext);
   IGateRepository IUnitOfWork.GateRepository
     => new GateRepository(_postgreSQLDapperContext);
 

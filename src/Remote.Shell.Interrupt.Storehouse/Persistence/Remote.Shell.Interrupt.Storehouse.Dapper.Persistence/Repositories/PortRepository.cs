@@ -5,11 +5,10 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
   async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByListAsync(List<Guid> Ids,
                                                                                  CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var ids = GetStringIds(Ids);
     var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
-                $"FROM {tableName} " +
+                $"FROM \"{GetTableName<Port>()}\" " +
                 $"WHERE \"ParentPortId\" IN ({ids})";
     return await connection.QueryAsync<Port>(query);
   }
@@ -17,10 +16,9 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
   async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByIdAsync(Guid id,
                                                                              CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
-                $"FROM {tableName} " +
+                $"FROM \"{GetTableName<Port>()}\" " +
                 "WHERE \"ParentPortId\" = @Id";
     return await connection.QueryAsync<Port>(query, new { Id = id });
   }
@@ -28,11 +26,10 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
   async Task<string> IPortRepository.LookingForInterfaceNameByIPAsync(string ipAddress,
                                                                       CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var query = "SELECT p.\"InterfaceName\" " +
-                $"FROM {tableName} AS p " +
-                "LEFT JOIN \"TerminatedNetworkEntities\" AS tn ON tn.\"PortId\" = p.\"Id\" " +
+                $"FROM \"{GetTableName<Port>()}\" AS p " +
+                $"LEFT JOIN \"{GetTableName<TerminatedNetworkEntity>()}\" AS tn ON tn.\"PortId\" = p.\"Id\" " +
                 "WHERE tn.\"NetworkAddress\" IS NOT NULL " +
                 "AND tn.\"Netmask\" IS NOT NULL " +
                 "AND tn.\"NetworkAddress\" <> 0 " +
@@ -73,10 +70,9 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
   async Task<Port> IPortRepository.GetPortWithNameAsync(string name,
                                                         CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var query = "SELECT \"Id\", \"InterfaceNumber\", \"InterfaceName\", \"InterfaceType\", \"InterfaceStatus\", \"InterfaceSpeed\", \"NetworkDeviceId\", \"ParentPortId\",  \"MACAddress\", \"Description\" " +
-                $"FROM {tableName} " +
+                $"FROM \"{GetTableName<Port>()}\" " +
                 $"WHERE \"InterfaceName\" LIKE '%{name}%'";
     return await connection.QueryFirstAsync<Port>(query);
   }
@@ -88,9 +84,9 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var hostsToDelete = GetStringHosts(hosts);
     var query = "SELECT p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\",  p.\"MACAddress\", p.\"Description\" " +
-                "FROM \"NetworkDevices\" AS nd " +
-                "LEFT JOIN \"Ports\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
-                "LEFT JOIN \"MACEntities\" AS mac ON mac.\"PortId\" = p.\"Id\" " +
+                $"FROM \"{GetTableName<NetworkDevice>()}\" AS nd " +
+                $"LEFT JOIN \"{GetTableName<Port>()}\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
+                $"LEFT JOIN \"{GetTableName<MACEntity>()}\" AS mac ON mac.\"PortId\" = p.\"Id\" " +
                 "WHERE mac.\"MACAddress\" = @MAC " +
                 $"AND nd.\"Host\" in ({hostsToDelete})";
     return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });
@@ -99,9 +95,9 @@ internal class PortRepository(PostgreSQLDapperContext context) : GenericReposito
   async Task<bool> IPortRepository.ExistsPortWithNameAsync(string name,
                                                            CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
-    var query = $"SELECT COUNT(1) FROM " +
-                $"{tableName} WHERE \"InterfaceName\" like '%{name}%'";
+    var query = $"SELECT COUNT(1) " +
+                $"FROM \"{GetTableName<Port>()}\" " +
+                $"WHERE \"InterfaceName\" like '%{name}%'";
     var connection = _postgreSQLDapperContext.CreateConnection();
     var exists = await connection.ExecuteScalarAsync<bool>(query);
     return exists;

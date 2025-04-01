@@ -17,10 +17,10 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     if (request.VLANTag == 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VLANTag));
 
-    var clientsCODByVlanTagQueryHandler = new GetClientsCODByVlanTagQueryHandler(_unitOfWork,
+    var clientsCODByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(_unitOfWork,
                                                                                  _mapper);
-    var clientsCODByVlanTagQuery = new GetClientsCODByVlanTagQuery(request.VLANTag);
-    var clients = await ((IRequestHandler<GetClientsCODByVlanTagQuery, IEnumerable<ClientCODDTODetail>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
+    var clientsCODByVlanTagQuery = new GetClientsByVlanTagQuery(request.VLANTag);
+    var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
                                                                                                                                                 cancellationToken);
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
     List<NetworkDevice> networkDevices = [];
@@ -37,7 +37,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     var reuslt = new CompoundObjectDTO()
     {
       NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
-      ClientCODs = clients
+      Clients = clients
     };
 
     return reuslt;

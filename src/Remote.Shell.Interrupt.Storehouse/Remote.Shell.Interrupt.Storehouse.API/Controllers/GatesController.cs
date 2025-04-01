@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 public class GatesController : BaseAPIController
 {
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<ClientCODDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<ClientDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetGates([FromQuery] RequestParameters requestParameters,
                                             CancellationToken cancellationToken)
   {

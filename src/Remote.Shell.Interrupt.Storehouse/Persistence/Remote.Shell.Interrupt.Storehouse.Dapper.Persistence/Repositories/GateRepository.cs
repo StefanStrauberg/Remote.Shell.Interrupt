@@ -7,10 +7,10 @@ internal class GateRepository(PostgreSQLDapperContext context) : GenericReposito
     async Task<IEnumerable<Gate>> IGateRepository.GetAllAsync(RequestParameters requestParameters,
                                                               CancellationToken cancellationToken)
     {
-        string tableName = GetTableName();
         string columns = GetColumnsAsProperties();
         var offset = (requestParameters.PageNumber - 1) * requestParameters.PageSize;
-        var query = $"SELECT {columns} FROM \"{tableName}\" " +
+        var query = $"SELECT {columns} " +
+                    $"FROM \"{GetTableName<Gate>()}\" " +
                     $"LIMIT {requestParameters.PageSize} OFFSET {offset}";;
         var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
         var gates = await connection.QueryAsync<Gate>(query);
@@ -20,8 +20,8 @@ internal class GateRepository(PostgreSQLDapperContext context) : GenericReposito
     async Task<bool> IGateRepository.AnyByIPAddressAsync(string iPAddress,
                                                          CancellationToken cancellationToken)
     {
-      string tableName = GetTableName();
-      var query = $"SELECT COUNT(1) FROM \"{tableName}\" " + 
+      var query = $"SELECT COUNT(1) " +
+                  $"FROM \"{GetTableName<Gate>()}\" " + 
                   "WHERE \"IPAddress\"=@IPAddress";
       var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
       var count = await connection.ExecuteScalarAsync<int>(query, new { IPAddress = iPAddress });

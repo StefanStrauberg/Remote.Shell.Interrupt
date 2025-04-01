@@ -9,14 +9,14 @@ public interface IUnitOfWork
   IMACEntityRepository MACEntities { get; }
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
   IPortVlanRepository PortVlans { get; }
-  IClientCODRRepository ClientCODRs { get; }
-  IClientCODLRepository ClientCODLs { get; }
-  ICODRRepository CODRs { get; }
-  ICODLRepository CODLs { get; }
-  ITfPlanRRepository TfPlanRs { get; }
-  ITfPlanLRepository TfPlanLs { get; }
-  ISPRVlanRsRepository SPRVlanRs { get; }
-  ISPRVlanLsRepository SPRVlanLs { get; }
+  IRemoteClientsRepository RemoteClients { get; }
+  IClientsRepository Clients { get; }
+  IRemoteCODRepository RemoteCODs { get; }
+  ICODRepository CODs { get; }
+  IRemoteTfPlanRepository RemoteTfPlans { get; }
+  ITfPlanRepository TfPlans { get; }
+  IRemoteSPRVlansRepository RemoteSPRVlans { get; }
+  ISPRVlansRepository SPRVlans { get; }
   IGateRepository GateRepository { get; }
 
   void Complete();

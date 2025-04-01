@@ -16,9 +16,9 @@ internal class GetNetworkDeviceByOrganizationNameQueryHandler(IUnitOfWork unitOf
     if (string.IsNullOrWhiteSpace(request.OrganizationName))
       throw new ArgumentException("Invalid organization name.", nameof(request.OrganizationName));
 
-    var clientsCODByNameQuery = new GetClientsCODByNameQuery(request.OrganizationName);
-    var clientsCODByNameQueryHandler = new GetClientsCODByNameQueryHandler(_unitOfWork, _mapper);
-    var clients = await ((IRequestHandler<GetClientsCODByNameQuery, IEnumerable<ClientCODDTODetail>>)clientsCODByNameQueryHandler).Handle(clientsCODByNameQuery,
+    var clientsCODByNameQuery = new GetClientsByNameQuery(request.OrganizationName);
+    var clientsCODByNameQueryHandler = new GetClientsByNameQueryHandler(_unitOfWork, _mapper);
+    var clients = await ((IRequestHandler<GetClientsByNameQuery, IEnumerable<DetailClientDTO>>)clientsCODByNameQueryHandler).Handle(clientsCODByNameQuery,
                                                                                                                                           cancellationToken);
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
 
@@ -36,7 +36,7 @@ internal class GetNetworkDeviceByOrganizationNameQueryHandler(IUnitOfWork unitOf
     var reuslt = new CompoundObjectDTO()
     {
       NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
-      ClientCODs = clients
+      Clients = clients
     };
 
     return reuslt;

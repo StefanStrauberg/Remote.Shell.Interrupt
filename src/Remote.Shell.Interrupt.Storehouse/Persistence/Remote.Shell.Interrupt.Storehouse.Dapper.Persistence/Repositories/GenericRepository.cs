@@ -7,8 +7,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
 
   async Task<bool> IGenericRepository<T>.AnyAsync(CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
-    var query = $"SELECT COUNT(1) FROM \"{tableName}\"";
+    var query = $"SELECT COUNT(1) FROM \"{GetTableName<T>()}\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query);
     return count > 0;
@@ -17,8 +16,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   async Task<bool> IGenericRepository<T>.AnyByIdAsync(Guid id,
                                        CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
-    var query = $"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Id\"=@Id";
+    var query = $"SELECT COUNT(1) FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query, new { Id = id });
     return count > 0;
@@ -36,8 +34,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   void IGenericRepository<T>.DeleteOne(T entity)
   {
     _postgreSQLDapperContext.BeginTransaction();
-    string tableName = GetTableName();
-    var query = $"DELETE FROM \"{tableName}\" WHERE \"Id\"=@Id";
+    var query = $"DELETE FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
     var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, new { Id = entity.Id });
   }
@@ -45,18 +42,16 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   async Task<T> IGenericRepository<T>.FirstByIdAsync(Guid id,
                                                      CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
-    var query = $"SELECT {columns} FROM \"{tableName}\" WHERE \"Id\"=@Id";
+    var query = $"SELECT {columns} FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     return await connection.QuerySingleAsync<T>(query, new { Id = id });
   }
 
   async Task<IEnumerable<T>> IGenericRepository<T>.GetAllAsync(CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
     string columns = GetColumnsAsProperties();
-    var query = $"SELECT {columns} FROM \"{tableName}\"";
+    var query = $"SELECT {columns} FROM \"{GetTableName<T>()}\"";
     var connection = _postgreSQLDapperContext.CreateConnection();
     return await connection.QueryAsync<T>(query);
   }
@@ -73,10 +68,9 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   void IGenericRepository<T>.InsertOne(T entity)
   {
     _postgreSQLDapperContext.BeginTransaction();
-    string tableName = GetTableName();
     string columns = GetColumnsAsProperties(excludeKey: true);
     string properties = GetPropertyNames(excludeKey: true);
-    var query = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({properties}) RETURNING \"Id\"";
+    var query = $"INSERT INTO \"{GetTableName<T>()}\" ({columns}) VALUES ({properties}) RETURNING \"Id\"";
     var connection = _postgreSQLDapperContext.CreateConnection();
     var entityId = connection.ExecuteScalar<Guid>(query, entity);
     entity.Id = entityId;
@@ -85,9 +79,8 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   void IGenericRepository<T>.ReplaceOne(T entity)
   {
     _postgreSQLDapperContext.BeginTransaction();
-    string tableName = GetTableName();
     string updateProperties = GetUpdateProperties(excludeKey: true);
-    var query = $"UPDATE \"{tableName}\" SET {updateProperties} WHERE \"Id\"=@Id";
+    var query = $"UPDATE \"{GetTableName<T>()}\" SET {updateProperties} WHERE \"Id\"=@Id";
     var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, entity);
   }
@@ -101,10 +94,10 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
     }
   }
 
-  static protected string GetTableName()
+  static protected string GetTableName<K>()
   {
     StringBuilder sb = new();
-    var name = typeof(T).Name;
+    var name = typeof(K).Name;
 
     if (name[^1] == 'y')
     {
@@ -276,8 +269,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
 
   async Task<int> IGenericRepository<T>.GetCountAsync(CancellationToken cancellationToken)
   {
-    string tableName = GetTableName();
-    var query = $"SELECT COUNT(\"Id\") FROM \"{tableName}\"";
+    var query = $"SELECT COUNT(\"Id\") FROM \"{GetTableName<T>()}\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query);
     return count;

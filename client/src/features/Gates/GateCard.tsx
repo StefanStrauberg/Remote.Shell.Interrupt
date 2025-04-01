@@ -69,7 +69,7 @@ export default function GateCard({ gate }: Props) {
   };
 
   return (
-    <Card elevation={5} sx={{ borderRadius: 4, fontSize: 18 }}>
+    <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
       <CardHeader
         avatar={
           <Avatar

@@ -12,10 +12,10 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IVLANRepository, VLANRepository>();
     services.AddScoped<IPortRepository, PortRepository>();
     services.AddScoped<IUnitOfWork, UnitOfWork>();
-    services.AddScoped<IClientCODRRepository, ClientCODRRepository>();
-    services.AddScoped<ICODRRepository, CODRRepository>();
-    services.AddScoped<ITfPlanRRepository, TfPlanRRepository>();
-    services.AddScoped<IClientCODLRepository, ClientCODLRepository>();
+    services.AddScoped<IRemoteClientsRepository, RemoteClientsRepository>();
+    services.AddScoped<IRemoteCODRepository, RemoteCODRepository>();
+    services.AddScoped<IRemoteTfPlanRepository, RemoteTfPlanRepository>();
+    services.AddScoped<IClientsRepository, ClientsRepository>();
     services.AddScoped<IGateRepository, GateRepository>();
 
     return services;

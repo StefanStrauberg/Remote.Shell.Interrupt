@@ -78,8 +78,8 @@ export default function OrganizationListPage() {
       </Box>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)", // Two columns
           gap: 3,
         }}
       >

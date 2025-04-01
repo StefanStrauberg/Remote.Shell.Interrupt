@@ -14,3 +14,4 @@ global using System.Reflection;
 global using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 global using MySql.Data.MySqlClient;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helper;

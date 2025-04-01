@@ -27,7 +27,6 @@ global using System.Net;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 global using Microsoft.Extensions.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
 global using System.Text.RegularExpressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByExpression;
