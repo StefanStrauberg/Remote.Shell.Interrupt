@@ -30,15 +30,19 @@ export default function NavBar() {
                 sx={{ display: "flex", gap: 2 }}
               >
                 <Storage fontSize="medium" />
-                <Typography variant="h4" fontWeight="bold">
+                <Typography
+                  variant="h4"
+                  fontWeight="bold"
+                  sx={{ color: "whitesmoke" }}
+                >
                   Remote Shell Interrupt
                 </Typography>
               </MenuItem>
             </Box>
             <Box sx={{ display: "flex" }}>
-              <MenuItemLinks to="/networkdevices">Основное</MenuItemLinks>
-              <MenuItemLinks to="/gates">Маршрутизаторы</MenuItemLinks>
-              <MenuItemLinks to="/organizations">Клиенты</MenuItemLinks>
+              <MenuItemLinks to="/networkdevices">networkDevices</MenuItemLinks>
+              <MenuItemLinks to="/gates">Gates</MenuItemLinks>
+              <MenuItemLinks to="/organizations">Organizations</MenuItemLinks>
             </Box>
           </Toolbar>
         </Container>

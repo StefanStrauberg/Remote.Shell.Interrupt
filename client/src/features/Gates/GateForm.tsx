@@ -12,7 +12,7 @@ import { typeOfNetworkDeviceOptions } from "./typeOfNetworkDeviceOptions";
 export default function GateForm() {
   const { id } = useParams();
   const navigate = useNavigate(); // Initialize useNavigate hook
-  const { updateGate, createGate, gate, isLoadingGate } = useGates(id);
+  const { updateGate, createGate, gate, isLoadingGate } = useGates(0, 0, id);
 
   const { control, reset, handleSubmit } = useForm<GateSchema>({
     mode: "onTouched",

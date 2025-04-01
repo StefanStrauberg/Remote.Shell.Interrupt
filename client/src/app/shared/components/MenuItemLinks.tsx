@@ -14,7 +14,7 @@ export default function MenuItemLinks({
       component={NavLink}
       to={to}
       sx={{
-        color: "inherit",
+        color: "whitesmoke",
         "&.active": {
           color: "yellow",
         },

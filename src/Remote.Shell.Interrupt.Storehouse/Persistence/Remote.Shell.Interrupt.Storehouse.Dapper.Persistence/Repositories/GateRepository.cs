@@ -21,7 +21,7 @@ internal class GateRepository(PostgreSQLDapperContext context) : GenericReposito
                                                          CancellationToken cancellationToken)
     {
       string tableName = GetTableName();
-      var query = $"SELECT COUNT(1) FROM {tableName} " + 
+      var query = $"SELECT COUNT(1) FROM \"{tableName}\" " + 
                   "WHERE \"IPAddress\"=@IPAddress";
       var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
       var count = await connection.ExecuteScalarAsync<int>(query, new { IPAddress = iPAddress });

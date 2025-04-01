@@ -37,11 +37,15 @@ export default function GateCard({ gate }: Props) {
   const processAltText = (typeOfNetworkDevice: string) => {
     switch (typeOfNetworkDevice) {
       case "Huawei":
-        return "Huawei networks logo";
+        return "Huawei logo";
       case "Juniper":
-        return "Juniper networks logo";
+        return "Juniper logo";
       case "Extreme":
-        return "Extreme networks logo";
+        return "Extreme logo";
+      case "Cisco":
+        return "Cisco logo";
+      case "FortiGate":
+        return "Fortinet logo";
       default:
         return "Undefined type of network device";
     }
@@ -52,9 +56,13 @@ export default function GateCard({ gate }: Props) {
       case "Huawei":
         return "images/Huawei_Logo.png";
       case "Juniper":
-        return "images/Juniper_Networks_Logo.png";
+        return "images/Juniper_Logo.png";
       case "Extreme":
-        return "images/Extreme_Networks_Logo.png";
+        return "images/Extreme_Logo.png";
+      case "Cisco":
+        return "images/Cisco_Logo.png";
+      case "FortiGate":
+        return "images/Fortinet_Logo.png";
       default:
         return "";
     }

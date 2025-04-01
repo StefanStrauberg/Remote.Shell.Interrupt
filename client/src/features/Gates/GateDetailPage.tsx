@@ -19,7 +19,7 @@ import {
 
 export default function GateDetailPage() {
   const { id } = useParams();
-  const { gate, isLoadingGate } = useGates(id);
+  const { gate, isLoadingGate } = useGates(0, 0, id);
 
   if (isLoadingGate) return <Typography>Loading...</Typography>;
 
