@@ -1,13 +1,21 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Box, Button, Pagination, Paper, Typography } from "@mui/material";
 import GateCard from "./GateCard";
 import { useGates } from "../../lib/hooks/useGates";
 import { Link } from "react-router";
+import { useState } from "react";
 
 export default function GateListPage() {
-  const { gates, isPending } = useGates();
+  // Manage local state for pagination
+  const [pageNumber, setPageNumber] = useState(1);
+  const pageSize = 10; // You can adjust the page size as needed
 
+  // Hook for fetching data
+  const { gates, pagination, isPending } = useGates(pageNumber, pageSize);
+
+  // Loading state
   if (!gates || isPending) return <Typography>Loading ...</Typography>;
 
+  // No gates state
   if (gates.length === 0)
     return (
       <Paper
@@ -45,8 +53,17 @@ export default function GateListPage() {
       </Paper>
     );
 
+  // Handle page change
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPageNumber(value); // Update the page number
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {/* Button to create a new gate */}
       <Box alignSelf="end" mr={2}>
         <Button
           variant="contained"
@@ -57,6 +74,8 @@ export default function GateListPage() {
           Create new gate
         </Button>
       </Box>
+
+      {/* Render gates */}
       <Box
         sx={{
           display: "flex",
@@ -68,6 +87,15 @@ export default function GateListPage() {
           <GateCard key={gate.id} gate={gate} />
         ))}
       </Box>
+
+      {/* Pagination Component */}
+      <Pagination
+        count={pagination?.TotalPages || 1} // Total pages based on pagination metadata
+        page={pageNumber} // Current active page
+        onChange={handlePageChange} // Handle page change
+        color="primary"
+        sx={{ alignSelf: "center", mt: 2 }}
+      />
     </Box>
   );
 }

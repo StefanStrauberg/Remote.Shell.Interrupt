@@ -17,7 +17,8 @@ public static class Configuration
                       options.AddPolicy("CorsPolicy",
                                             builder => builder.AllowAnyOrigin()
                                                               .AllowAnyHeader()
-                                                              .AllowAnyMethod());
+                                                              .AllowAnyMethod()
+                                                              .WithExposedHeaders("X-Pagination"));
                     });
     Log.Debug("Dependency injection registration completed.");
   }

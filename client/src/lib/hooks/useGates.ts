@@ -2,14 +2,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
 import { Gate } from "../types/Gate";
 
-export const useGates = (id?: string) => {
+export const useGates = (
+  pageNumber: number = 1,
+  pageSize: number = 10,
+  id?: string
+) => {
   const queryClient = useQueryClient();
 
-  const { data: gates, isPending } = useQuery({
-    queryKey: ["gates"],
+  const { data: gatesResponse, isPending } = useQuery({
+    queryKey: ["gates", pageNumber, pageSize],
     queryFn: async () => {
-      const response = await agent.get<Gate[]>("/Gates/GetGates");
-      return response.data;
+      const response = await agent.get<Gate[]>("/Gates/GetGates", {
+        params: { pageNumber, pageSize },
+      });
+      return {
+        data: response.data,
+        pagination: JSON.parse(response.headers["x-pagination"]),
+      };
     },
     enabled: !id && location.pathname === "/gates",
   });
@@ -57,9 +66,14 @@ export const useGates = (id?: string) => {
     },
   });
 
+  // Extract gates and pagination from the gatesResponse
+  const gates = gatesResponse?.data;
+  const pagination = gatesResponse?.pagination;
+
   return {
     gates,
     isPending,
+    pagination,
     gate,
     isLoadingGate,
     updateGate,

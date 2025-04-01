@@ -7,11 +7,12 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
 {
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllWithChildrensAsync(CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var query = $"SELECT " +
                 "cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactC\", cc.\"TelephoneC\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailC\", cc.\"Working\", cc.\"EmailT\", cc.\"History\", cc.\"AntiDDOS\", cc.\"Id_COD\", cc.\"Id_TfPlan\", " +
                 "c.\"Id\", c.\"IdCOD\", c.\"NameCOD\", c.\"Telephone\", c.\"Email1\", c.\"Email2\", c.\"Contact\", c.\"Description\", c.\"Region\", " +
                 "tf.\"Id\", tf.\"IdTfPlan\", tf.\"NameTfPlan\", tf.\"DescTfPlan\" " +
-                "FROM \"ClientCODLs\" AS cc " +
+                $"FROM {tableName} AS cc " +
                 "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
                 "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
@@ -41,9 +42,10 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
   async Task<IEnumerable<string>> IClientCODLRepository.GetClientsNamesByClientIdsAsync(IEnumerable<int> clientId,
                                                                                         CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var query = $"SELECT " +
                 "cc.\"Name\" " +
-                "FROM \"ClientCODLs\" AS cc " +
+                $"FROM {tableName} AS cc " +
                 $"WHERE cc.\"IdClient\" IN ({JoinIds(clientId)}) " +
                 "AND \"Working\" = true";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
@@ -59,11 +61,12 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllByNameAsync(string name,
                                                                               CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var query = $"SELECT " +
                 "cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactC\", cc.\"TelephoneC\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailC\", cc.\"Working\", cc.\"EmailT\", cc.\"History\", cc.\"AntiDDOS\", cc.\"Id_COD\", cc.\"Id_TfPlan\", " +
                 "c.\"Id\", c.\"IdCOD\", c.\"NameCOD\", c.\"Telephone\", c.\"Email1\", c.\"Email2\", c.\"Contact\", c.\"Description\", c.\"Region\", " +
                 "tf.\"Id\", tf.\"IdTfPlan\", tf.\"NameTfPlan\", tf.\"DescTfPlan\" " +
-                "FROM \"ClientCODLs\" AS cc " +
+                $"FROM {tableName} AS cc " +
                 "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
                 "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\" " +
                 $"WHERE cc.\"Name\" ILIKE '%{name}%' " +
@@ -121,11 +124,12 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
   async Task<IEnumerable<ClientCODL>> IClientCODLRepository.GetAllByNameWithChildrensAsync(string name,
                                                                                            CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var query = $"SELECT " +
                 "cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactC\", cc.\"TelephoneC\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailC\", cc.\"Working\", cc.\"EmailT\", cc.\"History\", cc.\"AntiDDOS\", cc.\"Id_COD\", cc.\"Id_TfPlan\", " +
                 "c.\"Id\", c.\"IdCOD\", c.\"NameCOD\", c.\"Telephone\", c.\"Email1\", c.\"Email2\", c.\"Contact\", c.\"Description\", c.\"Region\", " +
                 "tf.\"Id\", tf.\"IdTfPlan\", tf.\"NameTfPlan\", tf.\"DescTfPlan\" " +
-                "FROM \"ClientCODLs\" AS cc " +
+                $"FROM {tableName} AS cc " +
                 "LEFT JOIN \"CODLs\" AS c ON c.\"IdCOD\" = cc.\"Id_COD\" " +
                 "LEFT JOIN \"TfPlanLs\" AS tf ON tf.\"IdTfPlan\" = cc.\"Id_TfPlan\" " +
                 $"WHERE cc.\"Name\" ILIKE '%{name}%' " +
@@ -158,8 +162,9 @@ internal class ClientCODLRepository(PostgreSQLDapperContext context)
                                                                              CancellationToken cancellationToken)
   {
     var offset = (requestParameters.PageNumber - 1) * requestParameters.PageSize;
+    string tableName = GetTableName();
     var query = $"SELECT cc.\"Id\", cc.\"IdClient\", cc.\"Name\", cc.\"ContactT\", cc.\"TelephoneT\", cc.\"EmailT\", cc.\"Working\", cc.\"AntiDDOS\" " +
-                "FROM \"ClientCODLs\" AS cc " +
+                $"FROM \"{tableName}\" AS cc " +
                 $"LIMIT {requestParameters.PageSize} OFFSET {offset}";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var result = await connection.QueryAsync<ClientCODL>(query);

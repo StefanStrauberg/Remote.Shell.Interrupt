@@ -4,6 +4,7 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : Generi
 {
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
+    string tableName = GetTableName();
     _postgreSQLDapperContext.BeginTransaction();
     var connection = _postgreSQLDapperContext.CreateConnection();
     var vlans = networkDeviceToDelete.PortsOfNetworkDevice.SelectMany(x => x.VLANs);
@@ -17,21 +18,21 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : Generi
     {
       connection.Execute(query, new { Id = vlan.Id });
     }
-    query = $"DELETE FROM \"NetworkDevices\" WHERE \"Id\"=@Id";
+    query = $"DELETE FROM {tableName} WHERE \"Id\"=@Id";
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
   async Task<NetworkDevice> INetworkDeviceRepository.GetFirstWithChildrensByIdAsync(Guid id,
                                                                                     CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-
     var query = $"SELECT " +
                  "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
                  "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
                  "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
                  "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
-                 "FROM \"NetworkDevices\" as nd " +
+                 $"FROM {tableName} as nd " +
                  "LEFT JOIN \"Ports\" AS p on p.\"NetworkDeviceId\" = nd.\"Id\" " +
                  "LEFT JOIN \"PortVlans\" AS pv on pv.\"PortId\" = p.\"Id\" " +
                  "LEFT JOIN \"VLANs\" AS v on v.\"Id\" = pv.\"VLANId\" " +
@@ -73,14 +74,14 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : Generi
   async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetAllWithChildrensByVLANTagAsync(int vlanTag,
                                                                                                     CancellationToken cancellationToken)
   {
+    string tableName = GetTableName();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-
     var query = $"SELECT " +
                  "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
                  "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
                  "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
                  "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
-                 "FROM \"NetworkDevices\" AS nd " +
+                 $"FROM {tableName} AS nd " +
                  "LEFT JOIN \"Ports\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
                  "LEFT JOIN \"PortVlans\" AS pv ON pv.\"PortId\" = p.\"Id\" " +
                  "LEFT JOIN \"VLANs\" AS v ON v.\"Id\" = pv.\"VLANId\" " +
