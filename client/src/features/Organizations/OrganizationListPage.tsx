@@ -1,13 +1,24 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Box, Button, Pagination, Paper, Typography } from "@mui/material";
 import { Link } from "react-router";
 import { useOrganizations } from "../../lib/hooks/useOrganizations";
 import OrganizationCard from "./OrganizationCard";
+import { useState } from "react";
 
 export default function OrganizationListPage() {
-  const { organizations, isPending } = useOrganizations();
+  // Manage local state for pagination
+  const [pageNumber, setPageNumber] = useState(1);
+  const pageSize = 10; // You can adjust the page size as needed
 
+  // Hook for fetching data
+  const { organizations, pagination, isPending } = useOrganizations(
+    pageNumber,
+    pageSize
+  );
+
+  // Loading state
   if (!organizations || isPending) return <Typography>Loading ...</Typography>;
 
+  // No gates state
   if (organizations.length === 0)
     return (
       <Paper
@@ -45,6 +56,14 @@ export default function OrganizationListPage() {
       </Paper>
     );
 
+  // Handle page change
+  const handlePageChange = (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPageNumber(value); // Update the page number
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Box alignSelf="end" mr={2}>
@@ -71,6 +90,15 @@ export default function OrganizationListPage() {
           />
         ))}
       </Box>
+
+      {/* Pagination Component */}
+      <Pagination
+        count={pagination?.TotalPages || 1} // Total pages based on pagination metadata
+        page={pageNumber} // Current active page
+        onChange={handlePageChange} // Handle page change
+        color="primary"
+        sx={{ alignSelf: "center", mt: 2 }}
+      />
     </Box>
   );
 }

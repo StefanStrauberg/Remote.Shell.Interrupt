@@ -1,15 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { Organization } from "../types/Organizations";
+import { OrganizationShort } from "../types/OrganizationShort";
 import agent from "../api/agent";
 
-export const useOrganizations = (id?: string) => {
-  const { data: organizations, isPending } = useQuery({
-    queryKey: ["organizations"],
+export const useOrganizations = (
+  pageNumber: number = 1,
+  pageSize: number = 10,
+  id?: string
+) => {
+  const { data: organizationsResponse, isPending } = useQuery({
+    queryKey: ["organizations", pageNumber, pageSize],
     queryFn: async () => {
-      const response = await agent.get<Organization[]>(
-        "/ClientCODs/GetClientsCOD"
+      const response = await agent.get<OrganizationShort[]>(
+        "/ClientCODs/GetClientsCOD",
+        { params: { pageNumber, pageSize } }
       );
-      return response.data;
+      return {
+        data: response.data,
+        pagination: JSON.parse(response.headers["x-pagination"]),
+      };
     },
     enabled: !id && location.pathname === "/organizations",
   });
@@ -17,7 +25,7 @@ export const useOrganizations = (id?: string) => {
   const { data: organization, isLoading: isLoadingOrganization } = useQuery({
     queryKey: ["organizations", id],
     queryFn: async () => {
-      const response = await agent.get<Organization>(
+      const response = await agent.get<OrganizationShort>(
         `/ClientCODs/GetClientsCODById/${id}`
       );
       return response.data;
@@ -25,8 +33,13 @@ export const useOrganizations = (id?: string) => {
     enabled: !!id,
   });
 
+  // Extract organizations and pagination from the gatesResponse
+  const organizations = organizationsResponse?.data;
+  const pagination = organizationsResponse?.pagination;
+
   return {
     organizations,
+    pagination,
     isPending,
     organization,
     isLoadingOrganization,

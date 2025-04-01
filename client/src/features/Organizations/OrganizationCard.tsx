@@ -1,14 +1,13 @@
 import {
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Divider,
   Typography,
 } from "@mui/material";
-import { OrganizationShort } from "../../lib/types/Organizations";
+import { OrganizationShort } from "../../lib/types/OrganizationShort";
 
 type Props = {
   organization: OrganizationShort;
@@ -58,11 +57,7 @@ export default function OrganizationCard({ organization }: Props) {
               AntiDDOS: {organization.antiDDOS ? "Да" : "Нет"}
             </Typography>
           </Box>
-          <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button>View</Button>
-            <Button>Edit</Button>
-            <Button>delete</Button>
-          </ButtonGroup>
+          <Button variant="contained">View</Button>
         </Box>
       </CardContent>
     </Card>

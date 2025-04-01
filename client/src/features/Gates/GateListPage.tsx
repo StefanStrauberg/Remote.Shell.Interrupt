@@ -55,7 +55,7 @@ export default function GateListPage() {
 
   // Handle page change
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     setPageNumber(value); // Update the page number
