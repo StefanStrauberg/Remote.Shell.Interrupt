@@ -22,7 +22,7 @@ export default function GateCard({ gate }: Props) {
   const { deleteGate } = useGates();
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${gate.name}"?`)) {
+    if (window.confirm(`Вы уверены что хотите удалить "${gate.name}"?`)) {
       deleteGate.mutate(gate.id!, {
         onSuccess: () => {
           console.log(`Gate with ID ${gate.id} deleted successfully`);
