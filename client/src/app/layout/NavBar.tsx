@@ -60,7 +60,7 @@ export default function NavBar() {
               </MenuItem>
             </Box>
             {/* Navigation Links */}
-            <Box sx={{ display: "flex", gap: 3 }}>
+            <Box sx={{ display: "flex", gap: 2 }}>
               <MenuItemLinks to="/networkdevices">networkDevices</MenuItemLinks>
               <MenuItemLinks to="/gates">Gates</MenuItemLinks>
               <MenuItemLinks to="/clients">Clients</MenuItemLinks>

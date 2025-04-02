@@ -14,18 +14,19 @@ export default function MenuItemLinks({
       component={NavLink}
       to={to}
       sx={{
-        color: "#f1faee",
-        textTransform: "capitalize",
-        textDecoration: "none",
-        padding: "0.5rem 1rem",
-        borderRadius: "8px", // Rounded corners
-        transition: "background-color 0.3s ease, color 0.3s ease", // Smooth transition effect
+        backgroundColor: "#e5e7eb",
+        color: "#1d3557",
+        height: 40,
+        borderRadius: "8px",
+        textTransform: "none",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // Add shadow to button
+        transition: "all 0.3s ease",
         "&:hover": {
-          backgroundColor: "rgba(255, 255, 255, 0.1)", // Hover background
-          color: "#a8dadc",
+          backgroundColor: "#ffd166", // Slightly lighter hover effect
+          transform: "scale(1.05)", // Subtle scaling on hover
         },
         "&.active": {
-          backgroundColor: "#ffca3a", // Bold yellow background for active link
+          backgroundColor: "#ffd166", // Bold yellow background for active link
           color: "#1d3557", // Contrasting text color
           fontWeight: "bold",
           boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Subtle shadow to make it pop
