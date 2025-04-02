@@ -78,7 +78,7 @@ export default function GateListPage() {
             },
           }}
         >
-          Create new one
+          Создать маршрутизатор
         </Button>
       </Paper>
     );
