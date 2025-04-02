@@ -31,3 +31,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helper;
 global using System.Text.Json;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Queries.GetAll;

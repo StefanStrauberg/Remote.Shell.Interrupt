@@ -1,6 +1,6 @@
 import { Cod } from "./Cod";
 import { SprVlan } from "./SprVlan";
-import { tfPlan } from "./TfPlan";
+import { TfPlan } from "./TfPlan";
 
 export type Client = {
   id: string;
@@ -11,7 +11,7 @@ export type Client = {
   id_COD: number;
   cod?: Cod; // Required COD object
   id_TfPlan?: number; // Nullable field
-  tfPlan?: tfPlan; // Nullable TfPlan object
+  tfPlan?: TfPlan; // Nullable TfPlan object
   sprVlans: SprVlan[];
   idClient: number;
   name: string;

@@ -45,44 +45,80 @@ export default function ClientDetailPage() {
         <Divider>Коммерческий</Divider>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <ContactPage sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.contactC ? "inherit" : "gray",
+            }}
+          >
             Контакт: {client.contactC || "Нет информации"}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <LocalPhone sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.telephoneC ? "inherit" : "gray",
+            }}
+          >
             Телефон: {client.telephoneC || "Нет информации"}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <AlternateEmail sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.emailC ? "inherit" : "gray",
+            }}
+          >
             Email: {client.emailC || "Нет информации"}
           </Typography>
         </Box>
         <Divider>Технический</Divider>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <ContactPage sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.contactT ? "inherit" : "gray",
+            }}
+          >
             Контакт: {client.contactT || "Нет информации"}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <LocalPhone sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.telephoneT ? "inherit" : "gray",
+            }}
+          >
             Телефон: {client.telephoneT || "Нет информации"}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <AlternateEmail sx={{ mr: 1 }} />
-          <Typography variant="body1">
+          <Typography
+            variant="body1"
+            sx={{
+              color: client.emailT ? "inherit" : "gray",
+            }}
+          >
             Email: {client.emailT || "Нет информации"}
           </Typography>
         </Box>
         <Divider>История</Divider>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
+          <Typography
+            variant="body1"
+            sx={{
+              whiteSpace: "pre-wrap",
+              color: client.history ? "inherit" : "gray",
+            }}
+          >
             {client.history || "Нет информации"}
           </Typography>
         </Box>
@@ -99,25 +135,45 @@ export default function ClientDetailPage() {
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
                 <AlternateEmail sx={{ mr: 1 }} />
-                <Typography variant="body1">
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: client.cod.email1 ? "inherit" : "gray",
+                  }}
+                >
                   Email 1: {client.cod.email1 || "Нет информации"}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
                 <AlternateEmail sx={{ mr: 1 }} />
-                <Typography variant="body1">
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: client.cod.email2 ? "inherit" : "gray",
+                  }}
+                >
                   Email 2: {client.cod.email2 || "Нет информации"}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
                 <LocalPhone sx={{ mr: 1 }} />
-                <Typography variant="body1">
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: client.cod.telephone ? "inherit" : "gray",
+                  }}
+                >
                   Контактный телефон: {client.cod.telephone || "Нет информации"}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
                 <Feed sx={{ mr: 1 }} />
-                <Typography variant="body1">
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: client.cod.description ? "inherit" : "gray",
+                  }}
+                >
                   Описание: {client.cod.description || "Нет информации"}
                 </Typography>
               </Box>

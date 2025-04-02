@@ -19,7 +19,6 @@ internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
                                               cancellationToken);
     var count = await _unitOfWork.GateRepository
                                  .GetCountAsync(cancellationToken);
-
     var result = _mapper.Map<List<GateDTO>>(gates);
 
     return new PagedList<GateDTO>(result,

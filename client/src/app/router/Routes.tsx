@@ -10,6 +10,7 @@ import ServerError from "../../features/Errors/ServerError";
 import ClientDetailPage from "../../features/Clients/ClientDetailPage";
 import ClientDashboard from "../../features/Clients/ClientDashboard";
 import GateDashboard from "../../features/Gates/GateDashboard";
+import TfPlansDashboard from "../../features/TfPlans/TfPlansDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "createGate", element: <GateForm /> },
       { path: "clients", element: <ClientDashboard /> },
       { path: "clients/:id", element: <ClientDetailPage /> },
+      { path: "tfPlans", element: <TfPlansDashboard /> },
       { path: "errors", element: <TestErrors /> },
       { path: "not-found", element: <NotFound /> },
       { path: "server-error", element: <ServerError /> },

@@ -34,3 +34,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organization
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Create;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;

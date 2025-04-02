@@ -20,7 +20,7 @@ type Props = {
   client: ClientShort;
 };
 
-export default function OrganizationCard({ client }: Props) {
+export default function ClientCard({ client }: Props) {
   return (
     <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
       <CardHeader

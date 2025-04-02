@@ -9,7 +9,7 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { Checklist, LocalLibrary, Badge } from "@mui/icons-material";
+import { Checklist, LocalLibrary, LocationOn } from "@mui/icons-material";
 import { Gate } from "../../lib/types/Gate";
 import { Link } from "react-router";
 import { useGates } from "../../lib/hooks/useGates";
@@ -19,7 +19,7 @@ type Props = {
 };
 
 export default function GateCard({ gate }: Props) {
-  const { deleteGate } = useGates(); // Use the deleteGate mutation
+  const { deleteGate } = useGates();
 
   const handleDelete = () => {
     if (window.confirm(`Are you sure you want to delete "${gate.name}"?`)) {
@@ -92,16 +92,16 @@ export default function GateCard({ gate }: Props) {
           </Avatar>
         }
         title={
-          <Typography sx={{ fontWeight: "bold" }}>
-            IP Address: {gate.ipAddress}
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            {gate.name}
           </Typography>
         }
       />
       <Divider />
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Badge sx={{ mr: 1 }} />
-          <Typography variant="body1">Name: {gate.name}</Typography>
+          <LocationOn sx={{ mr: 1 }} />
+          <Typography variant="body1">IP Address: {gate.ipAddress}</Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
@@ -119,9 +119,6 @@ export default function GateCard({ gate }: Props) {
             </Typography>
           </Box>
           <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button color="info" component={Link} to={`/gates/${gate.id}`}>
-              View
-            </Button>
             <Button
               color="primary"
               component={Link}
