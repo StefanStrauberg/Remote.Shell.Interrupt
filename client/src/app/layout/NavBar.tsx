@@ -17,29 +17,50 @@ export default function NavBar() {
         position="static"
         sx={{
           backgroundImage:
-            "linear-gradient(35deg, #182a73 0%, #218aae 69%, #20a7ac)",
+            "linear-gradient(35deg, #182a73 0%, #457b9d 69%, #1d3557)",
           position: "relative",
+          padding: "0.5rem 0",
         }}
       >
         <Container maxWidth="xl">
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Box>
+          <Toolbar
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            {/* Logo Section */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <MenuItem
                 component={NavLink}
                 to="/"
-                sx={{ display: "flex", gap: 2 }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  textDecoration: "none",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    borderRadius: "8px",
+                  },
+                  padding: "0.5rem",
+                }}
               >
-                <Storage fontSize="medium" />
+                <Storage fontSize="large" sx={{ color: "#f1faee" }} />
                 <Typography
-                  variant="h4"
+                  variant="h5"
                   fontWeight="bold"
-                  sx={{ color: "whitesmoke" }}
+                  sx={{
+                    color: "#f1faee",
+                    fontFamily: "'Poppins', sans-serif",
+                  }}
                 >
                   Remote Shell Interrupt
                 </Typography>
               </MenuItem>
             </Box>
-            <Box sx={{ display: "flex" }}>
+            {/* Navigation Links */}
+            <Box sx={{ display: "flex", gap: 3 }}>
               <MenuItemLinks to="/networkdevices">networkDevices</MenuItemLinks>
               <MenuItemLinks to="/gates">Gates</MenuItemLinks>
               <MenuItemLinks to="/clients">Clients</MenuItemLinks>

@@ -90,6 +90,7 @@ export default function ClientListPage() {
         count={pagination?.TotalPages || 1} // Total pages based on pagination metadata
         page={pageNumber} // Current active page
         onChange={handlePageChange} // Handle page change
+        variant="outlined"
         color="primary"
         sx={{ alignSelf: "center", mt: 2 }}
       />

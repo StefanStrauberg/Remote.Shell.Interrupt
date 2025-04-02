@@ -6,8 +6,8 @@ import { useState } from "react";
 
 export default function GateListPage() {
   // Manage local state for pagination
-  const [pageNumber, setPageNumber] = useState(1);
-  const pageSize = 10; // You can adjust the page size as needed
+  const [pageNumber, setPageNumber] = useState(1); // TablePagination uses zero-based index
+  const pageSize = 10; // Default page size
 
   // Hook for fetching data
   const { gates, pagination, isPending } = useGates(pageNumber, pageSize);
@@ -93,6 +93,7 @@ export default function GateListPage() {
         count={pagination?.TotalPages || 1} // Total pages based on pagination metadata
         page={pageNumber} // Current active page
         onChange={handlePageChange} // Handle page change
+        variant="outlined"
         color="primary"
         sx={{ alignSelf: "center", mt: 2 }}
       />
