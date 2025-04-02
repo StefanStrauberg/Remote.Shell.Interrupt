@@ -8,7 +8,8 @@ import GateForm from "../../features/Gates/GateForm";
 import TestErrors from "../../features/Errors/TestErrors";
 import NotFound from "../../features/Errors/NotFound";
 import ServerError from "../../features/Errors/ServerError";
-import OrganizationListPage from "../../features/Organizations/OrganizationListPage";
+import ClientListPage from "../../features/Clients/ClientListPage";
+import ClientDetailPage from "../../features/Clients/ClientDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +22,8 @@ export const router = createBrowserRouter([
       { path: "gates/:id", element: <GateDetailPage /> },
       { path: "editGate/:id", element: <GateForm /> },
       { path: "createGate", element: <GateForm /> },
-      { path: "organizations", element: <OrganizationListPage /> },
+      { path: "clients", element: <ClientListPage /> },
+      { path: "clients/:id", element: <ClientDetailPage /> },
       { path: "errors", element: <TestErrors /> },
       { path: "not-found", element: <NotFound /> },
       { path: "server-error", element: <ServerError /> },

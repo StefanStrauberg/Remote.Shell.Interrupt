@@ -101,12 +101,12 @@ export default function GateCard({ gate }: Props) {
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Badge sx={{ mr: 1 }} />
-          <Typography variant="body2">Name: {gate.name}</Typography>
+          <Typography variant="body1">Name: {gate.name}</Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <LocalLibrary sx={{ mr: 1 }} />
-          <Typography variant="body2">Community: {gate.community}</Typography>
+          <Typography variant="body1">Community: {gate.community}</Typography>
         </Box>
         <Divider />
       </CardContent>
@@ -114,7 +114,7 @@ export default function GateCard({ gate }: Props) {
         <Box display="flex" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <Checklist sx={{ mr: 1 }} />
-            <Typography variant="body2">
+            <Typography variant="body1">
               Type: {gate.typeOfNetworkDevice}
             </Typography>
           </Box>

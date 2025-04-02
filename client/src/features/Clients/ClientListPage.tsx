@@ -1,25 +1,22 @@
 import { Box, Button, Pagination, Paper, Typography } from "@mui/material";
 import { Link } from "react-router";
-import { useOrganizations } from "../../lib/hooks/useOrganizations";
-import OrganizationCard from "./OrganizationCard";
+import { useClients } from "../../lib/hooks/useClients";
+import OrganizationCard from "./ClientCard";
 import { useState } from "react";
 
-export default function OrganizationListPage() {
+export default function ClientListPage() {
   // Manage local state for pagination
   const [pageNumber, setPageNumber] = useState(1);
   const pageSize = 10; // You can adjust the page size as needed
 
   // Hook for fetching data
-  const { organizations, pagination, isPending } = useOrganizations(
-    pageNumber,
-    pageSize
-  );
+  const { clients, pagination, isPending } = useClients(pageNumber, pageSize);
 
   // Loading state
-  if (!organizations || isPending) return <Typography>Loading ...</Typography>;
+  if (!clients || isPending) return <Typography>Loading ...</Typography>;
 
   // No gates state
-  if (organizations.length === 0)
+  if (clients.length === 0)
     return (
       <Paper
         sx={{
@@ -83,11 +80,8 @@ export default function OrganizationListPage() {
           gap: 3,
         }}
       >
-        {organizations.map((organization) => (
-          <OrganizationCard
-            key={organization.idClient}
-            organization={organization}
-          />
+        {clients.map((client) => (
+          <OrganizationCard key={client.idClient} client={client} />
         ))}
       </Box>
 

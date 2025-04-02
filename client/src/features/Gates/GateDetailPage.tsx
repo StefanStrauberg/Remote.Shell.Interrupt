@@ -37,17 +37,19 @@ export default function GateDetailPage() {
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Fingerprint sx={{ mr: 1 }} />
-          <Typography variant="body2">ID: {gate.id}</Typography>
+          <Typography variant="body1" sx={{ color: "gray" }}>
+            ID: {gate.id}
+          </Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Place sx={{ mr: 1 }} />
-          <Typography variant="body2">IP Address: {gate.ipAddress}</Typography>
+          <Typography variant="body1">IP Address: {gate.ipAddress}</Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <LocalLibrary sx={{ mr: 1 }} />
-          <Typography variant="body2">Community: {gate.community}</Typography>
+          <Typography variant="body1">Community: {gate.community}</Typography>
         </Box>
         <Divider />
       </CardContent>
@@ -55,7 +57,7 @@ export default function GateDetailPage() {
         <Box display="flex" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <Checklist sx={{ mr: 1 }} />
-            <Typography variant="body2">
+            <Typography variant="body1">
               Type: {gate.typeOfNetworkDevice}
             </Typography>
           </Box>

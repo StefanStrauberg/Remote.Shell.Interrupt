@@ -42,7 +42,7 @@ export default function NavBar() {
             <Box sx={{ display: "flex" }}>
               <MenuItemLinks to="/networkdevices">networkDevices</MenuItemLinks>
               <MenuItemLinks to="/gates">Gates</MenuItemLinks>
-              <MenuItemLinks to="/organizations">Organizations</MenuItemLinks>
+              <MenuItemLinks to="/clients">Clients</MenuItemLinks>
             </Box>
           </Toolbar>
         </Container>

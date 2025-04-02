@@ -1,4 +1,4 @@
-export type OrganizationShort = {
+export type ClientShort = {
   id: string;
   idClient: number;
   name: string;

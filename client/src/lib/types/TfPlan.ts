@@ -1,4 +1,4 @@
-export type TfPlan = {
+export type tfPlan = {
   nameTfPlan: string;
-  descTfPlan: string;
+  descTfPlan?: string; // Nullable field
 };

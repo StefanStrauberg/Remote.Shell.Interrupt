@@ -7,48 +7,47 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { OrganizationShort } from "../../lib/types/OrganizationShort";
+import { ClientShort } from "../../lib/types/ClientShort";
 import {
   AlternateEmail,
   CheckBox,
   ContactPage,
   ContactPhone,
 } from "@mui/icons-material";
+import { Link } from "react-router";
 
 type Props = {
-  organization: OrganizationShort;
+  client: ClientShort;
 };
 
-export default function OrganizationCard({ organization }: Props) {
+export default function OrganizationCard({ client }: Props) {
   return (
     <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontWeight: "bold" }}>
-            {organization.name}
-          </Typography>
+          <Typography sx={{ fontWeight: "bold" }}>{client.name}</Typography>
         }
       />
       <Divider />
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <ContactPage sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            Контакт технический: {organization.contactT}
+          <Typography variant="body1">
+            Контакт технический: {client.contactT}
           </Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <ContactPhone sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            Телефон технический: {organization.telephoneT}
+          <Typography variant="body1">
+            Телефон технический: {client.telephoneT}
           </Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <AlternateEmail sx={{ mr: 1 }} />
-          <Typography variant="body2">
-            Email технический: {organization.emailT}
+          <Typography variant="body1">
+            Email технический: {client.emailT}
           </Typography>
         </Box>
         <Divider />
@@ -56,11 +55,11 @@ export default function OrganizationCard({ organization }: Props) {
           <CheckBox
             sx={{
               mr: 1,
-              color: organization.working ? "green" : "red",
+              color: client.working ? "green" : "red",
             }}
           />
-          <Typography variant="body2">
-            Работает: {organization.working ? "Да" : "Нет"}
+          <Typography variant="body1">
+            Работает: {client.working ? "Да" : "Нет"}
           </Typography>
         </Box>
         <Divider />
@@ -69,13 +68,19 @@ export default function OrganizationCard({ organization }: Props) {
         <Box display="flex" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <CheckBox
-              sx={{ mr: 1, color: organization.antiDDOS ? "green" : "red" }}
+              sx={{ mr: 1, color: client.antiDDOS ? "green" : "red" }}
             />
-            <Typography variant="body2">
-              AntiDDOS: {organization.antiDDOS ? "Да" : "Нет"}
+            <Typography variant="body1">
+              AntiDDOS: {client.antiDDOS ? "Да" : "Нет"}
             </Typography>
           </Box>
-          <Button variant="contained">View</Button>
+          <Button
+            variant="contained"
+            component={Link}
+            to={`/clients/${client.id}`}
+          >
+            View
+          </Button>
         </Box>
       </CardContent>
     </Card>
