@@ -81,7 +81,7 @@ export default function GateForm() {
               color="success"
               disabled={updateGate.isPending || createGate.isPending}
             >
-              Submit
+              Confirm
             </Button>
           </ButtonGroup>
         </Box>

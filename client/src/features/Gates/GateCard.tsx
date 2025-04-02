@@ -119,15 +119,11 @@ export default function GateCard({ gate }: Props) {
             </Typography>
           </Box>
           <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button
-              color="primary"
-              component={Link}
-              to={`/editGate/${gate.id}`}
-            >
+            <Button color="primary" component={Link} to={`/gates/${gate.id}`}>
               Edit
             </Button>
             <Button color="error" onClick={handleDelete}>
-              delete
+              Delete
             </Button>
           </ButtonGroup>
         </Box>
