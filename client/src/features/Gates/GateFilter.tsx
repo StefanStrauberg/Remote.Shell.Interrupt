@@ -66,7 +66,7 @@ export default function GateFilter() {
       }}
     >
       <CardHeader
-        title="Filters"
+        title="Фильтры"
         avatar={<FilterList color="primary" />}
         sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
       />
@@ -107,7 +107,7 @@ export default function GateFilter() {
           </FormControl>
           <Divider />
           <Button variant="contained" color="success">
-            Apply
+            Применить
           </Button>
         </Box>
       </CardContent>

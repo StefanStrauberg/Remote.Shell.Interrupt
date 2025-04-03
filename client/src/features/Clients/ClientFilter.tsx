@@ -68,7 +68,7 @@ export default function ClientFilter() {
       }}
     >
       <CardHeader
-        title="Filters"
+        title="Фильтры"
         avatar={<FilterList color="primary" />}
         sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
       />
@@ -118,7 +118,7 @@ export default function ClientFilter() {
           </Grid2>
           <Divider />
           <Button variant="contained" color="success">
-            Apply
+            Применить
           </Button>
         </Box>
       </CardContent>

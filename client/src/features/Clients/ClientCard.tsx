@@ -113,7 +113,7 @@ export default function ClientCard({ client }: Props) {
             component={Link}
             to={`/clients/${client.id}`}
           >
-            View
+            Обзор
           </Button>
         </Box>
       </CardContent>

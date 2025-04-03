@@ -248,7 +248,7 @@ export default function ClientDetailPage() {
             component={Link}
             to={`/clients`}
           >
-            Back
+            Назад
           </Button>
         </Box>
       </CardContent>

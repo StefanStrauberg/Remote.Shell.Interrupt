@@ -75,7 +75,7 @@ export default function TfPlanListPage() {
             },
           }}
         >
-          Обновить все тарифные планы
+          Обновить тарифные планы
         </Button>
       </Paper>
     );
@@ -93,7 +93,7 @@ export default function TfPlanListPage() {
       {/* Button to create a new gate */}
       <Box alignSelf="end" mr={2}>
         <Button variant="contained" color="error">
-          Update all TfPlans
+          Обновить тарифные планы
         </Button>
       </Box>
 

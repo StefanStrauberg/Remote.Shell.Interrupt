@@ -126,12 +126,12 @@ export default function GateCard({ gate }: Props) {
               Type: {gate.typeOfNetworkDevice}
             </Typography>
           </Box>
-          <ButtonGroup variant="contained" aria-label="Basic button group">
+          <ButtonGroup variant="contained">
             <Button color="primary" component={Link} to={`/gates/${gate.id}`}>
-              Edit
+              Изменить
             </Button>
             <Button color="error" onClick={handleDelete}>
-              Delete
+              Удалить
             </Button>
           </ButtonGroup>
         </Box>

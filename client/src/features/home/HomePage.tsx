@@ -74,7 +74,7 @@ export default function HomePage() {
           },
         }}
       >
-        Check up Network Devices
+        На главную страницу
       </Button>
     </Paper>
   );

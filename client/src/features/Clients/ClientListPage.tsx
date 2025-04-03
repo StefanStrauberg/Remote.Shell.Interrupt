@@ -76,7 +76,7 @@ export default function ClientListPage() {
             },
           }}
         >
-          Обновить всех клиентов
+          Обновить клиентов
         </Button>
       </Paper>
     );
@@ -98,7 +98,7 @@ export default function ClientListPage() {
           component={Link}
           to="/createGate"
         >
-          Update all organizations
+          Обновить клиентов
         </Button>
       </Box>
       <Box

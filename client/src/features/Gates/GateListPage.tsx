@@ -94,14 +94,14 @@ export default function GateListPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       {/* Button to create a new gate */}
-      <Box alignSelf="end" mr={2}>
+      <Box alignSelf="end">
         <Button
           variant="contained"
           color="success"
           component={Link}
           to="/createGate"
         >
-          Create new gate
+          Создать маршрутизатор
         </Button>
       </Box>
 

@@ -74,14 +74,14 @@ export default function GateForm() {
         <Box display="flex" justifyContent="end" gap={3}>
           <ButtonGroup variant="contained">
             <Button color="primary" component={Link} to={`/gates`}>
-              Cancel
+              Отмена
             </Button>
             <Button
               type="submit"
               color="success"
               disabled={updateGate.isPending || createGate.isPending}
             >
-              Confirm
+              Сохранить
             </Button>
           </ButtonGroup>
         </Box>
