@@ -1,16 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import { tfPlan } from "../types/TfPlan";
+import { TfPlan } from "../types/TfPlan";
 import agent from "../api/agent";
+import { useLocation } from "react-router";
 
 export const useTfPlans = (
   pageNumber: number = 1,
   pageSize: number = 10,
   id?: string
 ) => {
+  const location = useLocation();
+
   const { data: tfPlansResponse, isPending } = useQuery({
     queryKey: ["tfPlans", pageNumber, pageSize],
     queryFn: async () => {
-      const response = await agent.get<tfPlan[]>("/TfPlans/GetTfPlans", {
+      const response = await agent.get<TfPlan[]>("/TfPlans/GetTfPlans", {
         params: { pageNumber, pageSize },
       });
       return {

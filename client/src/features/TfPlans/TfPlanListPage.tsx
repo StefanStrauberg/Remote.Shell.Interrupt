@@ -6,7 +6,7 @@ import TfPlanCard from "./TfPlanCard";
 export default function TfPlanListPage() {
   // Manage local state for pagination
   const [pageNumber, setPageNumber] = useState(1); // TablePagination uses zero-based index
-  const pageSize = 10; // Default page size
+  const pageSize = 15; // Default page size
 
   // Hook for fetching data
   const { tfPlans, pagination, isPending } = useTfPlans(pageNumber, pageSize);
@@ -101,7 +101,7 @@ export default function TfPlanListPage() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)", // Two columns
+          gridTemplateColumns: "repeat(3, 1fr)", // Two columns
           gap: 3,
         }}
       >
