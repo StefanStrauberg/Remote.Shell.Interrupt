@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class RemoteTfPlanRepository(MySQLDapperContext mySQLDapperContext) : IRemoteTfPlanRepository
+internal class RemoteTfPlanRepository(MySQLDapperContext mySQLDapperContext) 
+  : IRemoteTfPlanRepository
 {
   protected readonly MySQLDapperContext _mySQLDapperContext = mySQLDapperContext
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));

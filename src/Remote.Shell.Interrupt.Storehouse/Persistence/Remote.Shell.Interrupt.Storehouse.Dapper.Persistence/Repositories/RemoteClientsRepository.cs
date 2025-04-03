@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class RemoteClientsRepository(MySQLDapperContext mySQLDapperContext) : IRemoteClientsRepository
+internal class RemoteClientsRepository(MySQLDapperContext mySQLDapperContext) 
+  : IRemoteClientsRepository
 {
   protected readonly MySQLDapperContext _mySQLDapperContext = mySQLDapperContext
     ?? throw new ArgumentNullException(nameof(mySQLDapperContext));

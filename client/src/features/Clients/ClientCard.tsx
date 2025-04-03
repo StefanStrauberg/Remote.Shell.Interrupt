@@ -13,6 +13,7 @@ import {
   CheckBox,
   ContactPage,
   ContactPhone,
+  Fingerprint,
 } from "@mui/icons-material";
 import { Link } from "react-router";
 
@@ -22,7 +23,24 @@ type Props = {
 
 export default function ClientCard({ client }: Props) {
   return (
-    <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
+    <Card
+      variant="outlined"
+      elevation={5}
+      sx={
+        client.working
+          ? {
+              borderRadius: 4,
+              boxShadow: 3,
+              fontSize: 18,
+            }
+          : {
+              borderRadius: 4,
+              boxShadow: 3,
+              fontSize: 18,
+              color: "gray",
+            }
+      }
+    >
       <CardHeader
         title={
           <Typography sx={{ fontWeight: "bold" }}>{client.name}</Typography>
@@ -30,6 +48,11 @@ export default function ClientCard({ client }: Props) {
       />
       <Divider />
       <CardContent sx={{ p: 0 }}>
+        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
+          <Fingerprint sx={{ mr: 1 }} />
+          <Typography variant="body1">ID Клиента: {client.idClient}</Typography>
+        </Box>
+        <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <ContactPage sx={{ mr: 1 }} />
           <Typography variant="body1">
@@ -55,7 +78,7 @@ export default function ClientCard({ client }: Props) {
           <CheckBox
             sx={{
               mr: 1,
-              color: client.working ? "green" : "red",
+              color: client.working ? "green" : "gray",
             }}
           />
           <Typography variant="body1">
@@ -68,7 +91,17 @@ export default function ClientCard({ client }: Props) {
         <Box display="flex" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <CheckBox
-              sx={{ mr: 1, color: client.antiDDOS ? "green" : "red" }}
+              sx={
+                client.working
+                  ? {
+                      mr: 1,
+                      color: client.antiDDOS ? "green" : "red",
+                    }
+                  : {
+                      mr: 1,
+                      color: client.antiDDOS ? "green" : "gray",
+                    }
+              }
             />
             <Typography variant="body1">
               AntiDDOS: {client.antiDDOS ? "Да" : "Нет"}
@@ -76,6 +109,7 @@ export default function ClientCard({ client }: Props) {
           </Box>
           <Button
             variant="contained"
+            color={client.working ? "primary" : "inherit"}
             component={Link}
             to={`/clients/${client.id}`}
           >

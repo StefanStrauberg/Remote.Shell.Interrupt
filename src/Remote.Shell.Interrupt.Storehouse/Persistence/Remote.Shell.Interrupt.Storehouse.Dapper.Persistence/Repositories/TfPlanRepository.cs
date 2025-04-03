@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class TfPlanRepository(PostgreSQLDapperContext postgreSQLDapperContext) 
@@ -9,11 +8,15 @@ internal class TfPlanRepository(PostgreSQLDapperContext postgreSQLDapperContext)
     {
         string columns = GetColumnsAsProperties();
         var offset = (requestParameters.PageNumber - 1) * requestParameters.PageSize;
-        var query = $"SELECT {columns} " +
-                    $"FROM \"{GetTableName<TfPlan>()}\" " +
-                    $"LIMIT {requestParameters.PageSize} OFFSET {offset}";;
+        StringBuilder sb = new();
+        sb.Append($"SELECT {columns} ");
+        sb.Append($"FROM \"{GetTableName<TfPlan>()}\" ");
+        sb.Append($"LIMIT {requestParameters.PageSize} OFFSET {offset}");
+        
+        var query = sb.ToString();
         var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
         var tfPlans = await connection.QueryAsync<TfPlan>(query);
+        
         return tfPlans;
     }
 }

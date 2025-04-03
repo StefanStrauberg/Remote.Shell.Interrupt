@@ -16,7 +16,11 @@ type Props = {
 
 export default function TfPlanCard({ tfPlan }: Props) {
   return (
-    <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
+    <Card
+      variant="outlined"
+      elevation={5}
+      sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}
+    >
       <CardHeader
         title={
           <Typography sx={{ fontWeight: "bold" }}>
@@ -28,13 +32,13 @@ export default function TfPlanCard({ tfPlan }: Props) {
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Fingerprint sx={{ mr: 1 }} />
-          <Typography variant="body1" sx={{ color: "gray" }}>
+          <Typography variant="body1">
             ID Тарифного плана: {tfPlan.idTfPlan}
           </Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} px={2}>
-          <Feed sx={{ mr: 1 }} />
+          <Feed sx={{ mr: 1, color: tfPlan.descTfPlan ? "inherit" : "gray" }} />
           <Typography
             variant="body1"
             sx={{

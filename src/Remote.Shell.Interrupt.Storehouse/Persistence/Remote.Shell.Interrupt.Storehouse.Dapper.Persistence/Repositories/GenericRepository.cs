@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericRepository<T> where T : BaseEntity
+internal class GenericRepository<T>(PostgreSQLDapperContext context) 
+  : IGenericRepository<T> where T : BaseEntity
 {
   protected readonly PostgreSQLDapperContext _postgreSQLDapperContext = context
     ?? throw new ArgumentNullException(nameof(context));
@@ -10,15 +11,17 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
     var query = $"SELECT COUNT(1) FROM \"{GetTableName<T>()}\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query);
+
     return count > 0;
   }
 
   async Task<bool> IGenericRepository<T>.AnyByIdAsync(Guid id,
                                        CancellationToken cancellationToken)
   {
-    var query = $"SELECT COUNT(1) FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
+    var query = $"SELECT COUNT(1) FROM \"{GetTableName<T>()}\" WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query, new { Id = id });
+
     return count > 0;
   }
 
@@ -34,7 +37,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   void IGenericRepository<T>.DeleteOne(T entity)
   {
     _postgreSQLDapperContext.BeginTransaction();
-    var query = $"DELETE FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
+    var query = $"DELETE FROM \"{GetTableName<T>()}\" WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
     var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, new { Id = entity.Id });
   }
@@ -42,17 +45,17 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   async Task<T> IGenericRepository<T>.FirstByIdAsync(Guid id,
                                                      CancellationToken cancellationToken)
   {
-    string columns = GetColumnsAsProperties();
-    var query = $"SELECT {columns} FROM \"{GetTableName<T>()}\" WHERE \"Id\"=@Id";
+    var query = $"SELECT {GetColumnsAsProperties()} FROM \"{GetTableName<T>()}\" WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+
     return await connection.QuerySingleAsync<T>(query, new { Id = id });
   }
 
   async Task<IEnumerable<T>> IGenericRepository<T>.GetAllAsync(CancellationToken cancellationToken)
   {
-    string columns = GetColumnsAsProperties();
-    var query = $"SELECT {columns} FROM \"{GetTableName<T>()}\"";
+    var query = $"SELECT {GetColumnsAsProperties()} FROM \"{GetTableName<T>()}\"";
     var connection = _postgreSQLDapperContext.CreateConnection();
+
     return await connection.QueryAsync<T>(query);
   }
 
@@ -68,9 +71,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   void IGenericRepository<T>.InsertOne(T entity)
   {
     _postgreSQLDapperContext.BeginTransaction();
-    string columns = GetColumnsAsProperties(excludeKey: true);
-    string properties = GetPropertyNames(excludeKey: true);
-    var query = $"INSERT INTO \"{GetTableName<T>()}\" ({columns}) VALUES ({properties}) RETURNING \"Id\"";
+    var query = $"INSERT INTO \"{GetTableName<T>()}\" ({GetColumnsAsProperties(excludeKey: true)}) VALUES ({GetPropertyNames(excludeKey: true)}) RETURNING \"{nameof(BaseEntity.Id)}\"";
     var connection = _postgreSQLDapperContext.CreateConnection();
     var entityId = connection.ExecuteScalar<Guid>(query, entity);
     entity.Id = entityId;
@@ -80,7 +81,7 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
   {
     _postgreSQLDapperContext.BeginTransaction();
     string updateProperties = GetUpdateProperties(excludeKey: true);
-    var query = $"UPDATE \"{GetTableName<T>()}\" SET {updateProperties} WHERE \"Id\"=@Id";
+    var query = $"UPDATE \"{GetTableName<T>()}\" SET {updateProperties} WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
     var connection = _postgreSQLDapperContext.CreateConnection();
     connection.Execute(query, entity);
   }
@@ -139,18 +140,18 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
         continue;
 
       // Проверяем, является ли свойство Id
-      bool isGuuid = property.Name.Equals("Id");
+      bool isGuuid = property.Name.Equals(nameof(BaseEntity.Id));
 
       // Если свойство является GUUID и excludeKey = true, пропускаем его
       if (excludeKey && isGuuid)
         continue;
 
       // Если свойство CreatedAt, пропускаем его
-      if (property.Name.Equals("CreatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.CreatedAt)))
         continue;
 
       // Если свойство UpdatedAt, пропускаем его
-      if (property.Name.Equals("UpdatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.UpdatedAt)))
         continue;
 
       sb.Append($"\"{property.Name}\"");
@@ -190,18 +191,18 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
         continue;
 
       // Проверяем, является ли свойство Id
-      bool isGuuid = property.Name.Equals("Id");
+      bool isGuuid = property.Name.Equals(nameof(BaseEntity.Id));
 
       // Если свойство является GUUID и excludeKey = true, пропускаем его
       if (excludeKey && isGuuid)
         continue;
 
       // Если свойство CreatedAt, пропускаем его
-      if (property.Name.Equals("CreatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.CreatedAt)))
         continue;
 
       // Если свойство UpdatedAt, пропускаем его
-      if (property.Name.Equals("UpdatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.UpdatedAt)))
         continue;
 
       sb.Append($"@{property.Name}");
@@ -241,18 +242,18 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
         continue;
 
       // Проверяем, является ли свойство Id
-      bool isGuuid = property.Name.Equals("Id");
+      bool isGuuid = property.Name.Equals(nameof(BaseEntity.Id));
 
       // Если свойство является GUUID и excludeKey = true, пропускаем его
       if (excludeKey && isGuuid)
         continue;
 
       // Если свойство CreatedAt, пропускаем его
-      if (property.Name.Equals("CreatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.CreatedAt)))
         continue;
 
       // Если свойство UpdatedAt, пропускаем его
-      if (property.Name.Equals("UpdatedAt"))
+      if (property.Name.Equals(nameof(BaseEntity.UpdatedAt)))
         continue;
 
       // Используем интерполяцию строк для формирования записи
@@ -269,9 +270,10 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context) : IGenericR
 
   async Task<int> IGenericRepository<T>.GetCountAsync(CancellationToken cancellationToken)
   {
-    var query = $"SELECT COUNT(\"Id\") FROM \"{GetTableName<T>()}\"";
+    var query = $"SELECT COUNT(\"{nameof(BaseEntity.Id)}\") FROM \"{GetTableName<T>()}\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var count = await connection.ExecuteScalarAsync<int>(query);
+
     return count;
   }
 }

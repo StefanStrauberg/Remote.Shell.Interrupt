@@ -38,13 +38,13 @@ export default function ClientDetailPage() {
       <CardContent sx={{ p: 0 }}>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Fingerprint sx={{ mr: 1 }} />
-          <Typography variant="body1" sx={{ color: "gray" }}>
-            ID Клиента: {client.idClient}
-          </Typography>
+          <Typography variant="body1">ID Клиента: {client.idClient}</Typography>
         </Box>
         <Divider>Коммерческий</Divider>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <ContactPage sx={{ mr: 1 }} />
+          <ContactPage
+            sx={{ mr: 1, color: client.contactC ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -55,7 +55,9 @@ export default function ClientDetailPage() {
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <LocalPhone sx={{ mr: 1 }} />
+          <LocalPhone
+            sx={{ mr: 1, color: client.telephoneC ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -66,7 +68,9 @@ export default function ClientDetailPage() {
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <AlternateEmail sx={{ mr: 1 }} />
+          <AlternateEmail
+            sx={{ mr: 1, color: client.emailC ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -78,7 +82,9 @@ export default function ClientDetailPage() {
         </Box>
         <Divider>Технический</Divider>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <ContactPage sx={{ mr: 1 }} />
+          <ContactPage
+            sx={{ mr: 1, color: client.contactT ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -89,7 +95,9 @@ export default function ClientDetailPage() {
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <LocalPhone sx={{ mr: 1 }} />
+          <LocalPhone
+            sx={{ mr: 1, color: client.telephoneT ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -100,7 +108,9 @@ export default function ClientDetailPage() {
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <AlternateEmail sx={{ mr: 1 }} />
+          <AlternateEmail
+            sx={{ mr: 1, color: client.emailT ? "inherit" : "gray" }}
+          />
           <Typography
             variant="body1"
             sx={{
@@ -134,7 +144,9 @@ export default function ClientDetailPage() {
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
-                <AlternateEmail sx={{ mr: 1 }} />
+                <AlternateEmail
+                  sx={{ mr: 1, color: client.cod.email1 ? "inherit" : "gray" }}
+                />
                 <Typography
                   variant="body1"
                   sx={{
@@ -145,7 +157,9 @@ export default function ClientDetailPage() {
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
-                <AlternateEmail sx={{ mr: 1 }} />
+                <AlternateEmail
+                  sx={{ mr: 1, color: client.cod.email2 ? "inherit" : "gray" }}
+                />
                 <Typography
                   variant="body1"
                   sx={{
@@ -156,7 +170,12 @@ export default function ClientDetailPage() {
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
-                <LocalPhone sx={{ mr: 1 }} />
+                <LocalPhone
+                  sx={{
+                    mr: 1,
+                    color: client.cod.telephone ? "inherit" : "gray",
+                  }}
+                />
                 <Typography
                   variant="body1"
                   sx={{
@@ -167,7 +186,12 @@ export default function ClientDetailPage() {
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mb={2} px={2}>
-                <Feed sx={{ mr: 1 }} />
+                <Feed
+                  sx={{
+                    mr: 1,
+                    color: client.cod.description ? "inherit" : "gray",
+                  }}
+                />
                 <Typography
                   variant="body1"
                   sx={{

@@ -1,41 +1,44 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
-internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : GenericRepository<NetworkDevice>(context), INetworkDeviceRepository
+internal class NetworkDeviceRepository(PostgreSQLDapperContext context) 
+  : GenericRepository<NetworkDevice>(context), INetworkDeviceRepository
 {
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
     _postgreSQLDapperContext.BeginTransaction();
     var connection = _postgreSQLDapperContext.CreateConnection();
     var vlans = networkDeviceToDelete.PortsOfNetworkDevice.SelectMany(x => x.VLANs);
-    var query = $"DELETE FROM \"{GetTableName<VLAN>()}\" WHERE \"Id\"=@Id";
+    var query = $"DELETE FROM \"{GetTableName<VLAN>()}\" WHERE \"{nameof(VLAN.Id)}\"=@Id";
     foreach (var vlan in vlans)
     {
       connection.Execute(query, new { Id = vlan.Id });
     }
-    query = $"DELETE FROM \"{GetTableName<PortVlan>()}\" WHERE \"VLANId\"=@Id";
+    query = $"DELETE FROM \"{GetTableName<PortVlan>()}\" WHERE \"{nameof(PortVlan.VLANId)}\"=@Id";
     foreach (var vlan in vlans)
     {
       connection.Execute(query, new { Id = vlan.Id });
     }
-    query = $"DELETE FROM \"{GetTableName<NetworkDevice>()}\" WHERE \"Id\"=@Id";
+    query = $"DELETE FROM \"{GetTableName<NetworkDevice>()}\" WHERE \"{nameof(NetworkDevice.Id)}\"=@Id";
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
   async Task<NetworkDevice> INetworkDeviceRepository.GetFirstWithChildrensByIdAsync(Guid id,
                                                                                     CancellationToken cancellationToken)
   {
+    StringBuilder sb = new();
+    sb.Append("SELECT ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
+    sb.Append($"p.\"{nameof(Port.Id)}\", p.\"{nameof(Port.InterfaceNumber)}\", p.\"{nameof(Port.InterfaceName)}\", p.\"{nameof(Port.InterfaceType)}\", p.\"{nameof(Port.InterfaceStatus)}\", p.\"{nameof(Port.InterfaceSpeed)}\", p.\"{nameof(Port.NetworkDeviceId)}\", p.\"{nameof(Port.ParentPortId)}\", p.\"{nameof(Port.MACAddress)}\", ");
+    sb.Append($"pv.\"{nameof(PortVlan.Id)}\", pv.\"{nameof(PortVlan.PortId)}\", pv.\"{nameof(PortVlan.VLANId)}\", ");
+    sb.Append($"v.\"{nameof(VLAN.Id)}\", v.\"{nameof(VLAN.VLANTag)}\", v.\"{nameof(VLAN.VLANName)}\" ");
+    sb.Append($"FROM \"{GetTableName<NetworkDevice>()}\" as nd ");
+    sb.Append($"LEFT JOIN \"{GetTableName<Port>()}\" AS p on p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName<PortVlan>()}\" AS pv on pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName<VLAN>()}\" AS v on v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
+    sb.Append($"WHERE nd.\"{nameof(NetworkDevice.Id)}\"=@Id");
+    
+    var query = sb.ToString();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var query = $"SELECT " +
-                 "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
-                 "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
-                 "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
-                 "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
-                 $"FROM \"{GetTableName<NetworkDevice>()}\" as nd " +
-                 $"LEFT JOIN \"{GetTableName<Port>()}\" AS p on p.\"NetworkDeviceId\" = nd.\"Id\" " +
-                 $"LEFT JOIN \"{GetTableName<PortVlan>()}\" AS pv on pv.\"PortId\" = p.\"Id\" " +
-                 $"LEFT JOIN \"{GetTableName<VLAN>()}\" AS v on v.\"Id\" = pv.\"VLANId\" " +
-                 "WHERE nd.\"Id\"=@Id";
-
     var ndDictionary = new Dictionary<Guid, NetworkDevice>();
     var pDicotionary = new Dictionary<Guid, Port>();
     var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
@@ -72,18 +75,20 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context) : Generi
   async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetAllWithChildrensByVLANTagAsync(int vlanTag,
                                                                                                     CancellationToken cancellationToken)
   {
-    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var query = $"SELECT " +
-                 "nd.\"Id\", nd.\"Host\", nd.\"TypeOfNetworkDevice\", nd.\"NetworkDeviceName\", nd.\"GeneralInformation\", " +
-                 "p.\"Id\", p.\"InterfaceNumber\", p.\"InterfaceName\", p.\"InterfaceType\", p.\"InterfaceStatus\", p.\"InterfaceSpeed\", p.\"NetworkDeviceId\", p.\"ParentPortId\", p.\"MACAddress\", " +
-                 "pv.\"Id\", pv.\"PortId\", pv.\"VLANId\", " +
-                 "v.\"Id\", v.\"VLANTag\", v.\"VLANName\" " +
-                 $"FROM \"{GetTableName<NetworkDevice>()}\" AS nd " +
-                 $"LEFT JOIN \"{GetTableName<Port>()}\" AS p ON p.\"NetworkDeviceId\" = nd.\"Id\" " +
-                 $"LEFT JOIN \"{GetTableName<PortVlan>()}\" AS pv ON pv.\"PortId\" = p.\"Id\" " +
-                 $"LEFT JOIN \"{GetTableName<VLAN>()}\" AS v ON v.\"Id\" = pv.\"VLANId\" " +
-                 "WHERE v.\"VLANTag\" = @VLANTag";
+    StringBuilder sb = new();
+    sb.Append("SELECT ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
+    sb.Append($"p.\"{nameof(Port.Id)}\", p.\"{nameof(Port.InterfaceNumber)}\", p.\"{nameof(Port.InterfaceName)}\", p.\"{nameof(Port.InterfaceType)}\", p.\"{nameof(Port.InterfaceStatus)}\", p.\"{nameof(Port.InterfaceSpeed)}\", p.\"{nameof(Port.NetworkDeviceId)}\", p.\"{nameof(Port.ParentPortId)}\", p.\"{nameof(Port.MACAddress)}\", ");
+    sb.Append($"pv.\"{nameof(PortVlan.Id)}\", pv.\"{nameof(PortVlan.PortId)}\", pv.\"{nameof(PortVlan.VLANId)}\", ");
+    sb.Append($"v.\"{nameof(VLAN.Id)}\", v.\"{nameof(VLAN.VLANTag)}\", v.\"{nameof(VLAN.VLANName)}\" ");
+    sb.Append($"FROM \"{GetTableName<NetworkDevice>()}\" AS nd ");
+    sb.Append($"LEFT JOIN \"{GetTableName<Port>()}\" AS p ON p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName<PortVlan>()}\" AS pv ON pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName<VLAN>()}\" AS v ON v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
+    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
 
+    var query = sb.ToString();
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     var ndDictionary = new Dictionary<Guid, NetworkDevice>();
     var pDicotionary = new Dictionary<Guid, Port>();
     var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
