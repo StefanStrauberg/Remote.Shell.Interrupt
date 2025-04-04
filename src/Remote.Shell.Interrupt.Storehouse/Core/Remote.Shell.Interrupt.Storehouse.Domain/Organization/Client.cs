@@ -3,6 +3,12 @@ namespace Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 public class Client : BaseEntity
 {
   public int IdClient { get; set; }
+  public DateTime? Dat1 { get; set; }
+  public DateTime? Dat2 { get; set; }
+  public string? Prim1 { get; set; } = string.Empty;
+  public string? Prim2 { get; set; } = string.Empty;
+  public string? Nik { get; set; } = string.Empty;
+  public string NrDogovor { get; set; } = string.Empty;
   public string Name { get; set; } = string.Empty;
   public string? ContactC { get; set; } = string.Empty;
   public string? TelephoneC { get; set; } = string.Empty;

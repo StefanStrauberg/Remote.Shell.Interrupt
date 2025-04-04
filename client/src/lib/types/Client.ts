@@ -4,6 +4,12 @@ import { TfPlan } from "./TfPlan";
 
 export type Client = {
   id: string;
+  dat1?: Date;
+  dat2?: Date;
+  prim1?: string;
+  prim2?: string;
+  nik?: string;
+  nrDogovor: string;
   contactC?: string; // Nullable field
   telephoneC?: string; // Nullable field
   emailC?: string; // Nullable field

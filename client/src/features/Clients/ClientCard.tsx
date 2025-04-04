@@ -14,6 +14,7 @@ import {
   ContactPage,
   ContactPhone,
   Fingerprint,
+  Gavel,
 } from "@mui/icons-material";
 import { Link } from "react-router";
 
@@ -51,6 +52,13 @@ export default function ClientCard({ client }: Props) {
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
           <Fingerprint sx={{ mr: 1 }} />
           <Typography variant="body1">ID Клиента: {client.idClient}</Typography>
+        </Box>
+        <Divider />
+        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
+          <Gavel sx={{ mr: 1 }} />
+          <Typography variant="body1">
+            Номер договора: {client.nrDogovor}
+          </Typography>
         </Box>
         <Divider />
         <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>

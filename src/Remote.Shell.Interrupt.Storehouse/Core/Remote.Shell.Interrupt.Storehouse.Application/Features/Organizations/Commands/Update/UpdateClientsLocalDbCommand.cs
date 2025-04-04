@@ -73,6 +73,12 @@ internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork, IMappe
       ClientCodLsToCre.Add(new Client
       {
         IdClient = client.IdClient,
+        Dat1 = client.Dat1,
+        Dat2 = client.Dat2,
+        Prim1 = client.Prim1.TrimEnd(),
+        Prim2 = client.Prim2.TrimEnd(),
+        Nik = client.Nik.TrimEnd(),
+        NrDogovor = client.NrDogovor.TrimEnd(),
         Name = client.Name.TrimEnd(),
         ContactC = client.ContactC.TrimEnd(),
         TelephoneC = client.TelephoneC.TrimEnd(),

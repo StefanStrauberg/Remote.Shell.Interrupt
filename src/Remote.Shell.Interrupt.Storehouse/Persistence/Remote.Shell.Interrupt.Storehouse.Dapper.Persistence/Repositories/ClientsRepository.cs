@@ -151,7 +151,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
   {
     var offset = (requestParameters.PageNumber - 1) * requestParameters.PageSize;
     StringBuilder sb = new();
-    sb.Append($"SELECT cc.\"{nameof(Client.Id)}\", cc.\"{nameof(Client.IdClient)}\", cc.\"{nameof(Client.Name)}\", cc.\"{nameof(Client.ContactT)}\", cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.Working)}\", cc.\"{nameof(Client.AntiDDOS)}\" ");
+    sb.Append($"SELECT cc.\"{nameof(Client.Id)}\", cc.\"{nameof(Client.IdClient)}\", cc.\"{nameof(Client.Name)}\", cc.\"{nameof(Client.ContactT)}\", cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.Working)}\", cc.\"{nameof(Client.AntiDDOS)}\", cc.\"{nameof(Client.NrDogovor)}\" ");
     sb.Append($"FROM \"{GetTableName<Client>()}\" AS cc ");
     sb.Append($"LIMIT {requestParameters.PageSize} OFFSET {offset}");
 
@@ -167,7 +167,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
-    sb.Append($"cc.\"{nameof(Client.Id)}\", cc.\"{nameof(Client.IdClient)}\", cc.\"{nameof(Client.Name)}\", cc.\"{nameof(Client.ContactC)}\", cc.\"{nameof(Client.TelephoneC)}\", cc.\"{nameof(Client.ContactT)}\", cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailC)}\", cc.\"{nameof(Client.Working)}\", cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.History)}\", cc.\"{nameof(Client.AntiDDOS)}\", cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Id)}\", cc.\"{nameof(Client.IdClient)}\", cc.\"{nameof(Client.Name)}\", cc.\"{nameof(Client.ContactC)}\", cc.\"{nameof(Client.TelephoneC)}\", cc.\"{nameof(Client.ContactT)}\", cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailC)}\", cc.\"{nameof(Client.Working)}\", cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.History)}\", cc.\"{nameof(Client.AntiDDOS)}\", cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", cc.\"{nameof(Client.Dat1)}\", cc.\"{nameof(Client.Dat2)}\", cc.\"{nameof(Client.Prim1)}\", cc.\"{nameof(Client.Prim2)}\", cc.\"{nameof(Client.Nik)}\", cc.\"{nameof(Client.NrDogovor)}\", ");
     sb.Append($"c.\"{nameof(COD.Id)}\", c.\"{nameof(COD.IdCOD)}\", c.\"{nameof(COD.NameCOD)}\", c.\"{nameof(COD.Telephone)}\", c.\"{nameof(COD.Email1)}\", c.\"{nameof(COD.Email2)}\", c.\"{nameof(COD.Contact)}\", c.\"{nameof(COD.Description)}\", c.\"{nameof(COD.Region)}\", ");
     sb.Append($"tf.\"{nameof(TfPlan.Id)}\", tf.\"{nameof(TfPlan.IdTfPlan)}\", tf.\"{nameof(TfPlan.NameTfPlan)}\", tf.\"{nameof(TfPlan.DescTfPlan)}\" ");
     sb.Append($"FROM \"{GetTableName<Client>()}\" AS cc ");

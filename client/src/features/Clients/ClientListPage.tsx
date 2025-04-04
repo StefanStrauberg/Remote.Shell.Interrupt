@@ -1,5 +1,4 @@
 import { Box, Button, Pagination, Paper, Typography } from "@mui/material";
-import { Link } from "react-router";
 import { useClients } from "../../lib/hooks/useClients";
 import ClientCard from "./ClientCard";
 import { useState } from "react";
@@ -10,10 +9,27 @@ export default function ClientListPage() {
   const pageSize = 10; // You can adjust the page size as needed
 
   // Hook for fetching data
-  const { clients, pagination, isPending } = useClients(pageNumber, pageSize);
+  const { clients, pagination, isPending, updateClients } = useClients(
+    pageNumber,
+    pageSize
+  );
 
   // Loading state
   if (!clients || isPending) return <Typography>Loading ...</Typography>;
+
+  // Handle update button
+  const handleUpdateClick = () => {
+    // Call the updateClients mutation
+    updateClients.mutate(null!, {
+      onSuccess: () => {
+        // Refresh the page after successful mutation
+        window.location.reload();
+      },
+      onError: (error) => {
+        console.error("Error updating clients:", error);
+      },
+    });
+  };
 
   // No gates state
   if (clients.length === 0)
@@ -58,6 +74,7 @@ export default function ClientListPage() {
         <Button
           size="large"
           variant="contained"
+          onClick={handleUpdateClick}
           sx={{
             backgroundColor: "#e5e7eb",
             color: "#1d3557",
@@ -92,12 +109,7 @@ export default function ClientListPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Box alignSelf="end" mr={2}>
-        <Button
-          variant="contained"
-          color="error"
-          component={Link}
-          to="/createGate"
-        >
+        <Button variant="contained" color="error" onClick={handleUpdateClick}>
           Обновить клиентов
         </Button>
       </Box>

@@ -3,6 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 public class BaseClientDTO : IMapWith<Client>
 {
     public int IdClient { get; set; }
+    public string NrDogovor { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string ContactT { get; set; } = string.Empty;
     public string TelephoneT { get; set; } = string.Empty;
@@ -15,6 +16,8 @@ public class BaseClientDTO : IMapWith<Client>
       profile.CreateMap<Client, BaseClientDTO>()
              .ForMember(dest => dest.IdClient,
                         opt => opt.MapFrom(src => src.IdClient))
+             .ForMember(dest => dest.NrDogovor,
+                      opt => opt.MapFrom(src => src.NrDogovor))
              .ForMember(dest => dest.Name,
                         opt => opt.MapFrom(src => src.Name))
              .ForMember(dest => dest.ContactT,

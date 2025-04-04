@@ -1,5 +1,6 @@
 export type ClientShort = {
   id: string;
+  nrDogovor: string;
   idClient: number;
   name: string;
   contactT: string;
