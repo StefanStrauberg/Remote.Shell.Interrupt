@@ -17,6 +17,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { GateFilter } from "../../lib/types/GateFilter";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -29,8 +30,22 @@ const MenuProps = {
   },
 };
 
-export default function GateFilter() {
+type Props = {
+  onApplyFilters: (filters: GateFilter) => void;
+};
+
+export default function GateListFilter({ onApplyFilters }: Props) {
+  const [name, setName] = useState<string>("");
+  const [ipAddress, setIpAddress] = useState<string>("");
+
   const [personName, setPersonName] = useState<string[]>([]);
+
+  const handleApplyClick = () => {
+    const filters: GateFilter = {};
+    if (name) filters.Name = { op: "~=", value: name };
+    if (ipAddress) filters.IpAddress = { op: "~=", value: ipAddress };
+    onApplyFilters(filters);
+  };
 
   const handleChange = (event: SelectChangeEvent<typeof personName>) => {
     const {
@@ -73,14 +88,16 @@ export default function GateFilter() {
       <CardContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            id="gateName"
             label="Название маршрутизатора"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             variant="outlined"
             fullWidth
           />
           <TextField
-            id="ipAddress"
             label="IP адрес"
+            value={ipAddress}
+            onChange={(e) => setIpAddress(e.target.value)}
             variant="outlined"
             fullWidth
           />
@@ -106,7 +123,11 @@ export default function GateFilter() {
             </Select>
           </FormControl>
           <Divider />
-          <Button variant="contained" color="success">
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleApplyClick}
+          >
             Применить
           </Button>
         </Box>

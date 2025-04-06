@@ -1,19 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
 import { Gate } from "../types/Gate";
+import { GateFilter } from "../types/GateFilter";
+import { useLocation } from "react-router";
 
 export const useGates = (
   pageNumber: number = 1,
   pageSize: number = 10,
+  filters: GateFilter = {},
   id?: string
 ) => {
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   const { data: gatesResponse, isPending } = useQuery({
-    queryKey: ["gates", pageNumber, pageSize],
+    queryKey: ["gates", pageNumber, pageSize, filters],
     queryFn: async () => {
+      // Преобразуем фильтры в строку Sieve-формата: e.g. "Name@=John,Working==true"
+      const filterString = Object.entries(filters)
+        .map(([key, { op, value }]) => `${key}${op}${value}`)
+        .join(",");
+
+      console.log(filterString);
+
       const response = await agent.get<Gate[]>("/Gates/GetGates", {
-        params: { pageNumber, pageSize },
+        params: { pageNumber, pageSize, Filters: filterString },
       });
       return {
         data: response.data,

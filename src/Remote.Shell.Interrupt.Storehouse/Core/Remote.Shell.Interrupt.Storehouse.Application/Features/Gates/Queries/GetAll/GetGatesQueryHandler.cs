@@ -16,8 +16,8 @@ internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
                                                                                            CancellationToken cancellationToken)
   {
     var gates = await _unitOfWork.GateRepository
-                                 .GetAllAsync(request.RequestParameters,
-                                              cancellationToken);
+                                 .GetAllGatesAsync(request.RequestParameters,
+                                                   cancellationToken);
     var count = await _unitOfWork.GateRepository
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);

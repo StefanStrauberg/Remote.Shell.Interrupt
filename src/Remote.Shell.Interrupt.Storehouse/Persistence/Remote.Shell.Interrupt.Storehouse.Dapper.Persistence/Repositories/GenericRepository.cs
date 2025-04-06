@@ -274,10 +274,17 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context)
   {
     var baseQuery = $"SELECT COUNT(\"{nameof(BaseEntity.Id)}\") FROM \"{GetTableName<T>()}\"";
     var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           typeof(Client));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+                                           typeof(T));
+    if (!string.IsNullOrEmpty(requestParameters.Filters) || !string.IsNullOrEmpty(requestParameters.Sorts))
+    {
+      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+      var con = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+      var result = await con.ExecuteScalarAsync<int>(finalQuery, parameters);
+      return result;
+    }
+    
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var count = await connection.ExecuteScalarAsync<int>(finalQuery, parameters);
+    var count = await connection.ExecuteScalarAsync<int>(baseQuery);
 
     return count;
   }

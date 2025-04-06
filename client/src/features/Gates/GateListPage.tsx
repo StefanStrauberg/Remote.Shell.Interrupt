@@ -1,87 +1,25 @@
-import { Box, Button, Pagination, Paper, Typography } from "@mui/material";
+import { Box, Pagination, Typography } from "@mui/material";
 import GateCard from "./GateCard";
-import { useGates } from "../../lib/hooks/useGates";
-import { Link } from "react-router";
-import { useState } from "react";
+import { Gate } from "../../lib/types/Gate";
+import { PaginationHeader } from "../../lib/types/PaginationHeader";
 
-export default function GateListPage() {
-  // Manage local state for pagination
-  const [pageNumber, setPageNumber] = useState(1); // TablePagination uses zero-based index
-  const pageSize = 10; // Default page size
+type Props = {
+  gates: Gate[] | undefined;
+  isPending: boolean;
+  pageNumber: number;
+  pagination: PaginationHeader;
+  setPageNumber: (value: React.SetStateAction<number>) => void;
+};
 
-  // Hook for fetching data
-  const { gates, pagination, isPending } = useGates(pageNumber, pageSize);
-
+export default function GateListPage({
+  gates,
+  isPending,
+  pageNumber,
+  pagination,
+  setPageNumber,
+}: Props) {
   // Loading state
   if (!gates || isPending) return <Typography>Loading ...</Typography>;
-
-  // No gates state
-  if (gates.length === 0)
-    return (
-      <Paper
-        sx={{
-          color: "white",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          alignItems: "center",
-          alignContent: "center",
-          justifyContent: "center",
-          height: "90vh",
-          backgroundImage: "linear-gradient(135deg, #1d3557, #457b9d, #1d3557)",
-          boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)", // Add depth with shadow
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            animation: "fadeIn 3s ease", // Smooth fade-in animation
-            "@keyframes fadeIn": {
-              from: { opacity: 0 },
-              to: { opacity: 1 },
-            },
-          }}
-        >
-          <Typography
-            variant="h3"
-            fontWeight="bold"
-            sx={{
-              fontFamily: "'Poppins', sans-serif",
-              textShadow: "2px 2px 6px rgba(0, 0, 0, 0.3)", // Subtle text shadow
-            }}
-          >
-            Маршрутизаторы не найдены
-          </Typography>
-        </Box>
-        <Button
-          component={Link}
-          to="/createGate"
-          size="large"
-          variant="contained"
-          sx={{
-            backgroundColor: "#e5e7eb",
-            color: "#1d3557",
-            height: 60,
-            width: "fit-content",
-            padding: "0 2rem",
-            borderRadius: "8px",
-            fontSize: "1.5rem",
-            fontWeight: "bold",
-            textTransform: "none",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // Add shadow to button
-            transition: "all 0.3s ease",
-            "&:hover": {
-              backgroundColor: "#ffd166", // Slightly lighter hover effect
-              transform: "scale(1.05)", // Subtle scaling on hover
-            },
-          }}
-        >
-          Создать маршрутизатор
-        </Button>
-      </Paper>
-    );
 
   // Handle page change
   const handlePageChange = (
@@ -93,19 +31,6 @@ export default function GateListPage() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Button to create a new gate */}
-      <Box alignSelf="end">
-        <Button
-          variant="contained"
-          color="success"
-          component={Link}
-          to="/createGate"
-        >
-          Создать маршрутизатор
-        </Button>
-      </Box>
-
-      {/* Render gates */}
       <Box
         sx={{
           display: "grid",
@@ -120,7 +45,7 @@ export default function GateListPage() {
 
       {/* Pagination Component */}
       <Pagination
-        count={pagination?.TotalPages || 1} // Total pages based on pagination metadata
+        count={pagination.TotalPages || 1} // Total pages based on pagination metadata
         page={pageNumber} // Current active page
         onChange={handlePageChange} // Handle page change
         variant="outlined"

@@ -7,12 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import TextInput from "../../app/shared/components/TextImput";
 import SelectInput from "../../app/shared/components/SelectInput";
-import { typeOfNetworkDeviceOptions } from "./typeOfNetworkDeviceOptions";
+import { typeOfNetworkDeviceOptions } from "../../lib/types/typeOfNetworkDeviceOptions";
 
 export default function GateForm() {
   const { id } = useParams();
   const navigate = useNavigate(); // Initialize useNavigate hook
-  const { updateGate, createGate, gate, isLoadingGate } = useGates(0, 0, id);
+  const { updateGate, createGate, gate, isLoadingGate } = useGates(
+    0,
+    0,
+    {},
+    id
+  );
 
   const { control, reset, handleSubmit } = useForm<GateSchema>({
     mode: "onTouched",
