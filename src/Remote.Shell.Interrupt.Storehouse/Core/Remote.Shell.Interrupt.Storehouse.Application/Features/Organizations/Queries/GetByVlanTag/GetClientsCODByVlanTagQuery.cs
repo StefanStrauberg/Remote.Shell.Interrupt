@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 
 public record GetClientsByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<DetailClientDTO>>;
 
-internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
+internal partial class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                                IMapper mapper)
   : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
@@ -28,26 +28,48 @@ internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                      .GetClientsIdsByVlantTag(request.VlanTag,
                                                               cancellationToken);
 
-    var clientNames = await _unitOfWork.Clients
-                                       .GetClientsNamesByClientIdsAsync(clientIds,
-                                                                        cancellationToken);
+    // TODO
+    var clientNames = new List<string>();
+
+    foreach (var client in clientIds)
+    {
+      var tmps = await _unitOfWork.Clients
+                                  .GetAllShortClientsAsync(new RequestParameters() 
+                                                           { 
+                                                             Filters = $"IdClient==\"{client}\""
+                                                           },
+                                                           cancellationToken);
+      foreach (var tmp in tmps)
+        clientNames.Add(tmp.Name);
+    }
+
     var names = ExtractNameInQuotes(clientNames);
 
     var namesAreEquals = AllStringsAreEqual(names);
 
-    IEnumerable<Client> clients;
+    IEnumerable<Client> clients = [];
 
     if (namesAreEquals)
     {
       clients = await _unitOfWork.Clients
-                                 .GetAllByNameAsync(names.First(),
-                                                    cancellationToken);
+                                 .GetAllShortClientsAsync(new RequestParameters()
+                                                          {
+                                                            Filters = $"name~=\"{names.First()}\""
+                                                          },
+                                                          cancellationToken);
     }
     else
     {
-      clients = await _unitOfWork.Clients
-                                 .GetAllByNamesAsync(names,
-                                                     cancellationToken);
+      foreach (var name in names)
+      {
+        var tmps = await _unitOfWork.Clients
+                                    .GetAllShortClientsAsync(new RequestParameters() 
+                                                             { 
+                                                               Filters = $"Name==\"{name}\""
+                                                             },
+                                                             cancellationToken);
+        clients = tmps;
+      }
     }
 
     var result = _mapper.Map<IEnumerable<DetailClientDTO>>(clients);
@@ -78,7 +100,7 @@ internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     foreach (var input in inputs)
     {
-      var regex = new Regex(@"^(.*?)\s*\(");
+      var regex = MyRegex();
       var match = regex.Match(input);
 
       if (match.Success)
@@ -89,4 +111,7 @@ internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     return result;
   }
+
+  [GeneratedRegex(@"^(.*?)\s*\(")]
+  private static partial Regex MyRegex();
 }

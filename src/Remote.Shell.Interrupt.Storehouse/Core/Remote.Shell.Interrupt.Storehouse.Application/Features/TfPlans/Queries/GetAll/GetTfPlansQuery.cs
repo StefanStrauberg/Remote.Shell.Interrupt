@@ -16,10 +16,11 @@ internal class GetTfPlansQueryHandler(IUnitOfWork unitOfWork,
                                                                                                    CancellationToken cancellationToken)
     {
         var tfPlans = await _unitOfWork.TfPlans
-                                       .GetAllAsync(request.RequestParameters,
-                                                    cancellationToken);
+                                       .GetAllTfPlansAsync(request.RequestParameters,
+                                                           cancellationToken);
         var count = await _unitOfWork.TfPlans
-                                     .GetCountAsync(cancellationToken);
+                                     .GetCountAsync(request.RequestParameters,
+                                                    cancellationToken);
         var result = _mapper.Map<List<TfPlanDTO>>(tfPlans);
 
         return new PagedList<TfPlanDTO>(result,

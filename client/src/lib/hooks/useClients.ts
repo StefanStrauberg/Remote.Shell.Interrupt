@@ -13,9 +13,12 @@ export const useClients = (
   const { data: clientsResponse, isPending } = useQuery({
     queryKey: ["clients", pageNumber, pageSize],
     queryFn: async () => {
-      const response = await agent.get<ClientShort[]>("/Clients/GetClients", {
-        params: { pageNumber, pageSize },
-      });
+      const response = await agent.get<ClientShort[]>(
+        "/Clients/GetShortClients",
+        {
+          params: { pageNumber, pageSize },
+        }
+      );
       return {
         data: response.data,
         pagination: JSON.parse(response.headers["x-pagination"]),

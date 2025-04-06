@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.GetAll;
 
-public record GetGatesQuery(RequestParameters RequestParameters) : IQuery<PagedList<GateDTO>>;
+public record GetGatesQuery(RequestParameters RequestParameters) 
+  : IQuery<PagedList<GateDTO>>;
 
 internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
                                     IMapper mapper)
@@ -18,7 +19,8 @@ internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
                                  .GetAllAsync(request.RequestParameters,
                                               cancellationToken);
     var count = await _unitOfWork.GateRepository
-                                 .GetCountAsync(cancellationToken);
+                                 .GetCountAsync(request.RequestParameters,
+                                                cancellationToken);
     var result = _mapper.Map<List<GateDTO>>(gates);
 
     return new PagedList<GateDTO>(result,

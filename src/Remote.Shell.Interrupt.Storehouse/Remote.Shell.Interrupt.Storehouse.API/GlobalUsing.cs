@@ -17,7 +17,6 @@ global using Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecuto
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
 global using Serilog;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByName;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Update;
@@ -33,3 +32,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Helper;
 global using System.Text.Json;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Queries.GetAll;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetById;

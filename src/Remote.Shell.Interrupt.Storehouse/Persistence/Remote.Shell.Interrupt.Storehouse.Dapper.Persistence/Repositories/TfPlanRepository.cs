@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 internal class TfPlanRepository(PostgreSQLDapperContext postgreSQLDapperContext) 
     : GenericRepository<TfPlan>(postgreSQLDapperContext), ITfPlanRepository
 {
-    async Task<IEnumerable<TfPlan>> ITfPlanRepository.GetAllAsync(RequestParameters requestParameters,
+    async Task<IEnumerable<TfPlan>> ITfPlanRepository.GetAllTfPlansAsync(RequestParameters requestParameters,
                                                                   CancellationToken cancellationToken)
     {
         string columns = GetColumnsAsProperties();

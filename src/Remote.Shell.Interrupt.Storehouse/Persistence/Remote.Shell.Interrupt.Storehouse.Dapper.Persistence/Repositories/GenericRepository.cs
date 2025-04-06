@@ -268,7 +268,9 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context)
     return sb.ToString();
   }
 
-  async Task<int> IGenericRepository<T>.GetCountAsync(CancellationToken cancellationToken)
+  // TODO
+  async Task<int> IGenericRepository<T>.GetCountAsync(RequestParameters requestParameters,
+                                                      CancellationToken cancellationToken)
   {
     var query = $"SELECT COUNT(\"{nameof(BaseEntity.Id)}\") FROM \"{GetTableName<T>()}\"";
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);

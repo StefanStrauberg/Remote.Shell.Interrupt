@@ -14,4 +14,7 @@ public class RequestParameters
             _pageSize = (value > maxPageSize) ? maxPageSize : value;
         }
     }
+
+    public string? Filters { get; set; } // Пример: "Name==ACME"
+    public string? Sorts { get; set; }   // Пример: "-Name" (DESC), "Name" (ASC)
 }
