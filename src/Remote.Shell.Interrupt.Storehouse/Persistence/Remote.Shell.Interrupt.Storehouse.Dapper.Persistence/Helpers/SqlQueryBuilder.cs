@@ -1,20 +1,40 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 
-public partial class SqlQueryBuilder(RequestParameters request,
+public partial class SqlQueryBuilder
+{
+    private readonly RequestParameters _request;
+    private readonly string? _tableAlias;
+    private readonly Dictionary<string, PropertyInfo> _propertyMap;
+
+    public SqlQueryBuilder(RequestParameters request,
                                      string tableAlias,
                                      Type entityType)
-{
-    private readonly RequestParameters _request = request
-      ?? throw new ArgumentNullException(nameof(request));
-    private readonly string _tableAlias = tableAlias
-      ?? throw new ArgumentNullException(nameof(tableAlias));
-    private readonly Dictionary<string, PropertyInfo> _propertyMap = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                                                               .ToDictionary(p => p.Name,
-                                                                                             p => p,
-                                                                                             StringComparer.OrdinalIgnoreCase)
-      ?? throw new ArgumentNullException(nameof(entityType));
+    {
+        _request = request
+            ?? throw new ArgumentNullException(nameof(request));
+        _tableAlias = tableAlias
+            ?? throw new ArgumentNullException(nameof(tableAlias));
+        _propertyMap = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                 .ToDictionary(p => p.Name,
+                                               p => p,
+                                               StringComparer.OrdinalIgnoreCase)
+            ?? throw new ArgumentNullException(nameof(entityType));
+    }
 
-  public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect)
+    public SqlQueryBuilder(RequestParameters request,
+                                     Type entityType)
+    {
+        _request = request
+            ?? throw new ArgumentNullException(nameof(request));
+        _tableAlias = null;
+        _propertyMap = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                 .ToDictionary(p => p.Name,
+                                               p => p,
+                                               StringComparer.OrdinalIgnoreCase)
+            ?? throw new ArgumentNullException(nameof(entityType));
+    }
+
+    public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect)
     {
         var sb = new StringBuilder(baseSelect);
         var parameters = new DynamicParameters();
@@ -54,9 +74,19 @@ public partial class SqlQueryBuilder(RequestParameters request,
                         if (sqlOp == "ILIKE")
                             typedValue = $"%{value}%";
 
-                        sb.Append(sqlOp == "ILIKE"
-                                  ? $"AND {_tableAlias}.\"{property.Name}\" ILIKE {paramName} "
-                                  : $"AND {_tableAlias}.\"{property.Name}\" {sqlOp} {paramName} ");
+                        if (_tableAlias is null)
+                        {
+                            sb.Append(sqlOp == "ILIKE"
+                                    ? $"AND \"{property.Name}\" ILIKE {paramName} "
+                                    : $"AND \"{property.Name}\" {sqlOp} {paramName} ");
+                        } 
+                        else
+                        {
+                            sb.Append(sqlOp == "ILIKE"
+                                    ? $"AND {_tableAlias}.\"{property.Name}\" ILIKE {paramName} "
+                                    : $"AND {_tableAlias}.\"{property.Name}\" {sqlOp} {paramName} ");
+                        }
+
 
                         parameters.Add(paramName, typedValue);
                     }
@@ -85,6 +115,6 @@ public partial class SqlQueryBuilder(RequestParameters request,
         return (sb.ToString(), parameters);
     }
 
-  [GeneratedRegex(@"(\w+)(==|!=|>=|<=|>|<|~=)(.+)")]
-  private static partial Regex MyRegex();
+    [GeneratedRegex(@"(\w+)(==|!=|>=|<=|>|<|~=)(.+)")]
+    private static partial Regex MyRegex();
 }

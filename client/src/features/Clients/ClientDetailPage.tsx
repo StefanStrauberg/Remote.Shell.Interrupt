@@ -19,7 +19,7 @@ import ClientDetailCOD from "./ClientDetailCOD";
 
 export default function ClientDetailPage() {
   const { id } = useParams();
-  const { client, isLoadingClient } = useClients(0, 0, id);
+  const { client, isLoadingClient } = useClients(0, 0, {}, id);
 
   if (isLoadingClient) return <Typography>Loading...</Typography>;
 
