@@ -17,13 +17,17 @@ import ClientDetailTechnicalContact from "./ClientDetailTechnicalContact";
 import ClientDetailHistory from "./ClientDetailHistory";
 import ClientDetailCOD from "./ClientDetailCOD";
 
-export default function ClientDetailPage() {
+type Props = {
+  vlanId?: number | undefined;
+};
+
+export default function ClientDetailPage({ vlanId }: Props) {
   const { id } = useParams();
-  const { client, isLoadingClient } = useClients(0, 0, {}, id);
+  const { clientById, isLoadingById } = useClients(0, 0, {}, id, vlanId);
 
-  if (isLoadingClient) return <Typography>Loading...</Typography>;
+  if (isLoadingById) return <Typography>Loading...</Typography>;
 
-  if (!client) return <Typography>Activity not found</Typography>;
+  if (!clientById) return <Typography>Activity not found</Typography>;
 
   return (
     <Box>
@@ -40,24 +44,26 @@ export default function ClientDetailPage() {
       <Card elevation={5} sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}>
         <CardHeader
           title={
-            <Typography sx={{ fontWeight: "bold" }}>{client.name}</Typography>
+            <Typography sx={{ fontWeight: "bold" }}>
+              {clientById.name}
+            </Typography>
           }
         />
         <CardContent sx={{ p: 0 }}>
           <Divider>Общая информация</Divider>
-          <ClientDetailGeneralInformation client={client} />
+          <ClientDetailGeneralInformation client={clientById} />
           <Divider>Тарифный план</Divider>
-          <ClientDetailTariffPlan client={client} />
+          <ClientDetailTariffPlan client={clientById} />
           <Divider>Примечания</Divider>
-          <ClientDetailNotes client={client} />
+          <ClientDetailNotes client={clientById} />
           <Divider>Коммерческий контакт</Divider>
-          <ClientDetailCommercialContact client={client} />
+          <ClientDetailCommercialContact client={clientById} />
           <Divider>Технический контакт</Divider>
-          <ClientDetailTechnicalContact client={client} />
+          <ClientDetailTechnicalContact client={clientById} />
           <Divider>История</Divider>
-          <ClientDetailHistory client={client} />
+          <ClientDetailHistory client={clientById} />
           <Divider>ЦОД</Divider>
-          <ClientDetailCOD client={client} />
+          <ClientDetailCOD client={clientById} />
         </CardContent>
       </Card>
     </Box>

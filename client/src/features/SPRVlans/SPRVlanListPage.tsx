@@ -56,17 +56,18 @@ export default function SPRVlanListPage({
             {sprVlans.map((sprVlan) => (
               <TableRow key={sprVlan.id}>
                 <TableCell>{sprVlan.idVlan}</TableCell>
+                <TableCell>{sprVlan.idClient}</TableCell>
+                <TableCell>{sprVlan.useClient ? "Yes" : "No"}</TableCell>
+                <TableCell>{sprVlan.useCOD ? "Yes" : "No"}</TableCell>
                 <TableCell>
                   {sprVlan.idClient === 0 ? (
-                    sprVlan.idClient
+                    <></>
                   ) : (
                     <Button variant="contained" color="primary">
-                      {sprVlan.idClient}
+                      клиент
                     </Button>
                   )}
                 </TableCell>
-                <TableCell>{sprVlan.useClient ? "Yes" : "No"}</TableCell>
-                <TableCell>{sprVlan.useCOD ? "Yes" : "No"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
