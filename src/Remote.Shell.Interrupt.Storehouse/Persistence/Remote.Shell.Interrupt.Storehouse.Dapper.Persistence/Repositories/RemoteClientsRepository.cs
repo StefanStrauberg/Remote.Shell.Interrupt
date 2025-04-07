@@ -33,8 +33,6 @@ internal class RemoteClientsRepository(MySQLDapperContext mySQLDapperContext)
 
     var query = sb.ToString();
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<RemoteClient>(query);
-
-    return result;
+    return await connection.QueryAsync<RemoteClient>(query);
   }
 }

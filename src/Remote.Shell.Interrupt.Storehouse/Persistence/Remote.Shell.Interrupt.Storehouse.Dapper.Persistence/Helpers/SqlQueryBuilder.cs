@@ -7,8 +7,8 @@ public partial class SqlQueryBuilder
     private readonly Dictionary<string, PropertyInfo> _propertyMap;
 
     public SqlQueryBuilder(RequestParameters request,
-                                     string tableAlias,
-                                     Type entityType)
+                           string tableAlias,
+                           Type entityType)
     {
         _request = request
             ?? throw new ArgumentNullException(nameof(request));
@@ -22,7 +22,7 @@ public partial class SqlQueryBuilder
     }
 
     public SqlQueryBuilder(RequestParameters request,
-                                     Type entityType)
+                           Type entityType)
     {
         _request = request
             ?? throw new ArgumentNullException(nameof(request));
@@ -34,7 +34,8 @@ public partial class SqlQueryBuilder
             ?? throw new ArgumentNullException(nameof(entityType));
     }
 
-    public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect, bool forCounter = false)
+    public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect,
+                                                                     bool forCounter = false)
     {
         var sb = new StringBuilder(baseSelect);
         var parameters = new DynamicParameters();
@@ -45,7 +46,8 @@ public partial class SqlQueryBuilder
         // FILTERS
         if (!string.IsNullOrWhiteSpace(_request.Filters))
         {
-            var filters = _request.Filters.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var filters = _request.Filters.Split(',',
+                                                 StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var filter in filters)
             {
@@ -60,7 +62,7 @@ public partial class SqlQueryBuilder
                     if (_propertyMap.TryGetValue(field, out var property))
                     {
                         var paramName = $"@{field}_{Guid.NewGuid().ToString("N")[..6]}";
-                        string sqlOp = op switch
+                        var sqlOp = op switch
                         {
                             "==" => "=",
                             "!=" => "<>",

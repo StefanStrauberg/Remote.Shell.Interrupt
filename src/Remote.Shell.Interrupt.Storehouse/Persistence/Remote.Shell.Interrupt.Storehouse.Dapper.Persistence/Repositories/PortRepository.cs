@@ -47,9 +47,7 @@ internal class PortRepository(PostgreSQLDapperContext context)
 
     var query = sb.ToString();
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var reuslt = await connection.ExecuteScalarAsync<string>(query, new { IP = ipAddress });
-
-    return reuslt ?? string.Empty;
+    return await connection.ExecuteScalarAsync<string>(query, new { IP = ipAddress }) ?? string.Empty;
   }
 
   static string GetStringIds(List<Guid> ids)
@@ -129,8 +127,6 @@ internal class PortRepository(PostgreSQLDapperContext context)
 
     var query = sb.ToString();
     var connection = _postgreSQLDapperContext.CreateConnection();
-    var exists = await connection.ExecuteScalarAsync<bool>(query);
- 
-    return exists;
+    return await connection.ExecuteScalarAsync<bool>(query);
   }
 }

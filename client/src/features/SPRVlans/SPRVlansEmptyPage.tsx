@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from "@mui/material";
 
-export default function TfPlansEmptyPage() {
+export default function SPRVlansEmptyPage() {
   return (
     <Paper
       sx={{
@@ -36,7 +36,7 @@ export default function TfPlansEmptyPage() {
             textShadow: "2px 2px 6px rgba(0, 0, 0, 0.3)", // Subtle text shadow
           }}
         >
-          Тарифные планы не найдены
+          Вланы не найдены
         </Typography>
       </Box>
     </Paper>

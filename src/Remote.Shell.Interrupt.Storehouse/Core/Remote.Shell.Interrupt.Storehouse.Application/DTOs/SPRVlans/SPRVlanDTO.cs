@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
+namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.SPRVlans;
 
 public class SPRVlanDTO : IMapWith<SPRVlan>
 {
@@ -11,13 +11,13 @@ public class SPRVlanDTO : IMapWith<SPRVlan>
   void IMapWith<SPRVlan>.Mapping(Profile profile)
   {
     profile.CreateMap<SPRVlan, SPRVlanDTO>()
-           .ForMember(dest => dest.IdVlan,
+           .ForMember(dest => dest.Id, 
+                      opt => opt.MapFrom(src => src.Id))
+           .ForMember(dest => dest.IdVlan, 
                       opt => opt.MapFrom(src => src.IdVlan))
-           .ForMember(dest => dest.IdClient,
-                      opt => opt.MapFrom(src => src.IdClient))
-           .ForMember(dest => dest.UseClient,
+           .ForMember(dest => dest.UseClient, 
                       opt => opt.MapFrom(src => src.UseClient))
-           .ForMember(dest => dest.UseCOD,
+           .ForMember(dest => dest.UseCOD, 
                       opt => opt.MapFrom(src => src.UseCOD));
   }
 }

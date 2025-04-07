@@ -15,8 +15,6 @@ internal class TfPlanRepository(PostgreSQLDapperContext postgreSQLDapperContext)
         
         var query = sb.ToString();
         var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-        var tfPlans = await connection.QueryAsync<TfPlan>(query);
-        
-        return tfPlans;
+        return await connection.QueryAsync<TfPlan>(query);
     }
 }

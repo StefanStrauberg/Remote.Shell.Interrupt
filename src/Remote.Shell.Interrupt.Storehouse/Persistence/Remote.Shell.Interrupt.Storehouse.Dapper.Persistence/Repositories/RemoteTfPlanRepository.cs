@@ -15,8 +15,6 @@ internal class RemoteTfPlanRepository(MySQLDapperContext mySQLDapperContext)
                 "FROM `_tf_plan` as tp";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var result = await connection.QueryAsync<RemoteTfPlan>(query);
-
-    return result;
+    return await connection.QueryAsync<RemoteTfPlan>(query);
   }
 }

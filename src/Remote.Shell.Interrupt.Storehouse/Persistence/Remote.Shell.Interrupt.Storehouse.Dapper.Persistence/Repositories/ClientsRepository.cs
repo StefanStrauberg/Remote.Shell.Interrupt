@@ -19,9 +19,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
     
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<Client>(finalQuery, parameters);
-
-    return result;
+    return await connection.QueryAsync<Client>(finalQuery, parameters);
   }
 
   async Task<IEnumerable<Client>> IClientsRepository.GetAllClientsWithChildrensAsync(RequestParameters requestParameters,
@@ -50,9 +48,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
     
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QueryAsync<Client>(finalQuery, parameters);
-
-    return result;
+    return await connection.QueryAsync<Client>(finalQuery, parameters);
   }
 
   async Task<Client> IClientsRepository.GetClientByIdWithChildrensAsync(Guid id,
@@ -117,8 +113,6 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     var baseQuery = sb.ToString();
     
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var result = await connection.QuerySingleAsync<Client>(baseQuery, new { Id = id });
-
-    return result;
+    return await connection.QuerySingleAsync<Client>(baseQuery, new { Id = id });
   }
 }

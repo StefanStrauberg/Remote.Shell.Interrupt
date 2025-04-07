@@ -16,8 +16,6 @@ internal class RemoteSPRVlansRepository(MySQLDapperContext mySQLDapperContext)
                 "FROM `_spr_vlan` as spr";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var result = await connection.QueryAsync<RemoteSPRVlan>(query);
-
-    return result;
+    return await connection.QueryAsync<RemoteSPRVlan>(query);
   }
 }

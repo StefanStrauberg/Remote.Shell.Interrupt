@@ -18,9 +18,7 @@ internal class GateRepository(PostgreSQLDapperContext context)
       var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
 
       var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-      var gates = await connection.QueryAsync<Gate>(finalQuery, parameters);
-
-      return gates;
+      return await connection.QueryAsync<Gate>(finalQuery, parameters);
     }
 
     async Task<bool> IGateRepository.AnyByIPAddressAsync(string iPAddress,
@@ -33,8 +31,6 @@ internal class GateRepository(PostgreSQLDapperContext context)
 
       var query = sb.ToString();
       var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-      var count = await connection.ExecuteScalarAsync<int>(query, new { IPAddress = iPAddress });
-      
-      return count > 0;
+      return await connection.ExecuteScalarAsync<int>(query, new { IPAddress = iPAddress }) > 0;
     }
 }

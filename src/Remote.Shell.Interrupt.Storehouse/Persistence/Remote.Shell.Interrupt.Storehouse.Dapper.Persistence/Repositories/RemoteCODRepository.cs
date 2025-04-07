@@ -20,8 +20,6 @@ internal class RemoteCODRepository(MySQLDapperContext mySQLDapperContext)
                 "FROM `_cods` as c";
     var connection = await _mySQLDapperContext.CreateConnectionAsync(cancellationToken);
 
-    var result = await connection.QueryAsync<RemoteCOD>(query);
-
-    return result;
+    return await connection.QueryAsync<RemoteCOD>(query);
   }
 }
