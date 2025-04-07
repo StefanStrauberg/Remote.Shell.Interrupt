@@ -1,16 +1,6 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
-import { ClientFilter } from "../../lib/types/ClientFilter";
+import { Box, Paper, Typography } from "@mui/material";
 
-type Props = {
-  onApplyFilters: (filters: ClientFilter) => void;
-};
-
-export default function ClientsEmptyPage({ onApplyFilters }: Props) {
-  const handleApplyClick = () => {
-    const filters: ClientFilter = { Working: { op: "==", value: true } };
-    onApplyFilters(filters);
-  };
-
+export default function ClientsEmptyPage() {
   return (
     <Paper
       sx={{
@@ -49,30 +39,6 @@ export default function ClientsEmptyPage({ onApplyFilters }: Props) {
           Клиенты не найдены
         </Typography>
       </Box>
-      <Button
-        size="large"
-        variant="contained"
-        onClick={handleApplyClick}
-        sx={{
-          backgroundColor: "#e5e7eb",
-          color: "#1d3557",
-          height: 60,
-          width: "fit-content",
-          padding: "0 2rem",
-          borderRadius: "8px",
-          fontSize: "1.5rem",
-          fontWeight: "bold",
-          textTransform: "none",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // Add shadow to button
-          transition: "all 0.3s ease",
-          "&:hover": {
-            backgroundColor: "#ffd166", // Slightly lighter hover effect
-            transform: "scale(1.05)", // Subtle scaling on hover
-          },
-        }}
-      >
-        Обновить страницу
-      </Button>
     </Paper>
   );
 }

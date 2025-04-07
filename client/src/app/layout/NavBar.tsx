@@ -62,9 +62,10 @@ export default function NavBar() {
             {/* Navigation Links */}
             <Box sx={{ display: "flex", gap: 2 }}>
               <MenuItemLinks to="/networkdevices">Главная</MenuItemLinks>
-              <MenuItemLinks to="/gates">Маршрутизаторы</MenuItemLinks>
+              <MenuItemLinks to="/gates">Маршр-ры</MenuItemLinks>
               <MenuItemLinks to="/clients">Клиенты</MenuItemLinks>
-              <MenuItemLinks to="/tfPlans">Тарифные планы</MenuItemLinks>
+              <MenuItemLinks to="/tfPlans">Тарифы</MenuItemLinks>
+              <MenuItemLinks to="/sprVlans">Вланы</MenuItemLinks>
             </Box>
           </Toolbar>
         </Container>

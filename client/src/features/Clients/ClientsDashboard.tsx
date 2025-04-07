@@ -6,7 +6,7 @@ import { useState } from "react";
 import ClientsEmptyPage from "./ClientsEmptyPage";
 import { ClientFilter } from "../../lib/types/ClientFilter";
 
-export default function ClientDashboard() {
+export default function ClientsDashboard() {
   const [filters, setFilters] = useState<ClientFilter>({
     Working: { op: "==", value: true },
   });
@@ -27,7 +27,14 @@ export default function ClientDashboard() {
   return (
     <>
       {clients?.length === 0 ? (
-        <ClientsEmptyPage onApplyFilters={handleApplyFilters} />
+        <Grid2 container spacing={3}>
+          <Grid2 size={9}>
+            <ClientsEmptyPage />
+          </Grid2>
+          <Grid2 size={3}>
+            <ClientListFilter onApplyFilters={handleApplyFilters} />
+          </Grid2>
+        </Grid2>
       ) : (
         <Grid2 container spacing={3}>
           <Grid2 size={9}>

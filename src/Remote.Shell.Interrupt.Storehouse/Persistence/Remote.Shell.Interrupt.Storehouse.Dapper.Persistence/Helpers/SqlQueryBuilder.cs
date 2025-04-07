@@ -34,7 +34,7 @@ public partial class SqlQueryBuilder
             ?? throw new ArgumentNullException(nameof(entityType));
     }
 
-    public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect)
+    public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect, bool forCounter = false)
     {
         var sb = new StringBuilder(baseSelect);
         var parameters = new DynamicParameters();
@@ -77,14 +77,14 @@ public partial class SqlQueryBuilder
                         if (_tableAlias is null)
                         {
                             sb.Append(sqlOp == "ILIKE"
-                                    ? $"AND \"{property.Name}\" ILIKE {paramName} "
-                                    : $"AND \"{property.Name}\" {sqlOp} {paramName} ");
+                                      ? $"AND \"{property.Name}\" ILIKE {paramName} "
+                                      : $"AND \"{property.Name}\" {sqlOp} {paramName} ");
                         } 
                         else
                         {
                             sb.Append(sqlOp == "ILIKE"
-                                    ? $"AND {_tableAlias}.\"{property.Name}\" ILIKE {paramName} "
-                                    : $"AND {_tableAlias}.\"{property.Name}\" {sqlOp} {paramName} ");
+                                      ? $"AND {_tableAlias}.\"{property.Name}\" ILIKE {paramName} "
+                                      : $"AND {_tableAlias}.\"{property.Name}\" {sqlOp} {paramName} ");
                         }
 
 
@@ -106,11 +106,15 @@ public partial class SqlQueryBuilder
             }
         }
 
-        // PAGINATION
-        var offset = (_request.PageNumber - 1) * _request.PageSize;
-        sb.Append(" LIMIT @Limit OFFSET @Offset ");
-        parameters.Add("Limit", _request.PageSize);
-        parameters.Add("Offset", offset);
+        if (!forCounter)
+        {
+            // PAGINATION
+            var offset = (_request.PageNumber - 1) * _request.PageSize;
+            sb.Append(" LIMIT @Limit OFFSET @Offset ");
+            parameters.Add("Limit", _request.PageSize);
+            parameters.Add("Offset", offset);
+        }
+
 
         return (sb.ToString(), parameters);
     }

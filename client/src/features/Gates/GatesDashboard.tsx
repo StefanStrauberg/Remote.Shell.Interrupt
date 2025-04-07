@@ -6,7 +6,7 @@ import GatesEmptyCard from "./GatesEmptyCard";
 import { GateFilter } from "../../lib/types/GateFilter";
 import { useState } from "react";
 
-export default function GateDashboard() {
+export default function GatesDashboard() {
   const [filters, setFilters] = useState<GateFilter>({});
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 10;
@@ -25,7 +25,14 @@ export default function GateDashboard() {
   return (
     <>
       {gates?.length === 0 ? (
-        <GatesEmptyCard onApplyFilters={handleApplyFilters} />
+        <Grid2 container spacing={3}>
+          <Grid2 size={9}>
+            <GatesEmptyCard />
+          </Grid2>
+          <Grid2 size={3}>
+            <GateListFilter onApplyFilters={handleApplyFilters} />
+          </Grid2>
+        </Grid2>
       ) : (
         <Grid2 container spacing={3}>
           <Grid2 size={9}>

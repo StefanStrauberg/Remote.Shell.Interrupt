@@ -268,24 +268,26 @@ internal class GenericRepository<T>(PostgreSQLDapperContext context)
     return sb.ToString();
   }
 
-  // TODO
   async Task<int> IGenericRepository<T>.GetCountAsync(RequestParameters requestParameters,
                                                       CancellationToken cancellationToken)
   {
     var baseQuery = $"SELECT COUNT(\"{nameof(BaseEntity.Id)}\") FROM \"{GetTableName<T>()}\"";
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            typeof(T));
-    if (!string.IsNullOrEmpty(requestParameters.Filters) || !string.IsNullOrEmpty(requestParameters.Sorts))
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+    
+    if (HasFiltersOrSorts(requestParameters))
     {
-      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
-      var con = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-      var result = await con.ExecuteScalarAsync<int>(finalQuery, parameters);
-      return result;
+      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
+      return await connection.ExecuteScalarAsync<int>(finalQuery, parameters);
     }
     
-    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    var count = await connection.ExecuteScalarAsync<int>(baseQuery);
+    return await connection.ExecuteScalarAsync<int>(baseQuery);
+  }
 
-    return count;
+  static bool HasFiltersOrSorts(RequestParameters requestParameters)
+  {
+    return !string.IsNullOrEmpty(requestParameters.Filters) || 
+           !string.IsNullOrEmpty(requestParameters.Sorts);
   }
 }
