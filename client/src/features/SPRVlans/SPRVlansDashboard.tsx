@@ -1,10 +1,10 @@
 import { Grid2 } from "@mui/material";
-import SPRVlansEmptyPage from "./SPRVlansEmptyPage";
 import SPRVlanListPage from "./SPRVlanListPage";
 import { useState } from "react";
 import { useSPRVlans } from "../../lib/hooks/useSPRVlans";
 import SPRVlanListFilter from "./SPRVlanListFilter";
 import { SPRVlanFilter } from "../../lib/types/SPRVlanFilter";
+import EmptyPage from "../../app/shared/components/EmptyPage";
 
 export default function SPRVlansDashboard() {
   const [filters, setFilters] = useState<SPRVlanFilter>({
@@ -31,7 +31,7 @@ export default function SPRVlansDashboard() {
       {sprVlans?.length === 0 ? (
         <Grid2 container spacing={3}>
           <Grid2 size={9}>
-            <SPRVlansEmptyPage />
+            <EmptyPage input="Вланы не найдены" />
           </Grid2>
           <Grid2 size={3}>
             <SPRVlanListFilter onApplyFilters={handleApplyFilters} />

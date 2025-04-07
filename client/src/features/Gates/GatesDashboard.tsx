@@ -2,9 +2,9 @@ import { Grid2 } from "@mui/material";
 import GateListPage from "./GateListPage";
 import GateListFilter from "./GateListFilter";
 import { useGates } from "../../lib/hooks/useGates";
-import GatesEmptyCard from "./GatesEmptyCard";
 import { GateFilter } from "../../lib/types/GateFilter";
 import { useState } from "react";
+import EmptyPage from "../../app/shared/components/EmptyPage";
 
 export default function GatesDashboard() {
   const [filters, setFilters] = useState<GateFilter>({});
@@ -27,7 +27,7 @@ export default function GatesDashboard() {
       {gates?.length === 0 ? (
         <Grid2 container spacing={3}>
           <Grid2 size={9}>
-            <GatesEmptyCard />
+            <EmptyPage input="Маршрутизаторы не найдены" />
           </Grid2>
           <Grid2 size={3}>
             <GateListFilter onApplyFilters={handleApplyFilters} />

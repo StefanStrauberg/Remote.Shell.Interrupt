@@ -3,8 +3,8 @@ import ClientListPage from "./ClientListPage";
 import ClientListFilter from "./ClientListFilter";
 import { useClients } from "../../lib/hooks/useClients";
 import { useState } from "react";
-import ClientsEmptyPage from "./ClientsEmptyPage";
 import { ClientFilter } from "../../lib/types/ClientFilter";
+import EmptyPage from "../../app/shared/components/EmptyPage";
 
 export default function ClientsDashboard() {
   const [filters, setFilters] = useState<ClientFilter>({
@@ -29,7 +29,7 @@ export default function ClientsDashboard() {
       {clients?.length === 0 ? (
         <Grid2 container spacing={3}>
           <Grid2 size={9}>
-            <ClientsEmptyPage />
+            <EmptyPage input={"Клиенты не найдены"} />
           </Grid2>
           <Grid2 size={3}>
             <ClientListFilter onApplyFilters={handleApplyFilters} />
