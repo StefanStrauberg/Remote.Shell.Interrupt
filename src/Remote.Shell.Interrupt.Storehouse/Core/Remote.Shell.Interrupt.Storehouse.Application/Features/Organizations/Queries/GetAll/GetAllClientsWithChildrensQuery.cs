@@ -16,8 +16,8 @@ internal class GetAllClientsWithChildrensQueryHandler(IUnitOfWork unitOfWork,
                                                                                                                              CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.Clients
-                                   .GetAllClientsWithChildrensAsync(request.RequestParameters,
-                                                                    cancellationToken);
+                                   .GetClientsWithChildrensByQueryAsync(request.RequestParameters,
+                                                                        cancellationToken);
     var count = await _unitOfWork.Clients
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);

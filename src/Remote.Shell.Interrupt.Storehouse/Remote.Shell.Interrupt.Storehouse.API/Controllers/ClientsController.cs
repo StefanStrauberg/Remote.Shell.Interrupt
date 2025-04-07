@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 public class ClientsController : BaseAPIController
 {
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<ClientDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<ShortClientDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetShortClients([FromQuery] RequestParameters requestParameters,
                                                    CancellationToken cancellationToken)
   {
@@ -25,7 +25,7 @@ public class ClientsController : BaseAPIController
   }
 
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<ClientDTO>), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetClientsWithChildrens([FromQuery] RequestParameters requestParameters,
                                                            CancellationToken cancellationToken)
   {
@@ -54,10 +54,10 @@ public class ClientsController : BaseAPIController
     => Ok(await Sender.Send(new GetClientByIdQuery(id), cancellationToken));
 
   [HttpGet("{vlanTag}")]
-  [ProducesResponseType(typeof(IEnumerable<ClientDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetClientsByVlanTag(int vlanTag,
-                                                       CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetClientsByVlanTagQuery(vlanTag),
+  [ProducesResponseType(typeof(ShortClientDTO), StatusCodes.Status200OK)]
+  public async Task<IActionResult> GetClientByVlanTag(int vlanTag,
+                                                      CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new GetClientByVlanTagQuery(vlanTag),
                             cancellationToken));
 
   [HttpPut]

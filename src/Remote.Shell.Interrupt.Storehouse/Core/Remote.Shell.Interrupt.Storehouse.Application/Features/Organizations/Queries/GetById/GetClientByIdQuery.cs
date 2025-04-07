@@ -14,11 +14,25 @@ internal class GetClientByIdQueryHandler(IUnitOfWork unitOfWork,
     async Task<DetailClientDTO> IRequestHandler<GetClientByIdQuery, DetailClientDTO>.Handle(GetClientByIdQuery request,
                                                                                             CancellationToken cancellationToken)
     {
-        var client = await _unitOfWork.Clients
-                                      .GetClientByIdWithChildrensAsync(request.Id,
-                                                                       cancellationToken)
+        // Проверка существования клиент с ID
+        var existingClient = await _unitOfWork.Clients
+                                              .AnyByIdAsync(request.Id,
+                                                            cancellationToken);
+
+        // Если клиент не найдено — исключение
+        if (!existingClient)
+        throw new EntityNotFoundById(typeof(Client),
+                                    request.Id.ToString());
+
+        var clients = await _unitOfWork.Clients
+                                       .GetClientsWithChildrensByQueryAsync(new RequestParameters()
+                                                                            {
+                                                                              Filters = $"Id=={request.Id}"
+                                                                            },
+                                                                            cancellationToken)
             ?? throw new EntityNotFoundException($"Id = {request.Id}");
-        var result = _mapper.Map<DetailClientDTO>(client);
+        
+        var result = _mapper.Map<DetailClientDTO>(clients.First());
         
         return result;
     }

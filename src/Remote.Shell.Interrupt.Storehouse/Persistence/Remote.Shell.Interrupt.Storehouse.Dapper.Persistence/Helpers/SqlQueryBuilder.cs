@@ -35,7 +35,7 @@ public partial class SqlQueryBuilder
     }
 
     public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect,
-                                                                     bool forCounter = false)
+                                                                     bool ignorePagination = false)
     {
         var sb = new StringBuilder(baseSelect);
         var parameters = new DynamicParameters();
@@ -70,8 +70,14 @@ public partial class SqlQueryBuilder
                             _ => op
                         };
 
-                        object typedValue = Convert.ChangeType(value,
-                                                               Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
+                        object typedValue;
+
+                        if (Nullable.GetUnderlyingType(property.PropertyType) == typeof(Guid) || 
+                                                       property.PropertyType == typeof(Guid))
+                            typedValue = Guid.Parse(value); // Явное преобразование строки в Guid
+                        else
+                            typedValue = Convert.ChangeType(value, Nullable.GetUnderlyingType(property.PropertyType) ?? 
+                                                                   property.PropertyType);
 
                         if (sqlOp == "ILIKE")
                             typedValue = $"%{value}%";
@@ -108,7 +114,7 @@ public partial class SqlQueryBuilder
             }
         }
 
-        if (!forCounter)
+        if (!ignorePagination)
         {
             // PAGINATION
             var offset = (_request.PageNumber - 1) * _request.PageSize;

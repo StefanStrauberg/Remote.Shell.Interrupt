@@ -17,7 +17,7 @@ internal class GetSPRVlansQueryHandler(IUnitOfWork unitOfWork,
                                                                                                     CancellationToken cancellationToken)
   {
     var sprVlans = await _unitOfWork.SPRVlans
-                                    .GetAllSPRVlansAsync(request.RequestParameters,
+                                    .GetSPRVlansByQueryAsync(request.RequestParameters,
                                                          cancellationToken);
     var count = await _unitOfWork.SPRVlans
                                  .GetCountAsync(request.RequestParameters,

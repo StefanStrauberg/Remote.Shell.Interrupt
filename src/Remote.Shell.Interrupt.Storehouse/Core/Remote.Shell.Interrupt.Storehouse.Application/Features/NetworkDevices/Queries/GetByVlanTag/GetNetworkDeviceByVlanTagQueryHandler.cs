@@ -17,11 +17,13 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     if (request.VLANTag == 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VLANTag));
 
-    var clientsCODByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(_unitOfWork,
-                                                                                 _mapper);
-    var clientsCODByVlanTagQuery = new GetClientsByVlanTagQuery(request.VLANTag);
-    var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)clientsCODByVlanTagQueryHandler).Handle(clientsCODByVlanTagQuery,
-                                                                                                                                                cancellationToken);
+    var getClientByVlanTagQueryHandler = new GetClientByVlanTagQueryHandler(_unitOfWork,
+                                                                            _mapper);
+    var getClientByVlanTagQuery = new GetClientByVlanTagQuery(request.VLANTag);
+    var client = await ((IRequestHandler<GetClientByVlanTagQuery, DetailClientDTO>)getClientByVlanTagQueryHandler).Handle(getClientByVlanTagQuery,
+                                                                                                                          cancellationToken);
+    // TODO Clients !!!
+    IEnumerable<DetailClientDTO> clients = [];
     List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
     List<NetworkDevice> networkDevices = [];
 

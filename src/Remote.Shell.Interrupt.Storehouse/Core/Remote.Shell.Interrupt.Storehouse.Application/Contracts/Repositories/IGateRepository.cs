@@ -4,6 +4,6 @@ public interface IGateRepository : IGenericRepository<Gate>
 {
   Task<bool> AnyByIPAddressAsync(string iPAddress,
                                  CancellationToken cancellationToken);
-  Task<IEnumerable<Gate>> GetAllGatesAsync(RequestParameters requestParameters,
-                                           CancellationToken cancellationToken);
+  Task<IEnumerable<Gate>> GetGatesByQueryAsync(RequestParameters requestParameters,
+                                               CancellationToken cancellationToken);
 }

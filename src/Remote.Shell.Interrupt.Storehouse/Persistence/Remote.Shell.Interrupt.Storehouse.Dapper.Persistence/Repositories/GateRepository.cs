@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 internal class GateRepository(PostgreSQLDapperContext context) 
     : GenericRepository<Gate>(context), IGateRepository
 {
-    async Task<IEnumerable<Gate>> IGateRepository.GetAllGatesAsync(RequestParameters requestParameters,
+    async Task<IEnumerable<Gate>> IGateRepository.GetGatesByQueryAsync(RequestParameters requestParameters,
                                                                    CancellationToken cancellationToken)
     {
       StringBuilder sb = new();
