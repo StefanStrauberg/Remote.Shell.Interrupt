@@ -24,15 +24,15 @@ internal class GetClientByIdQueryHandler(IUnitOfWork unitOfWork,
         throw new EntityNotFoundById(typeof(Client),
                                     request.Id.ToString());
 
-        var clients = await _unitOfWork.Clients
-                                       .GetClientsWithChildrensByQueryAsync(new RequestParameters()
-                                                                            {
-                                                                              Filters = $"Id=={request.Id}"
-                                                                            },
-                                                                            cancellationToken)
+        var client = await _unitOfWork.Clients
+                                      .GetClientWithChildrensByQueryAsync(new RequestParameters()
+                                                                          {
+                                                                            Filters = $"Id=={request.Id}"
+                                                                          },
+                                                                          cancellationToken)
             ?? throw new EntityNotFoundException($"Id = {request.Id}");
         
-        var result = _mapper.Map<DetailClientDTO>(clients.First());
+        var result = _mapper.Map<DetailClientDTO>(client);
         
         return result;
     }

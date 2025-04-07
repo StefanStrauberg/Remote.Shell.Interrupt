@@ -7,4 +7,6 @@ public interface ISPRVlansRepository : IGenericRepository<SPRVlan>
                                CancellationToken cancellationToken);
   Task<IEnumerable<SPRVlan>> GetSPRVlansByQueryAsync(RequestParameters requestParameters,
                                                      CancellationToken cancellationToken);
+  Task<SPRVlan> GetSPRVlanByQueryAsync(RequestParameters requestParameters,
+                                       CancellationToken cancellationToken);
 }

@@ -24,20 +24,20 @@ internal class GetClientByVlanTagQueryHandler(IUnitOfWork unitOfWork,
       throw new EntityNotFoundById(typeof(SPRVlan),
                                    request.VlanTag.ToString());
 
-    var sprVlans = await _unitOfWork.SPRVlans
-                                    .GetSPRVlansByQueryAsync(new RequestParameters()
-                                                             {
-                                                                Filters = $"IdVlan=={request.VlanTag}"
-                                                             },
-                                                             cancellationToken);
+    var sprVlan = await _unitOfWork.SPRVlans
+                                   .GetSPRVlanByQueryAsync(new RequestParameters()
+                                                           {
+                                                              Filters = $"IdVlan=={request.VlanTag}"
+                                                           },
+                                                           cancellationToken);
 
-    var clients = await _unitOfWork.Clients
-                                   .GetClientsWithChildrensByQueryAsync(new RequestParameters()
-                                                                        {
-                                                                          Filters = $"IdClient=={sprVlans.First().IdClient}"
-                                                                        },
-                                                                        cancellationToken);
+    var client = await _unitOfWork.Clients
+                                  .GetClientWithChildrensByQueryAsync(new RequestParameters()
+                                                                      {
+                                                                        Filters = $"IdClient=={sprVlan.IdClient}"
+                                                                      },
+                                                                      cancellationToken);
 
-    return _mapper.Map<DetailClientDTO>(clients.First());
+    return _mapper.Map<DetailClientDTO>(client);
   }
 }
