@@ -13,6 +13,8 @@ type Props = {
 };
 
 export default function ClientDetailGeneralInformation({ client }: Props) {
+  const dat1 = client.dat1 ? new Date(client.dat1) : undefined;
+  const dat2 = client.dat2 ? new Date(client.dat2) : undefined;
   return (
     <>
       <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
@@ -29,18 +31,22 @@ export default function ClientDetailGeneralInformation({ client }: Props) {
         <QueryBuilder sx={{ mr: 1 }} />
         <Typography variant="body1">
           Дата начала:{" "}
-          {client.dat1 === "0001-01-01T00:00:00"
-            ? " "
-            : formatDate(client.dat1) || "Нет информации"}
+          {dat1
+            ? dat1.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+              ? " "
+              : formatDate(dat1)
+            : "Нет информации"}
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
         <QueryBuilder sx={{ mr: 1 }} />
         <Typography variant="body1">
           Дата окончания:{" "}
-          {client.dat2 === "0001-01-01T00:00:00"
-            ? " "
-            : formatDate(client.dat2) || "Нет информации"}
+          {dat2
+            ? dat2.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+              ? " "
+              : formatDate(dat2)
+            : "Нет информации"}
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>

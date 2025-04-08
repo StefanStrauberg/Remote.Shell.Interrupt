@@ -16,6 +16,7 @@ import ClientDetailCommercialContact from "./ClientDetailCommercialContact";
 import ClientDetailTechnicalContact from "./ClientDetailTechnicalContact";
 import ClientDetailHistory from "./ClientDetailHistory";
 import ClientDetailCOD from "./ClientDetailCOD";
+import ClientDetailSPRVlans from "./ClientDetailSPRVlans";
 
 export default function ClientDetailPage() {
   const { id } = useParams();
@@ -48,6 +49,8 @@ export default function ClientDetailPage() {
         <CardContent sx={{ p: 0 }}>
           <Divider>Общая информация</Divider>
           <ClientDetailGeneralInformation client={clientById} />
+          <Divider>Вланы</Divider>
+          <ClientDetailSPRVlans client={clientById} />
           <Divider>Тарифный план</Divider>
           <ClientDetailTariffPlan client={clientById} />
           <Divider>Примечания</Divider>

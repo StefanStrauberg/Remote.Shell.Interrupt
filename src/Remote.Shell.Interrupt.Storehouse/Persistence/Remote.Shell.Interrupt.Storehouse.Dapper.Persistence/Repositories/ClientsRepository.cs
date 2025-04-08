@@ -31,7 +31,9 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     sb.Append($"cc.\"{nameof(Client.ContactC)}\", cc.\"{nameof(Client.TelephoneC)}\", cc.\"{nameof(Client.ContactT)}\", ");
     sb.Append($"cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailC)}\", cc.\"{nameof(Client.Working)}\", ");
     sb.Append($"cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.History)}\", cc.\"{nameof(Client.AntiDDOS)}\", ");
-    sb.Append($"cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", cc.\"{nameof(Client.Dat1)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Dat2)}\", cc.\"{nameof(Client.Prim1)}\", cc.\"{nameof(Client.Prim2)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Nik)}\", cc.\"{nameof(Client.NrDogovor)}\", ");
     sb.Append($"c.\"{nameof(COD.Id)}\", c.\"{nameof(COD.IdCOD)}\", c.\"{nameof(COD.NameCOD)}\", ");
     sb.Append($"c.\"{nameof(COD.Telephone)}\", c.\"{nameof(COD.Email1)}\", c.\"{nameof(COD.Email2)}\", ");
     sb.Append($"c.\"{nameof(COD.Contact)}\", c.\"{nameof(COD.Description)}\", c.\"{nameof(COD.Region)}\", ");
@@ -89,7 +91,9 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     sb.Append($"cc.\"{nameof(Client.ContactC)}\", cc.\"{nameof(Client.TelephoneC)}\", cc.\"{nameof(Client.ContactT)}\", ");
     sb.Append($"cc.\"{nameof(Client.TelephoneT)}\", cc.\"{nameof(Client.EmailC)}\", cc.\"{nameof(Client.Working)}\", ");
     sb.Append($"cc.\"{nameof(Client.EmailT)}\", cc.\"{nameof(Client.History)}\", cc.\"{nameof(Client.AntiDDOS)}\", ");
-    sb.Append($"cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Id_COD)}\", cc.\"{nameof(Client.Id_TfPlan)}\", cc.\"{nameof(Client.Dat1)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Dat2)}\", cc.\"{nameof(Client.Prim1)}\", cc.\"{nameof(Client.Prim2)}\", ");
+    sb.Append($"cc.\"{nameof(Client.Nik)}\", cc.\"{nameof(Client.NrDogovor)}\", ");
     sb.Append($"c.\"{nameof(COD.Id)}\", c.\"{nameof(COD.IdCOD)}\", c.\"{nameof(COD.NameCOD)}\", ");
     sb.Append($"c.\"{nameof(COD.Telephone)}\", c.\"{nameof(COD.Email1)}\", c.\"{nameof(COD.Email2)}\", ");
     sb.Append($"c.\"{nameof(COD.Contact)}\", c.\"{nameof(COD.Description)}\", c.\"{nameof(COD.Region)}\", ");
