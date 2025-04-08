@@ -7,16 +7,19 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
   {
     _postgreSQLDapperContext.BeginTransaction();
     var connection = _postgreSQLDapperContext.CreateConnection();
-    var vlans = networkDeviceToDelete.PortsOfNetworkDevice.SelectMany(x => x.VLANs);
-    var query = $"DELETE FROM \"{GetTableName<VLAN>()}\" WHERE \"{nameof(VLAN.Id)}\"=@Id";
-    foreach (var vlan in vlans)
+    string query = string.Empty;
+    // Удаление VLANs
+    var vlanIds = networkDeviceToDelete.PortsOfNetworkDevice
+                                       .SelectMany(x => x.VLANs)
+                                       .Select(vlan => vlan.Id)
+                                       .ToList();
+    if (vlanIds.Count != 0)
     {
-      connection.Execute(query, new { Id = vlan.Id });
-    }
-    query = $"DELETE FROM \"{GetTableName<PortVlan>()}\" WHERE \"{nameof(PortVlan.VLANId)}\"=@Id";
-    foreach (var vlan in vlans)
-    {
-      connection.Execute(query, new { Id = vlan.Id });
+        query = $"DELETE FROM \"{GetTableName<VLAN>()}\" WHERE \"{nameof(VLAN.Id)}\" = ANY(@Ids)";
+        connection.Execute(query, new { Ids = vlanIds });
+        
+        query = $"DELETE FROM \"{GetTableName<PortVlan>()}\" WHERE \"{nameof(PortVlan.VLANId)}\" = ANY(@Ids)";
+        connection.Execute(query, new { Ids = vlanIds });
     }
     query = $"DELETE FROM \"{GetTableName<NetworkDevice>()}\" WHERE \"{nameof(NetworkDevice.Id)}\"=@Id";
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
