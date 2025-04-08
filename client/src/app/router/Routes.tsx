@@ -11,6 +11,7 @@ import ClientsDashboard from "../../features/Clients/List/ClientsDashboard";
 import ClientDetailPage from "../../features/Clients/Detail/ClientDetailPage";
 import GatesDashboard from "../../features/Gates/List/GatesDashboard";
 import GateForm from "../../features/Gates/CreateUpdate/GateForm";
+import AdminComponent from "../../features/Admin/AdminComponent";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: "clients/:id", element: <ClientDetailPage /> },
       { path: "tfPlans", element: <TfPlansDashboard /> },
       { path: "sprVlans", element: <SPRVlansDashboard /> },
+      { path: "admin", element: <AdminComponent /> },
       { path: "errors", element: <TestErrors /> },
       { path: "not-found", element: <NotFound /> },
       { path: "server-error", element: <ServerError /> },

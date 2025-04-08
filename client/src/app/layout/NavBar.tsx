@@ -66,6 +66,7 @@ export default function NavBar() {
               <MenuItemLinks to="/clients">Клиенты</MenuItemLinks>
               <MenuItemLinks to="/sprVlans">Вланы</MenuItemLinks>
               <MenuItemLinks to="/tfPlans">Планы</MenuItemLinks>
+              <MenuItemLinks to="/admin">Админка</MenuItemLinks>
             </Box>
           </Toolbar>
         </Container>

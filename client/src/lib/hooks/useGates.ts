@@ -31,7 +31,8 @@ export const useGates = (
         pagination: JSON.parse(response.headers["x-pagination"]),
       };
     },
-    enabled: !id && location.pathname === "/gates",
+    enabled:
+      (!id && location.pathname === "/gates") || location.pathname === "/admin",
   });
 
   const { data: gate, isLoading: isLoadingGate } = useQuery({
@@ -77,14 +78,10 @@ export const useGates = (
     },
   });
 
-  // Extract gates and pagination from the gatesResponse
-  const gates = gatesResponse?.data;
-  const pagination = gatesResponse?.pagination;
-
   return {
-    gates,
+    gates: gatesResponse?.data,
+    pagination: gatesResponse?.pagination,
     isPending,
-    pagination,
     gate,
     isLoadingGate,
     updateGate,

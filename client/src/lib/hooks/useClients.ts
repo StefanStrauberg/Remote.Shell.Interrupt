@@ -23,6 +23,7 @@ export const useClients = (
   clientById: Client | undefined;
   isLoadingById: boolean;
   updateClients: UseMutationResult<void, unknown, void, unknown>;
+  deleteClients: UseMutationResult<void, Error, void, unknown>;
 } => {
   const queryClient = useQueryClient();
   const location = useLocation();
@@ -75,6 +76,17 @@ export const useClients = (
     },
   });
 
+  const deleteClients = useMutation({
+    mutationFn: async () => {
+      await agent.delete("/Clients/DeleteClients");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["clients", "tfPlans", "sprVlans"],
+      });
+    },
+  });
+
   return {
     clients: clientsResponse?.data ?? [],
     pagination: clientsResponse?.pagination ?? {
@@ -85,5 +97,6 @@ export const useClients = (
     clientById: clientById,
     isLoadingById: isLoadingById,
     updateClients,
+    deleteClients,
   };
 };

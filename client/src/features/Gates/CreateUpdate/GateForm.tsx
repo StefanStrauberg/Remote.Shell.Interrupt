@@ -40,7 +40,7 @@ export default function GateForm() {
     } else {
       createGate.mutate(data, {
         onSuccess: () => {
-          navigate("/gates");
+          navigate("/admin");
         },
         onError: (error) => {
           console.log(error);
@@ -78,7 +78,11 @@ export default function GateForm() {
         />
         <Box display="flex" justifyContent="end" gap={3}>
           <ButtonGroup variant="contained">
-            <Button color="primary" component={Link} to={`/gates`}>
+            <Button
+              color="primary"
+              component={Link}
+              to={gate ? "/gates" : "/admin"}
+            >
               Отмена
             </Button>
             <Button

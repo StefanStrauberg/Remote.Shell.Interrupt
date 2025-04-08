@@ -2,7 +2,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.C
 
 public record UpdateClientsLocalDbCommand : ICommand;
 
-internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
+                                                  IMapper mapper)
   : ICommandHandler<UpdateClientsLocalDbCommand, Unit>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork

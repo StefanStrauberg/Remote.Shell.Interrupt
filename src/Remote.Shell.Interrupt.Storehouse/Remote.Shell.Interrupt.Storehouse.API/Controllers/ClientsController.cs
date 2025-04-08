@@ -67,4 +67,10 @@ public class ClientsController : BaseAPIController
   public async Task<IActionResult> UpdateClients(CancellationToken cancellationToken)
     => Ok(await Sender.Send(new UpdateClientsLocalDbCommand(),
                             cancellationToken));
+
+  [HttpDelete]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  public async Task<IActionResult> DeleteClients(CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new DeleteClientsLocalDbCommand(),
+                            cancellationToken));
 }
