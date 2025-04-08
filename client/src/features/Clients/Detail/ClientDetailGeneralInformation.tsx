@@ -28,8 +28,24 @@ export default function ClientDetailGeneralInformation({ client }: Props) {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-        <QueryBuilder sx={{ mr: 1 }} />
-        <Typography variant="body1">
+        <QueryBuilder
+          sx={{
+            mr: 1,
+            color:
+              dat1?.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+                ? "gray"
+                : "inherit",
+          }}
+        />
+        <Typography
+          variant="body1"
+          sx={{
+            color:
+              dat1?.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+                ? "gray"
+                : "inherit",
+          }}
+        >
           Дата начала:{" "}
           {dat1
             ? dat1.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
@@ -39,8 +55,24 @@ export default function ClientDetailGeneralInformation({ client }: Props) {
         </Typography>
       </Box>
       <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-        <QueryBuilder sx={{ mr: 1 }} />
-        <Typography variant="body1">
+        <QueryBuilder
+          sx={{
+            mr: 1,
+            color:
+              dat2?.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+                ? "gray"
+                : "inherit",
+          }}
+        />
+        <Typography
+          variant="body1"
+          sx={{
+            color:
+              dat2?.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
+                ? "gray"
+                : "inherit",
+          }}
+        >
           Дата окончания:{" "}
           {dat2
             ? dat2.getTime() === new Date("0000-12-31T22:09:44.000Z").getTime()
