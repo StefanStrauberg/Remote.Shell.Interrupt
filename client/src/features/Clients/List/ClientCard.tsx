@@ -7,7 +7,6 @@ import {
   Divider,
   Typography,
 } from "@mui/material";
-import { ClientShort } from "../../lib/types/ClientShort";
 import {
   AlternateEmail,
   CheckBox,
@@ -17,6 +16,7 @@ import {
   Gavel,
 } from "@mui/icons-material";
 import { Link } from "react-router";
+import { ClientShort } from "../../../lib/types/ClientShort";
 
 type Props = {
   client: ClientShort;

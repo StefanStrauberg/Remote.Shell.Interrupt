@@ -9,21 +9,19 @@ import agent from "../api/agent";
 import { Client } from "../types/Client";
 import { ClientFilter } from "../types/ClientFilter";
 import { useLocation } from "react-router";
+import { PaginationHeader } from "../types/PaginationHeader";
 
 export const useClients = (
   pageNumber: number = 1,
   pageSize: number = 10,
   filters: ClientFilter = {},
-  id?: string,
-  vlanId?: number
+  id?: string
 ): {
   clients: ClientShort[];
-  pagination: { totalPages: number; currentPage: number };
+  pagination: PaginationHeader;
   isLoadingClients: boolean;
-  isLoadingById: boolean;
-  isLoadingByVlan: boolean;
   clientById: Client | undefined;
-  clientByVlanId: Client | undefined;
+  isLoadingById: boolean;
   updateClients: UseMutationResult<void, unknown, void, unknown>;
 } => {
   const queryClient = useQueryClient();
@@ -55,7 +53,7 @@ export const useClients = (
     enabled: !id && location.pathname === "/clients",
   });
 
-  // Получение клиента по ID
+  // Get client by ID
   const { data: clientById, isLoading: isLoadingById } = useQuery({
     queryKey: ["clients", id],
     queryFn: async () => {
@@ -64,19 +62,6 @@ export const useClients = (
       return response.data;
     },
     enabled: !!id,
-  });
-
-  // Получение клиента по ID VLAN
-  const { data: clientByVlanId, isLoading: isLoadingByVlan } = useQuery({
-    queryKey: ["client", vlanId],
-    queryFn: async () => {
-      console.log("Call clientByVlanId");
-      const response = await agent.get<Client>(
-        `/Clients/GetClientByVlanId/${vlanId}`
-      );
-      return response.data;
-    },
-    enabled: !!vlanId, // Выполняем запрос только если vlanId указан
   });
 
   const updateClients = useMutation({
@@ -99,8 +84,6 @@ export const useClients = (
     isLoadingClients,
     clientById: clientById,
     isLoadingById: isLoadingById,
-    clientByVlanId: clientByVlanId,
-    isLoadingByVlan: isLoadingByVlan,
     updateClients,
   };
 };

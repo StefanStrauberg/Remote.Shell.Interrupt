@@ -2,15 +2,15 @@ import { createBrowserRouter, Navigate } from "react-router";
 import App from "../layout/App";
 import HomePage from "../../features/home/HomePage";
 import NetworkDeviceList from "../../features/NetworkDevices/NetworkDeviceList";
-import GateForm from "../../features/Gates/GateForm";
 import TestErrors from "../../features/Errors/TestErrors";
 import NotFound from "../../features/Errors/NotFound";
 import ServerError from "../../features/Errors/ServerError";
-import ClientDetailPage from "../../features/Clients/ClientDetailPage";
-import ClientsDashboard from "../../features/Clients/ClientsDashboard";
-import GatesDashboard from "../../features/Gates/GatesDashboard";
 import TfPlansDashboard from "../../features/TfPlans/TfPlansDashboard";
 import SPRVlansDashboard from "../../features/SPRVlans/SPRVlansDashboard";
+import ClientsDashboard from "../../features/Clients/List/ClientsDashboard";
+import ClientDetailPage from "../../features/Clients/Detail/ClientDetailPage";
+import GatesDashboard from "../../features/Gates/List/GatesDashboard";
+import GateForm from "../../features/Gates/CreateUpdate/GateForm";
 
 export const router = createBrowserRouter([
   {

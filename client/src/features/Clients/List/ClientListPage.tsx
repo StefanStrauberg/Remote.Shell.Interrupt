@@ -1,7 +1,7 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import ClientCard from "./ClientCard";
-import { ClientShort } from "../../lib/types/ClientShort";
-import { PaginationHeader } from "../../lib/types/PaginationHeader";
+import { ClientShort } from "../../../lib/types/ClientShort";
+import { PaginationHeader } from "../../../lib/types/PaginationHeader";
 
 type Props = {
   clients: ClientShort[] | undefined;

@@ -1,10 +1,10 @@
 import { Grid2 } from "@mui/material";
 import ClientListPage from "./ClientListPage";
 import ClientListFilter from "./ClientListFilter";
-import { useClients } from "../../lib/hooks/useClients";
 import { useState } from "react";
-import { ClientFilter } from "../../lib/types/ClientFilter";
-import EmptyPage from "../../app/shared/components/EmptyPage";
+import { ClientFilter } from "../../../lib/types/ClientFilter";
+import { useClients } from "../../../lib/hooks/useClients";
+import EmptyPage from "../../../app/shared/components/EmptyPage";
 
 export default function ClientsDashboard() {
   const [filters, setFilters] = useState<ClientFilter>({
@@ -13,7 +13,7 @@ export default function ClientsDashboard() {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 10;
 
-  const { clients, pagination, isPending } = useClients(
+  const { clients, pagination, isLoadingClients } = useClients(
     pageNumber,
     pageSize,
     filters
@@ -40,7 +40,7 @@ export default function ClientsDashboard() {
           <Grid2 size={9}>
             <ClientListPage
               clients={clients}
-              isPending={isPending}
+              isPending={isLoadingClients}
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}

@@ -1,7 +1,7 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import GateCard from "./GateCard";
-import { Gate } from "../../lib/types/Gate";
-import { PaginationHeader } from "../../lib/types/PaginationHeader";
+import { Gate } from "../../../lib/types/Gate";
+import { PaginationHeader } from "../../../lib/types/PaginationHeader";
 
 type Props = {
   gates: Gate[] | undefined;

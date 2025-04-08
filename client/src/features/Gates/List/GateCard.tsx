@@ -10,9 +10,9 @@ import {
   Typography,
 } from "@mui/material";
 import { Checklist, LocalLibrary, LocationOn } from "@mui/icons-material";
-import { Gate } from "../../lib/types/Gate";
+import { Gate } from "../../../lib/types/Gate";
 import { Link } from "react-router";
-import { useGates } from "../../lib/hooks/useGates";
+import { useGates } from "../../../lib/hooks/useGates";
 
 type Props = {
   gate: Gate;

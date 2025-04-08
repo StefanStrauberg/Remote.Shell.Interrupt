@@ -1,13 +1,13 @@
 import { Box, Button, ButtonGroup, Paper, Typography } from "@mui/material";
-import { useGates } from "../../lib/hooks/useGates";
+import { useGates } from "../../../lib/hooks/useGates";
 import { Link, useParams, useNavigate } from "react-router";
-import { gateSchema, GateSchema } from "../../lib/schemas/GateSchema";
+import { gateSchema, GateSchema } from "../../../lib/schemas/GateSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import TextInput from "../../app/shared/components/TextImput";
-import SelectInput from "../../app/shared/components/SelectInput";
-import { typeOfNetworkDeviceOptions } from "../../lib/types/typeOfNetworkDeviceOptions";
+import TextInput from "../../../app/shared/components/TextImput";
+import SelectInput from "../../../app/shared/components/SelectInput";
+import { typeOfNetworkDeviceOptions } from "../../../lib/types/typeOfNetworkDeviceOptions";
 
 export default function GateForm() {
   const { id } = useParams();

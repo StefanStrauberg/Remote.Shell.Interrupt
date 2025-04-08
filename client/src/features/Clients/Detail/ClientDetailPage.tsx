@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Link, useParams } from "react-router";
-import { useClients } from "../../lib/hooks/useClients";
+import { useClients } from "../../../lib/hooks/useClients";
 import ClientDetailGeneralInformation from "./ClientDetailGeneralInformation";
 import ClientDetailTariffPlan from "./ClientDetailTariffPlan";
 import ClientDetailNotes from "./ClientDetailNotes";
@@ -17,13 +17,9 @@ import ClientDetailTechnicalContact from "./ClientDetailTechnicalContact";
 import ClientDetailHistory from "./ClientDetailHistory";
 import ClientDetailCOD from "./ClientDetailCOD";
 
-type Props = {
-  vlanId?: number | undefined;
-};
-
-export default function ClientDetailPage({ vlanId }: Props) {
+export default function ClientDetailPage() {
   const { id } = useParams();
-  const { clientById, isLoadingById } = useClients(0, 0, {}, id, vlanId);
+  const { clientById, isLoadingById } = useClients(0, 0, {}, id);
 
   if (isLoadingById) return <Typography>Loading...</Typography>;
 

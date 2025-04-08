@@ -8,8 +8,6 @@ import {
   Checkbox,
   Divider,
   FormControl,
-  FormControlLabel,
-  Grid2,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -19,7 +17,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { ClientFilter } from "../../lib/types/ClientFilter";
+import { GateFilter } from "../../../lib/types/GateFilter";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -33,23 +31,19 @@ const MenuProps = {
 };
 
 type Props = {
-  onApplyFilters: (filters: ClientFilter) => void;
+  onApplyFilters: (filters: GateFilter) => void;
 };
 
-export default function ClientListFilter({ onApplyFilters }: Props) {
+export default function GateListFilter({ onApplyFilters }: Props) {
   const [name, setName] = useState<string>("");
-  const [nrDogovor, setNrDogovor] = useState<string>("");
-  const [working, setWorking] = useState<boolean>(true);
-  const [antiDDOS, setAntiDDOS] = useState<boolean>(false);
+  const [ipAddress, setIpAddress] = useState<string>("");
 
   const [personName, setPersonName] = useState<string[]>([]);
 
   const handleApplyClick = () => {
-    const filters: ClientFilter = {};
+    const filters: GateFilter = {};
     if (name) filters.Name = { op: "~=", value: name };
-    if (nrDogovor) filters.NrDogovor = { op: "~=", value: nrDogovor };
-    if (working) filters.Working = { op: "==", value: working };
-    if (antiDDOS) filters.AntiDDOS = { op: "==", value: antiDDOS };
+    if (ipAddress) filters.IpAddress = { op: "~=", value: ipAddress };
     onApplyFilters(filters);
   };
 
@@ -94,28 +88,28 @@ export default function ClientListFilter({ onApplyFilters }: Props) {
       <CardContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Название организации"
+            label="Название маршрутизатора"
             value={name}
             onChange={(e) => setName(e.target.value)}
             variant="outlined"
             fullWidth
           />
           <TextField
-            label="Номер договора"
-            value={nrDogovor}
-            onChange={(e) => setNrDogovor(e.target.value)}
+            label="IP адрес"
+            value={ipAddress}
+            onChange={(e) => setIpAddress(e.target.value)}
             variant="outlined"
             fullWidth
           />
           <FormControl fullWidth>
-            <InputLabel id="demo-multiple-name-label">Name</InputLabel>
+            <InputLabel id="gateType">Тип маршрутизатора</InputLabel>
             <Select
-              labelId="demo-multiple-name-label"
-              id="demo-multiple-name"
+              labelId="gateType"
+              id="gateType-name"
               multiple
               value={personName}
               onChange={handleChange}
-              input={<OutlinedInput label="Name" />}
+              input={<OutlinedInput label="Тип маршрутизатора" />}
               renderValue={(selected) => selected.join(", ")}
               MenuProps={MenuProps}
               fullWidth
@@ -128,31 +122,6 @@ export default function ClientListFilter({ onApplyFilters }: Props) {
               ))}
             </Select>
           </FormControl>
-          <Divider />
-          <Grid2 container spacing={1}>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={working}
-                    onChange={(e) => setWorking(e.target.checked)}
-                  />
-                }
-                label="Working"
-              />
-            </Grid2>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={antiDDOS}
-                    onChange={(e) => setAntiDDOS(e.target.checked)}
-                  />
-                }
-                label="AntiDDOS"
-              />
-            </Grid2>
-          </Grid2>
           <Divider />
           <Button
             variant="contained"

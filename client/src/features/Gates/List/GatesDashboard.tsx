@@ -1,10 +1,10 @@
 import { Grid2 } from "@mui/material";
 import GateListPage from "./GateListPage";
 import GateListFilter from "./GateListFilter";
-import { useGates } from "../../lib/hooks/useGates";
-import { GateFilter } from "../../lib/types/GateFilter";
+import { useGates } from "../../../lib/hooks/useGates";
+import { GateFilter } from "../../../lib/types/GateFilter";
 import { useState } from "react";
-import EmptyPage from "../../app/shared/components/EmptyPage";
+import EmptyPage from "../../../app/shared/components/EmptyPage";
 
 export default function GatesDashboard() {
   const [filters, setFilters] = useState<GateFilter>({});

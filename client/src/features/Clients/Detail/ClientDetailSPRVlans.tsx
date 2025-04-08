@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { Client } from "../../lib/types/Client";
+import { Client } from "../../../lib/types/Client";
 import { Info } from "@mui/icons-material";
 
 type Props = {
