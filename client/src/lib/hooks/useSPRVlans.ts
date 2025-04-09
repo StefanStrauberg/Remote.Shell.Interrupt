@@ -21,7 +21,7 @@ export const useSPRVlans = (
 
       console.log(filterString);
 
-      const response = await agent.get<SprVlan[]>("/SPRVlans/GetSPRVlans", {
+      const response = await agent.get<SprVlan[]>("/api/SPRVlans/GetSPRVlans", {
         params: { pageNumber, pageSize, Filters: filterString },
       });
       return {

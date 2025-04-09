@@ -41,7 +41,7 @@ export const useClients = (
       console.log(filterString);
 
       const response = await agent.get<ClientShort[]>(
-        "/Clients/GetShortClients",
+        "/api/Clients/GetShortClients",
         {
           params: { pageNumber, pageSize, Filters: filterString },
         }
@@ -59,7 +59,9 @@ export const useClients = (
     queryKey: ["clients", id],
     queryFn: async () => {
       console.log("Call clientById");
-      const response = await agent.get<Client>(`/Clients/GetClientById/${id}`);
+      const response = await agent.get<Client>(
+        `/api/Clients/GetClientById/${id}`
+      );
       return response.data;
     },
     enabled: !!id,
@@ -67,7 +69,7 @@ export const useClients = (
 
   const updateClients = useMutation({
     mutationFn: async () => {
-      await agent.put("/Clients/UpdateClients");
+      await agent.put("/api/Clients/UpdateClients");
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -78,7 +80,7 @@ export const useClients = (
 
   const deleteClients = useMutation({
     mutationFn: async () => {
-      await agent.delete("/Clients/DeleteClients");
+      await agent.delete("/api/Clients/DeleteClients");
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

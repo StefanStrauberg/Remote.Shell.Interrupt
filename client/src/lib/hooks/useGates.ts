@@ -23,7 +23,7 @@ export const useGates = (
 
       console.log(filterString);
 
-      const response = await agent.get<Gate[]>("/Gates/GetGates", {
+      const response = await agent.get<Gate[]>("/api/Gates/GetGates", {
         params: { pageNumber, pageSize, Filters: filterString },
       });
       return {
@@ -38,7 +38,7 @@ export const useGates = (
   const { data: gate, isLoading: isLoadingGate } = useQuery({
     queryKey: ["gates", id],
     queryFn: async () => {
-      const response = await agent.get<Gate>(`/Gates/GetGateById/${id}`);
+      const response = await agent.get<Gate>(`/api/Gates/GetGateById/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -46,7 +46,7 @@ export const useGates = (
 
   const updateGate = useMutation({
     mutationFn: async (gate: Gate) => {
-      await agent.put("/Gates/UpdateGate", gate);
+      await agent.put("/api/Gates/UpdateGate", gate);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -57,7 +57,7 @@ export const useGates = (
 
   const createGate = useMutation({
     mutationFn: async (gate: Gate) => {
-      const response = await agent.post("/Gates/CreateGate", gate);
+      const response = await agent.post("/api/Gates/CreateGate", gate);
       return response.data;
     },
     onSuccess: async () => {
@@ -69,7 +69,7 @@ export const useGates = (
 
   const deleteGate = useMutation({
     mutationFn: async (id: string) => {
-      await agent.delete(`/Gates/DeleteGateById/${id}`);
+      await agent.delete(`/api/Gates/DeleteGateById/${id}`);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

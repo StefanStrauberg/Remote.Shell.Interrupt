@@ -13,7 +13,7 @@ export const useTfPlans = (
   const { data: tfPlansResponse, isPending } = useQuery({
     queryKey: ["tfPlans", pageNumber, pageSize],
     queryFn: async () => {
-      const response = await agent.get<TfPlan[]>("/TfPlans/GetTfPlans", {
+      const response = await agent.get<TfPlan[]>("/api/TfPlans/GetTfPlans", {
         params: { pageNumber, pageSize },
       });
       return {
