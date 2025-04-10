@@ -170,7 +170,7 @@ export default function AdminComponent() {
         </Grid2>
         <Grid2>
           <Typography variant="body1" color="text.secondary">
-            Внимание! Удаление всех шлюзов (нужно опрашивать заново).
+            Обновить информацию о всех шлюзах (може длиться долго ~30 мин.)
           </Typography>
         </Grid2>
       </Grid2>

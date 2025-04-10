@@ -17,6 +17,8 @@ internal class DeleteClientsLocalDbCommandHandler(IUnitOfWork unitOfWork)
                                     .GetAllAsync(cancellationToken);
     var clients = await _unitOfWork.Clients
                                    .GetAllAsync(cancellationToken);
+    var cods = await _unitOfWork.CODs
+                                .GetAllAsync(cancellationToken);
 
     if (tfPlans.Any())
       _unitOfWork.TfPlans
@@ -29,8 +31,12 @@ internal class DeleteClientsLocalDbCommandHandler(IUnitOfWork unitOfWork)
     if (clients.Any())
       _unitOfWork.Clients
                  .DeleteMany(clients);
+    
+    if (cods.Any())
+      _unitOfWork.CODs
+                 .DeleteMany(cods);
 
-    if (!clients.Any() && !sprVlans.Any() && !tfPlans.Any())
+    if (!clients.Any() && !sprVlans.Any() && !tfPlans.Any() && !cods.Any())
       return Unit.Value;
 
     _unitOfWork.Complete();
