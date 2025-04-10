@@ -18,11 +18,15 @@ internal class GetAllShortClientsQueryHandler(IUnitOfWork unitOfWork,
     var clients = await _unitOfWork.Clients
                                    .GetShortClientsByQueryAsync(request.RequestParameters,
                                                                 cancellationToken);
+
+    if (!clients.Any())
+      return new PagedList<ShortClientDTO>([],0,0,0);
+
     var count = await _unitOfWork.Clients
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);
 
-    var result = _mapper.Map<List<ShortClientDTO>>(clients);
+    var result = _mapper.Map<IEnumerable<ShortClientDTO>>(clients);
 
     return new PagedList<ShortClientDTO>(result,
                                          count,

@@ -1,4 +1,3 @@
-import { FilterList } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -17,9 +16,10 @@ import {
   SelectChangeEvent,
   TextField,
 } from "@mui/material";
+import { NetworkDeviceFilter } from "../../lib/types/NetworkDevices/NetworkDeviceFilter";
+import { FilterList } from "@mui/icons-material";
 import { useState } from "react";
-import { GateFilter } from "../../../lib/types/Gates/GateFilter";
-import { typeOfNetworkDeviceOptions } from "../../../lib/types/Gates/typeOfNetworkDeviceOptions";
+import { typeOfNetworkDeviceOptions } from "../../lib/types/Gates/typeOfNetworkDeviceOptions";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -33,19 +33,20 @@ const MenuProps = {
 };
 
 type Props = {
-  onApplyFilters: (filters: GateFilter) => void;
+  onApplyFilters: (newFilters: NetworkDeviceFilter) => void;
 };
 
-export default function GateListFilter({ onApplyFilters }: Props) {
-  const [name, setName] = useState<string>("");
-  const [ipAddress, setIpAddress] = useState<string>("");
+export default function NetworkDeviceListFilter({ onApplyFilters }: Props) {
+  const [host, setHost] = useState<string>("");
+  const [networkDeviceName, setNetworkDeviceName] = useState<string>("");
 
   const [typeOfNetworkDevice, setTypeOfNetworkDevice] = useState<string>("");
 
   const handleApplyClick = () => {
-    const filters: GateFilter = {};
-    if (name) filters.Name = { op: "~=", value: name };
-    if (ipAddress) filters.IpAddress = { op: "~=", value: ipAddress };
+    const filters: NetworkDeviceFilter = {};
+    if (host) filters.host = { op: "~=", value: host };
+    if (networkDeviceName)
+      filters.networkDeviceName = { op: "~=", value: networkDeviceName };
     if (typeOfNetworkDevice)
       filters.typeOfNetworkDevice = { op: "==", value: typeOfNetworkDevice };
     onApplyFilters(filters);
@@ -74,15 +75,15 @@ export default function GateListFilter({ onApplyFilters }: Props) {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="Название маршрутизатора"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={networkDeviceName}
+            onChange={(e) => setNetworkDeviceName(e.target.value)}
             variant="outlined"
             fullWidth
           />
           <TextField
             label="IP адрес"
-            value={ipAddress}
-            onChange={(e) => setIpAddress(e.target.value)}
+            value={host}
+            onChange={(e) => setHost(e.target.value)}
             variant="outlined"
             fullWidth
           />
@@ -92,7 +93,7 @@ export default function GateListFilter({ onApplyFilters }: Props) {
               value={typeOfNetworkDevice}
               onChange={handleChange}
               input={<OutlinedInput label="Тип маршрутизатора" />}
-              renderValue={(selected) => selected || "Не выбрано"}
+              renderValue={(selected) => selected}
               MenuProps={MenuProps}
               fullWidth
             >
@@ -113,8 +114,8 @@ export default function GateListFilter({ onApplyFilters }: Props) {
               color="info"
               onClick={() => {
                 setTypeOfNetworkDevice("");
-                setName("");
-                setIpAddress("");
+                setHost("");
+                setNetworkDeviceName("");
               }}
             >
               Сбросить

@@ -1,24 +1,35 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 
-public record GetNetworkDevicesQuery() : IQuery<IEnumerable<NetworkDeviceDTO>>;
+public record GetNetworkDevicesQuery(RequestParameters RequestParameters) : IQuery<PagedList<NetworkDeviceDTO>>;
 
 internal class GetNetworkDevicesQueryHandler(IUnitOfWork unitOfWork,
                                              IMapper mapper)
-  : IQueryHandler<GetNetworkDevicesQuery, IEnumerable<NetworkDeviceDTO>>
+  : IQueryHandler<GetNetworkDevicesQuery, PagedList<NetworkDeviceDTO>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<IEnumerable<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesQuery, IEnumerable<NetworkDeviceDTO>>.Handle(GetNetworkDevicesQuery request,
-                                                                                                                          CancellationToken cancellationToken)
+  async Task<PagedList<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesQuery, PagedList<NetworkDeviceDTO>>.Handle(GetNetworkDevicesQuery request,
+                                                                                                                      CancellationToken cancellationToken)
   {
     var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetAllAsync(cancellationToken);
+                                          .GetNetworkDevicesByQueryAsync(request.RequestParameters,
+                                                                         cancellationToken);
 
-    var networkDevicesDTOs = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices);
+    var count = await _unitOfWork.NetworkDevices
+                                 .GetCountAsync(request.RequestParameters,
+                                                cancellationToken);
 
-    return networkDevicesDTOs;
+    if (!networkDevices.Any())
+      return new PagedList<NetworkDeviceDTO>([],0,0,0);
+
+    var result = _mapper.Map<List<NetworkDeviceDTO>>(networkDevices);
+
+    return new PagedList<NetworkDeviceDTO>(result,
+                                           count,
+                                           request.RequestParameters.PageNumber,
+                                           request.RequestParameters.PageSize);
   }
 }

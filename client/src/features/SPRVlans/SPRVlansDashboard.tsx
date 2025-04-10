@@ -3,7 +3,7 @@ import SPRVlanListPage from "./SPRVlanListPage";
 import { useState } from "react";
 import { useSPRVlans } from "../../lib/hooks/useSPRVlans";
 import SPRVlanListFilter from "./SPRVlanListFilter";
-import { SPRVlanFilter } from "../../lib/types/SPRVlanFilter";
+import { SPRVlanFilter } from "../../lib/types/SPRVlans/SPRVlanFilter";
 import EmptyPage from "../../app/shared/components/EmptyPage";
 
 export default function SPRVlansDashboard() {

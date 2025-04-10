@@ -1,6 +1,6 @@
 import { Info } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
-import { Client } from "../../../lib/types/Client";
+import { Client } from "../../../lib/types/Clients/Client";
 
 type Props = {
   client: Client;

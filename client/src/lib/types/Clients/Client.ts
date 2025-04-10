@@ -1,6 +1,6 @@
-import { Cod } from "./Cod";
-import { SprVlan } from "./SprVlan";
-import { TfPlan } from "./TfPlan";
+import { Cod } from "../CODs/Cod";
+import { SprVlan } from "../SPRVlans/SprVlan";
+import { TfPlan } from "../TfPlans/TfPlan";
 
 export type Client = {
   id: string;

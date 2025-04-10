@@ -16,7 +16,7 @@ import {
   Gavel,
 } from "@mui/icons-material";
 import { Link } from "react-router";
-import { ClientShort } from "../../../lib/types/ClientShort";
+import { ClientShort } from "../../../lib/types/Clients/ClientShort";
 
 type Props = {
   client: ClientShort;

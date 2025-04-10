@@ -18,10 +18,14 @@ internal class GetTfPlansQueryHandler(IUnitOfWork unitOfWork,
         var tfPlans = await _unitOfWork.TfPlans
                                        .GetAllTfPlansAsync(request.RequestParameters,
                                                            cancellationToken);
+
+        if (!tfPlans.Any())
+            return new PagedList<TfPlanDTO>([],0,0,0);
+
         var count = await _unitOfWork.TfPlans
                                      .GetCountAsync(request.RequestParameters,
                                                     cancellationToken);
-        var result = _mapper.Map<List<TfPlanDTO>>(tfPlans);
+        var result = _mapper.Map<IEnumerable<TfPlanDTO>>(tfPlans);
 
         return new PagedList<TfPlanDTO>(result,
                                         count,

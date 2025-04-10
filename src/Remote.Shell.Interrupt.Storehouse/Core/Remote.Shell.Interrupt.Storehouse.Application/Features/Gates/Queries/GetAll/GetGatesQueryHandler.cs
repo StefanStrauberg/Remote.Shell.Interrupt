@@ -18,10 +18,14 @@ internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
     var gates = await _unitOfWork.GateRepository
                                  .GetGatesByQueryAsync(request.RequestParameters,
                                                    cancellationToken);
+                                                   
+    if (!gates.Any())
+      return new PagedList<GateDTO>([],0,0,0);
+
     var count = await _unitOfWork.GateRepository
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);
-    var result = _mapper.Map<List<GateDTO>>(gates);
+    var result = _mapper.Map<IEnumerable<GateDTO>>(gates);
 
     return new PagedList<GateDTO>(result,
                                   count,

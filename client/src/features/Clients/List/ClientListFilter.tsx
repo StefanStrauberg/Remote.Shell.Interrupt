@@ -19,7 +19,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { ClientFilter } from "../../../lib/types/ClientFilter";
+import { ClientFilter } from "../../../lib/types/Clients/ClientFilter";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;

@@ -11,8 +11,8 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { PaginationHeader } from "../../lib/types/PaginationHeader";
-import { SprVlan } from "../../lib/types/SprVlan";
+import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
+import { SprVlan } from "../../lib/types/SPRVlans/SprVlan";
 
 type Props = {
   sprVlans: SprVlan[] | undefined;

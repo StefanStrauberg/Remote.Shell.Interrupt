@@ -1,7 +1,7 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import TfPlanCard from "./TfPlanCard";
-import { TfPlan } from "../../lib/types/TfPlan";
-import { PaginationHeader } from "../../lib/types/PaginationHeader";
+import { TfPlan } from "../../lib/types/TfPlans/TfPlan";
+import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
 
 type Props = {
   tfPlans: TfPlan[] | undefined;

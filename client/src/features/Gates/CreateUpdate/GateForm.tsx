@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import TextInput from "../../../app/shared/components/TextImput";
 import SelectInput from "../../../app/shared/components/SelectInput";
-import { typeOfNetworkDeviceOptions } from "../../../lib/types/typeOfNetworkDeviceOptions";
+import { typeOfNetworkDeviceOptions } from "../../../lib/types/Gates/typeOfNetworkDeviceOptions";
 
 export default function GateForm() {
   const { id } = useParams();

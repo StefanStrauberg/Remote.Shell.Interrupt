@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router";
 import agent from "../api/agent";
-import { SprVlan } from "../types/SprVlan";
-import { SPRVlanFilter } from "../types/SPRVlanFilter";
+import { SprVlan } from "../types/SPRVlans/SprVlan";
+import { SPRVlanFilter } from "../types/SPRVlans/SPRVlanFilter";
 
 export const useSPRVlans = (
   pageNumber: number = 1,
@@ -32,13 +32,12 @@ export const useSPRVlans = (
     enabled: location.pathname === "/sprVlans",
   });
 
-  // Extract organizations and pagination from the gatesResponse
-  const sprVlans = sprVlansResponse?.data;
-  const pagination = sprVlansResponse?.pagination;
-
   return {
-    sprVlans,
-    pagination,
+    sprVlans: sprVlansResponse?.data ?? [],
+    pagination: sprVlansResponse?.pagination ?? {
+      totalPages: 0,
+      currentPage: 0,
+    },
     isPending,
   };
 };

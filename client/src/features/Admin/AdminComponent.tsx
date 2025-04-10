@@ -1,5 +1,5 @@
 import { Box, Button, Divider, Typography, Grid2 } from "@mui/material";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useGates } from "../../lib/hooks/useGates";
 import { useClients } from "../../lib/hooks/useClients";
 
@@ -108,7 +108,7 @@ export default function AdminComponent() {
         <Grid2>
           <Button
             variant="contained"
-            color="info"
+            color="warning"
             onClick={updateClientsHandle}
             sx={{ boxShadow: 3 }}
           >
@@ -153,7 +153,18 @@ export default function AdminComponent() {
       {/* Обновление шлюзов */}
       <Grid2 container spacing={2} alignItems="center">
         <Grid2>
-          <Button variant="contained" color="info" sx={{ boxShadow: 3 }}>
+          <Button
+            component={NavLink}
+            to="/networkDevices"
+            variant="contained"
+            color="info"
+            sx={{ boxShadow: 3 }}
+          >
+            Шлюзы
+          </Button>
+        </Grid2>
+        <Grid2>
+          <Button variant="contained" color="warning" sx={{ boxShadow: 3 }}>
             Обновить все шлюзы
           </Button>
         </Grid2>

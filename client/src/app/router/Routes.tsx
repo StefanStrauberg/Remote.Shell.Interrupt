@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import App from "../layout/App";
 import HomePage from "../../features/home/HomePage";
-import NetworkDeviceList from "../../features/NetworkDevices/NetworkDeviceList";
 import TestErrors from "../../features/Errors/TestErrors";
 import NotFound from "../../features/Errors/NotFound";
 import ServerError from "../../features/Errors/ServerError";
@@ -12,6 +11,8 @@ import ClientDetailPage from "../../features/Clients/Detail/ClientDetailPage";
 import GatesDashboard from "../../features/Gates/List/GatesDashboard";
 import GateForm from "../../features/Gates/CreateUpdate/GateForm";
 import AdminComponent from "../../features/Admin/AdminComponent";
+import NetworkDeviceDashboard from "../../features/NetworkDevices/NetworkDeviceDashboard";
+import MainPage from "../../features/MainPage/MainPage";
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +20,8 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <HomePage /> },
-      { path: "networkDevices", element: <NetworkDeviceList /> },
+      { path: "mainPage", element: <MainPage /> },
+      { path: "networkDevices", element: <NetworkDeviceDashboard /> },
       { path: "gates", element: <GatesDashboard /> },
       { path: "gates/:id", element: <GateForm /> },
       { path: "createGate", element: <GateForm /> },

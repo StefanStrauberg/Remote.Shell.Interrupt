@@ -111,7 +111,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            "cc",
                                            typeof(Client));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
     
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
 

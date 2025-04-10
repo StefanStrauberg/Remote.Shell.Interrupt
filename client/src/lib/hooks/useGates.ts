@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
-import { Gate } from "../types/Gate";
-import { GateFilter } from "../types/GateFilter";
+import { Gate } from "../types/Gates/Gate";
+import { GateFilter } from "../types/Gates/GateFilter";
 import { useLocation } from "react-router";
 
 export const useGates = (
@@ -79,8 +79,11 @@ export const useGates = (
   });
 
   return {
-    gates: gatesResponse?.data,
-    pagination: gatesResponse?.pagination,
+    gates: gatesResponse?.data ?? [],
+    pagination: gatesResponse?.pagination ?? {
+      totalPages: 0,
+      currentPage: 0,
+    },
     isPending,
     gate,
     isLoadingGate,

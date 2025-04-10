@@ -61,7 +61,7 @@ export default function NavBar() {
             </Box>
             {/* Navigation Links */}
             <Box sx={{ display: "flex", gap: 2 }}>
-              <MenuItemLinks to="/networkdevices">Главная</MenuItemLinks>
+              <MenuItemLinks to="/mainPage">Главная</MenuItemLinks>
               <MenuItemLinks to="/gates">Маршр-ры</MenuItemLinks>
               <MenuItemLinks to="/clients">Клиенты</MenuItemLinks>
               <MenuItemLinks to="/sprVlans">Вланы</MenuItemLinks>

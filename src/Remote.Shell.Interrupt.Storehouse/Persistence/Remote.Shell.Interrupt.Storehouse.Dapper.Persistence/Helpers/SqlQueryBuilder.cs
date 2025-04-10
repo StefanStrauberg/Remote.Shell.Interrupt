@@ -71,8 +71,13 @@ public partial class SqlQueryBuilder
                         };
 
                         object typedValue;
-
-                        if (Nullable.GetUnderlyingType(property.PropertyType) == typeof(Guid) || 
+                        
+                        if (property.PropertyType.IsEnum || Nullable.GetUnderlyingType(property.PropertyType)?.IsEnum == true)
+                        {
+                            var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                            typedValue = Enum.Parse(enumType, value, true);
+                        }
+                        else if (Nullable.GetUnderlyingType(property.PropertyType) == typeof(Guid) || 
                                                        property.PropertyType == typeof(Guid))
                             typedValue = Guid.Parse(value); // Явное преобразование строки в Guid
                         else

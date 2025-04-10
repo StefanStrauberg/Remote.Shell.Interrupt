@@ -4,12 +4,12 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { ClientShort } from "../types/ClientShort";
+import { ClientShort } from "../types/Clients/ClientShort";
 import agent from "../api/agent";
-import { Client } from "../types/Client";
-import { ClientFilter } from "../types/ClientFilter";
+import { Client } from "../types/Clients/Client";
+import { ClientFilter } from "../types/Clients/ClientFilter";
 import { useLocation } from "react-router";
-import { PaginationHeader } from "../types/PaginationHeader";
+import { PaginationHeader } from "../types/Common/PaginationHeader";
 
 export const useClients = (
   pageNumber: number = 1,

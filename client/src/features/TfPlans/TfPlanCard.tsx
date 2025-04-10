@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { TfPlan } from "../../lib/types/TfPlan";
+import { TfPlan } from "../../lib/types/TfPlans/TfPlan";
 
 type Props = {
   tfPlan: TfPlan;

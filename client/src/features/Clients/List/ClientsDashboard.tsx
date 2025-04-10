@@ -2,7 +2,7 @@ import { Grid2 } from "@mui/material";
 import ClientListPage from "./ClientListPage";
 import ClientListFilter from "./ClientListFilter";
 import { useState } from "react";
-import { ClientFilter } from "../../../lib/types/ClientFilter";
+import { ClientFilter } from "../../../lib/types/Clients/ClientFilter";
 import { useClients } from "../../../lib/hooks/useClients";
 import EmptyPage from "../../../app/shared/components/EmptyPage";
 

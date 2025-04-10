@@ -53,7 +53,7 @@ export default function HomePage() {
       {/* Action Button */}
       <Button
         component={Link}
-        to="/networkDevices"
+        to="/mainPage"
         size="large"
         variant="contained"
         sx={{

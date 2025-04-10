@@ -17,7 +17,7 @@ internal class SPRVlansRepository(PostgreSQLDapperContext context)
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            "sprvl",
                                            typeof(SPRVlan));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
     
     var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
     return await connection.QuerySingleAsync<SPRVlan>(finalQuery, parameters);

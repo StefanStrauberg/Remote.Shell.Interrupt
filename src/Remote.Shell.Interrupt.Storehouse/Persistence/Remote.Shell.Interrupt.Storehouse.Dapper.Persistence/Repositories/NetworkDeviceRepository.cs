@@ -1,3 +1,4 @@
+
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class NetworkDeviceRepository(PostgreSQLDapperContext context) 
@@ -80,7 +81,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
-    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
     sb.Append($"p.\"{nameof(Port.Id)}\", p.\"{nameof(Port.InterfaceNumber)}\", p.\"{nameof(Port.InterfaceName)}\", p.\"{nameof(Port.InterfaceType)}\", p.\"{nameof(Port.InterfaceStatus)}\", p.\"{nameof(Port.InterfaceSpeed)}\", p.\"{nameof(Port.NetworkDeviceId)}\", p.\"{nameof(Port.ParentPortId)}\", p.\"{nameof(Port.MACAddress)}\", ");
     sb.Append($"pv.\"{nameof(PortVlan.Id)}\", pv.\"{nameof(PortVlan.PortId)}\", pv.\"{nameof(PortVlan.VLANId)}\", ");
     sb.Append($"v.\"{nameof(VLAN.Id)}\", v.\"{nameof(VLAN.VLANTag)}\", v.\"{nameof(VLAN.VLANName)}\" ");
@@ -123,5 +125,24 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
         splitOn: "Id, Id, Id, Id");
 
     return [.. ndDictionary.Values];
+  }
+
+  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetNetworkDevicesByQueryAsync(RequestParameters requestParameters,
+                                                                                                CancellationToken cancellationToken)
+  {
+    StringBuilder sb = new();
+    sb.Append("SELECT ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", ");
+    sb.Append($"nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\" ");
+    sb.Append($"FROM \"{GetTableName<NetworkDevice>()}\" AS nd ");
+
+    var baseQuery = sb.ToString();
+    var queryBuilder = new SqlQueryBuilder(requestParameters,
+                                           "nd",
+                                           typeof(NetworkDevice));
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    
+    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
+    return await connection.QueryAsync<NetworkDevice>(finalQuery, parameters);
   }
 }

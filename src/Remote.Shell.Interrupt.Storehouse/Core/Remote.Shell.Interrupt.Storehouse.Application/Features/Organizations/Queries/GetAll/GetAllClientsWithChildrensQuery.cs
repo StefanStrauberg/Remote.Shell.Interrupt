@@ -18,11 +18,15 @@ internal class GetAllClientsWithChildrensQueryHandler(IUnitOfWork unitOfWork,
     var clients = await _unitOfWork.Clients
                                    .GetClientsWithChildrensByQueryAsync(request.RequestParameters,
                                                                         cancellationToken);
+                                                                        
+    if (!clients.Any())
+      return new PagedList<DetailClientDTO>([],0,0,0);
+
     var count = await _unitOfWork.Clients
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);
 
-    var result = _mapper.Map<List<DetailClientDTO>>(clients);
+    var result = _mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 
     return new PagedList<DetailClientDTO>(result,
                                           count,

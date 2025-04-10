@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { TfPlan } from "../types/TfPlan";
+import { TfPlan } from "../types/TfPlans/TfPlan";
 import agent from "../api/agent";
 import { useLocation } from "react-router";
 
@@ -24,13 +24,12 @@ export const useTfPlans = (
     enabled: !id && location.pathname === "/tfPlans",
   });
 
-  // Extract organizations and pagination from the gatesResponse
-  const tfPlans = tfPlansResponse?.data;
-  const pagination = tfPlansResponse?.pagination;
-
   return {
-    tfPlans,
-    pagination,
+    tfPlans: tfPlansResponse?.data ?? [],
+    pagination: tfPlansResponse?.pagination ?? {
+      totalPages: 0,
+      currentPage: 0,
+    },
     isPending,
   };
 };

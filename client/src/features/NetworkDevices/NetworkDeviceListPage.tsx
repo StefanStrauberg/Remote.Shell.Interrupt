@@ -1,25 +1,26 @@
 import { Box, Pagination, Typography } from "@mui/material";
-import GateCard from "./GateCard";
-import { Gate } from "../../../lib/types/Gates/Gate";
-import { PaginationHeader } from "../../../lib/types/Common/PaginationHeader";
+import { NetworkDevice } from "../../lib/types/NetworkDevices/NetworkDevice";
+import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
+import NetworkDeviceCard from "./NetworkDeviceCard";
 
 type Props = {
-  gates: Gate[] | undefined;
-  isPending: boolean;
+  networkDevices: NetworkDevice[] | undefined;
+  isLoadingNetworkDevices: boolean;
   pageNumber: number;
   pagination: PaginationHeader;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 
-export default function GateListPage({
-  gates,
-  isPending,
+export default function NetworkDeviceListPage({
+  networkDevices,
+  isLoadingNetworkDevices,
   pageNumber,
   pagination,
   setPageNumber,
 }: Props) {
   // Loading state
-  if (!gates || isPending) return <Typography>Loading ...</Typography>;
+  if (!networkDevices || isLoadingNetworkDevices)
+    return <Typography>Loading ...</Typography>;
 
   // Handle page change
   const handlePageChange = (
@@ -38,8 +39,11 @@ export default function GateListPage({
           gap: 3,
         }}
       >
-        {gates.map((gate) => (
-          <GateCard key={gate.id} gate={gate} />
+        {networkDevices.map((networkDevice) => (
+          <NetworkDeviceCard
+            key={networkDevice.id}
+            networkDevice={networkDevice}
+          />
         ))}
       </Box>
 
