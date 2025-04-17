@@ -12,7 +12,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     ?? throw new ArgumentNullException(nameof(mapper));
 
   async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByVlanTagQuery request,
-                                                                                                        CancellationToken cancellationToken)
+                                                                                                          CancellationToken cancellationToken)
   {
     if (request.VLANTag == 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VLANTag));
@@ -22,10 +22,10 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     var getClientByVlanTagQuery = new GetClientByVlanTagQuery(request.VLANTag);
     var client = await ((IRequestHandler<GetClientByVlanTagQuery, DetailClientDTO>)getClientByVlanTagQueryHandler).Handle(getClientByVlanTagQuery,
                                                                                                                           cancellationToken);
-    // TODO Clients !!!
-    IEnumerable<DetailClientDTO> clients = [];
-    List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
     List<NetworkDevice> networkDevices = [];
+
+    var vlanTags = client.SPRVlans
+                         .Select(x => x.IdVlan);
 
     foreach (var tag in vlanTags)
     {
@@ -39,7 +39,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(IUnitOfWork unitOfWork,
     var reuslt = new CompoundObjectDTO()
     {
       NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
-      Clients = clients
+      Client = client
     };
 
     return reuslt;

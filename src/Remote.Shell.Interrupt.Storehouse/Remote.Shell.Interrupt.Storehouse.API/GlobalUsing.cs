@@ -20,7 +20,6 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organization
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Update;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.OrganizationName;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Create;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.GetByExpression;

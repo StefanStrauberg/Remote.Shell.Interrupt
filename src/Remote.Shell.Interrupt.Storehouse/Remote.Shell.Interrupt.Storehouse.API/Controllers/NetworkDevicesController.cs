@@ -48,13 +48,6 @@ public class NetworkDevicesController : BaseAPIController
     => Ok(await Sender.Send(new GetNetworkDeviceByVlanTagQuery(VLANTag),
                             cancellationToken));
 
-  [HttpGet("{OrganizationName}")]
-  [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetNetworkDevicesByOrganizationName(string OrganizationName,
-                                                                       CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetNetworkDeviceByOrganizationNameQuery(OrganizationName),
-                            cancellationToken));
 
   [HttpPost]
   [ProducesResponseType(StatusCodes.Status200OK)]

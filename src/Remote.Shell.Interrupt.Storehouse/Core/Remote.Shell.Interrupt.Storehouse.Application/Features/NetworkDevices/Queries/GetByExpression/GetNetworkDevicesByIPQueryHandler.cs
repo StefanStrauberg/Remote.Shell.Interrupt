@@ -31,9 +31,9 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     var getClientByVlanTagQuery = new GetClientByVlanTagQuery(vlanTag);
     var client = await ((IRequestHandler<GetClientByVlanTagQuery, DetailClientDTO>)getClientByVlanTagQueryHandler).Handle(getClientByVlanTagQuery,
                                                                                                                           cancellationToken);
-    // TODO Clients !!!
-    IEnumerable<DetailClientDTO> clients = [];
-    List<int> vlanTags = [.. clients.SelectMany(x => x.SPRVlans).Select(x => x.IdVlan)];
+    
+    var vlanTags = client.SPRVlans
+                         .Select(x => x.IdVlan);
     List<NetworkDevice> networkDevices = [];
 
     foreach (var tag in vlanTags)
@@ -48,7 +48,7 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     var reuslt = new CompoundObjectDTO()
     {
       NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
-      Clients = clients
+      Client = client
     };
 
     return reuslt;
