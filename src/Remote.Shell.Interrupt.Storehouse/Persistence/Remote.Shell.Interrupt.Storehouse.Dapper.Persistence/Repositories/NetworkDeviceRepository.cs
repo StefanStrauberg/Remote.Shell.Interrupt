@@ -1,4 +1,3 @@
-
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 
 internal class NetworkDeviceRepository(PostgreSQLDapperContext context) 
@@ -26,8 +25,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
-  async Task<NetworkDevice> INetworkDeviceRepository.GetFirstWithChildrensByIdAsync(Guid id,
-                                                                                    CancellationToken cancellationToken)
+  async Task<NetworkDevice> INetworkDeviceRepository.GetOneWithChildrensByIdAsync(Guid id,
+                                                                                  CancellationToken cancellationToken)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
@@ -76,8 +75,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
     return ndDictionary.Values.First();
   }
 
-  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetAllWithChildrensByVLANTagAsync(int vlanTag,
-                                                                                                    CancellationToken cancellationToken)
+  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyWithChildrensByVLANTagAsync(int vlanTag,
+                                                                                                     CancellationToken cancellationToken)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
@@ -127,8 +126,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context)
     return [.. ndDictionary.Values];
   }
 
-  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetNetworkDevicesByQueryAsync(RequestParameters requestParameters,
-                                                                                                CancellationToken cancellationToken)
+  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyByQueryAsync(RequestParameters requestParameters,
+                                                                                      CancellationToken cancellationToken)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");

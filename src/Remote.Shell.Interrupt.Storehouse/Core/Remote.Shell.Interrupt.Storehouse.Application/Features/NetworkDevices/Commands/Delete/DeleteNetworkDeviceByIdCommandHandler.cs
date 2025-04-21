@@ -24,7 +24,7 @@ internal class DeleteNetworkDeviceByIdCommandHandler(IUnitOfWork unitOfWork)
 
     // Получаем устройство для удаления
     var networkDeviceToDelete = await _unitOfWork.NetworkDevices
-                                                 .GetFirstWithChildrensByIdAsync(request.Id,
+                                                 .GetOneWithChildrensByIdAsync(request.Id,
                                                                                  cancellationToken);
 
     // Удаляем найденное устройство из репозитория

@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 internal class ClientsRepository(PostgreSQLDapperContext context) 
   : GenericRepository<Client>(context), IClientsRepository
 {
-  async Task<IEnumerable<Client>> IClientsRepository.GetShortClientsByQueryAsync(RequestParameters requestParameters,
+  async Task<IEnumerable<Client>> IClientsRepository.GetShortManyByQueryAsync(RequestParameters requestParameters,
                                                                                  CancellationToken cancellationToken)
   {
     var sb = new StringBuilder();
@@ -22,7 +22,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     return await connection.QueryAsync<Client>(finalQuery, parameters);
   }
 
-  async Task<IEnumerable<Client>> IClientsRepository.GetClientsWithChildrensByQueryAsync(RequestParameters requestParameters,
+  async Task<IEnumerable<Client>> IClientsRepository.GetManyWithChildrensByQueryAsync(RequestParameters requestParameters,
                                                                                          CancellationToken cancellationToken)
   {
     var sb = new StringBuilder();
@@ -82,7 +82,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context)
     return ccDictionary.Values;
   }
 
-  async Task<Client> IClientsRepository.GetClientWithChildrensByQueryAsync(RequestParameters requestParameters,
+  async Task<Client> IClientsRepository.GetOneWithChildrensByQueryAsync(RequestParameters requestParameters,
                                                                            CancellationToken cancellationToken)
   {
     var sb = new StringBuilder();

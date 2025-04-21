@@ -35,3 +35,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetAll;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;

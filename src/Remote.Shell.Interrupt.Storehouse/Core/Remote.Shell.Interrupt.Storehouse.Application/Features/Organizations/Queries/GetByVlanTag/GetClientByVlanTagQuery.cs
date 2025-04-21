@@ -1,43 +1,47 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 
-public record GetClientByVlanTagQuery(int VlanTag) : IQuery<DetailClientDTO>;
+public record GetClientsByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<DetailClientDTO>>;
 
-internal class GetClientByVlanTagQueryHandler(IUnitOfWork unitOfWork,
+internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                                IMapper mapper)
-  : IQueryHandler<GetClientByVlanTagQuery, DetailClientDTO>
+  : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
   readonly IUnitOfWork _unitOfWork = unitOfWork
     ?? throw new ArgumentNullException(nameof(unitOfWork));
   readonly IMapper _mapper = mapper
     ?? throw new ArgumentNullException(nameof(mapper));
 
-  async Task<DetailClientDTO> IRequestHandler<GetClientByVlanTagQuery, DetailClientDTO>.Handle(GetClientByVlanTagQuery request,
-                                                                                               CancellationToken cancellationToken)
+  async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
+                                                                                                                          CancellationToken cancellationToken)
   {
-    // Проверка существования влан с ID
-    var existingVlan = await _unitOfWork.SPRVlans
-                                        .AnyByVlanTagAsync(request.VlanTag,
-                                                           cancellationToken);
+    if (request.VlanTag == 0)
+      throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
 
-    // Если влан не найдено — исключение
-    if (!existingVlan)
-      throw new EntityNotFoundById(typeof(SPRVlan),
-                                   request.VlanTag.ToString());
+    var getSPRVlansQuery = new GetSPRVlansQuery(new RequestParameters()
+                                                {
+                                                  Filters = $"IdVlan=={request.VlanTag}"
+                                                });
 
-    var sprVlan = await _unitOfWork.SPRVlans
-                                   .GetSPRVlanByQueryAsync(new RequestParameters()
-                                                           {
-                                                              Filters = $"IdVlan=={request.VlanTag}"
-                                                           },
-                                                           cancellationToken);
+    var getSPRVlansQueryHandler = new GetSPRVlansQueryHandler(unitOfWork, mapper);
 
-    var client = await _unitOfWork.Clients
-                                  .GetClientWithChildrensByQueryAsync(new RequestParameters()
-                                                                      {
-                                                                        Filters = $"IdClient=={sprVlan.IdClient}"
-                                                                      },
-                                                                      cancellationToken);
+    var sprVlans = await ((IRequestHandler<GetSPRVlansQuery, PagedList<SPRVlanDTO>>)getSPRVlansQueryHandler).Handle(getSPRVlansQuery,
+                                                                                                                    cancellationToken);
 
-    return _mapper.Map<DetailClientDTO>(client);
+    HashSet<Client> clients = [];
+
+    foreach (var item in sprVlans)
+    {
+      var client = await _unitOfWork.Clients
+                                    .GetOneWithChildrensByQueryAsync(new RequestParameters()
+                                                                        {
+                                                                          Filters = $"IdClient=={item.IdClient}"
+                                                                        }, 
+                                                                        cancellationToken);
+      clients.Add(client);
+    }
+
+    var result = _mapper.Map<IEnumerable<DetailClientDTO>>(clients);
+
+    return result;
   }
 }

@@ -34,3 +34,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Quer
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetById;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Delete;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;

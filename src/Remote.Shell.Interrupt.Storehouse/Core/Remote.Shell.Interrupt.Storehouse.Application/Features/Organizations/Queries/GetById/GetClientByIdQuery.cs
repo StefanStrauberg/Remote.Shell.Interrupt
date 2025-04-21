@@ -25,7 +25,7 @@ internal class GetClientByIdQueryHandler(IUnitOfWork unitOfWork,
                                     request.Id.ToString());
 
         var client = await _unitOfWork.Clients
-                                      .GetClientWithChildrensByQueryAsync(new RequestParameters()
+                                      .GetOneWithChildrensByQueryAsync(new RequestParameters()
                                                                           {
                                                                             Filters = $"Id=={request.Id}"
                                                                           },

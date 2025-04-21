@@ -23,7 +23,7 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
       throw new EntityNotFoundById(typeof(NetworkDevice),
                                    request.Id.ToString());
 
-    var networkDevice = await _unitOfWork.NetworkDevices.GetFirstWithChildrensByIdAsync(request.Id,
+    var networkDevice = await _unitOfWork.NetworkDevices.GetOneWithChildrensByIdAsync(request.Id,
                                                                                         cancellationToken);
 
     HashSet<Guid> aggregatedPortsIds = [];

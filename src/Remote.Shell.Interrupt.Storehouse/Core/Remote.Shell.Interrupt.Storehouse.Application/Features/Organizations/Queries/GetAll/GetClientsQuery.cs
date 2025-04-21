@@ -16,7 +16,7 @@ internal class GetAllShortClientsQueryHandler(IUnitOfWork unitOfWork,
                                                                                                          CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.Clients
-                                   .GetShortClientsByQueryAsync(request.RequestParameters,
+                                   .GetShortManyByQueryAsync(request.RequestParameters,
                                                                 cancellationToken);
 
     if (!clients.Any())

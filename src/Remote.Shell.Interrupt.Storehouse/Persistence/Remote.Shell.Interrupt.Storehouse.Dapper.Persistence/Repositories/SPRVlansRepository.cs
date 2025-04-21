@@ -4,25 +4,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories;
 internal class SPRVlansRepository(PostgreSQLDapperContext context) 
   : GenericRepository<SPRVlan>(context), ISPRVlansRepository
 {
-  async Task<SPRVlan> ISPRVlansRepository.GetSPRVlanByQueryAsync(RequestParameters requestParameters,
-                                                                 CancellationToken cancellationToken)
-  {
-    StringBuilder sb = new();
-    sb.Append("SELECT ");
-    sb.Append($"sprvl.\"{nameof(SPRVlan.Id)}\", sprvl.\"{nameof(SPRVlan.IdClient)}\", sprvl.\"{nameof(SPRVlan.UseClient)}\", ");
-    sb.Append($"sprvl.\"{nameof(SPRVlan.UseCOD)}\", sprvl.\"{nameof(SPRVlan.IdVlan)}\" ");
-    sb.Append($"FROM \"{GetTableName<SPRVlan>()}\" AS sprvl ");
-
-    var baseQuery = sb.ToString();
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           "sprvl",
-                                           typeof(SPRVlan));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
-    
-    var connection = await _postgreSQLDapperContext.CreateConnectionAsync(cancellationToken);
-    return await connection.QuerySingleAsync<SPRVlan>(finalQuery, parameters);
-  }
-
   async Task<bool> ISPRVlansRepository.AnyByVlanTagAsync(int vlanTag,
                                                          CancellationToken cancellationToken)
   {
@@ -38,7 +19,7 @@ internal class SPRVlansRepository(PostgreSQLDapperContext context)
     return count > 0;
   }
 
-  async Task<IEnumerable<SPRVlan>> ISPRVlansRepository.GetSPRVlansByQueryAsync(RequestParameters requestParameters,
+  async Task<IEnumerable<SPRVlan>> ISPRVlansRepository.GetManyByQueryAsync(RequestParameters requestParameters,
                                                                            CancellationToken cancellationToken)
   {
     StringBuilder sb = new();

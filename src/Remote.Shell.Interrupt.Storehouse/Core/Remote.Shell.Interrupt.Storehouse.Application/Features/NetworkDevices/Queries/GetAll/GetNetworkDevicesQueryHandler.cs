@@ -15,7 +15,7 @@ internal class GetNetworkDevicesQueryHandler(IUnitOfWork unitOfWork,
                                                                                                                       CancellationToken cancellationToken)
   {
     var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetNetworkDevicesByQueryAsync(request.RequestParameters,
+                                          .GetManyByQueryAsync(request.RequestParameters,
                                                                          cancellationToken);
 
     var count = await _unitOfWork.NetworkDevices

@@ -54,13 +54,6 @@ public class ClientsController : BaseAPIController
     => Ok(await Sender.Send(new GetClientByIdQuery(id),
                             cancellationToken));
 
-  [HttpGet("{vlanTag}")]
-  [ProducesResponseType(typeof(ShortClientDTO), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetClientByVlanTag(int vlanTag,
-                                                      CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetClientByVlanTagQuery(vlanTag),
-                            cancellationToken));
-
   [HttpPut]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]

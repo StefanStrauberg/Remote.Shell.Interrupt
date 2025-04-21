@@ -1,8 +1,8 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Helper;
 
-public static class EnumExtensions
+internal static class EnumExtensions
 {
-  public static string ToDescriptionString(this Enum val)
+  internal static string ToDescriptionString(this Enum val)
   {
     var fi = val.GetType().GetField(val.ToString());
 

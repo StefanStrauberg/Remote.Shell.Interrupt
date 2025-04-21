@@ -16,7 +16,7 @@ internal class GetAllClientsWithChildrensQueryHandler(IUnitOfWork unitOfWork,
                                                                                                                              CancellationToken cancellationToken)
   {
     var clients = await _unitOfWork.Clients
-                                   .GetClientsWithChildrensByQueryAsync(request.RequestParameters,
+                                   .GetManyWithChildrensByQueryAsync(request.RequestParameters,
                                                                         cancellationToken);
                                                                         
     if (!clients.Any())

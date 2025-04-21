@@ -17,11 +17,13 @@ internal class GetSPRVlansQueryHandler(IUnitOfWork unitOfWork,
                                                                                                     CancellationToken cancellationToken)
   {
     var sprVlans = await _unitOfWork.SPRVlans
-                                    .GetSPRVlansByQueryAsync(request.RequestParameters,
-                                                         cancellationToken);
+                                    .GetManyByQueryAsync(request.RequestParameters,
+                                                             cancellationToken);
+
     var count = await _unitOfWork.SPRVlans
                                  .GetCountAsync(request.RequestParameters,
                                                 cancellationToken);
+                                                
     var result = _mapper.Map<List<SPRVlanDTO>>(sprVlans);
 
     return new PagedList<SPRVlanDTO>(result,
