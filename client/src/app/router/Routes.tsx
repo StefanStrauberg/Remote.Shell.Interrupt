@@ -12,7 +12,7 @@ import GatesDashboard from "../../features/Gates/List/GatesDashboard";
 import GateForm from "../../features/Gates/CreateUpdate/GateForm";
 import AdminComponent from "../../features/Admin/AdminComponent";
 import NetworkDeviceDashboard from "../../features/NetworkDevices/NetworkDeviceDashboard";
-import MainPage from "../../features/MainPage/MainPage";
+import MainPageDashboard from "../../features/MainPage/MainPageDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <HomePage /> },
-      { path: "mainPage", element: <MainPage /> },
+      { path: "mainPage", element: <MainPageDashboard /> },
       { path: "networkDevices", element: <NetworkDeviceDashboard /> },
       { path: "gates", element: <GatesDashboard /> },
       { path: "gates/:id", element: <GateForm /> },
