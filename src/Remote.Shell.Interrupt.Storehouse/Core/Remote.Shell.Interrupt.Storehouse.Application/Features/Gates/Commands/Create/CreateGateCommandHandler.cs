@@ -2,31 +2,31 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.
 
 public record CreateGateCommand(CreateGateDTO CreateGateDTO) : ICommand<Unit>;
 
-internal class CreateGateCommandHandler(IUnitOfWork unitOfWork,
+internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
                                         IMapper mapper)
   : ICommandHandler<CreateGateCommand, Unit>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   public async Task<Unit> Handle(CreateGateCommand request,
                                  CancellationToken cancellationToken)
   {
-    var existingTheSameIPAddress = await _unitOfWork.GateRepository
-                                                    .AnyByIPAddressAsync(request.CreateGateDTO.IPAddress,
-                                                                         cancellationToken);
+    var requestParameters = new RequestParameters
+    {
+      Filters = $"IPAddress=={request.CreateGateDTO.IPAddress}"
+    };
+    
+    var existingTheSameIPAddress = await gateUnitOfWork.GateRepository
+                                                       .AnyByQueryAsync(requestParameters,
+                                                                        cancellationToken);
 
     if (existingTheSameIPAddress)
       throw new EntityAlreadyExists($"IPAddress = {request.CreateGateDTO.IPAddress}");
 
-    var gate = _mapper.Map<Gate>(request.CreateGateDTO);
+    var gate = mapper.Map<Gate>(request.CreateGateDTO);
 
-    _unitOfWork.GateRepository
-               .InsertOne(gate);
+    gateUnitOfWork.GateRepository
+                   .InsertOne(gate);
 
-    _unitOfWork.Complete();
+    gateUnitOfWork.Complete();
 
     return Unit.Value;
   }

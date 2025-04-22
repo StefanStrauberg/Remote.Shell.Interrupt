@@ -9,8 +9,22 @@ import {
   Divider,
   TextField,
 } from "@mui/material";
+import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
+import { useState } from "react";
 
-export default function MainPageListFilter() {
+type Props = {
+  onApplyFilters: (filters: RouterFilter) => void;
+};
+
+export default function MainPageListFilter({ onApplyFilters }: Props) {
+  const [idVlan, setIdVlan] = useState<number>(0);
+
+  const handleApplyClick = () => {
+    const filters: RouterFilter = {};
+    if (idVlan) filters.IdVlan = { op: "==", value: idVlan };
+    onApplyFilters(filters);
+  };
+
   return (
     <Card
       sx={{
@@ -29,18 +43,37 @@ export default function MainPageListFilter() {
       <CardContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Название организации"
+            label="Id влана"
+            value={idVlan.toString() || ""}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              if (!isNaN(Number(newValue))) {
+                setIdVlan(Number(newValue)); // Преобразуем введенное значение в число
+              }
+            }}
             variant="outlined"
             fullWidth
+            type="number" // Устанавливаем тип поля как "number"
+            inputProps={{ min: 0 }} // Ограничение ввода только положительных чисел (опционально)
+            error={isNaN(idVlan)} // Показывает ошибку, если значение некорректное
+            helperText={isNaN(idVlan) ? "Введите корректное число" : ""} // Текст подсказки
           />
-          <TextField label="IP адрес" variant="outlined" fullWidth />
-          <TextField label="Id влана" variant="outlined" fullWidth />
           <Divider />
           <ButtonGroup>
-            <Button variant="contained" color="info">
+            <Button
+              variant="contained"
+              color="info"
+              onClick={() => {
+                setIdVlan(0);
+              }}
+            >
               Сбросить
             </Button>
-            <Button variant="contained" color="success">
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleApplyClick}
+            >
               Применить
             </Button>
           </ButtonGroup>

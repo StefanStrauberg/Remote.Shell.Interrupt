@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Walk;
 
 internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestHandler<SNMPWalkCommand, IEnumerable<SNMPResponse>>

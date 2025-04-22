@@ -3,29 +3,25 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.G
 public record GetGatesQuery(RequestParameters RequestParameters) 
   : IQuery<PagedList<GateDTO>>;
 
-internal class GetGatesQueryHandler(IUnitOfWork unitOfWork,
+internal class GetGatesQueryHandler(IGateUnitOfWork gateUnitOfWork,
                                     IMapper mapper)
   : IQueryHandler<GetGatesQuery, PagedList<GateDTO>>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<PagedList<GateDTO>> IRequestHandler<GetGatesQuery, PagedList<GateDTO>>.Handle(GetGatesQuery request,
                                                                                            CancellationToken cancellationToken)
   {
-    var gates = await _unitOfWork.GateRepository
-                                 .GetGatesByQueryAsync(request.RequestParameters,
-                                                   cancellationToken);
+    var gates = await gateUnitOfWork.GateRepository
+                                    .GetManyShortAsync(request.RequestParameters,
+                                                       cancellationToken);
                                                    
     if (!gates.Any())
       return new PagedList<GateDTO>([],0,0,0);
 
-    var count = await _unitOfWork.GateRepository
-                                 .GetCountAsync(request.RequestParameters,
-                                                cancellationToken);
-    var result = _mapper.Map<IEnumerable<GateDTO>>(gates);
+    var count = await gateUnitOfWork.GateRepository
+                                    .GetCountAsync(request.RequestParameters,
+                                                   cancellationToken);
+
+    var result = mapper.Map<IEnumerable<GateDTO>>(gates);
 
     return new PagedList<GateDTO>(result,
                                   count,

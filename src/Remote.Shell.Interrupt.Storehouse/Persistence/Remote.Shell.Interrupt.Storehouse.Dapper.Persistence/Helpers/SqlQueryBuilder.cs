@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 
-public partial class SqlQueryBuilder
+internal partial class SqlQueryBuilder
 {
     private readonly RequestParameters _request;
     private readonly string? _tableAlias;

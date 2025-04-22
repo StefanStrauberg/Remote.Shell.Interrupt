@@ -10,13 +10,17 @@ export default function MainPageDashboard() {
 
   const { compoundObject } = useRouters(filters);
 
+  const handleApplyFilters = (newFilters: RouterFilter) => {
+    setFilters(newFilters);
+  };
+
   return (
     <Grid2 container spacing={3}>
       <Grid2 size={9}>
         <MainPageList />
       </Grid2>
       <Grid2 size={3}>
-        <MainPageListFilter />
+        <MainPageListFilter onApplyFilters={handleApplyFilters} />
       </Grid2>
     </Grid2>
   );

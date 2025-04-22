@@ -7,16 +7,15 @@ public static class PersistenceServicesRegistration
   {
     services.AddScoped<PostgreSQLDapperContext>();
     services.AddScoped<MySQLDapperContext>();
-    services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-    services.AddScoped<IUnitOfWork, UnitOfWork>();
-    services.AddScoped<IVLANRepository, VLANRepository>();
-    services.AddScoped<IPortRepository, PortRepository>();
-    services.AddScoped<IUnitOfWork, UnitOfWork>();
-    services.AddScoped<IRemoteClientsRepository, RemoteClientsRepository>();
-    services.AddScoped<IRemoteCODRepository, RemoteCODRepository>();
-    services.AddScoped<IRemoteTfPlanRepository, RemoteTfPlanRepository>();
-    services.AddScoped<IClientsRepository, ClientsRepository>();
+    services.AddScoped(typeof(ICountRepository<>), typeof(CountRepository<>));
+    services.AddScoped(typeof(IExistenceQueryRepository<>), typeof(ExistenceQueryRepository<>));
+    services.AddScoped(typeof(IManyQueryRepository<>), typeof(ManyQueryRepository<>));
+    services.AddScoped(typeof(IOneQueryRepository<>), typeof(OneQueryRepository<>));
+    services.AddScoped(typeof(IWriteOneRepository<>), typeof(WriteOneRepository<>));
     services.AddScoped<IGateRepository, GateRepository>();
+    services.AddScoped<IClientsRepository, ClientsRepository>();
+    services.AddScoped<ISPRVlansRepository, SPRVlansRepository>();
+    services.AddScoped<ITfPlanRepository, TfPlanRepository>();
 
     return services;
   }

@@ -3,30 +3,25 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 public record GetAllShortClientsQuery(RequestParameters RequestParameters) 
   : IQuery<PagedList<ShortClientDTO>>;
 
-internal class GetAllShortClientsQueryHandler(IUnitOfWork unitOfWork,
+internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                               IMapper mapper)
   : IQueryHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<PagedList<ShortClientDTO>> IRequestHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>.Handle(GetAllShortClientsQuery request,
                                                                                                          CancellationToken cancellationToken)
   {
-    var clients = await _unitOfWork.Clients
-                                   .GetShortManyByQueryAsync(request.RequestParameters,
-                                                                cancellationToken);
+    var clients = await locBillUnitOfWork.Clients
+                                         .GetManyShortAsync(request.RequestParameters,
+                                                            cancellationToken);
 
     if (!clients.Any())
-      return new PagedList<ShortClientDTO>([],0,0,0);
+      return default!;
 
-    var count = await _unitOfWork.Clients
-                                 .GetCountAsync(request.RequestParameters,
-                                                cancellationToken);
+    var count = await locBillUnitOfWork.Clients
+                                       .GetCountAsync(request.RequestParameters,
+                                                      cancellationToken);
 
-    var result = _mapper.Map<IEnumerable<ShortClientDTO>>(clients);
+    var result = mapper.Map<IEnumerable<ShortClientDTO>>(clients);
 
     return new PagedList<ShortClientDTO>(result,
                                          count,

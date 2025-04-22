@@ -21,6 +21,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "", element: <HomePage /> },
       { path: "mainPage", element: <MainPageDashboard /> },
+      { path: "mainPage/:id", element: <MainPageDashboard /> },
       { path: "networkDevices", element: <NetworkDeviceDashboard /> },
       { path: "gates", element: <GatesDashboard /> },
       { path: "gates/:id", element: <GateForm /> },

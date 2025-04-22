@@ -2,22 +2,23 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.
 
 public record UpdateGateCommand(UpdateGateDTO UpdateGateDTO) : ICommand<Unit>;
 
-internal class UpdateGateGommandHandler(IUnitOfWork unitOfWork,
+internal class UpdateGateGommandHandler(IGateUnitOfWork gateUnitOfWork,
                                         IMapper mapper)
   : ICommandHandler<UpdateGateCommand, Unit>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
 
   async Task<Unit> IRequestHandler<UpdateGateCommand, Unit>.Handle(UpdateGateCommand request,
                                                                    CancellationToken cancellationToken)
   {
+    var requestParameters = new RequestParameters
+    {
+      Filters = $"Id=={request.UpdateGateDTO.Id}"
+    };
+
     // Проверка существует ли маршрутизатор
-    var existingGate = await _unitOfWork.GateRepository
-                                        .AnyByIdAsync(request.UpdateGateDTO.Id,
-                                                      cancellationToken);
+    var existingGate = await gateUnitOfWork.GateRepository
+                                           .AnyByQueryAsync(requestParameters,
+                                                            cancellationToken);
 
     // Если маршрутизатор не найдено, выбрасываем исключение
     if (!existingGate)
@@ -25,14 +26,14 @@ internal class UpdateGateGommandHandler(IUnitOfWork unitOfWork,
                                    request.UpdateGateDTO.Id.ToString());
 
     // Находим маршрутизатор
-    var gate = await _unitOfWork.GateRepository
-                                .FirstByIdAsync(request.UpdateGateDTO.Id,
-                                                cancellationToken);
+    var gate = await gateUnitOfWork.GateRepository
+                                   .GetOneShortAsync(requestParameters,
+                                                     cancellationToken);
 
-    _mapper.Map(request.UpdateGateDTO, gate);
+    mapper.Map(request.UpdateGateDTO, gate);
 
-    _unitOfWork.GateRepository.ReplaceOne(gate);
-    _unitOfWork.Complete();
+    gateUnitOfWork.GateRepository.ReplaceOne(gate);
+    gateUnitOfWork.Complete();
 
     return Unit.Value;
   }

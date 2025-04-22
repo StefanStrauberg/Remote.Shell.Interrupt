@@ -2,15 +2,10 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 
 public record GetClientsByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<DetailClientDTO>>;
 
-internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
+internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                                IMapper mapper)
   : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
                                                                                                                           CancellationToken cancellationToken)
   {
@@ -22,7 +17,7 @@ internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
                                                   Filters = $"IdVlan=={request.VlanTag}"
                                                 });
 
-    var getSPRVlansQueryHandler = new GetSPRVlansQueryHandler(unitOfWork, mapper);
+    var getSPRVlansQueryHandler = new GetSPRVlansQueryHandler(locBillUnitOfWork, mapper);
 
     var sprVlans = await ((IRequestHandler<GetSPRVlansQuery, PagedList<SPRVlanDTO>>)getSPRVlansQueryHandler).Handle(getSPRVlansQuery,
                                                                                                                     cancellationToken);
@@ -31,16 +26,16 @@ internal class GetClientsByVlanTagQueryHandler(IUnitOfWork unitOfWork,
 
     foreach (var item in sprVlans)
     {
-      var client = await _unitOfWork.Clients
-                                    .GetOneWithChildrensByQueryAsync(new RequestParameters()
-                                                                        {
-                                                                          Filters = $"IdClient=={item.IdClient}"
-                                                                        }, 
-                                                                        cancellationToken);
+      var client = await locBillUnitOfWork.Clients
+                                          .GetOneWithChildrensAsync(new RequestParameters()
+                                                                    {
+                                                                      Filters = $"IdClient=={item.IdClient}"
+                                                                    }, 
+                                                                    cancellationToken);
       clients.Add(client);
     }
 
-    var result = _mapper.Map<IEnumerable<DetailClientDTO>>(clients);
+    var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 
     return result;
   }

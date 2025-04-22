@@ -2,33 +2,32 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.
 
 public record DeleteGateCommand(Guid Id) : ICommand<Unit>;
 
-internal class DeleteGateCommandHandler(IUnitOfWork unitOfWork,
-                                        IMapper mapper)
+internal class DeleteGateCommandHandler(IGateUnitOfWork gateUnitOfWork)
 : ICommandHandler<DeleteGateCommand, Unit>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<Unit> IRequestHandler<DeleteGateCommand, Unit>.Handle(DeleteGateCommand request,
                                                                    CancellationToken cancellationToken)
   {
-    var existingGate = await _unitOfWork.GateRepository
-                                        .AnyByIdAsync(request.Id,
-                                                      cancellationToken);
+    var requestParameters = new RequestParameters
+    {
+      Filters = $"Id=={request.Id}"
+    };
+
+    var existingGate = await gateUnitOfWork.GateRepository
+                                           .AnyByQueryAsync(requestParameters,
+                                                            cancellationToken);
 
     if (!existingGate)
       throw new EntityNotFoundById(typeof(Gate),
                                    request.Id.ToString());
 
-    var gate = await _unitOfWork.GateRepository
-                                .FirstByIdAsync(request.Id,
-                                                cancellationToken);
+    var gate = await gateUnitOfWork.GateRepository
+                                   .GetOneShortAsync(requestParameters,
+                                                     cancellationToken);
 
-    _unitOfWork.GateRepository.DeleteOne(gate);
+    gateUnitOfWork.GateRepository.DeleteOne(gate);
 
-    _unitOfWork.Complete();
+    gateUnitOfWork.Complete();
 
     return Unit.Value;
   }
