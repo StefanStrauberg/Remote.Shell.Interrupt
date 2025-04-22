@@ -4,22 +4,18 @@ internal class GateRepository(IExistenceQueryRepository<Gate> existenceQueryRepo
                               ICountRepository<Gate> countRepository,
                               IManyQueryRepository<Gate> manyQueryRepository,
                               IOneQueryRepository<Gate> oneQueryRepository,
-                              IWriteOneRepository<Gate> writeOneRepository)
+                              IInsertRepository<Gate> insertRepository,
+                              IDeleteRepository<Gate> deleteRepository,
+                              IReplaceRepository<Gate> replaceRepository)
     : IGateRepository
 {
-  void IWriteOneRepository<Gate>.DeleteOne(Gate entity)
-    => writeOneRepository.DeleteOne(entity);
-
-  void IWriteOneRepository<Gate>.InsertOne(Gate entity)
-    => writeOneRepository.InsertOne(entity);
-
-  void IWriteOneRepository<Gate>.ReplaceOne(Gate entity)
-    => writeOneRepository.ReplaceOne(entity);
-
   public Task<Gate> GetOneShortAsync(RequestParameters requestParameters,
                                      CancellationToken cancellationToken)
     => oneQueryRepository.GetOneShortAsync(requestParameters,
                                            cancellationToken);
+
+  void IInsertRepository<Gate>.InsertOne(Gate entity)
+    => insertRepository.InsertOne(entity);
 
   async Task<bool> IExistenceQueryRepository<Gate>.AnyByQueryAsync(RequestParameters requestParameters,
                                                                    CancellationToken cancellationToken)
@@ -35,4 +31,10 @@ internal class GateRepository(IExistenceQueryRepository<Gate> existenceQueryRepo
                                                                              CancellationToken cancellationToken)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
                                                    cancellationToken);
+
+  void IDeleteRepository<Gate>.DeleteOne(Gate entity)
+    => deleteRepository.DeleteOne(entity);
+
+  void IReplaceRepository<Gate>.ReplaceOne(Gate entity)
+    => replaceRepository.ReplaceOne(entity);
 }

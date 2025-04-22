@@ -5,5 +5,7 @@ public interface IGateRepository
     IOneQueryRepository<Gate>,
     IExistenceQueryRepository<Gate>, 
     ICountRepository<Gate>,
-    IWriteOneRepository<Gate>
+    IInsertRepository<Gate>,
+    IDeleteRepository<Gate>,
+    IReplaceRepository<Gate>
 { }

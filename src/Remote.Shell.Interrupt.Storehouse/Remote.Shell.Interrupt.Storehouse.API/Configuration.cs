@@ -8,7 +8,7 @@ public static class Configuration
     builder.Services.AddLoggerServices();
     builder.Services.AddApplicationServices();
     builder.Services.AddSNMPCommandExecutorServices();
-    builder.Services.AddPersistenceServices(builder.Configuration);
+    builder.Services.AddPersistenceServices();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();

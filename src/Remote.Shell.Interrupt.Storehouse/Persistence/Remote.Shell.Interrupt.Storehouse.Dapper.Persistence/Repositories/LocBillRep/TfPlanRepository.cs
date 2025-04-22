@@ -2,9 +2,17 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocB
 
 internal class TfPlanRepository(IManyQueryRepository<TfPlan> manyQueryRepository,
                                 ICountRepository<TfPlan> countRepository,
-                                IReadRepository<TfPlan> readRepository) 
+                                IReadRepository<TfPlan> readRepository,
+                                IBulkDeleteRepository<TfPlan> bulkDeleteRepository,
+                                IBulkInsertRepository<TfPlan> bulkInsertRepository)
     : ITfPlanRepository
 {
+  void IBulkInsertRepository<TfPlan>.InsertMany(IEnumerable<TfPlan> entities)
+    => bulkInsertRepository.InsertMany(entities);
+
+  void IBulkDeleteRepository<TfPlan>.DeleteMany(IEnumerable<TfPlan> entities)
+    => bulkDeleteRepository.DeleteMany(entities);
+
   async Task<IEnumerable<TfPlan>> IReadRepository<TfPlan>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
 

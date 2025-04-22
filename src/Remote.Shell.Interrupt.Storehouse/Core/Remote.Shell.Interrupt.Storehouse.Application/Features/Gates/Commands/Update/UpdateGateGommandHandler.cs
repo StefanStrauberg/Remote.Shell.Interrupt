@@ -32,7 +32,9 @@ internal class UpdateGateGommandHandler(IGateUnitOfWork gateUnitOfWork,
 
     mapper.Map(request.UpdateGateDTO, gate);
 
-    gateUnitOfWork.GateRepository.ReplaceOne(gate);
+    gateUnitOfWork.GateRepository
+                  .ReplaceOne(gate);
+
     gateUnitOfWork.Complete();
 
     return Unit.Value;

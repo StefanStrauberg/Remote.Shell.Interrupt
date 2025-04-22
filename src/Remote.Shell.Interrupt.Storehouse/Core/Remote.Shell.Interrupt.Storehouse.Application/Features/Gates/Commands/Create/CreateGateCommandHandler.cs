@@ -24,7 +24,7 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
     var gate = mapper.Map<Gate>(request.CreateGateDTO);
 
     gateUnitOfWork.GateRepository
-                   .InsertOne(gate);
+                  .InsertOne(gate);
 
     gateUnitOfWork.Complete();
 

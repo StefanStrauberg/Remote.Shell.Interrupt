@@ -4,7 +4,9 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
                                  ICountRepository<Client> countRepository,
                                  IExistenceQueryRepository<Client> existenceQueryRepository,
                                  IManyQueryRepository<Client> manyQueryRepository,
-                                 IReadRepository<Client> readRepository)
+                                 IReadRepository<Client> readRepository,
+                                 IBulkDeleteRepository<Client> bulkDeleteRepository,
+                                 IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
 {
   async Task<IEnumerable<Client>> IManyQueryWithRelationsRepository<Client>.GetManyWithChildrenAsync(RequestParameters requestParameters,
@@ -143,4 +145,10 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
 
   async Task<IEnumerable<Client>> IReadRepository<Client>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
+
+  void IBulkDeleteRepository<Client>.DeleteMany(IEnumerable<Client> entities)
+    => bulkDeleteRepository.DeleteMany(entities);
+
+  void IBulkInsertRepository<Client>.InsertMany(IEnumerable<Client> entities)
+    =>  bulkInsertRepository.InsertMany(entities);
 }

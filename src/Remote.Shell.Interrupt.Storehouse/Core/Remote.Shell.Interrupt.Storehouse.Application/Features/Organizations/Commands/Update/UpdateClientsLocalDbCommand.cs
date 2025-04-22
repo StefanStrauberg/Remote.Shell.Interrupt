@@ -2,38 +2,33 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.C
 
 public record UpdateClientsLocalDbCommand : ICommand;
 
-internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
-                                                  IMapper mapper)
+internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnitOfWork,
+                                                  IRemBillUnitOfWork remBillUnitOfWork)
   : ICommandHandler<UpdateClientsLocalDbCommand, Unit>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<Unit> IRequestHandler<UpdateClientsLocalDbCommand, Unit>.Handle(UpdateClientsLocalDbCommand request,
                                                                              CancellationToken cancellationToken)
   {
-    var allClientCODRs = await _unitOfWork.RemoteClients.GetAllAsync(cancellationToken);
-    var allCODRs = await _unitOfWork.RemoteCODs.GetAllAsync(cancellationToken);
-    var allTfPlanRs = await _unitOfWork.RemoteTfPlans.GetAllAsync(cancellationToken);
-    var allSPRVlanRs = await _unitOfWork.RemoteSPRVlans.GetAllAsync(cancellationToken);
+    var allClientCODRs = await remBillUnitOfWork.RemoteClients.GetAllAsync(cancellationToken);
+    var allCODRs = await remBillUnitOfWork.RemoteCODs.GetAllAsync(cancellationToken);
+    var allTfPlanRs = await remBillUnitOfWork.RemoteTfPlans.GetAllAsync(cancellationToken);
+    var allSPRVlanRs = await remBillUnitOfWork.RemoteSPRVlans.GetAllAsync(cancellationToken);
 
-    var CODLsToDel = await _unitOfWork.CODs.GetAllAsync(cancellationToken);
+    var CODLsToDel = await locBillUnitOfWork.CODs.GetAllAsync(cancellationToken);
     if (CODLsToDel.Any())
-      _unitOfWork.CODs.DeleteMany(CODLsToDel);
+      locBillUnitOfWork.CODs.DeleteMany(CODLsToDel);
 
-    var TfPlanLsToDel = await _unitOfWork.TfPlans.GetAllAsync(cancellationToken);
+    var TfPlanLsToDel = await locBillUnitOfWork.TfPlans.GetAllAsync(cancellationToken);
     if (TfPlanLsToDel.Any())
-      _unitOfWork.TfPlans.DeleteMany(TfPlanLsToDel);
+      locBillUnitOfWork.TfPlans.DeleteMany(TfPlanLsToDel);
 
-    var ClientCodLstoDel = await _unitOfWork.Clients.GetAllAsync(cancellationToken);
+    var ClientCodLstoDel = await locBillUnitOfWork.Clients.GetAllAsync(cancellationToken);
     if (ClientCodLstoDel.Any())
-      _unitOfWork.Clients.DeleteMany(ClientCodLstoDel);
+      locBillUnitOfWork.Clients.DeleteMany(ClientCodLstoDel);
 
-    var SPRVlanLsToDel = await _unitOfWork.SPRVlans.GetAllAsync(cancellationToken);
+    var SPRVlanLsToDel = await locBillUnitOfWork.SPRVlans.GetAllAsync(cancellationToken);
     if (SPRVlanLsToDel.Any())
-      _unitOfWork.SPRVlans.DeleteMany(SPRVlanLsToDel);
+      locBillUnitOfWork.SPRVlans.DeleteMany(SPRVlanLsToDel);
 
     List<COD> CODLsToCre = [];
     List<TfPlan> TfPlanLsToCre = [];
@@ -55,7 +50,7 @@ internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
       });
     }
 
-    _unitOfWork.CODs.InsertMany(CODLsToCre);
+    locBillUnitOfWork.CODs.InsertMany(CODLsToCre);
 
     foreach (var tfPlan in allTfPlanRs)
     {
@@ -67,7 +62,7 @@ internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
       });
     }
 
-    _unitOfWork.TfPlans.InsertMany(TfPlanLsToCre);
+    locBillUnitOfWork.TfPlans.InsertMany(TfPlanLsToCre);
 
     foreach (var client in allClientCODRs)
     {
@@ -95,7 +90,7 @@ internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
       });
     }
 
-    _unitOfWork.Clients.InsertMany(ClientCodLsToCre);
+    locBillUnitOfWork.Clients.InsertMany(ClientCodLsToCre);
 
     foreach (var SPRVlan in allSPRVlanRs)
     {
@@ -108,9 +103,9 @@ internal class UpdateClientsLocalDbCommandHandler(IUnitOfWork unitOfWork,
       });
     }
 
-    _unitOfWork.SPRVlans.InsertMany(SPRVlanLsToCre);
+    locBillUnitOfWork.SPRVlans.InsertMany(SPRVlanLsToCre);
 
-    _unitOfWork.Complete();
+    locBillUnitOfWork.Complete();
 
     return Unit.Value;
   }

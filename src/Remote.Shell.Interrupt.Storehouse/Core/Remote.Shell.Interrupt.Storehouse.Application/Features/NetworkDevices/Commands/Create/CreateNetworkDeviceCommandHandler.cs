@@ -3,17 +3,10 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 public record CreateNetworkDeviceCommand(string Host, string Community, string TypeOfNetworkDevice) : ICommand;
 
 internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpCommandExecutor,
-                                                 IUnitOfWork unitOfWork,
+                                                 INetDevUnitOfWork netDevUnitOfWork,
                                                  IConfiguration configuration)
   : ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
-  readonly ISNMPCommandExecutor _snmpCommandExecutor = snmpCommandExecutor
-    ?? throw new ArgumentNullException(nameof(snmpCommandExecutor));
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IConfiguration _configuration = configuration
-    ?? throw new ArgumentNullException(nameof(configuration));
-
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
@@ -27,15 +20,15 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     int maxRepetitions;
 
     if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper.ToString())
-      maxRepetitions = _configuration.GetValue<int>("Repetitions:Juniper");
+      maxRepetitions = configuration.GetValue<int>("Repetitions:Juniper");
     else if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei.ToString())
-      maxRepetitions = _configuration.GetValue<int>("Repetitions:Huawei");
+      maxRepetitions = configuration.GetValue<int>("Repetitions:Huawei");
     else if (request.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme.ToString())
-      maxRepetitions = _configuration.GetValue<int>("Repetitions:Extreme");
+      maxRepetitions = configuration.GetValue<int>("Repetitions:Extreme");
     else
-      maxRepetitions = _configuration.GetValue<int>("Repetitions:Default");
+      maxRepetitions = configuration.GetValue<int>("Repetitions:Default");
 
-    var huaweiNew = _configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
+    var huaweiNew = configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
     // Заполняем основноую информацию устройства
     await FillNetworkDevicesGeneralInformation(networkDevice,
@@ -49,8 +42,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                  cancellationToken);
 
     // Вставляем новое сетевое устройство в репозиторий
-    _unitOfWork.NetworkDevices
-               .InsertOne(networkDevice);
+    netDevUnitOfWork.NetworkDevices
+                    .InsertOne(networkDevice);
 
     // Заполняем интерфейсы устройства
     await FillPortsOfNetworkDevice(networkDevice,
@@ -60,8 +53,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                    cancellationToken);
 
     // Вставляем порты сетевого устройство в репозиторий
-    _unitOfWork.Ports
-               .InsertMany(networkDevice.PortsOfNetworkDevice);
+    netDevUnitOfWork.Ports
+                    .InsertMany(networkDevice.PortsOfNetworkDevice);
 
     // Заполняем ARP таблицу интерфейсов
     await FillARPTableForPorts(networkDevice,
@@ -71,9 +64,9 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                cancellationToken);
 
     // Вставляем порты сетевого устройство в репозиторий
-    _unitOfWork.ARPEntities
-               .InsertMany(networkDevice.PortsOfNetworkDevice
-                                        .SelectMany(x => x.ARPTableOfInterface));
+    netDevUnitOfWork.ARPEntities
+                    .InsertMany(networkDevice.PortsOfNetworkDevice
+                                             .SelectMany(x => x.ARPTableOfInterface));
 
     // Заполняем MAC таблицу интерфейсов
     await FillMACTableForPorts(networkDevice,
@@ -82,9 +75,9 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                maxRepetitions,
                                cancellationToken);
 
-    _unitOfWork.MACEntities
-               .InsertMany(networkDevice.PortsOfNetworkDevice
-                                        .SelectMany(x => x.MACTable));
+    netDevUnitOfWork.MACEntities
+                    .InsertMany(networkDevice.PortsOfNetworkDevice
+                                             .SelectMany(x => x.MACTable));
 
     // Заполняем TerminatedNetwork таблицу интерфейсов
     await FillNetworkTableOfPort(networkDevice,
@@ -93,9 +86,9 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                  maxRepetitions,
                                  cancellationToken);
 
-    _unitOfWork.TerminatedNetworkEntities
-               .InsertMany(networkDevice.PortsOfNetworkDevice
-                                        .SelectMany(x => x.NetworkTableOfInterface));
+    netDevUnitOfWork.TerminatedNetworkEntities
+                    .InsertMany(networkDevice.PortsOfNetworkDevice
+                                             .SelectMany(x => x.NetworkTableOfInterface));
 
     if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
     {
@@ -107,8 +100,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
       var removingPorts = CleanJuniper(networkDevice.PortsOfNetworkDevice);
 
-      _unitOfWork.Ports
-                 .DeleteMany(removingPorts);
+      netDevUnitOfWork.Ports
+                      .DeleteMany(removingPorts);
 
       var aggregatedPorts = await LinkAgregationPortsForJuniper(networkDevice,
                                                                 request.Host,
@@ -116,13 +109,13 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                 maxRepetitions,
                                                                 cancellationToken);
 
-      _unitOfWork.Ports
-                 .ReplaceMany(aggregatedPorts);
+      netDevUnitOfWork.Ports
+                      .ReplaceMany(aggregatedPorts);
 
       var removingPorts2 = CleanJuniperDots(networkDevice.PortsOfNetworkDevice);
 
-      _unitOfWork.Ports
-                 .DeleteMany(removingPorts2);
+      netDevUnitOfWork.Ports
+                      .DeleteMany(removingPorts2);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Huawei)
     {
@@ -139,13 +132,13 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                                maxRepetitions,
                                                                cancellationToken);
 
-      _unitOfWork.Ports
-                 .ReplaceMany(aggregatedPorts);
+      netDevUnitOfWork.Ports
+                      .ReplaceMany(aggregatedPorts);
 
       var removingPorts = CleanHuawei(networkDevice.PortsOfNetworkDevice);
 
-      _unitOfWork.Ports
-                 .DeleteMany(removingPorts);
+      netDevUnitOfWork.Ports
+                      .DeleteMany(removingPorts);
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
     {
@@ -157,20 +150,20 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
       var removingPorts = CleanExtreme(networkDevice.PortsOfNetworkDevice);
 
-      _unitOfWork.Ports
-                 .DeleteMany(removingPorts);
+      netDevUnitOfWork.Ports
+                      .DeleteMany(removingPorts);
 
       var aggregatedPorts = await LinkAgregationPortsForExtreme(networkDevice,
                                                                 request.Host,
                                                                 request.Community,
                                                                 maxRepetitions,
                                                                 cancellationToken);
-      _unitOfWork.Ports
-                 .ReplaceMany(aggregatedPorts);
+      netDevUnitOfWork.Ports
+                      .ReplaceMany(aggregatedPorts);
     }
 
-    _unitOfWork.VLANs
-               .InsertMany(networkDevice.PortsOfNetworkDevice
+    netDevUnitOfWork.VLANs
+                    .InsertMany(networkDevice.PortsOfNetworkDevice
                                         .SelectMany(x => x.VLANs));
 
     List<PortVlan> portVlans = networkDevice.PortsOfNetworkDevice
@@ -183,10 +176,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                         })
                                             .ToList();
 
-    _unitOfWork.PortVlans
-               .InsertMany(portVlans);
+    netDevUnitOfWork.PortVlans
+                    .InsertMany(portVlans);
 
-    _unitOfWork.Complete();
+    netDevUnitOfWork.Complete();
     return Unit.Value;
   }
 
@@ -195,7 +188,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                                           string community,
                                                           CancellationToken cancellationToken)
   {
-    var networkDeviceName = await _snmpCommandExecutor.GetCommand(host: host,
+    var networkDeviceName = await snmpCommandExecutor.GetCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.1.1.0",
                                                                   cancellationToken: cancellationToken);
@@ -207,7 +200,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                           string community,
                                           CancellationToken cancellationToken)
   {
-    var networkDeviceName = await _snmpCommandExecutor.GetCommand(host: host,
+    var networkDeviceName = await snmpCommandExecutor.GetCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.1.5.0",
                                                                   cancellationToken: cancellationToken);
@@ -220,44 +213,44 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                             int maxRepetitions,
                                             CancellationToken cancellationToken)
   {
-    var interfacesNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfacesNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                    community: community,
                                                                    oid: "1.3.6.1.2.1.2.2.1.1",
                                                                    cancellationToken: cancellationToken,
                                                                    repetitions: maxRepetitions);
 
-    var interfacesNames = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfacesNames = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.2.2.1.2",
                                                                  cancellationToken: cancellationToken,
                                                                  repetitions: maxRepetitions);
 
-    var interfacesTypes = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfacesTypes = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.2.2.1.3",
                                                                  cancellationToken: cancellationToken,
                                                                  repetitions: maxRepetitions);
 
-    var interfacesSpeed = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfacesSpeed = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.2.2.1.5",
                                                                  cancellationToken: cancellationToken,
                                                                  repetitions: maxRepetitions);
 
-    var interfaceMacAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfaceMacAddresses = await snmpCommandExecutor.WalkCommand(host: host,
                                                                        community: community,
                                                                        oid: "1.3.6.1.2.1.2.2.1.6",
                                                                        cancellationToken: cancellationToken,
                                                                        toHex: true,
                                                                        repetitions: maxRepetitions);
 
-    var interfacesStatuses = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfacesStatuses = await snmpCommandExecutor.WalkCommand(host: host,
                                                                     community: community,
                                                                     oid: "1.3.6.1.2.1.2.2.1.8",
                                                                     cancellationToken: cancellationToken,
                                                                     repetitions: maxRepetitions);
 
-    var interfaceDescriptions = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfaceDescriptions = await snmpCommandExecutor.WalkCommand(host: host,
                                                                        community: community,
                                                                        oid: "1.3.6.1.2.1.31.1.1.1.18",
                                                                        cancellationToken: cancellationToken,
@@ -346,18 +339,18 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                           int maxRepetitions,
                                           CancellationToken cancellationToken)
   {
-    var macToVirNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+    var macToVirNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.17.4.3.1.2",
                                                                  cancellationToken,
                                                                  repetitions: maxRepetitions);
-    var virNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+    var virNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                             community: community,
                                                             oid: "1.3.6.1.2.1.17.1.4.1.1",
                                                             cancellationToken,
                                                             repetitions: maxRepetitions);
 
-    var virNumToPort = await _snmpCommandExecutor.WalkCommand(host: host,
+    var virNumToPort = await snmpCommandExecutor.WalkCommand(host: host,
                                                               community: community,
                                                               oid: "1.3.6.1.2.1.17.1.4.1.2",
                                                               cancellationToken,
@@ -470,18 +463,18 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                   CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запросы
-    var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.22.1.1",
                                                                   cancellationToken: cancellationToken,
                                                                   repetitions: maxRepetitions);
-    var macAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+    var macAddresses = await snmpCommandExecutor.WalkCommand(host: host,
                                                               community: community,
                                                               oid: "1.3.6.1.2.1.4.22.1.2",
                                                               cancellationToken,
                                                               toHex: true,
                                                               repetitions: maxRepetitions);
-    var ipAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await snmpCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.22.1.3",
                                                              cancellationToken,
@@ -546,21 +539,21 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                     CancellationToken cancellationToken)
   {
     // Выполняем SNMP-запрос для получения номеров интерфейсов
-    var interfaceNumbers = await _snmpCommandExecutor.WalkCommand(host: host,
+    var interfaceNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.4.20.1.2",
                                                                   cancellationToken: cancellationToken,
                                                                   repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения IP-адресов
-    var ipAddresses = await _snmpCommandExecutor.WalkCommand(host: host,
+    var ipAddresses = await snmpCommandExecutor.WalkCommand(host: host,
                                                              community: community,
                                                              oid: "1.3.6.1.2.1.4.20.1.1",
                                                              cancellationToken,
                                                              repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения сетевых масок
-    var netMasks = await _snmpCommandExecutor.WalkCommand(host: host,
+    var netMasks = await snmpCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.4.20.1.3",
                                                           cancellationToken,
@@ -634,28 +627,28 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
     // Выполняем SNMP-запрос для получения Base Port
-    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1dBasePort = await snmpCommandExecutor.WalkCommand(host: host,
                                                            community: community,
                                                            oid: "1.3.6.1.2.1.17.1.4.1.1",
                                                            cancellationToken: cancellationToken,
                                                            repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения Port If Index
-    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1dBasePortIfIndex = await snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.17.1.4.1.2",
                                                                   cancellationToken: cancellationToken,
                                                                   repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения VLAN Static Name
-    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticName = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.17.7.1.4.3.1.1",
                                                                  cancellationToken,
                                                                  repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения VLAN Egress Ports
-    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticEgressPorts = await snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.2.1.17.7.1.4.3.1.2",
                                                                         cancellationToken,
@@ -727,7 +720,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<Port> aggregatedPorts = [];
 
     // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
-    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+    ifStackTable = await snmpCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.31.1.2.1.3",
                                                           cancellationToken,
@@ -804,7 +797,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<Port> aggregatedPorts = [];
 
     // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
-    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+    ifStackTable = await snmpCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.2.1.31.1.2.1.3",
                                                           cancellationToken,
@@ -818,7 +811,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     if (ifStackTable.Count == 0)
     {
       // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
-      ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+      ifStackTable = await snmpCommandExecutor.WalkCommand(host: host,
                                                             community: community,
                                                             oid: "1.2.840.10006.300.43.1.1.2.1.1",
                                                             cancellationToken,
@@ -894,7 +887,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<Port> aggregatedPorts = [];
 
     // Выполняем SNMP-запрос для получения IF-MIB::ifStackTable
-    ifStackTable = await _snmpCommandExecutor.WalkCommand(host: host,
+    ifStackTable = await snmpCommandExecutor.WalkCommand(host: host,
                                                           community: community,
                                                           oid: "1.3.6.1.4.1.1916.1.4.3.1.4",
                                                           cancellationToken,
@@ -990,28 +983,28 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<SNMPResponse> dot1qVlanStaticEgressPorts = [];
 
     // Выполняем SNMP-запрос для получения Base Port
-    dot1dBasePort = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1dBasePort = await snmpCommandExecutor.WalkCommand(host: host,
                                                            community: community,
                                                            oid: "1.3.6.1.2.1.17.1.4.1.1",
                                                            cancellationToken: cancellationToken,
                                                            repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения Port If Index
-    dot1dBasePortIfIndex = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1dBasePortIfIndex = await snmpCommandExecutor.WalkCommand(host: host,
                                                                   community: community,
                                                                   oid: "1.3.6.1.2.1.17.1.4.1.2",
                                                                   cancellationToken: cancellationToken,
                                                                   repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения VLAN Static Name
-    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticName = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,
                                                                  oid: "1.3.6.1.2.1.17.7.1.4.3.1.1",
                                                                  cancellationToken,
                                                                  repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения VLAN Egress Ports
-    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticEgressPorts = await snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.2.1.17.7.1.4.2.1.4.0",
                                                                         cancellationToken,
@@ -1091,27 +1084,27 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     List<SNMPResponse> dot1qVlanStaticTag = [];
 
     // Выполняем SNMP-запрос для получения VlanNumber
-    dot1qVlanStaticNumber = await _snmpCommandExecutor.WalkCommand(host,
+    dot1qVlanStaticNumber = await snmpCommandExecutor.WalkCommand(host,
                                                                    community,
                                                                    "1.3.6.1.4.1.1916.1.2.1.2.1.1",
                                                                    cancellationToken,
                                                                    repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения VlanName
-    dot1qVlanStaticName = await _snmpCommandExecutor.WalkCommand(host,
+    dot1qVlanStaticName = await snmpCommandExecutor.WalkCommand(host,
                                                                  community,
                                                                  "1.3.6.1.4.1.1916.1.2.1.2.1.2",
                                                                  cancellationToken,
                                                                  repetitions: maxRepetitions);
     // Выполняем SNMP-запрос для получения VlanTag
-    dot1qVlanStaticTag = await _snmpCommandExecutor.WalkCommand(host,
+    dot1qVlanStaticTag = await snmpCommandExecutor.WalkCommand(host,
                                                                 community,
                                                                 "1.3.6.1.4.1.1916.1.2.1.2.1.10",
                                                                 cancellationToken,
                                                                 repetitions: maxRepetitions);
 
     // Выполняем SNMP-запрос для получения Base Port & VLAN Egress Ports
-    dot1qVlanStaticEgressPorts = await _snmpCommandExecutor.WalkCommand(host: host,
+    dot1qVlanStaticEgressPorts = await snmpCommandExecutor.WalkCommand(host: host,
                                                                         community: community,
                                                                         oid: "1.3.6.1.4.1.1916.1.4.17.1.2",
                                                                         cancellationToken,

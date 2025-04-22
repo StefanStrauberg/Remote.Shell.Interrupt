@@ -2,26 +2,24 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 
 public record DeleteNetworkDevicesCommand : ICommand<Unit>;
 
-internal class DeleteNetworkDevicesCommandHandler(IUnitOfWork unitOfWork)
+internal class DeleteNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUnitOfWork)
   : ICommandHandler<DeleteNetworkDevicesCommand, Unit>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-
   async Task<Unit> IRequestHandler<DeleteNetworkDevicesCommand, Unit>.Handle(DeleteNetworkDevicesCommand request,
                                                                              CancellationToken cancellationToken)
   {
-    var networkDevices = await _unitOfWork.NetworkDevices
-                                          .GetAllAsync(cancellationToken);
+    var networkDevices = await netDevUnitOfWork.NetworkDevices
+                                               .GetAllAsync(cancellationToken);
 
-    foreach (var networkDevice in networkDevices)
+    var deleteNetworkDeviceByIdCommandHandler = new DeleteNetworkDeviceByIdCommandHandler(netDevUnitOfWork);
+
+    foreach (var item in networkDevices)
     {
-      // Удаляем найденное устройство из репозитория
-      _unitOfWork.NetworkDevices
-                 .DeleteOneWithChilren(networkDevice);
-    }
+      var deleteNetworkDeviceByIdCommand = new DeleteNetworkDeviceByIdCommand(item.Id);
 
-    _unitOfWork.Complete();
+      await ((IRequestHandler<DeleteNetworkDeviceByIdCommand, Unit>)deleteNetworkDeviceByIdCommandHandler).Handle(deleteNetworkDeviceByIdCommand,
+                                                                                                                  cancellationToken);
+    }
 
     // Возвращаем успешный результат выполнения команды
     return Unit.Value;

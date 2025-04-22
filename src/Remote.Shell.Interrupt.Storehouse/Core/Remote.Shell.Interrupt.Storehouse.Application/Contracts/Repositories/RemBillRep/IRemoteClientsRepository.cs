@@ -1,5 +1,4 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.RemBillRep;
 
-public interface IRemoteClientsRepository
-{
-}
+public interface IRemoteClientsRepository : IRemoteGenericRepository<RemoteClient>
+{ }

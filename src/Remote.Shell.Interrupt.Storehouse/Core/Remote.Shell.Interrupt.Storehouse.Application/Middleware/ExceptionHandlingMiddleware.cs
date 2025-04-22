@@ -55,6 +55,6 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
       errors = validationException.ErrorsDictionary;
     }
 
-    return (IReadOnlyDictionary<string, string[]>?)errors;
+    return errors;
   }
 }

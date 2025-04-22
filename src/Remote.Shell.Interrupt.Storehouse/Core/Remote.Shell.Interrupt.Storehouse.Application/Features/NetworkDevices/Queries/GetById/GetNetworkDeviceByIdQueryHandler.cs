@@ -2,29 +2,30 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 
 public record GetNetworkDeviceByIdQuery(Guid Id) : IQuery<NetworkDeviceDTO>;
 
-internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
+internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
                                                 IMapper mapper)
   : IQueryHandler<GetNetworkDeviceByIdQuery, NetworkDeviceDTO>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   public async Task<NetworkDeviceDTO> Handle(GetNetworkDeviceByIdQuery request, CancellationToken cancellationToken)
   {
+    var requestParameters = new RequestParameters
+    {
+      Filters = $"Id=={request.Id}"
+    };
+
     // Проверка существования сетевое устройство с данным ID
-    var existingNetworkDevice = await _unitOfWork.NetworkDevices
-                                                 .AnyByIdAsync(request.Id,
-                                                               cancellationToken);
+    var existingNetworkDevice = await netDevUnitOfWork.NetworkDevices
+                                                      .AnyByQueryAsync(requestParameters,
+                                                                       cancellationToken);
 
     // Если сетевое устройство не найдено — исключение
     if (!existingNetworkDevice)
       throw new EntityNotFoundById(typeof(NetworkDevice),
                                    request.Id.ToString());
 
-    var networkDevice = await _unitOfWork.NetworkDevices.GetOneWithChildrensByIdAsync(request.Id,
-                                                                                        cancellationToken);
+    var networkDevice = await netDevUnitOfWork.NetworkDevices
+                                              .GetOneWithChildrensAsync(requestParameters,
+                                                                        cancellationToken);
 
     HashSet<Guid> aggregatedPortsIds = [];
 
@@ -40,7 +41,7 @@ internal class GetNetworkDeviceByIdQueryHandler(IUnitOfWork unitOfWork,
           .Where(port => !aggregatedPortsIds.Contains(port.Id))
           .OrderBy(port => port.InterfaceName)];
 
-    var networkDeviceDTO = _mapper.Map<NetworkDeviceDTO>(networkDevice);
+    var networkDeviceDTO = mapper.Map<NetworkDeviceDTO>(networkDevice);
 
     return networkDeviceDTO;
   }

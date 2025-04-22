@@ -1,4 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
 
 public interface IARPEntityRepository
+  : IBulkInsertRepository<ARPEntity>
 { }

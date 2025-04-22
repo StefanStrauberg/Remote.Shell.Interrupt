@@ -2,15 +2,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 
 public record GetNetworkDevicesByIPQuery(string IpAddress) : IQuery<CompoundObjectDTO>;
 
-internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
+internal class GetNetworkDevicesByIPQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
+                                                 ILocBillUnitOfWork locBillUnitOfWork,
                                                  IMapper mapper)
   : IQueryHandler<GetNetworkDevicesByIPQuery, CompoundObjectDTO>
 {
-  readonly IUnitOfWork _unitOfWork = unitOfWork
-    ?? throw new ArgumentNullException(nameof(unitOfWork));
-  readonly IMapper _mapper = mapper
-    ?? throw new ArgumentNullException(nameof(mapper));
-
   async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDevicesByIPQuery, CompoundObjectDTO>.Handle(GetNetworkDevicesByIPQuery request,
                                                                                                     CancellationToken cancellationToken)
   {
@@ -18,7 +14,7 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
     if (!IPAddress.TryParse(request.IpAddress, out var ipToCheck))
       throw new ArgumentException("Invalid IP address format.", nameof(request.IpAddress));
 
-    var interfaceName = await _unitOfWork.Ports
+    var interfaceName = await netDevUnitOfWork.Ports
                                          .LookingForInterfaceNameByIPAsync(request.IpAddress,
                                                                            cancellationToken);
 
@@ -26,8 +22,8 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
                                  out int vlanTag))
       return default!;
 
-    var getClientsByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(_unitOfWork,
-                                                                              _mapper);
+    var getClientsByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(locBillUnitOfWork,
+                                                                              mapper);
 
     var getClientsByVlanTagQuery = new GetClientsByVlanTagQuery(vlanTag);
 
@@ -41,16 +37,19 @@ internal class GetNetworkDevicesByIPQueryHandler(IUnitOfWork unitOfWork,
 
     foreach (var tag in vlanTags)
     {
-      networkDevices.AddRange(await _unitOfWork.NetworkDevices
-                                               .GetManyWithChildrensByVLANTagAsync(tag,
-                                                                                   cancellationToken));
+      networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
+                                                    .GetManyWithChildrenAsync(new RequestParameters
+                                                                              {
+                                                                                Filters = $"VLANTag=={tag}"
+                                                                              },
+                                                                              cancellationToken));
     }
 
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 
     var reuslt = new CompoundObjectDTO()
     {
-      NetworkDevices = _mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
+      NetworkDevices = mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
       Clients = clients
     };
 

@@ -21,3 +21,9 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.IGateRep;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocBillRep;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.RemBillRep;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.RemBillRep;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.NetDevRep;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;

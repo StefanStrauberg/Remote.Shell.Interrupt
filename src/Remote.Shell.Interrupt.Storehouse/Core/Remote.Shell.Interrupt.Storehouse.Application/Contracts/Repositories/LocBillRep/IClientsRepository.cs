@@ -6,5 +6,7 @@ public interface IClientsRepository
     IManyQueryRepository<Client>,
     IExistenceQueryRepository<Client>,
     ICountRepository<Client>,
-    IReadRepository<Client>
+    IReadRepository<Client>,
+    IBulkDeleteRepository<Client>,
+    IBulkInsertRepository<Client>
 { }

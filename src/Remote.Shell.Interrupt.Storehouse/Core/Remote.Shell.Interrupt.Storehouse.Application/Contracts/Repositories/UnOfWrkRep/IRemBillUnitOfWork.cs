@@ -6,6 +6,4 @@ public interface IRemBillUnitOfWork
   IRemoteCODRepository RemoteCODs { get; }
   IRemoteTfPlanRepository RemoteTfPlans { get; }
   IRemoteSPRVlansRepository RemoteSPRVlans { get; }
-
-  void Complete();
 }

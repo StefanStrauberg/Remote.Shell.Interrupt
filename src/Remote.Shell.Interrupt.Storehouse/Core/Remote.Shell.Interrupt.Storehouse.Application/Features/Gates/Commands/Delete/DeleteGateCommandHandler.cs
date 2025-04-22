@@ -25,7 +25,8 @@ internal class DeleteGateCommandHandler(IGateUnitOfWork gateUnitOfWork)
                                    .GetOneShortAsync(requestParameters,
                                                      cancellationToken);
 
-    gateUnitOfWork.GateRepository.DeleteOne(gate);
+    gateUnitOfWork.GateRepository
+                  .DeleteOne(gate);
 
     gateUnitOfWork.Complete();
 

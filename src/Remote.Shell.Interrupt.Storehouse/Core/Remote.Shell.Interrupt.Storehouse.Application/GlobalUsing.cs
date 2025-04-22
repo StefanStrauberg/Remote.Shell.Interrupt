@@ -23,7 +23,6 @@ global using ValidationException = Remote.Shell.Interrupt.Storehouse.Application
 global using System.ComponentModel;
 global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
 global using System.Net;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetAll;
 global using Microsoft.Extensions.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
@@ -40,3 +39,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.GenericRep;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IGateRep;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.SNMPRep;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Vlans;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;

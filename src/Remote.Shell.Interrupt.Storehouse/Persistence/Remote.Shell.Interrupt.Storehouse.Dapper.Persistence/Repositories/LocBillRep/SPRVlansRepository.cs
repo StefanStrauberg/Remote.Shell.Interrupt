@@ -2,9 +2,17 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocB
 
 internal class SPRVlansRepository(IManyQueryRepository<SPRVlan> manyQueryRepository,
                                   ICountRepository<SPRVlan> countRepository,
-                                  IReadRepository<SPRVlan> readRepository)
+                                  IReadRepository<SPRVlan> readRepository,
+                                  IBulkDeleteRepository<SPRVlan> bulkDeleteRepository,
+                                  IBulkInsertRepository<SPRVlan> bulkInsertRepository)
   : ISPRVlansRepository
 {
+  void IBulkInsertRepository<SPRVlan>.InsertMany(IEnumerable<SPRVlan> entities)
+    => bulkInsertRepository.InsertMany(entities);
+
+  void IBulkDeleteRepository<SPRVlan>.DeleteMany(IEnumerable<SPRVlan> entities)
+    => bulkDeleteRepository.DeleteMany(entities);
+
   async Task<IEnumerable<SPRVlan>> IReadRepository<SPRVlan>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
 
