@@ -104,7 +104,7 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<Port>()}\" AS p ON p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<PortVlan>()}\" AS pv ON pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<VLAN>()}\" AS v ON v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
-    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
+    //sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
 
     var baseQuery = sb.ToString();
     var connection = await context.CreateConnectionAsync(cancellationToken);
@@ -115,7 +115,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            "nd",
                                            typeof(NetworkDevice));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
     await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
         finalQuery,

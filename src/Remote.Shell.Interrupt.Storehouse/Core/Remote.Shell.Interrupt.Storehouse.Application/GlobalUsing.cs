@@ -41,3 +41,6 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.SNMPRep;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Vlans;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;
+global using System.Linq.Expressions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Specification;
+global using System.Text.RegularExpressions;

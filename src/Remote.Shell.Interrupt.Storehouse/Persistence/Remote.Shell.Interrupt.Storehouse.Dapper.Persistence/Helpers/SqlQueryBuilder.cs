@@ -87,7 +87,7 @@ internal partial class SqlQueryBuilder
                         if (sqlOp == "ILIKE")
                             typedValue = $"%{value}%";
 
-                        if (_tableAlias is null)
+                        if (_tableAlias is null || _tableAlias == string.Empty)
                         {
                             sb.Append(sqlOp == "ILIKE"
                                       ? $"AND \"{property.Name}\" ILIKE {paramName} "
@@ -115,7 +115,7 @@ internal partial class SqlQueryBuilder
 
             if (_propertyMap.TryGetValue(sortField, out var property))
             {
-                sb.Append($" ORDER BY {_tableAlias}.\"{property.Name}\" {direction} ");
+                sb.Append($"ORDER BY {_tableAlias}.\"{property.Name}\" {direction} ");
             }
         }
 
@@ -123,7 +123,7 @@ internal partial class SqlQueryBuilder
         {
             // PAGINATION
             var offset = (_request.PageNumber - 1) * _request.PageSize;
-            sb.Append(" LIMIT @Limit OFFSET @Offset ");
+            sb.Append("LIMIT @Limit OFFSET @Offset ");
             parameters.Add("Limit", _request.PageSize);
             parameters.Add("Offset", offset);
         }

@@ -9,6 +9,81 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
                                  IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
 {
+  async Task<IEnumerable<Client>> IClientsRepository.GetManyWithChildrenAsync(ISpecification<Client> specification,
+                                                                              CancellationToken cancellationToken)
+  {
+    var queryBuilder = new SqlQueryBuilderUpdated<Client>();
+
+    if (specification.Criteria is not null)
+    {
+      // Создаем посетителя для преобразования Expression в SQL
+      var visitor = new SqlExpressionVisitor<Client>();
+      var whereClause = visitor.Visit(specification.Criteria); // Преобразуем Expression в SQL условие
+
+      // Добавляем SQL условие и параметры в queryBuilder
+      foreach (var param in visitor.Parameters)
+        queryBuilder.AddFilter(whereClause, param.Value, param.Key); // Добавляем в queryBuilder
+    }
+    
+    var clientPrefix = nameof(Client).ToLower();
+    var codTableName = GetTableName.Handle<COD>();
+    var codPrefix = nameof(COD).ToLower();
+    var tfPlanTableName = GetTableName.Handle<TfPlan>();
+    var tfPlanPrefix = nameof(TfPlan).ToLower();
+    var sprVlanTableName = GetTableName.Handle<SPRVlan>();
+    var sprVlanPrefix = nameof(SPRVlan).ToLower();
+    
+    queryBuilder.AddJoin<COD>($"LEFT JOIN \"{codTableName}\" AS {codPrefix} ON {codPrefix}.\"{nameof(COD.IdCOD)}\" = {clientPrefix}.\"{nameof(Client.Id_COD)}\"",
+                              codPrefix);
+    queryBuilder.AddJoin<TfPlan>($"LEFT JOIN \"{tfPlanTableName}\" AS {tfPlanPrefix} ON {tfPlanPrefix}.\"{nameof(TfPlan.IdTfPlan)}\" = {clientPrefix}.\"{nameof(Client.Id_TfPlan)}\"",
+                                 tfPlanPrefix);
+    queryBuilder.AddJoin<SPRVlan>($"LEFT JOIN \"{sprVlanTableName}\" AS {sprVlanPrefix} ON {sprVlanPrefix}.\"{nameof(SPRVlan.IdClient)}\" = {clientPrefix}.\"{nameof(Client.IdClient)}\"",
+                                  sprVlanPrefix);
+
+    var (sql, parameters) = queryBuilder.Build();
+
+    using var connection = await context.CreateConnectionAsync(cancellationToken);
+
+    var ccDictionary = new Dictionary<Guid, Client>();
+
+    await connection.QueryAsync<Client, COD, TfPlan, SPRVlan, Client>(
+        sql,
+        (cc, c, tf, sprvl) =>
+        {
+          if (!ccDictionary.TryGetValue(cc.Id, out var client))
+          {
+            client = cc;
+            ccDictionary.Add(client.Id, client);
+          }
+
+          if (c is not null && client is not null)
+            client.COD = c;
+
+          if (tf is not null && client is not null)
+            client.TfPlanL = tf;
+          
+          if (sprvl is not null && client is not null) 
+            client.SPRVlans.Add(sprvl);
+
+          return client!;
+        },
+        parameters,
+        splitOn: $"{nameof(Client.Id)}, {nameof(COD.Id)}, {nameof(TfPlan.Id)}, {nameof(SPRVlan.Id)}");
+
+    return ccDictionary.Values;
+  }
+
+  private static Client MapClientEntities(Client client, COD cod, TfPlan tfPlan, SPRVlan sprVlan)
+  {
+      client.COD ??= cod;
+      client.TfPlanL ??= tfPlan;
+      
+      if (sprVlan != null && !client.SPRVlans.Any(s => s.Id == sprVlan.Id))
+          client.SPRVlans.Add(sprVlan);
+      
+      return client;
+  }
+
   async Task<IEnumerable<Client>> IManyQueryWithRelationsRepository<Client>.GetManyWithChildrenAsync(RequestParameters requestParameters,
                                                                                                      CancellationToken cancellationToken)
   {
@@ -31,14 +106,14 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     sb.Append($"FROM \"{GetTableName.Handle<Client>()}\" AS cc ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<COD>()}\" AS c ON c.\"{nameof(COD.IdCOD)}\" = cc.\"{nameof(Client.Id_COD)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<TfPlan>()}\" AS tf ON tf.\"{nameof(TfPlan.IdTfPlan)}\" = cc.\"{nameof(Client.Id_TfPlan)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<SPRVlan>()}\" AS sprvl ON sprvl.\"{nameof(SPRVlan.IdClient)}\" = cc.\"{nameof(Client.IdClient)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName.Handle<SPRVlan>()}\" AS sprvl ON sprvl.\"{nameof(SPRVlan.IdClient)}\" = cc.\"{nameof(Client.IdClient)}\"");
 
     var baseQuery = sb.ToString();
     var ccDictionary = new Dictionary<Guid, Client>();
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            "cc",
                                            typeof(Client));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
     
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
@@ -91,7 +166,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     sb.Append($"FROM \"{GetTableName.Handle<Client>()}\" AS cc ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<COD>()}\" AS c ON c.\"{nameof(COD.IdCOD)}\" = cc.\"{nameof(Client.Id_COD)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<TfPlan>()}\" AS tf ON tf.\"{nameof(TfPlan.IdTfPlan)}\" = cc.\"{nameof(Client.Id_TfPlan)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<SPRVlan>()}\" AS sprvl ON sprvl.\"{nameof(SPRVlan.IdClient)}\" = cc.\"{nameof(Client.IdClient)}\" ");
+    sb.Append($"LEFT JOIN \"{GetTableName.Handle<SPRVlan>()}\" AS sprvl ON sprvl.\"{nameof(SPRVlan.IdClient)}\" = cc.\"{nameof(Client.IdClient)}\"");
 
     var baseQuery = sb.ToString();
     var ccDictionary = new Dictionary<Guid, Client>();

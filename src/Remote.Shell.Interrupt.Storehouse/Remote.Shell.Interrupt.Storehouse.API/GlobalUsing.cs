@@ -34,3 +34,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organization
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetAll;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Delete;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;
+global using System.Linq.Expressions;
