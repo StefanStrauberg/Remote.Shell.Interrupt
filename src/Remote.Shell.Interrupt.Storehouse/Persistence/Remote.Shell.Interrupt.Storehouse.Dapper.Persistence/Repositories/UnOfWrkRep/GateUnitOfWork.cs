@@ -1,13 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
 internal class GateUnitOfWork(PostgreSQLDapperContext context,
-                              ExistenceQueryRepository<Gate> existenceQueryRepository,
-                              CountRepository<Gate> countRepository,
-                              ManyQueryRepository<Gate> manyQueryRepository,
-                              OneQueryRepository<Gate> oneQueryRepository,
-                              InsertRepository<Gate> insertRepository,
-                              DeleteRepository<Gate> deleteRepository,
-                              ReplaceRepository<Gate> replaceRepository) 
+                              IExistenceQueryRepository<Gate> existenceQueryRepository,
+                              ICountRepository<Gate> countRepository,
+                              IManyQueryRepository<Gate> manyQueryRepository,
+                              IOneQueryRepository<Gate> oneQueryRepository,
+                              IInsertRepository<Gate> insertRepository,
+                              IDeleteRepository<Gate> deleteRepository,
+                              IReplaceRepository<Gate> replaceRepository) 
   : IGateUnitOfWork, IDisposable
 {
   IGateRepository IGateUnitOfWork.GateRepository 

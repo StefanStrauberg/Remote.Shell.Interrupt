@@ -1,21 +1,21 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
 internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
-                                ManyQueryRepository<NetworkDevice> networkDeviceManyQueryRepository,
-                                ExistenceQueryRepository<NetworkDevice> networkDeviceExistenceQueryRepository,
-                                CountRepository<NetworkDevice> networkDeviceCountRepository,
-                                InsertRepository<NetworkDevice> networkDeviceInsertRepository,
-                                ReadRepository<NetworkDevice> networkDeviceReadRepository,
-                                BulkInsertRepository<VLAN> vlanBulkInsertRepository,
-                                ExistenceQueryRepository<Port> portExistenceQueryRepository,
-                                OneQueryRepository<Port> portOneQueryRepository,
-                                BulkInsertRepository<Port> portBulkInsertRepository,
-                                BulkDeleteRepository<Port> portBulkDeleteRepository, 
-                                BulkReplaceRepository<Port> portBulkReplaceRepository,
-                                BulkInsertRepository<ARPEntity> arpEntityBulkInsertRepository,
-                                BulkInsertRepository<MACEntity> macEntityBulkInsertRepository,
-                                BulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository,
-                                BulkInsertRepository<PortVlan> portVlanBulkInsertRepository) 
+                                IManyQueryRepository<NetworkDevice> networkDeviceManyQueryRepository,
+                                IExistenceQueryRepository<NetworkDevice> networkDeviceExistenceQueryRepository,
+                                ICountRepository<NetworkDevice> networkDeviceCountRepository,
+                                IInsertRepository<NetworkDevice> networkDeviceInsertRepository,
+                                IReadRepository<NetworkDevice> networkDeviceReadRepository,
+                                IBulkInsertRepository<VLAN> vlanBulkInsertRepository,
+                                IExistenceQueryRepository<Port> portExistenceQueryRepository,
+                                IOneQueryRepository<Port> portOneQueryRepository,
+                                IBulkInsertRepository<Port> portBulkInsertRepository,
+                                IBulkDeleteRepository<Port> portBulkDeleteRepository, 
+                                IBulkReplaceRepository<Port> portBulkReplaceRepository,
+                                IBulkInsertRepository<ARPEntity> arpEntityBulkInsertRepository,
+                                IBulkInsertRepository<MACEntity> macEntityBulkInsertRepository,
+                                IBulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository,
+                                IBulkInsertRepository<PortVlan> portVlanBulkInsertRepository) 
   : INetDevUnitOfWork, IDisposable
 {
   public INetworkDeviceRepository NetworkDevices 
