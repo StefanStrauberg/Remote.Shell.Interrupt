@@ -28,4 +28,3 @@ global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.N
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 global using System.Linq.Expressions;
-global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Specification;

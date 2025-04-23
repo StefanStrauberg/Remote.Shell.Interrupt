@@ -26,7 +26,7 @@ public class ClientsController : BaseAPIController
 
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetClientsWithChildrens([FromQuery] UpdatedRequestParameters requestParameters,
+  public async Task<IActionResult> GetClientsWithChildrens([FromQuery] RequestParameters requestParameters,
                                                            CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetAllClientsWithChildrensQuery(requestParameters),

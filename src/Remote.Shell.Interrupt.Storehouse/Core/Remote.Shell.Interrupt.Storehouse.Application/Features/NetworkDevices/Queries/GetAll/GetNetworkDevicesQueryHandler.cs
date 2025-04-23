@@ -18,7 +18,7 @@ internal class GetNetworkDevicesQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
                                                      cancellationToken);
 
     if (!networkDevices.Any())
-      return default!;
+      return new PagedList<NetworkDeviceDTO>([],0,0,0);
 
     var result = mapper.Map<List<NetworkDeviceDTO>>(networkDevices);
 

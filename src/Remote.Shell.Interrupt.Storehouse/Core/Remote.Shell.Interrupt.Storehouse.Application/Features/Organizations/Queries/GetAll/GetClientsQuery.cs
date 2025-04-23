@@ -15,7 +15,7 @@ internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
                                                             cancellationToken);
 
     if (!clients.Any())
-      return default!;
+      return new PagedList<ShortClientDTO>([],0,0,0);
 
     var count = await locBillUnitOfWork.Clients
                                        .GetCountAsync(request.RequestParameters,
