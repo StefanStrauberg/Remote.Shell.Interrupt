@@ -54,6 +54,14 @@ public class ClientsController : BaseAPIController
     => Ok(await Sender.Send(new GetClientByIdQuery(id),
                             cancellationToken));
 
+  [HttpGet("{id}")]
+  [ProducesResponseType(typeof(DetailClientDTO), StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> GetClientByIdClient(int id,
+                                                       CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new GetClientByIdClientQuery(id),
+                            cancellationToken));
+
   [HttpPut]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]

@@ -15,7 +15,7 @@ export const useClients = (
   pageNumber: number = 1,
   pageSize: number = 10,
   filters: ClientFilter = {},
-  id?: string
+  id?: string | number
 ): {
   clients: ClientShort[];
   pagination: PaginationHeader;
@@ -27,6 +27,8 @@ export const useClients = (
 } => {
   const queryClient = useQueryClient();
   const location = useLocation();
+  const isGuid =
+    typeof id === "string" && /^[0-9a-fA-F-]{36}$/.test(id.toString());
 
   const { data: clientsResponse, isLoading: isLoadingClients } = useQuery({
     queryKey: ["clients", pageNumber, pageSize, filters],
@@ -58,10 +60,10 @@ export const useClients = (
   const { data: clientById, isLoading: isLoadingById } = useQuery({
     queryKey: ["clients", id],
     queryFn: async () => {
-      console.log("Call clientById");
-      const response = await agent.get<Client>(
-        `/api/Clients/GetClientById/${id}`
-      );
+      const endpoint = isGuid
+        ? `/api/Clients/GetClientById/${id}`
+        : `/api/Clients/GetClientByIdClient/${id}`;
+      const response = await agent.get<Client>(endpoint);
       return response.data;
     },
     enabled: !!id,

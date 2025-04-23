@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
 import { SprVlan } from "../../lib/types/SPRVlans/SprVlan";
+import { Link } from "react-router";
 
 type Props = {
   sprVlans: SprVlan[] | undefined;
@@ -63,7 +64,12 @@ export default function SPRVlanListPage({
                   {sprVlan.idClient === 0 ? (
                     <></>
                   ) : (
-                    <Button variant="contained" color="primary">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      component={Link}
+                      to={`/clients/${sprVlan.idClient}`}
+                    >
                       клиент
                     </Button>
                   )}
