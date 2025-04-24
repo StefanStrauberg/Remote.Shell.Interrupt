@@ -22,7 +22,9 @@ internal class TfPlanRepository(IManyQueryRepository<TfPlan> manyQueryRepository
                                            cancellationToken);
 
   async Task<IEnumerable<TfPlan>> IManyQueryRepository<TfPlan>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                 CancellationToken cancellationToken)
+                                                                                 CancellationToken cancellationToken,
+                                                                                 bool skipFiltering)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken);
+                                                   cancellationToken,
+                                                   skipFiltering);
 }

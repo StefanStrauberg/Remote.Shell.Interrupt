@@ -38,11 +38,8 @@ internal class GetNetworkDevicesByIPQueryHandler(INetDevUnitOfWork netDevUnitOfW
     foreach (var tag in vlanTags)
     {
       networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
-                                                    .GetManyWithChildrenAsync(new RequestParameters
-                                                                              {
-                                                                                Filters = $"VLANTag=={tag}"
-                                                                              },
-                                                                              cancellationToken));
+                                                    .GetManyWithChildrenByVlanTagAsync(tag,
+                                                                                       cancellationToken));
     }
 
     PrepareAndCleanAggregationPorts.Handle(networkDevices);

@@ -7,6 +7,7 @@ internal class SPRVlansRepository(IManyQueryRepository<SPRVlan> manyQueryReposit
                                   IBulkInsertRepository<SPRVlan> bulkInsertRepository)
   : ISPRVlansRepository
 {
+
   void IBulkInsertRepository<SPRVlan>.InsertMany(IEnumerable<SPRVlan> entities)
     => bulkInsertRepository.InsertMany(entities);
 
@@ -22,7 +23,9 @@ internal class SPRVlansRepository(IManyQueryRepository<SPRVlan> manyQueryReposit
                                            cancellationToken);
 
   async Task<IEnumerable<SPRVlan>> IManyQueryRepository<SPRVlan>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                   CancellationToken cancellationToken)
+                                                                                   CancellationToken cancellationToken,
+                                                                                   bool skipFiltering)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken);
+                                                   cancellationToken,
+                                                   skipFiltering);
 }

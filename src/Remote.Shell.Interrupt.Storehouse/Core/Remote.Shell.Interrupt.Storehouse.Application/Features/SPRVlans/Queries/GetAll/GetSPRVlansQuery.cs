@@ -12,7 +12,8 @@ internal class GetSPRVlansQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
   {
     var sprVlans = await locBillUnitOfWork.SPRVlans
                                           .GetManyShortAsync(request.RequestParameters,
-                                                             cancellationToken);
+                                                             cancellationToken,
+                                                             true);
 
     if (!sprVlans.Any())
       return new PagedList<SPRVlanDTO>([],0,0,0);

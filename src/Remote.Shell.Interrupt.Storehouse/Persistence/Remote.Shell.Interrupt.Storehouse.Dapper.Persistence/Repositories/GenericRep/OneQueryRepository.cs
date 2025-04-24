@@ -12,7 +12,7 @@ internal class OneQueryRepository<T>(PostgreSQLDapperContext context)
                                            "",
                                            typeof(T));
 
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

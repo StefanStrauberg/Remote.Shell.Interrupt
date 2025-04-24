@@ -15,7 +15,7 @@ internal class CountRepository<T>(PostgreSQLDapperContext context)
     
     if (HasFiltersOrSorts.Handle(requestParameters))
     {
-      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
       return await connection.ExecuteScalarAsync<int>(finalQuery, parameters);
     }

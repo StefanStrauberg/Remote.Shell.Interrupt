@@ -130,11 +130,14 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
   }
 
   async Task<IEnumerable<Client>> IManyQueryRepository<Client>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                 CancellationToken cancellationToken)
+                                                                                 CancellationToken cancellationToken,
+                                                                                 bool skipFiltering)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken);
+                                                   cancellationToken,
+                                                   skipFiltering);
 
-  async Task<bool> IExistenceQueryRepository<Client>.AnyByQueryAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
+  async Task<bool> IExistenceQueryRepository<Client>.AnyByQueryAsync(RequestParameters requestParameters,
+                                                                     CancellationToken cancellationToken)
     => await existenceQueryRepository.AnyByQueryAsync(requestParameters,
                                                       cancellationToken);
 

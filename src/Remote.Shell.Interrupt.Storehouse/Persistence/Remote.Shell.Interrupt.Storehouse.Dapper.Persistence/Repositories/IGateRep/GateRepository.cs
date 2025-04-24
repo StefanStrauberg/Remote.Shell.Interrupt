@@ -28,9 +28,11 @@ internal class GateRepository(IExistenceQueryRepository<Gate> existenceQueryRepo
                                            cancellationToken);
 
   async Task<IEnumerable<Gate>> IManyQueryRepository<Gate>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                             CancellationToken cancellationToken)
+                                                                             CancellationToken cancellationToken,
+                                                                             bool skipFiltering)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken);
+                                                   cancellationToken,
+                                                   skipFiltering);
 
   void IDeleteRepository<Gate>.DeleteOne(Gate entity)
     => deleteRepository.DeleteOne(entity);

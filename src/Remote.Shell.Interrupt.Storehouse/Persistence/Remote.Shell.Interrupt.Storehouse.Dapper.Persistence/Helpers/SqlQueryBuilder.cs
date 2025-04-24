@@ -35,7 +35,7 @@ internal partial class SqlQueryBuilder
     }
 
     public (string Sql, DynamicParameters Parameters) BuildBaseQuery(string baseSelect,
-                                                                     bool ignorePagination = false)
+                                                                     bool ignorePagination)
     {
         var sb = new StringBuilder(baseSelect);
         var parameters = new DynamicParameters();

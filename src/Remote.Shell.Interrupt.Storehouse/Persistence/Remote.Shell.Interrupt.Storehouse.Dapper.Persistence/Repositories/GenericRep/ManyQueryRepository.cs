@@ -4,7 +4,8 @@ internal class ManyQueryRepository<T>(PostgreSQLDapperContext context)
   : IManyQueryRepository<T> where T : BaseEntity
 {
   async Task<IEnumerable<T>> IManyQueryRepository<T>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                       CancellationToken cancellationToken)
+                                                                       CancellationToken cancellationToken,
+                                                                       bool skipFiltering)
   {
     var baseQuery = $"SELECT {GetColumnsAsProperties.Handle<T>()} FROM \"{GetTableName.Handle<T>()}\"";
 
@@ -12,7 +13,7 @@ internal class ManyQueryRepository<T>(PostgreSQLDapperContext context)
                                            "",
                                            typeof(T));
 
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, skipFiltering);
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

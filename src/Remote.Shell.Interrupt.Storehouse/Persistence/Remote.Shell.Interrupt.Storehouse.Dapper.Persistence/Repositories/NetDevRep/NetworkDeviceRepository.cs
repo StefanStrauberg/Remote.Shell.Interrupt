@@ -57,7 +57,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder(requestParameters,
                                            "nd",
                                            typeof(NetworkDevice));
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery);
+
+    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
     await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
         finalQuery,
@@ -88,8 +89,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     return ndDictionary.Values.First();
   }
 
-  async Task<IEnumerable<NetworkDevice>> IManyQueryWithRelationsRepository<NetworkDevice>.GetManyWithChildrenAsync(RequestParameters requestParameters,
-                                                                                                                   CancellationToken cancellationToken)
+  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyWithChildrenByVlanTagAsync(int vlanTag,
+                                                                                                    CancellationToken cancellationToken)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
@@ -104,7 +105,7 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<Port>()}\" AS p ON p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<PortVlan>()}\" AS pv ON pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<VLAN>()}\" AS v ON v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
-    //sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
+    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
 
     var baseQuery = sb.ToString();
     var connection = await context.CreateConnectionAsync(cancellationToken);
@@ -112,14 +113,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     var pDicotionary = new Dictionary<Guid, Port>();
     var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
 
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           "nd",
-                                           typeof(NetworkDevice));
-
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
-
     await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
-        finalQuery,
+        baseQuery,
         (nd, p, pv, v) =>
         {
           if (!ndDictionary.TryGetValue(nd.Id, out var networkDeviceEntry))
@@ -141,16 +136,18 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
 
           return networkDeviceEntry;
         },
-        parameters,
+        new { VLANTag = vlanTag },
         splitOn: $"{nameof(NetworkDevice.Id)}, {nameof(Port.Id)}, {nameof(PortVlan.Id)}, {nameof(VLAN.Id)}");
 
     return ndDictionary.Values;
   }
 
   async Task<IEnumerable<NetworkDevice>> IManyQueryRepository<NetworkDevice>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                               CancellationToken cancellationToken)
+                                                                                               CancellationToken cancellationToken,
+                                                                                               bool skipFiltering)
     => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken);
+                                                   cancellationToken,
+                                                   skipFiltering);
 
   async Task<bool> IExistenceQueryRepository<NetworkDevice>.AnyByQueryAsync(RequestParameters requestParameters,
                                                                             CancellationToken cancellationToken)
@@ -167,4 +164,9 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
 
   async Task<IEnumerable<NetworkDevice>> IReadRepository<NetworkDevice>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
+
+  public Task<IEnumerable<NetworkDevice>> GetManyWithChildrenAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
+  {
+    throw new NotImplementedException("Oops! Crutch №1 =)");
+  }
 }
