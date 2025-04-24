@@ -89,8 +89,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     return ndDictionary.Values.First();
   }
 
-  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyWithChildrenByVlanTagAsync(int vlanTag,
-                                                                                                    CancellationToken cancellationToken)
+  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyWithChildrenByVlanTagsAsync(IEnumerable<int> vlanTags,
+                                                                                                     CancellationToken cancellationToken)
   {
     StringBuilder sb = new();
     sb.Append("SELECT ");
@@ -105,7 +105,7 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<Port>()}\" AS p ON p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<PortVlan>()}\" AS pv ON pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
     sb.Append($"LEFT JOIN \"{GetTableName.Handle<VLAN>()}\" AS v ON v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
-    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" = @VLANTag");
+    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" IN ({string.Join(",", vlanTags)})");
 
     var baseQuery = sb.ToString();
     var connection = await context.CreateConnectionAsync(cancellationToken);
@@ -136,8 +136,7 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
 
           return networkDeviceEntry;
         },
-        new { VLANTag = vlanTag },
-        splitOn: $"{nameof(NetworkDevice.Id)}, {nameof(Port.Id)}, {nameof(PortVlan.Id)}, {nameof(VLAN.Id)}");
+        splitOn: $"{nameof(NetworkDevice.Id)},{nameof(Port.Id)},{nameof(PortVlan.Id)},{nameof(VLAN.Id)}");
 
     return ndDictionary.Values;
   }

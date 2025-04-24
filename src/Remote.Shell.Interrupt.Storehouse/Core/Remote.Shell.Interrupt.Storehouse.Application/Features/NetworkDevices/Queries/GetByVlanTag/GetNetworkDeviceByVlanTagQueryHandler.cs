@@ -26,12 +26,9 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
     var vlanTags = clients.SelectMany(x => x.SPRVlans)
                           .Select(x => x.IdVlan);
 
-    foreach (var tag in vlanTags)
-    {
-      networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
-                                                    .GetManyWithChildrenByVlanTagAsync(request.VlanTag,
-                                                                                       cancellationToken));
-    }
+    networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
+                                                  .GetManyWithChildrenByVlanTagsAsync(vlanTags,
+                                                                                     cancellationToken));
 
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 

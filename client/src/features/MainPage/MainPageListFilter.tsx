@@ -14,15 +14,20 @@ import { useState } from "react";
 
 type Props = {
   onApplyFilters: (filters: RouterFilter) => void;
+  onSearch: () => void;
 };
 
-export default function MainPageListFilter({ onApplyFilters }: Props) {
-  const [idVlan, setIdVlan] = useState<number>(0);
+export default function MainPageListFilter({
+  onApplyFilters,
+  onSearch,
+}: Props) {
+  const [idVlan, setIdVlan] = useState<number | null>(0);
 
   const handleApplyClick = () => {
     const filters: RouterFilter = {};
     if (idVlan) filters.IdVlan = { op: "==", value: idVlan };
     onApplyFilters(filters);
+    onSearch();
   };
 
   return (
@@ -44,19 +49,17 @@ export default function MainPageListFilter({ onApplyFilters }: Props) {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="Id влана"
-            value={idVlan.toString() || ""}
+            value={idVlan?.toString() || ""}
             onChange={(e) => {
               const newValue = e.target.value;
               if (!isNaN(Number(newValue))) {
-                setIdVlan(Number(newValue)); // Преобразуем введенное значение в число
+                setIdVlan(Number(newValue));
               }
             }}
             variant="outlined"
             fullWidth
-            type="number" // Устанавливаем тип поля как "number"
-            inputProps={{ min: 0 }} // Ограничение ввода только положительных чисел (опционально)
-            error={isNaN(idVlan)} // Показывает ошибку, если значение некорректное
-            helperText={isNaN(idVlan) ? "Введите корректное число" : ""} // Текст подсказки
+            type="number"
+            inputProps={{ min: 0 }}
           />
           <Divider />
           <ButtonGroup>
@@ -73,6 +76,7 @@ export default function MainPageListFilter({ onApplyFilters }: Props) {
               variant="contained"
               color="success"
               onClick={handleApplyClick}
+              disabled={!idVlan} // Кнопка неактивна, если поле пустое
             >
               Применить
             </Button>

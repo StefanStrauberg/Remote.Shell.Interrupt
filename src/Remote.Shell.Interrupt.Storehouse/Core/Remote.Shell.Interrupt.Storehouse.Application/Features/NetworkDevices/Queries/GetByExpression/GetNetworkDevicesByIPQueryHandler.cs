@@ -35,12 +35,9 @@ internal class GetNetworkDevicesByIPQueryHandler(INetDevUnitOfWork netDevUnitOfW
                           
     List<NetworkDevice> networkDevices = [];
 
-    foreach (var tag in vlanTags)
-    {
-      networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
-                                                    .GetManyWithChildrenByVlanTagAsync(tag,
-                                                                                       cancellationToken));
-    }
+    networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
+                                                  .GetManyWithChildrenByVlanTagsAsync(vlanTags,
+                                                                                      cancellationToken));
 
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 
