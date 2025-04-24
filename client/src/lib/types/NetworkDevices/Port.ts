@@ -11,4 +11,5 @@ export type Port = {
   macAddress: string;
   description: string;
   vlaNs: Vlan[];
+  aggregatedPorts: Port[];
 };

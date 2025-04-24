@@ -16,7 +16,7 @@ internal class GetSPRVlansQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                           .GetManyShortAsync(request.RequestParameters,
                                                              cancellationToken,
                                                              true);
-    
+                                                             
     // Если ничего нет, просто возвращаем пустой список. Легко и просто!
     if (!sprVlans.Any())
       return new PagedList<SPRVlanDTO>([],0,0,0);
@@ -25,7 +25,7 @@ internal class GetSPRVlansQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
     var count = await locBillUnitOfWork.SPRVlans
                                        .GetCountAsync(request.RequestParameters,
                                                       cancellationToken);
-    
+
     // Преобразуем SPRVlans в DTO. Надеюсь, ты не забудешь про это!
     var result = mapper.Map<List<SPRVlanDTO>>(sprVlans);
 
@@ -33,9 +33,8 @@ internal class GetSPRVlansQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
     return new PagedList<SPRVlanDTO>(result,
                                      count,
                                      request.RequestParameters
-                                             .PageNumber,
+                                            .PageNumber,
                                      request.RequestParameters
-                                             .PageSize);
+                                            .PageSize);
   }
 }
-

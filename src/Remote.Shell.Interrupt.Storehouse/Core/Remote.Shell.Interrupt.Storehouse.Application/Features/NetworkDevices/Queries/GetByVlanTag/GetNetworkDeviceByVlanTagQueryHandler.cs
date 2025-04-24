@@ -38,6 +38,25 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                                   .GetManyWithChildrenByVlanTagsAsync(vlanTags,
                                                                                       cancellationToken));
 
+    foreach (var networkDevice in networkDevices)
+    {
+      var parentIds = networkDevice.PortsOfNetworkDevice
+                                   .Where(port => port.ParentPortId is null)
+                                   .Select(port => port.Id)
+                                   .ToList();
+      
+      if (parentIds.Count == 0)
+        continue;
+      
+      var children = await netDevUnitOfWork.Ports
+                                           .GetAllAggregatedPortsByListAsync(parentIds,
+                                                                             cancellationToken);
+      
+      foreach (var port in networkDevice.PortsOfNetworkDevice.Where(port => port.ParentPortId is null))
+          port.AggregatedPorts = [.. children.Where(child => child.ParentPortId == port.Id)];
+    }
+
+
     // Очистим порты. Или не очистим. Кто вообще знает, что тут происходит?
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 

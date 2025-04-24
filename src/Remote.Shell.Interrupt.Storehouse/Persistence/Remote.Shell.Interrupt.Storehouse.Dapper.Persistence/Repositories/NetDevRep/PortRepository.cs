@@ -8,17 +8,17 @@ internal class PortRepository(PostgreSQLDapperContext context,
                               IBulkReplaceRepository<Port> bulkReplaceRepository)
   : IPortRepository
 {
-  async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByListAsync(List<Guid> Ids,
+  async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByListAsync(IEnumerable<Guid> Ids,
                                                                                  CancellationToken cancellationToken)
   {
-    var ids = GetStringIds.Handle(Ids);
     StringBuilder sb = new();
+    var guids = $"{string.Join(", ", Ids.Select(id => $"'{id}'"))}";
     sb.Append($"SELECT \"{nameof(Port.Id)}\", \"{nameof(Port.InterfaceNumber)}\", \"{nameof(Port.InterfaceName)}\", ");
     sb.Append($"\"{nameof(Port.InterfaceType)}\", \"{nameof(Port.InterfaceStatus)}\", \"{nameof(Port.InterfaceSpeed)}\", ");
     sb.Append($"\"{nameof(Port.NetworkDeviceId)}\", \"{nameof(Port.ParentPortId)}\",  \"{nameof(Port.MACAddress)}\", ");
     sb.Append($"\"{nameof(Port.Description)}\" ");
     sb.Append($"FROM \"{GetTableName.Handle<Port>()}\" ");
-    sb.Append($"WHERE \"{nameof(Port.ParentPortId)}\" IN ({ids})");
+    sb.Append($"WHERE \"{nameof(Port.ParentPortId)}\" IN ({guids})");
 
     var query = sb.ToString();
     var connection = await context.CreateConnectionAsync(cancellationToken);
