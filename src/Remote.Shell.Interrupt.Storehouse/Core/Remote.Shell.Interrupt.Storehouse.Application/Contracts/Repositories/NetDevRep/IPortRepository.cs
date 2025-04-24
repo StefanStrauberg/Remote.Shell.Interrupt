@@ -7,7 +7,7 @@ public interface IPortRepository
     IBulkDeleteRepository<Port>,
     IBulkReplaceRepository<Port>
 {
-  Task<IEnumerable<Port>> GetAllAggregatedPortsByListAsync(List<Guid> Ids,
+  Task<IEnumerable<Port>> GetAllAggregatedPortsByListAsync(IEnumerable<Guid> Ids,
                                                            CancellationToken cancellationToken);
   Task<string> LookingForInterfaceNameByIPAsync(string ipAddress,
                                                 CancellationToken cancellationToken);
