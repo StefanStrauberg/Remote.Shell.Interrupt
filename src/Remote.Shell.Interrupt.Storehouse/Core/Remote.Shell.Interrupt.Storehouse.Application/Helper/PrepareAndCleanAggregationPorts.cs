@@ -1,33 +1,37 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Helper;
-
-// Ладно, эта штука отвечает за очистку и подготовку портов. Надеюсь, это не приведет к какой-нибудь чёртовой катастрофе!
-internal static class PrepareAndCleanAggregationPorts
+namespace Remote.Shell.Interrupt.Storehouse.Application.Helper
 {
-  internal static void Handle(IEnumerable<NetworkDevice> networkDevices)
+  // Класс для очистки и подготовки данных агрегированных портов.
+  internal static class PrepareAndCleanAggregationPorts
   {
-    foreach (var networkDevice in networkDevices)
+    internal static void Handle(IEnumerable<NetworkDevice> networkDevices)
     {
-      // Ну вот, создаём хешсет для идентификаторов агрегированных портов... Потому что ничего другого не придумали.
-      HashSet<Guid> aggregatedPortsIds = [];
-
-      foreach (var port in networkDevice.PortsOfNetworkDevice
-                                        .Where(x => x.ParentPortId is not null))
+      foreach (var networkDevice in networkDevices)
       {
-        // Ага, находим родительский порт. Надеюсь, он не исчезнет в другой галактике!
-        var parentPort = networkDevice.PortsOfNetworkDevice
-                                      .First(x => x.Id == port.ParentPortId);
-        parentPort.AggregatedPorts
-                  .Add(port);
-        aggregatedPortsIds.Add(port.Id);
+        // Создаем набор идентификаторов агрегированных портов.
+        var aggregatedPortsIds = new HashSet<Guid>();
+
+        // Создаем словарь для быстрого поиска порта по его идентификатору.
+        var portDictionary = networkDevice.PortsOfNetworkDevice
+                                          .ToDictionary(port => port.Id);
+
+        // Обрабатываем все порты, у которых задан родительский порт.
+        foreach (var childPort in networkDevice.PortsOfNetworkDevice
+                                               .Where(port => port.ParentPortId != null))
+        {
+          // Если родительский порт найден, добавляем childPort в агрегированные порты родителя.
+          if (childPort.ParentPortId.HasValue &&
+              portDictionary.TryGetValue(childPort.ParentPortId.Value, out var parentPort))
+          {
+            parentPort.AggregatedPorts.Add(childPort);
+            aggregatedPortsIds.Add(childPort.Id);
+          }
+        }
+
+        // Фильтруем и сортируем список портов: исключаем агрегированные дочерние порты и сортируем по имени интерфейса.
+        networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
+                                                              .Where(port => !aggregatedPortsIds.Contains(port.Id))
+                                                              .OrderBy(port => port.InterfaceName)];
       }
-
-      if (aggregatedPortsIds.Count == 0)
-        continue;
-
-      // Очистим список портов. И да, сортировка—это как попытка навести порядок в хаосе.
-      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
-                                                            .Where(port => !aggregatedPortsIds.Contains(port.Id))
-                                                            .OrderBy(port => port.InterfaceName)];
     }
   }
 }

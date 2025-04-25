@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetByVlanTag;
 
-// О, черт, запрос на VLAN Tag! Надеюсь, это не очередная галактическая катастрофа.
+// Запрос получения сетевого устройства по VLAN Tag.
 public record GetNetworkDeviceByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
 internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
@@ -11,63 +11,79 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
   async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByVlanTagQuery request,
                                                                                                           CancellationToken cancellationToken)
   {
-    // VLAN Tag равен нулю? Это что, шутка? Исправь это, пока вселенная не рухнула!
+    // Проверяем, что VLAN Tag задан корректно.
     if (request.VlanTag == 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
 
-    // Ладно, создаем запрос для клиентов. Надеюсь, они не окажутся инопланетными паразитами.
+    // Создаем запрос для получения клиентов по VLAN Tag.
     var getClientsByVlanTagQuery = new GetClientsByVlanTagQuery(request.VlanTag);
 
-    // Обработчик запросов? Да это же просто очередной бюрократический кошмар!
+    // Инициализируем обработчик запросов для клиентов.
     var getClientsByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(locBillUnitOfWork,
                                                                               mapper);
 
-    // Извлекаем клиентов. Если они начнут жаловаться, я тут ни при чем!
+    // Извлекаем список клиентов.
     var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)getClientsByVlanTagQueryHandler).Handle(getClientsByVlanTagQuery,
                                                                                                                                           cancellationToken);
     
-    // Список сетевых устройств? Пустой, как мои запасы межгалактического топлива.
+    // Инициализируем список сетевых устройств.
     List<NetworkDevice> networkDevices = [];
 
-    // Собираем VLAN теги. Надеюсь, они не взорвутся.
+    // Извлекаем VLAN теги из данных клиентов.
     var vlanTags = clients.SelectMany(x => x.SPRVlans)
-                          .Select(x => x.IdVlan);
+                          .Select(x => x.IdVlan)
+                          .Distinct();
 
-    // Добавляем устройства. Если что-то пойдет не так, я сваливаю!
+    // Извлекаем устройства, связанные с VLAN тегами.
     networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
                                                   .GetManyWithChildrenByVlanTagsAsync(vlanTags,
                                                                                       cancellationToken));
 
+    // Заполнение агрегированных портов
     foreach (var networkDevice in networkDevices)
     {
-      var parentIds = networkDevice.PortsOfNetworkDevice
-                                   .Where(port => port.ParentPortId is null)
-                                   .Select(port => port.Id)
-                                   .ToList();
-      
-      if (parentIds.Count == 0)
-        continue;
-      
-      var children = await netDevUnitOfWork.Ports
-                                           .GetAllAggregatedPortsByListAsync(parentIds,
-                                                                             cancellationToken);
-      
-      foreach (var port in networkDevice.PortsOfNetworkDevice.Where(port => port.ParentPortId is null))
-          port.AggregatedPorts = [.. children.Where(child => child.ParentPortId == port.Id)];
+        // Извлекаем родительские порты и материализуем их в список
+        var parentPorts = networkDevice.PortsOfNetworkDevice
+                                      .Where(port => port.ParentPortId is null);
+
+        // Если родительских портов нет, переходим к следующему устройству.
+        if (!parentPorts.Any())
+            continue;
+
+        // Извлекаем идентификаторы родительских портов
+        var parentPortsIds = parentPorts.Select(port => port.Id);
+
+        // Асинхронно получаем все дочерние порты для данных родительских портов.
+        var children = await netDevUnitOfWork.Ports
+                                             .GetAllAggregatedPortsByListAsync(parentPortsIds, cancellationToken);
+
+        // Группируем дочерние порты, гарантируя, что ParentPortId имеет значение
+        var childrenByParent = children.Where(child => child.ParentPortId.HasValue)         // Отфильтровываем элементы с не null ParentPortId
+                                       .GroupBy(child => child.ParentPortId!.Value)            // Используем Value для получения Guid
+                                       .ToDictionary(group => group.Key, group => group.ToArray());
+
+
+        // Записываем дочерние порты каждому родительскому порту
+        foreach (var port in parentPorts)
+        {
+            port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated)
+                                  ? aggregated
+                                  : []; // Если для родителя нет детей, устанавливаем пустой список.
+        }
     }
 
 
-    // Очистим порты. Или не очистим. Кто вообще знает, что тут происходит?
+    // Очищаем и подготавливаем данные портов.
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 
-    // Финальный результат. Надеюсь, он не вызовет межгалактический хаос.
-    var reuslt = new CompoundObjectDTO()
+    // Формируем финальный результат.
+    var result = new CompoundObjectDTO()
     {
       NetworkDevices = mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
       Clients = clients
     };
 
-    // Возвращаем результат. Если он не работает, это не моя вина!
-    return reuslt;
+    // Возвращаем результат.
+    return result;
   }
 }
