@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Helper;
+namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 
 internal static class TryGetVlanNumber
 {

@@ -26,7 +26,7 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Comman
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Update;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
-global using Remote.Shell.Interrupt.Storehouse.Application.Helper;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 global using System.Text.Json;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Queries.GetAll;
@@ -35,3 +35,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Que
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.Delete;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByIdClient;
+global using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;

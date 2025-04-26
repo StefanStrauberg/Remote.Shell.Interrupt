@@ -12,7 +12,7 @@ global using System.Reflection;
 global using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
 global using MySql.Data.MySqlClient;
-global using Remote.Shell.Interrupt.Storehouse.Application.Helper;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 global using System.Text.RegularExpressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.LocBillRep;
@@ -28,3 +28,4 @@ global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.N
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 global using System.Linq.Expressions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;

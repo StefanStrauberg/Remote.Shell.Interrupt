@@ -42,7 +42,7 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork locBillUnitOfW
     }
 
     // Проверка всех ли клиентов извлекли
-    var uniqName = ClientNameHelper.ExtractUniqName(clients.Select(x => x.Name));
+    var uniqName = ClientNameHelper.ExtractUniqName([.. clients.Select(x => x.Name)]);
 
     if (!string.IsNullOrEmpty(uniqName))
     {

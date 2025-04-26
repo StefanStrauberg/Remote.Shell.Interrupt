@@ -8,7 +8,7 @@ internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   : IQueryHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>
 {
   async Task<PagedList<ShortClientDTO>> IRequestHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>.Handle(GetAllShortClientsQuery request,
-                                                                                                         CancellationToken cancellationToken)
+                                                                                                                   CancellationToken cancellationToken)
   {
     var clients = await locBillUnitOfWork.Clients
                                          .GetManyShortAsync(request.RequestParameters,

@@ -6,7 +6,7 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
     private int _parameterIndex = 0;
     private readonly StringBuilder _queryBuilder = new();
 
-    public string Visit(Expression<Func<Client, bool>> criteria)
+    public string GetWhereClause(Expression<Func<T, bool>> criteria)
     {
         Visit(criteria.Body);
         return _queryBuilder.ToString();
@@ -51,7 +51,6 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
             
             // Обрабатываем аргументы метода.
             // Если значение передано как константа, оно оборачивается в шаблон для поиска.
-            var type = node.Arguments[0].GetType();
             if (node.Arguments[0] is ConstantExpression constant)
             {
                 var value = constant.Value?.ToString() ?? string.Empty;
@@ -80,7 +79,6 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
             ExpressionType.GreaterThan => " > ",
             ExpressionType.LessThan => " < ",
             ExpressionType.AndAlso => " AND ",
-            ExpressionType.OrElse => " OR ",
             _ => throw new NotImplementedException($"Operator {nodeType} not supported.")
         };
     }

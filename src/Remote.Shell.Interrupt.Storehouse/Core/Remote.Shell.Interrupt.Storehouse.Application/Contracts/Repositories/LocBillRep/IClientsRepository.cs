@@ -9,4 +9,10 @@ public interface IClientsRepository
     IReadRepository<Client>,
     IBulkDeleteRepository<Client>,
     IBulkInsertRepository<Client>
-{ }
+{ 
+  Task<IEnumerable<Client>> GetManyWithChildrenAsync(ISpecification<Client> specification,
+                                                     CancellationToken cancellationToken);
+
+  Task<int> GetCountAsync(ISpecification<Client> specification,
+                          CancellationToken cancellationToken);
+}

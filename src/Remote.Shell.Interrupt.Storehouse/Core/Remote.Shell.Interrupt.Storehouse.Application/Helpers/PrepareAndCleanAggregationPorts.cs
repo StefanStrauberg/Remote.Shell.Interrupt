@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Helper
+namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers
 {
   // Класс для очистки и подготовки данных агрегированных портов.
   internal static class PrepareAndCleanAggregationPorts
