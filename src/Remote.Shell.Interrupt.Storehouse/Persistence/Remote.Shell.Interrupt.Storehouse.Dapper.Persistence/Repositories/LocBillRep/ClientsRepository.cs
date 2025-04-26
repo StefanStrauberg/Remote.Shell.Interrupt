@@ -42,7 +42,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
           return client!;
         },
         parameters,
-        splitOn: $"{nameof(Client.Id)}, {nameof(COD.Id)}, {nameof(TfPlan.Id)}, {nameof(SPRVlan.Id)}");
+        splitOn: $"Id,Id,Id,Id");
 
     return ccDictionary.Values;
   }

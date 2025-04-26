@@ -12,20 +12,23 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
   async Task<PagedList<DetailClientDTO>> IRequestHandler<GetAllClientsWithChildrensQuery, PagedList<DetailClientDTO>>.Handle(GetAllClientsWithChildrensQuery request,
                                                                                                                              CancellationToken cancellationToken)
   {
+    var pageNumber = request.RequestParameters.PageNumber;
+    var pageSize = request.RequestParameters.PageSize;
+
     // Парсим фильтр
     var filterExpression = queryFilterParser.ParseFilters<Client>(request.RequestParameters
                                                                          .Filters);
 
     var spec = clientSpecification.AddFilter(filterExpression!)
                                   .AddInclude(c => c.COD)
-                                  .AddInclude(c => c.TfPlanL!);
+                                  .AddInclude(c => c.TfPlanL!)
+                                  .AddInclude(c => c.SPRVlans)
+                                  .WithPagination(pageNumber,
+                                                  pageSize); // Добавляем пагинацию;
 
     var clients = await locBillUnitOfWork.Clients
                                          .GetManyWithChildrenAsync(spec,
                                                                    cancellationToken);
-                                                                        
-    if (!clients.Any())
-      return new PagedList<DetailClientDTO>([],0,0,0);
 
     var count = await locBillUnitOfWork.Clients
                                        .GetCountAsync(spec,
@@ -35,7 +38,7 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
 
     return new PagedList<DetailClientDTO>(result,
                                           count,
-                                          request.RequestParameters.PageNumber,
-                                          request.RequestParameters.PageSize);
+                                          pageNumber,
+                                          pageSize);
   }
 }

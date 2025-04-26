@@ -42,7 +42,7 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         // Обрабатываем вызовы метода, например для Contains
-        if (node.Method.Name == "Contains" && node.Object != null)
+        if (node.Method.Name == "Contains")
         {
             Visit(node.Object);
 

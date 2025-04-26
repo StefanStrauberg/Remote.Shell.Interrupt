@@ -24,15 +24,4 @@ public class Client : BaseEntity
   public int? Id_TfPlan { get; set; } = null!;
   public TfPlan? TfPlanL { get; set; } = null!;
   public List<SPRVlan> SPRVlans { get; set; } = [];
-
-  public override bool Equals(object? obj)
-  {
-    if (obj is Client other)
-      return this.IdClient == other.IdClient;
-
-    return false;
-  }
-
-  public override int GetHashCode()
-    => IdClient.GetHashCode();
 }

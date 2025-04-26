@@ -14,7 +14,7 @@ internal class QueryFilterParser : IQueryFilterParser
         var filterExpression = filter.ToExpression<T>();
         
         // Комбинируем фильтры через логическое "И" (AND)
-        if (combinedExpression == null)
+        if (combinedExpression is null)
             combinedExpression = filterExpression;
         else
             combinedExpression = CombineExpressions(combinedExpression, filterExpression);
