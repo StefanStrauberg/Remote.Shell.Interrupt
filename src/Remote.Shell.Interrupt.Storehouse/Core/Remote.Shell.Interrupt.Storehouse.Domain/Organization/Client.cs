@@ -22,6 +22,6 @@ public class Client : BaseEntity
   public int Id_COD { get; set; }
   public COD COD { get; set; } = null!;
   public int? Id_TfPlan { get; set; } = null!;
-  public TfPlan? TfPlanL { get; set; } = null!;
+  public TfPlan? TfPlan { get; set; } = null!;
   public List<SPRVlan> SPRVlans { get; set; } = [];
 }

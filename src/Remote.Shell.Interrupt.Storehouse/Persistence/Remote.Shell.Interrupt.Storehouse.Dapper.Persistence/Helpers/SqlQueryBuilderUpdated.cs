@@ -33,26 +33,26 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
 
     if (_specification.Includes is not null)
     {
-        foreach (var include in _specification.Includes)
-        {
-            var joinInfo = SqlQueryBuilderUpdated<T>.ParseInclude(include);
-            AddJoin(joinInfo);
-        }
+      foreach (var include in _specification.Includes)
+      {
+        var joinInfo = SqlQueryBuilderUpdated<T>.ParseInclude(include);
+        AddJoin(joinInfo);
+      }
     }
 
     if (specification.Take > 0)
-        _take = specification.Take;
+      _take = specification.Take;
     if (specification.Skip > 0)
-        _skip = specification.Skip;
+      _skip = specification.Skip;
   }
 
   static JoinInfo ParseInclude(Expression<Func<T, object>> include)
   {
     var memberExpression = include.Body switch
     {
-        MemberExpression m => m,
-        UnaryExpression u when u.Operand is MemberExpression m => m,
-        _ => throw new ArgumentException("Invalid include expression")
+      MemberExpression m => m,
+      UnaryExpression u when u.Operand is MemberExpression m => m,
+      _ => throw new ArgumentException("Invalid include expression")
     };
 
     var propInfo = memberExpression.Member as PropertyInfo;
@@ -61,11 +61,10 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     var (isCollection, joinType) = GetNavigationPropertyType(navigationProperty);
     var (fkProperty, pkProperty) = ResolveKeys(typeof(T), navigationProperty, joinType, isCollection);
 
-    return new JoinInfo(
-        JoinType: joinType,
-        Alias: joinType.Name.ToLower(),
-        Condition: $"{GetAlias(joinType)}.\"{pkProperty.Name}\" = " +
-                   $"{GetAlias(typeof(T))}.\"{fkProperty.Name}\""
+    return new JoinInfo(JoinType: joinType,
+                        Alias: joinType.Name.ToLower(),
+                        Condition: $"{GetAlias(joinType)}.\"{pkProperty.Name}\" = " +
+                                   $"{GetAlias(typeof(T))}.\"{fkProperty.Name}\""
     );
   }
 
@@ -75,9 +74,7 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     
     if (type.IsGenericType && 
         type.GetGenericTypeDefinition() == typeof(List<>))
-    {
-        return (true, type.GetGenericArguments()[0]);
-    }
+      return (true, type.GetGenericArguments()[0]);
     
     return (false, type);
   }
@@ -87,31 +84,31 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
                                                                         Type joinType,
                                                                         bool isCollection)
   {
-      if (isCollection)
-      {
-          // Для коллекций FK находится в joinType
-          var fkName = $"Id{sourceType.Name}";
-          var fkProperty = joinType.GetProperty(fkName) 
-              ?? throw new KeyNotFoundException($"Foreign key {fkName} not found in {joinType.Name}");
-          
-          var pkProperty = sourceType.GetProperty("Id") 
-              ?? throw new KeyNotFoundException($"Primary key Id not found in {sourceType.Name}");
+    if (isCollection)
+    {
+      // Для коллекций FK находится в joinType
+      var fkName = $"Id{sourceType.Name}";
+      var fkProperty = joinType.GetProperty(fkName) 
+          ?? throw new KeyNotFoundException($"Foreign key {fkName} not found in {joinType.Name}");
+      
+      var pkProperty = sourceType.GetProperty($"Id{sourceType.Name}") 
+          ?? throw new KeyNotFoundException($"Primary key Id not found in {sourceType.Name}");
 
-          return (fkProperty, pkProperty);
-      }
-      else
-      {
-          // Для одиночных навигаций FK находится в sourceType
-          var fkName = $"Id_{navigationProperty.Name}";
-          var fkProperty = sourceType.GetProperty(fkName) 
-              ?? throw new KeyNotFoundException($"Foreign key {fkName} not found in {sourceType.Name}");
-          
-          var pkName = $"Id{joinType.Name}";
-          var pkProperty = joinType.GetProperty(pkName) 
-              ?? throw new KeyNotFoundException($"Primary key {pkName} not found in {joinType.Name}");
+      return (fkProperty, pkProperty);
+    }
+    else
+    {
+      // Для одиночных навигаций FK находится в sourceType
+      var fkName = $"Id_{navigationProperty.Name}";
+      var fkProperty = sourceType.GetProperty(fkName) 
+          ?? throw new KeyNotFoundException($"Foreign key {fkName} not found in {sourceType.Name}");
+      
+      var pkName = $"Id{joinType.Name}";
+      var pkProperty = joinType.GetProperty(pkName) 
+          ?? throw new KeyNotFoundException($"Primary key {pkName} not found in {joinType.Name}");
 
-          return (fkProperty, pkProperty);
-      }
+      return (fkProperty, pkProperty);
+    }
   }
 
   SqlQueryBuilderUpdated<T> AddJoin(JoinInfo joinInfo)
@@ -133,24 +130,55 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
   public (string Sql, DynamicParameters Parameters) Build()
   {
     var sql = new StringBuilder();
-    
+
     // Формируем SELECT с полями основной сущности и join-сущностей.
     sql.Append(BuildSelectClause());
 
     // FROM с главной таблицей.
     sql.AppendLine($"\nFROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
-    
+
     foreach (var join in _joins)
       sql.AppendLine(join);
 
     if (_whereClauses.Count > 0)
-        sql.AppendLine("WHERE " + string.Join(" AND ", _whereClauses));
+      sql.AppendLine("WHERE " + string.Join(" AND ", _whereClauses));
 
-    sql.AppendLine($"LIMIT {_take}");
-    sql.Append($"OFFSET {_skip}");
+    if (IsPaginated())
+    {
+      sql.AppendLine($"LIMIT {_take}");
+      sql.Append($"OFFSET {_skip}");
+    }
 
     return (sql.ToString(), _parameters);
   }
+
+  public (string Sql, DynamicParameters Parameters) BuildCount()
+  {
+    var sql = new StringBuilder();
+
+    // Формируем SELECT с полями основной сущности и join-сущностей.
+    sql.Append(SqlQueryBuilderUpdated<T>.BuildCountSelectClause());
+
+    // FROM с главной таблицей.
+    sql.AppendLine($"\nFROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
+
+    foreach (var join in _joins)
+      sql.AppendLine(join);
+
+    if (_whereClauses.Count > 0)
+      sql.AppendLine("WHERE " + string.Join(" AND ", _whereClauses));
+
+    if (IsPaginated())
+    {
+      sql.AppendLine($"LIMIT {_take}");
+      sql.Append($"OFFSET {_skip}");
+    }
+
+    return (sql.ToString(), _parameters);
+  }
+
+  bool IsPaginated()
+    => _take > 0 && _skip > 0;
 
   string BuildSelectClause()
   {
@@ -158,10 +186,13 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     selectParts.Add(BuildSelectClauseMain());
     
     foreach (var (alias, joinType) in _joinSelections)
-        selectParts.Add(BuildSelectClauseJoin(alias, joinType));
+      selectParts.Add(BuildSelectClauseJoin(alias, joinType));
     
     return "SELECT " + string.Join(",\n", selectParts);
   }
+
+  static string BuildCountSelectClause()
+    => "SELECT COUNT(*)";
 
   static string BuildSelectClauseMain()
   {
@@ -194,8 +225,8 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     var parentId = properties.FirstOrDefault(p => p.Name == "Id" && p.DeclaringType != typeof(T));
     if (parentId != null)
     {
-        properties.Remove(parentId);
-        properties.Insert(0, parentId);
+      properties.Remove(parentId);
+      properties.Insert(0, parentId);
     }
     
     // Формируем список вида: alias."PropertyName"
@@ -204,18 +235,16 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
   }
 
   static bool IsSimpleType(Type type)
-  {
-    return type.IsPrimitive || 
-           type == typeof(string) || 
-           type == typeof(decimal) || 
-           type == typeof(DateTime) || 
-           type == typeof(DateTimeOffset) || 
-           type == typeof(Guid) || 
-           type.IsEnum || 
-           (type.IsGenericType && 
-            type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
-            IsSimpleType(Nullable.GetUnderlyingType(type)!));
-  }
+    => type.IsPrimitive || 
+       type == typeof(string) || 
+       type == typeof(decimal) || 
+       type == typeof(DateTime) || 
+       type == typeof(DateTimeOffset) || 
+       type == typeof(Guid) || 
+       type.IsEnum || 
+       (type.IsGenericType && 
+        type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
+        IsSimpleType(Nullable.GetUnderlyingType(type)!));
 
   static string GetAlias(Type type) 
     => type.Name.ToLower();

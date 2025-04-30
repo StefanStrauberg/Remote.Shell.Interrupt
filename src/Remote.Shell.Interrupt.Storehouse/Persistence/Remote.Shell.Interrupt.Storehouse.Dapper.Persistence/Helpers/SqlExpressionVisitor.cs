@@ -60,9 +60,7 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
                 Parameters[paramName] = $"%{value}%";
             }
             else
-            {
                 Visit(node.Arguments[0]);
-            }
 
             return node;
         }

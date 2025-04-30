@@ -14,7 +14,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
   {
     var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
 
-    var (sql, parameters) = queryBuilder.Build();    
+    var (sql, parameters) = queryBuilder.Build();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
@@ -34,7 +34,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
             client.COD = c;
 
           if (tf is not null && client is not null)
-            client.TfPlanL = tf;
+            client.TfPlan = tf;
           
           if (sprvl is not null && client is not null) 
             client.SPRVlans.Add(sprvl);
@@ -94,7 +94,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
             client.COD = c;
 
           if (tf is not null && client is not null)
-            client.TfPlanL = tf;
+            client.TfPlan = tf;
           
           if (sprvl is not null && client is not null) 
             client.SPRVlans.Add(sprvl);
@@ -124,7 +124,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
   {
     var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
 
-    var (sql, parameters) = queryBuilder.Build();    
+    var (sql, parameters) = queryBuilder.BuildCount();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

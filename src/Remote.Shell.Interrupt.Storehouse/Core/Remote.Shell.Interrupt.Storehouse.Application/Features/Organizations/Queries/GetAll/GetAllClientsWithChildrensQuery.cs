@@ -78,7 +78,7 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
                                                          Expression<Func<Client, bool>>? filterExpr)
   {
     var spec = baseSpec.AddInclude(c => c.COD)
-                       .AddInclude(c => c.TfPlanL!)
+                       .AddInclude(c => c.TfPlan!)
                        .AddInclude(c => c.SPRVlans);
 
     if (filterExpr is not null)

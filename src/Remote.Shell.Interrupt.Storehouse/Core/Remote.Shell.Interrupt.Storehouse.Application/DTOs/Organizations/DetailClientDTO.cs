@@ -48,6 +48,6 @@ public class DetailClientDTO : BaseClientDTO, IMapWith<Client>
            .ForMember(dest => dest.Id_TPlan,
                       opt => opt.MapFrom(src => src.Id_TfPlan))
            .ForMember(dest => dest.TfPlan,
-                      opt => opt.MapFrom(src => src.TfPlanL));
+                      opt => opt.MapFrom(src => src.TfPlan));
   }
 }
