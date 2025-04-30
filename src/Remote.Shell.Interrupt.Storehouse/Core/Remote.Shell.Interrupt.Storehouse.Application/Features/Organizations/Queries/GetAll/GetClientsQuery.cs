@@ -1,31 +1,63 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
 
-public record GetAllShortClientsQuery(RequestParameters RequestParameters) 
+public record GetAllShortClientsQuery(RequestParametersUpdated RequestParameters) 
   : IQuery<PagedList<ShortClientDTO>>;
 
 internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
+                                              IClientSpecification clientSpecification,
+                                              IQueryFilterParser queryFilterParser,
                                               IMapper mapper)
   : IQueryHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>
 {
   async Task<PagedList<ShortClientDTO>> IRequestHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>.Handle(GetAllShortClientsQuery request,
                                                                                                                    CancellationToken cancellationToken)
   {
+    // Parse filter
+    var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
+                                                                   .Filters);
+
+    // Build base specification
+    var baseSpec = BuildSpecification(clientSpecification,
+                                      filterExpr);
+
+    // Count records (without pagination)
+    var countSpec = (IClientSpecification)baseSpec.Clone();
+    var count = await locBillUnitOfWork.Clients
+                                       .GetCountAsync(countSpec,
+                                                      cancellationToken);
+
+    // Pagination parameters
+    var pageNumber = request.RequestParameters.PageNumber ?? 0;
+    var pageSize = request.RequestParameters.PageSize ?? 0;
+
+    if (request.RequestParameters.EnablePagination)
+        baseSpec.WithPagination(pageNumber,
+                                pageSize);
+
     var clients = await locBillUnitOfWork.Clients
-                                         .GetManyShortAsync(request.RequestParameters,
+                                         .GetManyShortAsync(baseSpec,
                                                             cancellationToken);
 
     if (!clients.Any())
       return new PagedList<ShortClientDTO>([],0,0,0);
 
-    var count = await locBillUnitOfWork.Clients
-                                       .GetCountAsync(request.RequestParameters,
-                                                      cancellationToken);
-
     var result = mapper.Map<IEnumerable<ShortClientDTO>>(clients);
 
+    // Return results
     return new PagedList<ShortClientDTO>(result,
                                          count,
-                                         request.RequestParameters.PageNumber,
-                                         request.RequestParameters.PageSize);
+                                         pageNumber,
+                                         pageSize);
+  }
+
+  private static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
+                                                         Expression<Func<Client, bool>>? filterExpr)
+  {
+    var spec = baseSpec;
+
+    if (filterExpr is not null)
+        spec.AddFilter(filterExpr);
+
+    return (IClientSpecification)spec;
   }
 }

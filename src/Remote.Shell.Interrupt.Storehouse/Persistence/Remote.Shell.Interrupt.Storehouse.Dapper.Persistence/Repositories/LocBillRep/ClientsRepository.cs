@@ -9,6 +9,18 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
                                  IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
 {
+  async Task<IEnumerable<Client>> IClientsRepository.GetManyShortAsync(ISpecification<Client> specification,
+                                                                       CancellationToken cancellationToken)
+  {
+    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
+
+    var (sql, parameters) = queryBuilder.Build();
+
+    var connection = await context.CreateConnectionAsync(cancellationToken);
+
+    return await connection.QueryAsync<Client>(sql, parameters);
+  }
+
   async Task<IEnumerable<Client>> IClientsRepository.GetManyWithChildrenAsync(ISpecification<Client> specification,
                                                                               CancellationToken cancellationToken)
   {

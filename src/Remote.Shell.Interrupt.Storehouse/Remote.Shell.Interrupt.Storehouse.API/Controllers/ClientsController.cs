@@ -4,7 +4,7 @@ public class ClientsController : BaseAPIController
 {
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<ShortClientDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetShortClients([FromQuery] RequestParameters requestParameters,
+  public async Task<IActionResult> GetShortClients([FromQuery] RequestParametersUpdated requestParameters,
                                                    CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetAllShortClientsQuery(requestParameters),

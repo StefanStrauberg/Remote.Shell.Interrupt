@@ -10,6 +10,9 @@ public interface IClientsRepository
     IBulkDeleteRepository<Client>,
     IBulkInsertRepository<Client>
 { 
+  Task<IEnumerable<Client>> GetManyShortAsync(ISpecification<Client> specification,
+                                              CancellationToken cancellationToken);
+
   Task<IEnumerable<Client>> GetManyWithChildrenAsync(ISpecification<Client> specification,
                                                      CancellationToken cancellationToken);
 
