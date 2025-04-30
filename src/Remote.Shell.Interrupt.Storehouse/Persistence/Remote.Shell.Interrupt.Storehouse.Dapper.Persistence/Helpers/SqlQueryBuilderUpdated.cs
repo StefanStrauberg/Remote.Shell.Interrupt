@@ -21,10 +21,10 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     _visitor = new();
     _specification = specification;
 
-    if (_specification.Criteria is not null)
+    if (_specification.Criterias is not null)
     {
     // Создаем посетителя для преобразования Expression в SQL
-    var whereClause = _visitor.GetWhereClause(_specification.Criteria);
+    var whereClause = _visitor.GetWhereClause(_specification.Criterias);
 
     // Преобразуем Expression в SQL условие
     foreach (var param in _visitor.Parameters)
