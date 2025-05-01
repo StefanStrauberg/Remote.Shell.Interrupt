@@ -4,7 +4,12 @@ public static class ApplicationServicesRegistration
 {
   public static IServiceCollection AddApplicationServices(this IServiceCollection services)
   {
+    services.AddScoped(typeof(ISpecification<>), typeof(GenericSpecification<>));
     services.AddScoped<IClientSpecification, ClientSpecification>();
+    services.AddScoped<IGateSpecification, GateSpecification>();
+    services.AddScoped<INetworkDeviceSpecification, NetworkDeviceSpecification>();
+    services.AddScoped<ISPRVlanSpecification, SPRVlanSpecification>();
+    services.AddScoped<ITfPlanSpecification, TfPlanSpecification>();
     services.AddScoped<IQueryFilterParser, QueryFilterParser>();
 
     // MediatR injection

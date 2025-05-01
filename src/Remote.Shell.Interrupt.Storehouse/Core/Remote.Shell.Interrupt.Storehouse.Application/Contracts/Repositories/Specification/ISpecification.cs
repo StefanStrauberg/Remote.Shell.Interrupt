@@ -4,8 +4,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.S
 /// Defines a specification pattern interface for querying entities.
 /// </summary>
 /// <typeparam name="T">The type of entity that this specification applies to.</typeparam>
-public interface ISpecification<T> : ICloneable where T : BaseEntity
-{
+public interface ISpecification<T> where T : BaseEntity
+{ 
   /// <summary>
   /// Gets the criteria expression used for filtering entities.
   /// </summary>
@@ -53,4 +53,6 @@ public interface ISpecification<T> : ICloneable where T : BaseEntity
   /// <param name="pageSize">The size of the page.</param>
   /// <returns>An updated specification with pagination settings.</returns>
   ISpecification<T> WithPagination(int pageNumber, int pageSize);
+
+  ISpecification<T> Clone();
 }
