@@ -6,14 +6,14 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 /// <param name="RequestParameters">
 /// The request parameters, including pagination and filters.
 /// </param>
-public record GetClientsWithChildrenByFilterQuery(RequestParametersUpdated RequestParameters) 
+public record GetClientsWithChildrenByFilterQuery(RequestParameters RequestParameters) 
   : IQuery<PagedList<DetailClientDTO>>;
 
 /// <summary>
 /// Handles the processing of the <see cref="GetClientsWithChildrenByFilterQuery"/> query.
 /// </summary>
 internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
-                                                          IClientSpecification clientSpecification,
+                                                          IClientSpecification specification,
                                                           IQueryFilterParser queryFilterParser,
                                                           IMapper mapper)
   : IQueryHandler<GetClientsWithChildrenByFilterQuery, PagedList<DetailClientDTO>>
@@ -34,7 +34,7 @@ internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork loc
                                                                    .Filters);
 
     // Build base specification
-    var baseSpec = BuildSpecification(clientSpecification,
+    var baseSpec = BuildSpecification(specification,
                                       filterExpr);
 
     // Count specification

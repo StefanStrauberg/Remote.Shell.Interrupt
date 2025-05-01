@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.G
 
 public interface IExistenceQueryRepository<T> where T : BaseEntity
 {
-    Task<bool> AnyByQueryAsync(RequestParameters requestParameters,
+    Task<bool> AnyByQueryAsync(ISpecification<T> specification,
                                CancellationToken cancellationToken);
 }

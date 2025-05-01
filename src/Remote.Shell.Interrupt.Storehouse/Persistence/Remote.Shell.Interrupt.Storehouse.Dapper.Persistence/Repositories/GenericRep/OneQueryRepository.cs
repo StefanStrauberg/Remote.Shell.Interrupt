@@ -3,19 +3,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.Gene
 internal class OneQueryRepository<T>(PostgreSQLDapperContext context)
   : IOneQueryRepository<T> where T : BaseEntity
 {
-  async Task<T> IOneQueryRepository<T>.GetOneShortAsync(RequestParameters requestParameters,
+  async Task<T> IOneQueryRepository<T>.GetOneShortAsync(ISpecification<T> specification,
                                                         CancellationToken cancellationToken)
   {
-    var baseQuery = $"SELECT {GetColumnsAsProperties.Handle<T>()} FROM \"{GetTableName.Handle<T>()}\"";
+    var queryBuilder = new SqlQueryBuilder<T>(specification);
 
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           "",
-                                           typeof(T));
-
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
+    var sql = queryBuilder.Build();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
-    return await connection.QuerySingleAsync<T>(finalQuery, parameters);
+    return await connection.QuerySingleAsync<T>(sql);
   }
 }

@@ -5,10 +5,12 @@ internal class ReadRepository<T>(PostgreSQLDapperContext context)
 {
   async Task<IEnumerable<T>> IReadRepository<T>.GetAllAsync(CancellationToken cancellationToken)
   {
-    var query = $"SELECT {GetColumnsAsProperties.Handle<T>()} FROM \"{GetTableName.Handle<T>()}\"";
-    
-    var connection = context.CreateConnection();
+    var queryBuilder = new SqlQueryBuilder<T>();
 
-    return await connection.QueryAsync<T>(query);
+    var sql = queryBuilder.Build();
+
+    var connection = await context.CreateConnectionAsync(cancellationToken);
+
+    return await connection.QueryAsync<T>(sql);
   }
 }

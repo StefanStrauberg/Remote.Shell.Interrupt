@@ -9,22 +9,10 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
                                  IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
 {
-  async Task<IEnumerable<Client>> IClientsRepository.GetManyShortAsync(ISpecification<Client> specification,
-                                                                       CancellationToken cancellationToken)
+  async Task<IEnumerable<Client>> IManyQueryWithRelationsRepository<Client>.GetManyWithChildrenAsync(ISpecification<Client> specification,
+                                                                                                     CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
-
-    var sql = queryBuilder.Build();
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.QueryAsync<Client>(sql);
-  }
-
-  async Task<IEnumerable<Client>> IClientsRepository.GetManyWithChildrenAsync(ISpecification<Client> specification,
-                                                                              CancellationToken cancellationToken)
-  {
-    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
+    var queryBuilder = new SqlQueryBuilder<Client>(specification);
 
     var sql = queryBuilder.Build();
 
@@ -58,10 +46,10 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     return ccDictionary.Values;
   }
 
-  async Task<Client> IClientsRepository.GetOneWithChildrensAsync(ISpecification<Client> specification,
-                                                                 CancellationToken cancellationToken)
+  async Task<Client> IOneQueryWithRelationsRepository<Client>.GetOneWithChildrenAsync(ISpecification<Client> specification,
+                                                                                      CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
+    var queryBuilder = new SqlQueryBuilder<Client>(specification);
 
     var sql = queryBuilder.Build();
     
@@ -95,42 +83,15 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     return ccDictionary.Values.First();
   }
 
-  Task<IEnumerable<Client>> IManyQueryRepository<Client>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                 CancellationToken cancellationToken,
-                                                                                 bool skipFiltering)
-  {
-    throw new NotImplementedException();
-  }
+  async Task<IEnumerable<Client>> IManyQueryRepository<Client>.GetManyShortAsync(ISpecification<Client> specification,
+                                                                                 CancellationToken cancellationToken)
+    => await manyQueryRepository.GetManyShortAsync(specification,
+                                                   cancellationToken);
 
-  Task<bool> IExistenceQueryRepository<Client>.AnyByQueryAsync(RequestParameters requestParameters,
-                                                               CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
-
-  async Task<int> IClientsRepository.GetCountAsync(ISpecification<Client> specification,
-                                                   CancellationToken cancellationToken)
-  {
-    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
-
-    var sql = queryBuilder.BuildCount();
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.ExecuteScalarAsync<int>(sql);
-  }
-
-  async Task<bool> IClientsRepository.AnyByQueryAsync(ISpecification<Client> specification,
-                                                      CancellationToken cancellationToken)
-  {
-    var queryBuilder = new SqlQueryBuilderUpdated<Client>(specification);
-
-    var sql = queryBuilder.BuildCount();
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.ExecuteScalarAsync<int>(sql) > 0;
-  }
+  async Task<bool> IExistenceQueryRepository<Client>.AnyByQueryAsync(ISpecification<Client> specification,
+                                                                     CancellationToken cancellationToken)
+    => await existenceQueryRepository.AnyByQueryAsync(specification,
+                                                      cancellationToken);
 
   async Task<IEnumerable<Client>> IReadRepository<Client>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
@@ -141,18 +102,7 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
   void IBulkInsertRepository<Client>.InsertMany(IEnumerable<Client> entities)
     =>  bulkInsertRepository.InsertMany(entities);
 
-  public Task<IEnumerable<Client>> GetManyWithChildrenAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
-
-  public Task<int> GetCountAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
-
-  public Task<Client> GetOneWithChildrensAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
+  async Task<int> ICountRepository<Client>.GetCountAsync(ISpecification<Client> specification,
+                                                         CancellationToken cancellationToken)
+    => await countRepository.GetCountAsync(specification, cancellationToken);
 }

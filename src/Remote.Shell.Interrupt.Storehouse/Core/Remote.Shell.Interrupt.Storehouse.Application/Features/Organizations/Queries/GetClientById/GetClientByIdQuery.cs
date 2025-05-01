@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 public record GetClientByIdQuery(Guid Id) : IQuery<DetailClientDTO>;
 
 internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
-                                         IClientSpecification clientSpecification,
+                                         IClientSpecification specification,
                                          IQueryFilterParser queryFilterParser,
                                          IMapper mapper) 
   : IQueryHandler<GetClientByIdQuery, DetailClientDTO>
@@ -11,7 +11,7 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
   async Task<DetailClientDTO> IRequestHandler<GetClientByIdQuery, DetailClientDTO>.Handle(GetClientByIdQuery request,
                                                                                           CancellationToken cancellationToken)
   {
-    var requestParametersUpdated = new RequestParametersUpdated
+    var requestParameters = new RequestParameters
     {
       Filters = [
         new ()
@@ -24,24 +24,25 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
     };
 
     // Parse filter
-    var filterExpr = queryFilterParser.ParseFilters<Client>(requestParametersUpdated.Filters);
+    var filterExpr = queryFilterParser.ParseFilters<Client>(requestParameters.Filters);
 
     // Build base specification
-    var baseSpec = BuildSpecification(clientSpecification,
+    var baseSpec = BuildSpecification(specification,
                                       filterExpr);
 
     // Проверка существования клиент с ID
-    var existingClient = await locBillUnitOfWork.Clients
-                                                .AnyByQueryAsync(baseSpec,
-                                                                 cancellationToken);
+    var existing = await locBillUnitOfWork.Clients
+                                          .AnyByQueryAsync(baseSpec,
+                                                           cancellationToken);
 
-    // Если клиент не найдено — исключение
-    if (!existingClient)
+    // Если клиент не найден — исключение
+    if (!existing)
       throw new EntityNotFoundException(typeof(Client),
                                         filterExpr is not null ? filterExpr.ToString() : string.Empty);
 
+    // Находим клиента
     var client = await locBillUnitOfWork.Clients
-                                        .GetOneWithChildrensAsync(baseSpec,
+                                        .GetOneWithChildrenAsync(baseSpec,
                                                                   cancellationToken);
 
     var result = mapper.Map<DetailClientDTO>(client);

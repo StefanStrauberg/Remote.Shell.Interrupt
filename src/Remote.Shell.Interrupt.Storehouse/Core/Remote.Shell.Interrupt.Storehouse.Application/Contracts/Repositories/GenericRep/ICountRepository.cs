@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.G
 
 public interface ICountRepository<T> where T : BaseEntity
 {
-    Task<int> GetCountAsync(RequestParameters requestParameters,
+    Task<int> GetCountAsync(ISpecification<T> specification,
                             CancellationToken cancellationToken);
 }

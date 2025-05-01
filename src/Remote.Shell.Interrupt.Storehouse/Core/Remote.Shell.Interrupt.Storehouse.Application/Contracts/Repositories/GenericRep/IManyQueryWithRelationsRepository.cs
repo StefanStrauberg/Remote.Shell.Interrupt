@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.G
 
 public interface IManyQueryWithRelationsRepository<T> where T : BaseEntity
 {
-    Task<IEnumerable<T>> GetManyWithChildrenAsync(RequestParameters requestParameters,
+    Task<IEnumerable<T>> GetManyWithChildrenAsync(ISpecification<T> specification,
                                                   CancellationToken cancellationToken);
 }

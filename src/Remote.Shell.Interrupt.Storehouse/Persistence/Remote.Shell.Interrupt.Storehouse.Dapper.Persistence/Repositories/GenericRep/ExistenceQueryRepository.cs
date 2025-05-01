@@ -3,23 +3,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.Gene
 internal class ExistenceQueryRepository<T>(PostgreSQLDapperContext context)
   : IExistenceQueryRepository<T> where T : BaseEntity
 {
-  async Task<bool> IExistenceQueryRepository<T>.AnyByQueryAsync(RequestParameters requestParameters,
+  async Task<bool> IExistenceQueryRepository<T>.AnyByQueryAsync(ISpecification<T> specification,
                                                                 CancellationToken cancellationToken)
   {
-    var baseQuery = $"SELECT COUNT(1) FROM \"{GetTableName.Handle<T>()}\"";
+    var queryBuilder = new SqlQueryBuilder<T>(specification);
 
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           typeof(T));
+    var sql = queryBuilder.BuildCount();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
-    
-    if (HasFiltersOrSorts.Handle(requestParameters))
-    {
-      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
-      return await connection.ExecuteScalarAsync<int>(finalQuery, parameters) > 0;
-    }
-    
-    return await connection.ExecuteScalarAsync<int>(baseQuery) > 0;
+    return await connection.ExecuteScalarAsync<int>(sql) > 0;
   }
 }

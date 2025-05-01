@@ -1,10 +1,10 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByFilter;
 
-public record GetClientsByFilterQuery(RequestParametersUpdated RequestParameters) 
+public record GetClientsByFilterQuery(RequestParameters RequestParameters) 
   : IQuery<PagedList<ShortClientDTO>>;
 
 internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
-                                              IClientSpecification clientSpecification,
+                                              IClientSpecification specification,
                                               IQueryFilterParser queryFilterParser,
                                               IMapper mapper)
   : IQueryHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>
@@ -17,7 +17,7 @@ internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
                                                                    .Filters);
 
     // Build base specification
-    var baseSpec = BuildSpecification(clientSpecification,
+    var baseSpec = BuildSpecification(specification,
                                       filterExpr);
 
     // Count records (without pagination)

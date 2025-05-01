@@ -30,38 +30,21 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
-  async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrensAsync(RequestParameters requestParameters,
-                                                                                                     CancellationToken cancellationToken)
+  async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,
+                                                                                                    CancellationToken cancellationToken)
   {
-    StringBuilder sb = new();
-    sb.Append("SELECT ");
-    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", ");
-    sb.Append($"nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
-    sb.Append($"p.\"{nameof(Port.Id)}\", p.\"{nameof(Port.InterfaceNumber)}\", p.\"{nameof(Port.InterfaceName)}\", ");
-    sb.Append($"p.\"{nameof(Port.InterfaceType)}\", p.\"{nameof(Port.InterfaceStatus)}\", p.\"{nameof(Port.InterfaceSpeed)}\", ");
-    sb.Append($"p.\"{nameof(Port.NetworkDeviceId)}\", p.\"{nameof(Port.ParentPortId)}\", p.\"{nameof(Port.MACAddress)}\", ");
-    sb.Append($"pv.\"{nameof(PortVlan.Id)}\", pv.\"{nameof(PortVlan.PortId)}\", pv.\"{nameof(PortVlan.VLANId)}\", ");
-    sb.Append($"v.\"{nameof(VLAN.Id)}\", v.\"{nameof(VLAN.VLANTag)}\", v.\"{nameof(VLAN.VLANName)}\" ");
-    sb.Append($"FROM \"{GetTableName.Handle<NetworkDevice>()}\" as nd ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<Port>()}\" AS p on p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<PortVlan>()}\" AS pv on pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<VLAN>()}\" AS v on v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
-    sb.Append($"WHERE nd.\"{nameof(NetworkDevice.Id)}\"=@Id");
+    var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
+
+    var sql = queryBuilder.Build();
     
-    var baseQuery = sb.ToString();
     var connection = await context.CreateConnectionAsync(cancellationToken);
+    
     var ndDictionary = new Dictionary<Guid, NetworkDevice>();
     var pDicotionary = new Dictionary<Guid, Port>();
     var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
 
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           "nd",
-                                           typeof(NetworkDevice));
-
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
-
     await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
-        finalQuery,
+        sql,
         (nd, p, pv, v) =>
         {
           if (!ndDictionary.TryGetValue(nd.Id, out var networkDeviceEntry))
@@ -83,38 +66,26 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
 
           return networkDeviceEntry;
         },
-        parameters,
-        splitOn: $"{nameof(NetworkDevice.Id)}, {nameof(Port.Id)}, {nameof(PortVlan.Id)}, {nameof(VLAN.Id)}");
+        splitOn: $"{nameof(NetworkDevice.Id)},{nameof(Port.Id)},{nameof(PortVlan.Id)},{nameof(VLAN.Id)}");
 
     return ndDictionary.Values.First();
   }
 
-  async Task<IEnumerable<NetworkDevice>> INetworkDeviceRepository.GetManyWithChildrenByVlanTagsAsync(IEnumerable<int> vlanTags,
-                                                                                                     CancellationToken cancellationToken)
+  async Task<IEnumerable<NetworkDevice>> IManyQueryWithRelationsRepository<NetworkDevice>.GetManyWithChildrenAsync(ISpecification<NetworkDevice> specification,
+                                                                                                                   CancellationToken cancellationToken)
   {
-    StringBuilder sb = new();
-    sb.Append("SELECT ");
-    sb.Append($"nd.\"{nameof(NetworkDevice.Id)}\", nd.\"{nameof(NetworkDevice.Host)}\", nd.\"{nameof(NetworkDevice.TypeOfNetworkDevice)}\", ");
-    sb.Append($"nd.\"{nameof(NetworkDevice.NetworkDeviceName)}\", nd.\"{nameof(NetworkDevice.GeneralInformation)}\", ");
-    sb.Append($"p.\"{nameof(Port.Id)}\", p.\"{nameof(Port.InterfaceNumber)}\", p.\"{nameof(Port.InterfaceName)}\", ");
-    sb.Append($"p.\"{nameof(Port.InterfaceType)}\", p.\"{nameof(Port.InterfaceStatus)}\", p.\"{nameof(Port.InterfaceSpeed)}\", ");
-    sb.Append($"p.\"{nameof(Port.NetworkDeviceId)}\", p.\"{nameof(Port.ParentPortId)}\", p.\"{nameof(Port.MACAddress)}\", ");
-    sb.Append($"pv.\"{nameof(PortVlan.Id)}\", pv.\"{nameof(PortVlan.PortId)}\", pv.\"{nameof(PortVlan.VLANId)}\", ");
-    sb.Append($"v.\"{nameof(VLAN.Id)}\", v.\"{nameof(VLAN.VLANTag)}\", v.\"{nameof(VLAN.VLANName)}\" ");
-    sb.Append($"FROM \"{GetTableName.Handle<NetworkDevice>()}\" AS nd ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<Port>()}\" AS p ON p.\"{nameof(Port.NetworkDeviceId)}\" = nd.\"{nameof(NetworkDevice.Id)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<PortVlan>()}\" AS pv ON pv.\"{nameof(PortVlan.PortId)}\" = p.\"{nameof(Port.Id)}\" ");
-    sb.Append($"LEFT JOIN \"{GetTableName.Handle<VLAN>()}\" AS v ON v.\"{nameof(VLAN.Id)}\" = pv.\"{nameof(PortVlan.VLANId)}\" ");
-    sb.Append($"WHERE v.\"{nameof(VLAN.VLANTag)}\" IN ({string.Join(",", vlanTags)})");
+    var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
 
-    var baseQuery = sb.ToString();
+    var sql = queryBuilder.Build();
+    
     var connection = await context.CreateConnectionAsync(cancellationToken);
+
     var ndDictionary = new Dictionary<Guid, NetworkDevice>();
     var pDicotionary = new Dictionary<Guid, Port>();
     var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
 
     await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
-        baseQuery,
+        sql,
         (nd, p, pv, v) =>
         {
           if (!ndDictionary.TryGetValue(nd.Id, out var networkDeviceEntry))
@@ -141,21 +112,19 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     return ndDictionary.Values;
   }
 
-  async Task<IEnumerable<NetworkDevice>> IManyQueryRepository<NetworkDevice>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                               CancellationToken cancellationToken,
-                                                                                               bool skipFiltering)
-    => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken,
-                                                   skipFiltering);
+  async Task<IEnumerable<NetworkDevice>> IManyQueryRepository<NetworkDevice>.GetManyShortAsync(ISpecification<NetworkDevice> specification,
+                                                                                               CancellationToken cancellationToken)
+    => await manyQueryRepository.GetManyShortAsync(specification,
+                                                   cancellationToken);
 
-  async Task<bool> IExistenceQueryRepository<NetworkDevice>.AnyByQueryAsync(RequestParameters requestParameters,
+  async Task<bool> IExistenceQueryRepository<NetworkDevice>.AnyByQueryAsync(ISpecification<NetworkDevice> specification,
                                                                             CancellationToken cancellationToken)
-    => await existenceQueryRepository.AnyByQueryAsync(requestParameters,
+    => await existenceQueryRepository.AnyByQueryAsync(specification,
                                                       cancellationToken);
 
-  async Task<int> ICountRepository<NetworkDevice>.GetCountAsync(RequestParameters requestParameters,
+  async Task<int> ICountRepository<NetworkDevice>.GetCountAsync(ISpecification<NetworkDevice> specification,
                                                                 CancellationToken cancellationToken)
-    => await countRepository.GetCountAsync(requestParameters,
+    => await countRepository.GetCountAsync(specification,
                                            cancellationToken);
 
   void IInsertRepository<NetworkDevice>.InsertOne(NetworkDevice entity)
@@ -163,9 +132,4 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
 
   async Task<IEnumerable<NetworkDevice>> IReadRepository<NetworkDevice>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
-
-  public Task<IEnumerable<NetworkDevice>> GetManyWithChildrenAsync(RequestParameters requestParameters, CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException("Oops! Crutch №1 =)");
-  }
 }

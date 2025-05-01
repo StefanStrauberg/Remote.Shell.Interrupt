@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.U
 
 public interface IGateUnitOfWork
 {
-  IGateRepository GateRepository { get; }
+  IGateRepository Gates { get; }
 
   void Complete();
 }

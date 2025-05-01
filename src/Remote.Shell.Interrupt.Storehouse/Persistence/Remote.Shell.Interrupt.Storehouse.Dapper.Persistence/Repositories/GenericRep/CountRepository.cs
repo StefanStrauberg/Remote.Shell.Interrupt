@@ -3,23 +3,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.Gene
 internal class CountRepository<T>(PostgreSQLDapperContext context)
   : ICountRepository<T> where T : BaseEntity
 {
-  async Task<int> ICountRepository<T>.GetCountAsync(RequestParameters requestParameters,
+  async Task<int> ICountRepository<T>.GetCountAsync(ISpecification<T> specification,
                                                     CancellationToken cancellationToken)
   {
-    var baseQuery = $"SELECT COUNT(\"{nameof(BaseEntity.Id)}\") FROM \"{GetTableName.Handle<T>()}\"";
-    
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           typeof(T));
+    var queryBuilder = new SqlQueryBuilder<T>(specification);
+
+    var sql = queryBuilder.BuildCount();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
-    
-    if (HasFiltersOrSorts.Handle(requestParameters))
-    {
-      var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, true);
 
-      return await connection.ExecuteScalarAsync<int>(finalQuery, parameters);
-    }
-    
-    return await connection.ExecuteScalarAsync<int>(baseQuery);
+    return await connection.ExecuteScalarAsync<int>(sql);
   }
 }

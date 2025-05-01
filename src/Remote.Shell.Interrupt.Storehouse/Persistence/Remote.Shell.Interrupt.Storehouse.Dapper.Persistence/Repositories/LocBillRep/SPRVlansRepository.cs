@@ -17,15 +17,13 @@ internal class SPRVlansRepository(IManyQueryRepository<SPRVlan> manyQueryReposit
   async Task<IEnumerable<SPRVlan>> IReadRepository<SPRVlan>.GetAllAsync(CancellationToken cancellationToken)
     => await readRepository.GetAllAsync(cancellationToken);
 
-  async Task<int> ICountRepository<SPRVlan>.GetCountAsync(RequestParameters requestParameters,
+  async Task<int> ICountRepository<SPRVlan>.GetCountAsync(ISpecification<SPRVlan> specification,
                                                           CancellationToken cancellationToken)
-    => await countRepository.GetCountAsync(requestParameters,
+    => await countRepository.GetCountAsync(specification,
                                            cancellationToken);
 
-  async Task<IEnumerable<SPRVlan>> IManyQueryRepository<SPRVlan>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                                   CancellationToken cancellationToken,
-                                                                                   bool skipFiltering)
-    => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken,
-                                                   skipFiltering);
+  async Task<IEnumerable<SPRVlan>> IManyQueryRepository<SPRVlan>.GetManyShortAsync(ISpecification<SPRVlan> specification,
+                                                                                   CancellationToken cancellationToken)
+    => await manyQueryRepository.GetManyShortAsync(specification,
+                                                   cancellationToken);
 }

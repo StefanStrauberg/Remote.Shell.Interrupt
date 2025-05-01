@@ -6,8 +6,13 @@ internal class DeleteRepository<T>(PostgreSQLDapperContext context)
   void IDeleteRepository<T>.DeleteOne(T entity)
   {
     context.BeginTransaction();
-    var baseQuery = $"DELETE FROM \"{GetTableName.Handle<T>()}\" WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
+
+    var queryBuilder = new SqlQueryBuilder<T>();
+
+    var sql = queryBuilder.BuildDelete(entity.Id);
+
     var connection = context.CreateConnection();
-    connection.Execute(baseQuery, new { Id = entity.Id });
+
+    connection.Execute(sql);
   }
 }

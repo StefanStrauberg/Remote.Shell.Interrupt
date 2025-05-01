@@ -10,8 +10,4 @@ public interface INetworkDeviceRepository
     IReadRepository<NetworkDevice>
 {
   void DeleteOneWithChilren(NetworkDevice networkDeviceToDelete);
-
-  // Crutch №1
-  Task<IEnumerable<NetworkDevice>> GetManyWithChildrenByVlanTagsAsync(IEnumerable<int> vlanTags,
-                                                                      CancellationToken cancellationToken);
 }

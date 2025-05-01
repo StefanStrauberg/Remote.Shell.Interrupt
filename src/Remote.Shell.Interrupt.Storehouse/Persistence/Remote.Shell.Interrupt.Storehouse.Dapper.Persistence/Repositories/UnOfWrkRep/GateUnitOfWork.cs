@@ -10,7 +10,7 @@ internal class GateUnitOfWork(PostgreSQLDapperContext context,
                               IReplaceRepository<Gate> replaceRepository) 
   : IGateUnitOfWork, IDisposable
 {
-  IGateRepository IGateUnitOfWork.GateRepository 
+  IGateRepository IGateUnitOfWork.Gates 
     => new GateRepository(existenceQueryRepository,
                           countRepository,
                           manyQueryRepository,

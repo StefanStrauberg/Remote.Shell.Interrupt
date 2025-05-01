@@ -66,14 +66,14 @@ internal class PortRepository(PostgreSQLDapperContext context,
     return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });
   }
 
-  async Task<bool> IExistenceQueryRepository<Port>.AnyByQueryAsync(RequestParameters requestParameters,
+  async Task<bool> IExistenceQueryRepository<Port>.AnyByQueryAsync(ISpecification<Port> specification,
                                                                    CancellationToken cancellationToken)
-    => await existenceQueryRepository.AnyByQueryAsync(requestParameters,
+    => await existenceQueryRepository.AnyByQueryAsync(specification,
                                                       cancellationToken);
 
-  async Task<Port> IOneQueryRepository<Port>.GetOneShortAsync(RequestParameters requestParameters,
+  async Task<Port> IOneQueryRepository<Port>.GetOneShortAsync(ISpecification<Port> specification,
                                                               CancellationToken cancellationToken)
-    => await oneQueryRepository.GetOneShortAsync(requestParameters,
+    => await oneQueryRepository.GetOneShortAsync(specification,
                                                  cancellationToken);
 
   void IBulkInsertRepository<Port>.InsertMany(IEnumerable<Port> entities)

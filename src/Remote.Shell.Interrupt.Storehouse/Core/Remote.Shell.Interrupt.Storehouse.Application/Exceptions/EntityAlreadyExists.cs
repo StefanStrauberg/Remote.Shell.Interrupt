@@ -1,5 +1,5 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Exceptions;
 
-public class EntityAlreadyExists(string expression)
-  : BadRequestException($"The Entity with {expression} already exists.")
+public class EntityAlreadyExists(Type typeOfEntity, string expression)
+  : BadRequestException($"The {typeOfEntity.Name} with expression: \"{expression}\" already exists.")
 { }

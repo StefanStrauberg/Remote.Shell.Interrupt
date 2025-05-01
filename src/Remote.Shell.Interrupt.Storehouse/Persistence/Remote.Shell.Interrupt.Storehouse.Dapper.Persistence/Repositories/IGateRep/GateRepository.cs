@@ -9,30 +9,28 @@ internal class GateRepository(IExistenceQueryRepository<Gate> existenceQueryRepo
                               IReplaceRepository<Gate> replaceRepository)
     : IGateRepository
 {
-  public Task<Gate> GetOneShortAsync(RequestParameters requestParameters,
-                                     CancellationToken cancellationToken)
-    => oneQueryRepository.GetOneShortAsync(requestParameters,
+  async Task<Gate> IOneQueryRepository<Gate>.GetOneShortAsync(ISpecification<Gate> specification,
+                                                              CancellationToken cancellationToken)
+    => await oneQueryRepository.GetOneShortAsync(specification,
+                                                 cancellationToken);
+
+  async Task<bool> IExistenceQueryRepository<Gate>.AnyByQueryAsync(ISpecification<Gate> specification,
+                                                                   CancellationToken cancellationToken)
+    => await existenceQueryRepository.AnyByQueryAsync(specification,
+                                                      cancellationToken);
+
+  async Task<int> ICountRepository<Gate>.GetCountAsync(ISpecification<Gate> specification,
+                                                       CancellationToken cancellationToken)
+    => await countRepository.GetCountAsync(specification,
                                            cancellationToken);
+
+  async Task<IEnumerable<Gate>> IManyQueryRepository<Gate>.GetManyShortAsync(ISpecification<Gate> specification,
+                                                                             CancellationToken cancellationToken)
+    => await manyQueryRepository.GetManyShortAsync(specification,
+                                                   cancellationToken);
 
   void IInsertRepository<Gate>.InsertOne(Gate entity)
     => insertRepository.InsertOne(entity);
-
-  async Task<bool> IExistenceQueryRepository<Gate>.AnyByQueryAsync(RequestParameters requestParameters,
-                                                                   CancellationToken cancellationToken)
-    => await existenceQueryRepository.AnyByQueryAsync(requestParameters,
-                                                      cancellationToken);
-
-  async Task<int> ICountRepository<Gate>.GetCountAsync(RequestParameters requestParameters,
-                                                       CancellationToken cancellationToken)
-    => await countRepository.GetCountAsync(requestParameters,
-                                           cancellationToken);
-
-  async Task<IEnumerable<Gate>> IManyQueryRepository<Gate>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                             CancellationToken cancellationToken,
-                                                                             bool skipFiltering)
-    => await manyQueryRepository.GetManyShortAsync(requestParameters,
-                                                   cancellationToken,
-                                                   skipFiltering);
 
   void IDeleteRepository<Gate>.DeleteOne(Gate entity)
     => deleteRepository.DeleteOne(entity);

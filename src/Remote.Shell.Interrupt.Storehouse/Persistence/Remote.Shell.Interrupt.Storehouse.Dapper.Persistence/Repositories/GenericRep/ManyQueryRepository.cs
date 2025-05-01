@@ -3,20 +3,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.Gene
 internal class ManyQueryRepository<T>(PostgreSQLDapperContext context)
   : IManyQueryRepository<T> where T : BaseEntity
 {
-  async Task<IEnumerable<T>> IManyQueryRepository<T>.GetManyShortAsync(RequestParameters requestParameters,
-                                                                       CancellationToken cancellationToken,
-                                                                       bool skipFiltering)
+  async Task<IEnumerable<T>> IManyQueryRepository<T>.GetManyShortAsync(ISpecification<T> specification,
+                                                                       CancellationToken cancellationToken)
   {
-    var baseQuery = $"SELECT {GetColumnsAsProperties.Handle<T>()} FROM \"{GetTableName.Handle<T>()}\"";
+    var queryBuilder = new SqlQueryBuilder<T>(specification);
 
-    var queryBuilder = new SqlQueryBuilder(requestParameters,
-                                           "",
-                                           typeof(T));
-
-    var (finalQuery, parameters) = queryBuilder.BuildBaseQuery(baseQuery, skipFiltering);
+    var sql = queryBuilder.Build();
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
-    return await connection.QueryAsync<T>(finalQuery, parameters);
+    return await connection.QueryAsync<T>(sql);
   }
 }

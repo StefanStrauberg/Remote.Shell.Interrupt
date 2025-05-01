@@ -2,6 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.G
 
 public interface IOneQueryRepository<T> where T : BaseEntity
 {   
-    Task<T> GetOneShortAsync(RequestParameters requestParameters,
+    Task<T> GetOneShortAsync(ISpecification<T> specification,
                              CancellationToken cancellationToken);
 }
