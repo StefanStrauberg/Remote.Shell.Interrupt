@@ -3,8 +3,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 public class DetailClientDTO : BaseClientDTO, IMapWith<Client>
 {
   public Guid Id { get; set; }
-  public DateTime Dat1 { get; set; }
-  public DateTime Dat2 { get; set; }
+  public DateTime? Dat1 { get; set; }
+  public DateTime? Dat2 { get; set; }
   public string Prim1 { get; set; } = string.Empty;
   public string Prim2 { get; set; } = string.Empty;
   public string Nik { get; set; } =string.Empty;

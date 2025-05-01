@@ -2,8 +2,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 
 internal class SqlExpressionVisitor<T> : ExpressionVisitor
 {
-    public readonly Dictionary<string, object> Parameters = [];
-    private int _parameterIndex = 0;
     private readonly StringBuilder _queryBuilder = new();
 
     public string GetWhereClause(Expression<Func<T, bool>> criteria)
@@ -15,11 +13,9 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
     protected override Expression VisitBinary(BinaryExpression node)
     {
         // Обрабатываем бинарные выражения (например, x => x.Id == 1)
-        _queryBuilder.Append('(');
         Visit(node.Left);
         _queryBuilder.Append(GetSqlOperator(node.NodeType));
         Visit(node.Right);
-        _queryBuilder.Append(')');
         return node;
     }
 
@@ -32,17 +28,20 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
-        // Добавляем параметры
-        var paramName = $"@p{_parameterIndex++}";
-        _queryBuilder.Append(paramName);
-        Parameters[paramName] = node.Value!;
+        if (node.Type == typeof(Guid))
+            _queryBuilder.Append($"'{node.Value}'");
+        else if (node.Type == typeof(string))
+            _queryBuilder.Append($"\"{node.Value}\"");
+        else
+            _queryBuilder.Append(node.Value);
+        
         return node;
     }
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         // Обрабатываем вызовы метода, например для Contains
-        if (node.Method.Name == "Contains")
+        if (Enum.TryParse(node.Method.Name, out FilterOperator method) && method == FilterOperator.Contains)
         {
             Visit(node.Object);
 
@@ -54,10 +53,8 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
             if (node.Arguments[0] is ConstantExpression constant)
             {
                 var value = constant.Value?.ToString() ?? string.Empty;
-                var paramName = $"@p{_parameterIndex++}";
-                _queryBuilder.Append(paramName);
                 // Оборачиваем значение в шаблоны %value%
-                Parameters[paramName] = $"%{value}%";
+                _queryBuilder.Append($"'%{value}%'");
             }
             else
                 Visit(node.Arguments[0]);
@@ -69,8 +66,7 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
     }
 
     private static string GetSqlOperator(ExpressionType nodeType)
-    {
-        return nodeType switch
+    => nodeType switch
         {
             ExpressionType.Equal => " = ",
             ExpressionType.NotEqual => " <> ",
@@ -79,5 +75,4 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
             ExpressionType.AndAlso => " AND ",
             _ => throw new NotImplementedException($"Operator {nodeType} not supported.")
         };
-    }
 }

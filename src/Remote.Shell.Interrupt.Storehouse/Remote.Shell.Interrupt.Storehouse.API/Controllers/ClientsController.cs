@@ -4,10 +4,10 @@ public class ClientsController : BaseAPIController
 {
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<ShortClientDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetShortClients([FromQuery] RequestParametersUpdated requestParameters,
-                                                   CancellationToken cancellationToken)
+  public async Task<IActionResult> GetClientsByFilter([FromQuery] RequestParametersUpdated requestParameters,
+                                                      CancellationToken cancellationToken)
   {
-    var result = await Sender.Send(new GetAllShortClientsQuery(requestParameters),
+    var result = await Sender.Send(new GetClientsByFilterQuery(requestParameters),
                                    cancellationToken);
     var metadata = new
     {
@@ -26,10 +26,10 @@ public class ClientsController : BaseAPIController
 
   [HttpGet]
   [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status200OK)]
-  public async Task<IActionResult> GetClientsWithChildrens([FromQuery] RequestParametersUpdated requestParameters,
-                                                           CancellationToken cancellationToken)
+  public async Task<IActionResult> GetClientsWithChildrenByFilter([FromQuery] RequestParametersUpdated requestParameters,
+                                                                  CancellationToken cancellationToken)
   {
-    var result = await Sender.Send(new GetAllClientsWithChildrensQuery(requestParameters),
+    var result = await Sender.Send(new GetClientsWithChildrenByFilterQuery(requestParameters),
                                    cancellationToken);
     var metadata = new
     {
@@ -54,12 +54,12 @@ public class ClientsController : BaseAPIController
     => Ok(await Sender.Send(new GetClientByIdQuery(id),
                             cancellationToken));
 
-  [HttpGet("{id}")]
+  [HttpGet]
   [ProducesResponseType(typeof(DetailClientDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetClientByIdClient(int id,
-                                                       CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetClientByIdClientQuery(id),
+  public async Task<IActionResult> GetClientWithChildrenByFilters([FromQuery] RequestParametersUpdated requestParameters,
+                                                                  CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new GetClientWithChildrenByFiltersQuery(requestParameters),
                             cancellationToken));
 
   [HttpPut]

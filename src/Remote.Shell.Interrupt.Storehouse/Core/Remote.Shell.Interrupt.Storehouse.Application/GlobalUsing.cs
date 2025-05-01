@@ -25,7 +25,6 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
 global using System.Net;
 global using Microsoft.Extensions.Configuration;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Organization;
-global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.Create;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
@@ -48,3 +47,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Services.Specification;
 global using Remote.Shell.Interrupt.Storehouse.Application.Services.QueryFilterParser;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByVlanTag;

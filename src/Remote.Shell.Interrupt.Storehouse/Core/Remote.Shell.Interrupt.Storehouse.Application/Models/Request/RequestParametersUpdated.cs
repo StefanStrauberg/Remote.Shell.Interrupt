@@ -71,7 +71,5 @@ public class RequestParametersUpdated
   /// Enable pagination when size and page number are set.
   /// </summary>
   public bool EnablePagination 
-  { 
-    get => _pageNumber is not null && _pageSize is not null;
-  }
+    => _pageNumber is not null && _pageSize is not null;
 }

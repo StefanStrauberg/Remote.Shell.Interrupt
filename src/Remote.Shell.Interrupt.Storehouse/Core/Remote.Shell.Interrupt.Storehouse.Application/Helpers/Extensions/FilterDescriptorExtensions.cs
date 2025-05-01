@@ -25,11 +25,30 @@ internal static class FilterDescriptorExtensions
                                       .Aggregate((Expression)parameter,
                                                  Expression.Property);
 
-    // Initialize a comparison expression based on the filter operator
-    Expression comparison;
+    // Get the type of the property
+    var propertyType = property.Type;
 
-    var value = Expression.Constant(filter.Value);
-    comparison = filter.Operator switch
+    // Convert filter.Value to the type of the property
+    object? convertedValue;
+
+    try
+    {
+      if (propertyType == typeof(Guid))
+        // Преобразуем строку в Guid
+        convertedValue = Guid.Parse(filter.Value);
+      else
+        // Для остальных типов используем Convert.ChangeType
+        convertedValue = Convert.ChangeType(filter.Value, propertyType);
+    }
+    catch (Exception ex)
+    {
+      throw new InvalidOperationException($"Не удалось преобразовать значение '{filter.Value}' к типу '{propertyType}'.", ex);
+    }
+
+    // Create a constant expression with the converted value
+    var value = Expression.Constant(convertedValue, propertyType);
+
+    Expression comparison = filter.Operator switch
     {
       FilterOperator.Equals => Expression.Equal(property, value),
       FilterOperator.NotEquals => Expression.NotEqual(property, value),

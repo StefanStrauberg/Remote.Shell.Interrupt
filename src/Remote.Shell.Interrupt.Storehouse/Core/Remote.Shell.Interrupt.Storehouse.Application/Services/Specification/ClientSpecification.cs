@@ -62,12 +62,12 @@ public class ClientSpecification : IClientSpecification
   static Expression<Func<Client, bool>> CombineExpressions(Expression<Func<Client, bool>> expr1,
                                                            Expression<Func<Client, bool>> expr2)
   {
-      var parameter = Expression.Parameter(typeof(Client));
-      var visitor = new ReplaceParameterVisitor(expr1.Parameters[0], parameter);
-      var left = visitor.Visit(expr1.Body);
-      visitor = new ReplaceParameterVisitor(expr2.Parameters[0], parameter);
-      var right = visitor.Visit(expr2.Body);
-      return Expression.Lambda<Func<Client, bool>>(Expression.AndAlso(left!, right!), parameter);
+    var parameter = Expression.Parameter(typeof(Client));
+    var visitor = new ReplaceParameterVisitor(expr1.Parameters[0], parameter);
+    var left = visitor.Visit(expr1.Body);
+    visitor = new ReplaceParameterVisitor(expr2.Parameters[0], parameter);
+    var right = visitor.Visit(expr2.Body);
+    return Expression.Lambda<Func<Client, bool>>(Expression.AndAlso(left!, right!), parameter);
   }
 
   /// <summary>

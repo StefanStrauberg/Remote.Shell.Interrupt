@@ -10,6 +10,9 @@ public interface IClientsRepository
     IBulkDeleteRepository<Client>,
     IBulkInsertRepository<Client>
 { 
+  Task<Client> GetOneWithChildrensAsync(ISpecification<Client> specification,
+                                        CancellationToken cancellationToken);
+
   Task<IEnumerable<Client>> GetManyShortAsync(ISpecification<Client> specification,
                                               CancellationToken cancellationToken);
 
@@ -18,4 +21,7 @@ public interface IClientsRepository
 
   Task<int> GetCountAsync(ISpecification<Client> specification,
                           CancellationToken cancellationToken);
+
+  Task<bool> AnyByQueryAsync(ISpecification<Client> specification,
+                             CancellationToken cancellationToken);
 }

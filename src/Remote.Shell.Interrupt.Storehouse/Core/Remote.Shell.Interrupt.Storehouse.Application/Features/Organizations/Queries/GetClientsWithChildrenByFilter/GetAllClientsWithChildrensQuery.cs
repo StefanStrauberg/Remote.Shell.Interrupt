@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
+namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsWithChildrenByFilter;
 
 /// <summary>
 /// Represents a query for retrieving all clients with their child entities.
@@ -6,17 +6,17 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Q
 /// <param name="RequestParameters">
 /// The request parameters, including pagination and filters.
 /// </param>
-public record GetAllClientsWithChildrensQuery(RequestParametersUpdated RequestParameters) 
+public record GetClientsWithChildrenByFilterQuery(RequestParametersUpdated RequestParameters) 
   : IQuery<PagedList<DetailClientDTO>>;
 
 /// <summary>
-/// Handles the processing of the <see cref="GetAllClientsWithChildrensQuery"/> query.
+/// Handles the processing of the <see cref="GetClientsWithChildrenByFilterQuery"/> query.
 /// </summary>
-internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
-                                                      IClientSpecification clientSpecification,
-                                                      IQueryFilterParser queryFilterParser,
-                                                      IMapper mapper)
-  : IQueryHandler<GetAllClientsWithChildrensQuery, PagedList<DetailClientDTO>>
+internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
+                                                          IClientSpecification clientSpecification,
+                                                          IQueryFilterParser queryFilterParser,
+                                                          IMapper mapper)
+  : IQueryHandler<GetClientsWithChildrenByFilterQuery, PagedList<DetailClientDTO>>
 {
   /// <summary>
   /// Processes the query to retrieve paginated and filtered clients with their children.
@@ -26,8 +26,8 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
   /// <returns>
   /// A paginated list of client details, including children, after applying filters and pagination.
   /// </returns>
-  async Task<PagedList<DetailClientDTO>> IRequestHandler<GetAllClientsWithChildrensQuery, PagedList<DetailClientDTO>>.Handle(GetAllClientsWithChildrensQuery request,
-                                                                                                                             CancellationToken cancellationToken)
+  async Task<PagedList<DetailClientDTO>> IRequestHandler<GetClientsWithChildrenByFilterQuery, PagedList<DetailClientDTO>>.Handle(GetClientsWithChildrenByFilterQuery request,
+                                                                                                                                 CancellationToken cancellationToken)
   {
     // Parse filter
     var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
@@ -37,11 +37,8 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
     var baseSpec = BuildSpecification(clientSpecification,
                                       filterExpr);
 
-    // Count records (without pagination)
+    // Count specification
     var countSpec = (IClientSpecification)baseSpec.Clone();
-    var count = await locBillUnitOfWork.Clients
-                                       .GetCountAsync(countSpec,
-                                                      cancellationToken);
 
     // Pagination parameters
     var pageNumber = request.RequestParameters.PageNumber ?? 0;
@@ -56,6 +53,11 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
                                          .GetManyWithChildrenAsync(baseSpec,
                                                                    cancellationToken);
     
+    // Retrieve count
+    var count = await locBillUnitOfWork.Clients
+                                       .GetCountAsync(countSpec,
+                                                      cancellationToken);
+
     // Map results
     var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 
@@ -74,8 +76,8 @@ internal class GetAllClientsWithChildrensQueryHandler(ILocBillUnitOfWork locBill
   /// <returns>
   /// An updated client specification including related entities and filters.
   /// </returns>
-  private static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-                                                         Expression<Func<Client, bool>>? filterExpr)
+  static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
+                                                 Expression<Func<Client, bool>>? filterExpr)
   {
     var spec = baseSpec.AddInclude(c => c.COD)
                        .AddInclude(c => c.TfPlan!)

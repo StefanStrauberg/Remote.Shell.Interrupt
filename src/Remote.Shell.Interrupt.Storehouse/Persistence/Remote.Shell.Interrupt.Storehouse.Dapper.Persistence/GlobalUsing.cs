@@ -29,3 +29,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 global using System.Linq.Expressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
+global using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;

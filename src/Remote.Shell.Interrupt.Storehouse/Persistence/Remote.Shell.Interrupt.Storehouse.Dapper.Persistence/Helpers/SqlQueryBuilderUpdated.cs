@@ -1,50 +1,15 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 
-internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
+internal class SqlQueryBuilderUpdated<T>(ISpecification<T> specification) where T : BaseEntity
 {
-  readonly List<string> _joins;
-  readonly List<string> _whereClauses;
-  readonly DynamicParameters _parameters;
-  readonly int _take;
-  readonly int _skip;
-  readonly List<(string Alias, Type JoinType)> _joinSelections;
+  readonly List<string> _joins = [];
+  readonly List<string> _whereClauses = [];
+  int _take;
+  int _skip;
+  readonly List<(string Alias, Type JoinType)> _joinSelections = [];
 
-  readonly SqlExpressionVisitor<T> _visitor;
-  readonly ISpecification<T> _specification;
-
-  public SqlQueryBuilderUpdated(ISpecification<T> specification)
-  {
-    _joins = [];
-    _whereClauses = [];
-    _parameters = new();
-    _joinSelections = [];
-    _visitor = new();
-    _specification = specification;
-
-    if (_specification.Criterias is not null)
-    {
-    // Создаем посетителя для преобразования Expression в SQL
-    var whereClause = _visitor.GetWhereClause(_specification.Criterias);
-
-    // Преобразуем Expression в SQL условие
-    foreach (var param in _visitor.Parameters)
-      AddFilter(whereClause, param.Value, param.Key);
-    }
-
-    if (_specification.Includes is not null)
-    {
-      foreach (var include in _specification.Includes)
-      {
-        var joinInfo = SqlQueryBuilderUpdated<T>.ParseInclude(include);
-        AddJoin(joinInfo);
-      }
-    }
-
-    if (specification.Take > 0)
-      _take = specification.Take;
-    if (specification.Skip > 0)
-      _skip = specification.Skip;
-  }
+  readonly SqlExpressionVisitor<T> _visitor = new();
+  readonly ISpecification<T> _specification = specification;
 
   static JoinInfo ParseInclude(Expression<Func<T, object>> include)
   {
@@ -119,16 +84,15 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
     return this;
   }
 
-  SqlQueryBuilderUpdated<T> AddFilter(string condition, object value, string paramName)
+  SqlQueryBuilderUpdated<T> AddFilter(string condition)
   {
-    _whereClauses.Add(condition);
-    _parameters.Add(paramName, value);
-    
+    _whereClauses.Add(condition);   
     return this;
   }
 
-  public (string Sql, DynamicParameters Parameters) Build()
+  public string Build()
   {
+    Prepare();
     var sql = new StringBuilder();
 
     // Формируем SELECT с полями основной сущности и join-сущностей.
@@ -149,18 +113,44 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
       sql.Append($"OFFSET {_skip}");
     }
 
-    return (sql.ToString(), _parameters);
+    return sql.ToString();
   }
 
-  public (string Sql, DynamicParameters Parameters) BuildCount()
+  void Prepare()
   {
+    if (_specification.Criterias is not null)
+    {
+      // Создаем посетителя для преобразования Expression в SQL
+      var whereClause = _visitor.GetWhereClause(_specification.Criterias);
+
+      AddFilter(whereClause);
+    }
+
+    if (_specification.Includes is not null)
+    {
+      foreach (var include in _specification.Includes)
+      {
+        var joinInfo = SqlQueryBuilderUpdated<T>.ParseInclude(include);
+        AddJoin(joinInfo);
+      }
+    }
+
+    if (_specification.Take > 0)
+      _take = _specification.Take;
+    if (_specification.Skip > 0)
+      _skip = _specification.Skip;
+  }
+
+  public string BuildCount()
+  {
+    Prepare();
     var sql = new StringBuilder();
 
     // Формируем SELECT с полями основной сущности и join-сущностей.
-    sql.Append(SqlQueryBuilderUpdated<T>.BuildCountSelectClause());
+    sql.AppendLine(SqlQueryBuilderUpdated<T>.BuildCountSelectClause());
 
     // FROM с главной таблицей.
-    sql.AppendLine($"\nFROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
+    sql.AppendLine($"FROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
 
     foreach (var join in _joins)
       sql.AppendLine(join);
@@ -174,11 +164,11 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
       sql.Append($"OFFSET {_skip}");
     }
 
-    return (sql.ToString(), _parameters);
+    return sql.ToString();
   }
 
   bool IsPaginated()
-    => _take > 0 && _skip > 0;
+    => _take > 0 && _skip >= 0;
 
   string BuildSelectClause()
   {
@@ -222,7 +212,8 @@ internal class SqlQueryBuilderUpdated<T> where T : BaseEntity
                              .ToList();
 
     // Если свойство "Id", определённое в базовом классе, присутствует, переместим его в начало
-    var parentId = properties.FirstOrDefault(p => p.Name == "Id" && p.DeclaringType != typeof(T));
+    var parentId = properties.FirstOrDefault(p => p.Name == nameof(BaseEntity.Id) && 
+                                             p.DeclaringType != typeof(T));
     if (parentId != null)
     {
       properties.Remove(parentId);

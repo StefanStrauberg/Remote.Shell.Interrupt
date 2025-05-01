@@ -1,15 +1,15 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetAll;
+namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByFilter;
 
-public record GetAllShortClientsQuery(RequestParametersUpdated RequestParameters) 
+public record GetClientsByFilterQuery(RequestParametersUpdated RequestParameters) 
   : IQuery<PagedList<ShortClientDTO>>;
 
-internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
+internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                               IClientSpecification clientSpecification,
                                               IQueryFilterParser queryFilterParser,
                                               IMapper mapper)
-  : IQueryHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>
+  : IQueryHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>
 {
-  async Task<PagedList<ShortClientDTO>> IRequestHandler<GetAllShortClientsQuery, PagedList<ShortClientDTO>>.Handle(GetAllShortClientsQuery request,
+  async Task<PagedList<ShortClientDTO>> IRequestHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>.Handle(GetClientsByFilterQuery request,
                                                                                                                    CancellationToken cancellationToken)
   {
     // Parse filter
@@ -50,14 +50,14 @@ internal class GetAllShortClientsQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
                                          pageSize);
   }
 
-  private static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-                                                         Expression<Func<Client, bool>>? filterExpr)
+  static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
+                                                 Expression<Func<Client, bool>>? filterExpr)
   {
     var spec = baseSpec;
 
     if (filterExpr is not null)
         spec.AddFilter(filterExpr);
 
-    return (IClientSpecification)spec;
+    return spec;
   }
 }
