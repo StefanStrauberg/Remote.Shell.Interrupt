@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class InsertRepository<T>(PostgreSQLDapperContext context)
+internal class InsertRepository<T>(PostgreSQLDapperContext context,
+                                   IAppLogger<InsertRepository<T>> logger)
   : IInsertRepository<T> where T : BaseEntity
 {
   void IInsertRepository<T>.InsertOne(T entity)
@@ -11,6 +12,8 @@ internal class InsertRepository<T>(PostgreSQLDapperContext context)
     sb.Append($"VALUES ({GetPropertyNames.Handle<T>(excludeKey: true)}) ");
     sb.Append($"RETURNING \"{nameof(BaseEntity.Id)}\"");
     var baseQuery = sb.ToString();
+
+    logger.LogInformation(baseQuery);
 
     context.BeginTransaction();
     var connection = context.CreateConnection();

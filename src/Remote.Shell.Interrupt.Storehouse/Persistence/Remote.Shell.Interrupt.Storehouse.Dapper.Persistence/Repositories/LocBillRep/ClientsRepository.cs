@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocBillRep;
 
 internal class ClientsRepository(PostgreSQLDapperContext context,
+                                 IAppLogger<ClientsRepository> appLogger,
                                  ICountRepository<Client> countRepository,
                                  IExistenceQueryRepository<Client> existenceQueryRepository,
                                  IManyQueryRepository<Client> manyQueryRepository,
@@ -15,6 +16,8 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder<Client>(specification);
 
     var sql = queryBuilder.Build();
+
+    appLogger.LogInformation(sql);
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
@@ -52,6 +55,8 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder<Client>(specification);
 
     var sql = queryBuilder.Build();
+
+    appLogger.LogInformation(sql);
     
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

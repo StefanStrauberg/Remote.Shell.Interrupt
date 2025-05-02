@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.NetDevRep;
 
 internal class PortRepository(PostgreSQLDapperContext context,
+                              IAppLogger<PortRepository> logger,
                               IExistenceQueryRepository<Port> existenceQueryRepository,
                               IOneQueryRepository<Port> oneQueryRepository,
                               IBulkInsertRepository<Port> bulkInsertRepository,
@@ -21,6 +22,9 @@ internal class PortRepository(PostgreSQLDapperContext context,
     sb.Append($"WHERE \"{nameof(Port.ParentPortId)}\" IN ({guids})");
 
     var query = sb.ToString();
+
+    logger.LogInformation(query);
+
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
     return await connection.QueryAsync<Port>(query);
@@ -40,6 +44,9 @@ internal class PortRepository(PostgreSQLDapperContext context,
     sb.Append($"AND ((tn.\"{nameof(TerminatedNetworkEntity.NetworkAddress)}\" & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\") = ((@IP::inet - '0.0.0.0'::inet) & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\"))");
 
     var query = sb.ToString();
+
+    logger.LogInformation(query);
+
     var connection = await context.CreateConnectionAsync(cancellationToken);
     return await connection.ExecuteScalarAsync<string>(query, new { IP = ipAddress }) ?? string.Empty;
   }
@@ -61,6 +68,9 @@ internal class PortRepository(PostgreSQLDapperContext context,
     sb.Append($"AND nd.\"{nameof(NetworkDevice.Host)}\" in ({hostsToDelete})");
 
     var query = sb.ToString();
+
+    logger.LogInformation(query);
+    
     var connection = await context.CreateConnectionAsync(cancellationToken);
 
     return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });

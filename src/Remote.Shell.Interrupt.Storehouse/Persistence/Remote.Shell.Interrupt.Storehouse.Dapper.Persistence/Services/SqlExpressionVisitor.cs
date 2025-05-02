@@ -32,6 +32,8 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
             _queryBuilder.Append($"'{node.Value}'");
         else if (node.Type == typeof(string))
             _queryBuilder.Append($"\"{node.Value}\"");
+        else if (node.Type.IsEnum)
+            _queryBuilder.Append($"{Convert.ToInt32(node.Value)}");
         else
             _queryBuilder.Append(node.Value);
         

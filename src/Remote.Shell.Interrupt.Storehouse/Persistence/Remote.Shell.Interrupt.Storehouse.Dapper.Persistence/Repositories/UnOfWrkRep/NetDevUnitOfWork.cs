@@ -1,6 +1,8 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
 internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
+                                IAppLogger<NetworkDeviceRepository> networkDeviceRepositoryAppLogger,
+                                IAppLogger<PortRepository> portRepositoryAppLogger,
                                 IManyQueryRepository<NetworkDevice> networkDeviceManyQueryRepository,
                                 IExistenceQueryRepository<NetworkDevice> networkDeviceExistenceQueryRepository,
                                 ICountRepository<NetworkDevice> networkDeviceCountRepository,
@@ -20,6 +22,7 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
 {
   public INetworkDeviceRepository NetworkDevices 
     => new NetworkDeviceRepository(context,
+                                   networkDeviceRepositoryAppLogger,
                                    networkDeviceManyQueryRepository,
                                    networkDeviceExistenceQueryRepository,
                                    networkDeviceCountRepository,
@@ -29,6 +32,7 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
     => new VLANRepository(vlanBulkInsertRepository);
   public IPortRepository Ports 
     => new PortRepository(context,
+                          portRepositoryAppLogger,
                           portExistenceQueryRepository,
                           portOneQueryRepository,
                           portBulkInsertRepository,

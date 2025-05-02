@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.RemBillRep;
 
-internal class RemoteClientsRepository(MySQLDapperContext context) 
+internal class RemoteClientsRepository(MySQLDapperContext context,
+                                       IAppLogger<RemoteClientsRepository> logger) 
   : IRemoteClientsRepository
 {
   async Task<IEnumerable<RemoteClient>> IRemoteGenericRepository<RemoteClient>.GetAllAsync(CancellationToken cancellationToken)
@@ -29,6 +30,9 @@ internal class RemoteClientsRepository(MySQLDapperContext context)
     sb.Append($"FROM client_cod AS cc");
 
     var query = sb.ToString();
+    
+    logger.LogInformation(query);
+    
     var connection = await context.CreateConnectionAsync(cancellationToken);
     return await connection.QueryAsync<RemoteClient>(query);
   }

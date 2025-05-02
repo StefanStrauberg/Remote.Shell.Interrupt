@@ -65,13 +65,13 @@ public class ClientsController : BaseAPIController
   [HttpPut]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> UpdateClients(CancellationToken cancellationToken)
+  public async Task<IActionResult> UpdateClientsLocalDb(CancellationToken cancellationToken)
     => Ok(await Sender.Send(new UpdateClientsLocalDbCommand(),
                             cancellationToken));
 
   [HttpDelete]
   [ProducesResponseType(StatusCodes.Status200OK)]
-  public async Task<IActionResult> DeleteClients(CancellationToken cancellationToken)
+  public async Task<IActionResult> DeleteClientsLocalDb(CancellationToken cancellationToken)
     => Ok(await Sender.Send(new DeleteClientsLocalDbCommand(),
                             cancellationToken));
 }

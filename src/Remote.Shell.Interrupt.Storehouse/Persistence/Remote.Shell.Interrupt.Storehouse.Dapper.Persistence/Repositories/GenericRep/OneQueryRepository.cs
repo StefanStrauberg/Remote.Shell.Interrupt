@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class OneQueryRepository<T>(PostgreSQLDapperContext context)
+internal class OneQueryRepository<T>(PostgreSQLDapperContext context,
+                                     IAppLogger<OneQueryRepository<T>> logger)
   : IOneQueryRepository<T> where T : BaseEntity
 {
   async Task<T> IOneQueryRepository<T>.GetOneShortAsync(ISpecification<T> specification,
@@ -9,6 +10,8 @@ internal class OneQueryRepository<T>(PostgreSQLDapperContext context)
     var queryBuilder = new SqlQueryBuilder<T>(specification);
 
     var sql = queryBuilder.Build();
+
+    logger.LogInformation(sql);
 
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

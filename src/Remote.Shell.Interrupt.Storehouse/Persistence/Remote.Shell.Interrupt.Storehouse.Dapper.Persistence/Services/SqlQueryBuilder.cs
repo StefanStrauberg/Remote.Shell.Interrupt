@@ -187,17 +187,25 @@ internal class SqlQueryBuilder<T>(ISpecification<T> specification) where T : Bas
     // FROM с главной таблицей.
     sql.AppendLine($"FROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
 
-    foreach (var join in _joins)
-      sql.AppendLine(join);
+    sql.AppendLine($"WHERE {typeof(T).Name.ToLower()}.\"{nameof(BaseEntity.Id)}\" = '{id.ToString()}'");
 
-    if (_whereClauses.Count > 0)
-      sql.AppendLine("WHERE " + string.Join(" AND ", _whereClauses));
+    return sql.ToString();
+  }
 
-    if (IsPaginated())
-    {
-      sql.AppendLine($"LIMIT {_take}");
-      sql.Append($"OFFSET {_skip}");
-    }
+  public string BuildDeleteMany(IEnumerable<Guid> ids)
+  {
+    if (_specification is not null)
+      Prepare();
+
+    var sql = new StringBuilder();
+
+    // Формируем SELECT с полями основной сущности и join-сущностей.
+    sql.AppendLine(SqlQueryBuilder<T>.BuildDeleteClause());
+
+    // FROM с главной таблицей.
+    sql.AppendLine($"FROM \"{GetTableName.Handle<T>()}\" AS {typeof(T).Name.ToLower()}");
+
+    sql.AppendLine($"WHERE {typeof(T).Name.ToLower()}.\"{nameof(BaseEntity.Id)}\" IN ({string.Join(", ", ids.Select(g => $"'{g}'"))})");
 
     return sql.ToString();
   }

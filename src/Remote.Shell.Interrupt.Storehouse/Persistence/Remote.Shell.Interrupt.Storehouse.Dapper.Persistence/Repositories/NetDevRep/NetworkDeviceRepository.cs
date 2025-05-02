@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.NetDevRep;
 
 internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
+                                       IAppLogger<NetworkDeviceRepository> logger,
                                        IManyQueryRepository<NetworkDevice> manyQueryRepository,
                                        IExistenceQueryRepository<NetworkDevice> existenceQueryRepository,
                                        ICountRepository<NetworkDevice> countRepository,
@@ -27,6 +28,9 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
         connection.Execute(query, new { Ids = vlanIds });
     }
     query = $"DELETE FROM \"{GetTableName.Handle<NetworkDevice>()}\" WHERE \"{nameof(NetworkDevice.Id)}\"=@Id";
+    
+    logger.LogInformation(query);
+    
     connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
@@ -36,6 +40,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
 
     var sql = queryBuilder.Build();
+
+    logger.LogInformation(sql);
     
     var connection = await context.CreateConnectionAsync(cancellationToken);
     
@@ -77,6 +83,8 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
     var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
 
     var sql = queryBuilder.Build();
+
+    logger.LogInformation(sql);
     
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

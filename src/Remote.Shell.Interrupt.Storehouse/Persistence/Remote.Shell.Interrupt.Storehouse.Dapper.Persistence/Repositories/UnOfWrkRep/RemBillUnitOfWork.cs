@@ -1,16 +1,24 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
-internal class RemBillUnitOfWork(MySQLDapperContext context) 
+internal class RemBillUnitOfWork(MySQLDapperContext context,
+                                 IAppLogger<RemoteClientsRepository> remoteClientsRepositoryAppLogger,
+                                 IAppLogger<RemoteCODRepository> remoteCODRepositoryAppLogger,
+                                 IAppLogger<RemoteTfPlanRepository> remoteTfPlanRepositoryAppLogger,
+                                 IAppLogger<RemoteSPRVlansRepository> remoteSPRVlansRepositoryAppLogger) 
   : IRemBillUnitOfWork, IDisposable
 {
   public IRemoteClientsRepository RemoteClients 
-    => new RemoteClientsRepository(context);
+    => new RemoteClientsRepository(context,
+                                   remoteClientsRepositoryAppLogger);
   public IRemoteCODRepository RemoteCODs 
-    => new RemoteCODRepository(context);
+    => new RemoteCODRepository(context,
+                               remoteCODRepositoryAppLogger);
   public IRemoteTfPlanRepository RemoteTfPlans 
-    => new RemoteTfPlanRepository(context);
+    => new RemoteTfPlanRepository(context,
+                                  remoteTfPlanRepositoryAppLogger);
   public IRemoteSPRVlansRepository RemoteSPRVlans 
-    => new RemoteSPRVlansRepository(context);
+    => new RemoteSPRVlansRepository(context,
+                                    remoteSPRVlansRepositoryAppLogger);
 
   bool disposed = false;
 

@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
 internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
+                                 IAppLogger<ClientsRepository> clientsRepositoryAppLogger,
                                  ICountRepository<Client> clientCountRepository,
                                  IExistenceQueryRepository<Client> clientExistenceQueryRepository,
                                  IManyQueryRepository<Client> clientManyQueryRepository,
@@ -24,6 +25,7 @@ internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
 {
   IClientsRepository ILocBillUnitOfWork.Clients 
     => new ClientsRepository(context,
+                             clientsRepositoryAppLogger,
                              clientCountRepository,
                              clientExistenceQueryRepository,
                              clientManyQueryRepository,

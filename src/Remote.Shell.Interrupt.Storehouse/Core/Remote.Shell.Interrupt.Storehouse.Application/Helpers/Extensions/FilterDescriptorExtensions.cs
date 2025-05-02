@@ -36,6 +36,9 @@ internal static class FilterDescriptorExtensions
       if (propertyType == typeof(Guid))
         // Преобразуем строку в Guid
         convertedValue = Guid.Parse(filter.Value);
+      else if (propertyType.IsEnum)
+        // Преобразуем строку в Enum
+        convertedValue = Enum.Parse(propertyType, filter.Value, ignoreCase: true);
       else
         // Для остальных типов используем Convert.ChangeType
         convertedValue = Convert.ChangeType(filter.Value, propertyType);

@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.RemBillRep;
 
-internal class RemoteSPRVlansRepository(MySQLDapperContext context) 
+internal class RemoteSPRVlansRepository(MySQLDapperContext context,
+                                        IAppLogger<RemoteSPRVlansRepository> logger) 
   : IRemoteSPRVlansRepository
 {
   async Task<IEnumerable<RemoteSPRVlan>> IRemoteGenericRepository<RemoteSPRVlan>.GetAllAsync(CancellationToken cancellationToken)
@@ -11,6 +12,8 @@ internal class RemoteSPRVlansRepository(MySQLDapperContext context)
                 "spr.use_client as \"UseClient\", " +
                 "spr.use_cod as \"UseCOD\" " +
                 "FROM `_spr_vlan` as spr";
+
+    logger.LogInformation(query);
     
     var connection = await context.CreateConnectionAsync(cancellationToken);
 

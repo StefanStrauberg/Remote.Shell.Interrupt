@@ -29,3 +29,5 @@ global using System.Linq.Expressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Services;
+global using Microsoft.Extensions.Logging;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
