@@ -17,24 +17,27 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
   /// <returns>The response generated after processing the request.</returns>
   public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
   {
-    var context = new ValidationContext<TRequest>(request);
-    var errorsDictionary = validators.Select(x => x.ValidateAsync(context,
-                                                                  cancellationToken)
-                                                   .Result)
-                                     .SelectMany(x => x.Errors)
-                                     .Where(x => x != null)
-                                     .GroupBy(x => x.PropertyName,
-                                              x => x.ErrorMessage,
-                                              (PropertyName, ErrorMessage) => new
-                                              {
-                                                Key = PropertyName,
-                                                Values = ErrorMessage
-                                              })
-                                     .ToDictionary(x => x.Key,
-                                                   x => x.Values.ToArray());
+    if (validators is null || !validators.Any())
+        return await next();
 
-    if (errorsDictionary.Count != 0)
+    var context = new ValidationContext<TRequest>(request);
+
+    var validationResults = await Task.WhenAll(validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+    var errors = validationResults.SelectMany(result => result.Errors)
+                                  .Where(error => error != null)
+                                  .ToList();
+
+    if (errors.Count != 0)
+    {
+      // Группируем ошибки по имени свойства. 
+      var errorsDictionary = errors.GroupBy(error => error.PropertyName, 
+                                            error => error.ErrorMessage)
+                                   .ToDictionary(group => group.Key, 
+                                                 group => group.ToArray());
+      
       throw new ValidationException(errorsDictionary);
+    }
 
     return await next();
   }
