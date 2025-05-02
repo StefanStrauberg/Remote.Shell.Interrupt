@@ -53,3 +53,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Comman
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.CreateGate;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetSPRVlansByFilter;
 global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
+global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
