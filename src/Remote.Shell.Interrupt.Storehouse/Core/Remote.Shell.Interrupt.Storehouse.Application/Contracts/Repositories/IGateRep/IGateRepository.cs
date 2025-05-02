@@ -1,5 +1,8 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IGateRep;
 
+/// <summary>
+/// Defines a repository interface for managing Gate entities, supporting various query and persistence operations.
+/// </summary>
 public interface IGateRepository 
   : IManyQueryRepository<Gate>, 
     IOneQueryRepository<Gate>,

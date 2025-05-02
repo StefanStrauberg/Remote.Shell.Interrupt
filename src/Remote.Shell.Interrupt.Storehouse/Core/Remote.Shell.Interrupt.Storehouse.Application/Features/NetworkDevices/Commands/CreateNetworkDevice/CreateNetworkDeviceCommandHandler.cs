@@ -183,10 +183,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     return Unit.Value;
   }
 
-  private async Task FillNetworkDevicesGeneralInformation(NetworkDevice networkDevice,
-                                                          string host,
-                                                          string community,
-                                                          CancellationToken cancellationToken)
+  async Task FillNetworkDevicesGeneralInformation(NetworkDevice networkDevice,
+                                                  string host,
+                                                  string community,
+                                                  CancellationToken cancellationToken)
   {
     var networkDeviceName = await snmpCommandExecutor.GetCommand(host: host,
                                                                   community: community,
@@ -195,10 +195,10 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     networkDevice.GeneralInformation = networkDeviceName.Data;
   }
 
-  private async Task FillNetworkDevicesName(NetworkDevice networkDevice,
-                                          string host,
-                                          string community,
-                                          CancellationToken cancellationToken)
+  async Task FillNetworkDevicesName(NetworkDevice networkDevice,
+                                    string host,
+                                    string community,
+                                    CancellationToken cancellationToken)
   {
     var networkDeviceName = await snmpCommandExecutor.GetCommand(host: host,
                                                                   community: community,
@@ -207,11 +207,11 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     networkDevice.NetworkDeviceName = networkDeviceName.Data;
   }
 
-  private async Task FillPortsOfNetworkDevice(NetworkDevice networkDevice,
-                                            string host,
-                                            string community,
-                                            int maxRepetitions,
-                                            CancellationToken cancellationToken)
+  async Task FillPortsOfNetworkDevice(NetworkDevice networkDevice,
+                                      string host,
+                                      string community,
+                                      int maxRepetitions,
+                                      CancellationToken cancellationToken)
   {
     var interfacesNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                    community: community,
@@ -333,11 +333,11 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     networkDevice.PortsOfNetworkDevice = ports;
   }
 
-  private async Task FillMACTableForPorts(NetworkDevice networkDevice,
-                                          string host,
-                                          string community,
-                                          int maxRepetitions,
-                                          CancellationToken cancellationToken)
+  async Task FillMACTableForPorts(NetworkDevice networkDevice,
+                                  string host,
+                                  string community,
+                                  int maxRepetitions,
+                                  CancellationToken cancellationToken)
   {
     var macToVirNumbers = await snmpCommandExecutor.WalkCommand(host: host,
                                                                  community: community,

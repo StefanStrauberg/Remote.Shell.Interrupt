@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Services;
 
 internal class SqlExpressionVisitor<T> : ExpressionVisitor
 {
-    private readonly StringBuilder _queryBuilder = new();
+    readonly StringBuilder _queryBuilder = new();
 
     public string GetWhereClause(Expression<Func<T, bool>> criteria)
     {
@@ -65,14 +65,14 @@ internal class SqlExpressionVisitor<T> : ExpressionVisitor
         return base.VisitMethodCall(node);
     }
 
-    private static string GetSqlOperator(ExpressionType nodeType)
-    => nodeType switch
-        {
-            ExpressionType.Equal => " = ",
-            ExpressionType.NotEqual => " <> ",
-            ExpressionType.GreaterThan => " > ",
-            ExpressionType.LessThan => " < ",
-            ExpressionType.AndAlso => " AND ",
-            _ => throw new NotImplementedException($"Operator {nodeType} not supported.")
-        };
+    static string GetSqlOperator(ExpressionType nodeType)
+        => nodeType switch
+            {
+                ExpressionType.Equal => " = ",
+                ExpressionType.NotEqual => " <> ",
+                ExpressionType.GreaterThan => " > ",
+                ExpressionType.LessThan => " < ",
+                ExpressionType.AndAlso => " AND ",
+                _ => throw new NotImplementedException($"Operator {nodeType} not supported.")
+            };
 }

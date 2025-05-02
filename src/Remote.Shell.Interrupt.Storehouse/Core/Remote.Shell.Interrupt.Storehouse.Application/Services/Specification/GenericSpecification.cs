@@ -1,26 +1,47 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Services.Specification;
 
+/// <summary>
+/// Generic specification class for filtering, including related entities, 
+/// and applying pagination.
+/// </summary>
+/// <typeparam name="T">The entity type that this specification operates on.</typeparam>
 public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
 {
-
+  /// <summary>
+  /// List of expressions for including related entities in queries.
+  /// </summary>
   protected readonly List<Expression<Func<T, object>>> _includes = [];
 
-
+  /// <summary>
+  /// Filtering criteria applied to the specification.
+  /// </summary>
   protected Expression<Func<T, bool>>? _criteria = null;
 
-
+  /// <summary>
+  /// Gets the filtering criteria applied to the specification.
+  /// </summary>
   public Expression<Func<T, bool>>? Criterias => _criteria;
 
-
+  /// <summary>
+  /// Gets the collection of expressions for including related entities.
+  /// </summary>
   public IReadOnlyCollection<Expression<Func<T, object>>> Includes => _includes;
 
-
+  /// <summary>
+  /// Gets the number of records to take for pagination.
+  /// </summary>
   public int Take {get; protected set; }
 
-
+  /// <summary>
+  /// Gets the number of records to skip for pagination.
+  /// </summary>
   public int Skip {get; protected set; }
 
-
+  /// <summary>
+  /// Adds a filtering expression to the specification.
+  /// </summary>
+  /// <param name="criteria">The filtering expression to apply.</param>
+  /// <returns>The updated specification instance.</returns>
   public virtual ISpecification<T> AddFilter(Expression<Func<T, bool>> criteria)
   {
     if (criteria == null)
@@ -34,7 +55,12 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     return this;
   }
 
-
+  /// <summary>
+  /// Combines two filtering expressions using a logical AND operation.
+  /// </summary>
+  /// <param name="expr1">The first filtering expression.</param>
+  /// <param name="expr2">The second filtering expression.</param>
+  /// <returns>The combined filtering expression.</returns>
   static Expression<Func<T, bool>> CombineExpressions(Expression<Func<T, bool>> expr1,
                                                       Expression<Func<T, bool>> expr2)
   {
@@ -46,25 +72,42 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left!, right!), parameter);
   }
 
-
+  /// <summary>
+  /// Expression visitor for replacing parameter expressions.
+  /// </summary>
   class ReplaceParameterVisitor(ParameterExpression oldParam,
                                 ParameterExpression newParam) 
     : ExpressionVisitor
   {
-    private readonly ParameterExpression _oldParam = oldParam;
-    private readonly ParameterExpression _newParam = newParam;
+    readonly ParameterExpression _oldParam = oldParam;
+    readonly ParameterExpression _newParam = newParam;
 
+    /// <summary>
+    /// Replaces the parameter expression if it matches the old parameter.
+    /// </summary>
+    /// <param name="node">The parameter expression to visit.</param>
+    /// <returns>The updated parameter expression.</returns>
     protected override Expression VisitParameter(ParameterExpression node)
       => node == _oldParam ? _newParam : node;
   }
 
+  /// <summary>
+  /// Adds an expression for including related entities in queries.
+  /// </summary>
+  /// <param name="include">The include expression.</param>
+  /// <returns>The updated specification instance.</returns>
   public virtual ISpecification<T> AddInclude(Expression<Func<T, object>> include)
   {
     _includes.Add(include);
     return this;
   }
 
-
+  /// <summary>
+  /// Applies pagination settings to the specification.
+  /// </summary>
+  /// <param name="pageNumber">The page number.</param>
+  /// <param name="pageSize">The number of records per page.</param>
+  /// <returns>The updated specification instance.</returns>
   public virtual ISpecification<T> WithPagination(int pageNumber, int pageSize)
   {
     if (pageNumber < 1) pageNumber = 1;
@@ -75,7 +118,10 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     return this;
   }
 
-
+  /// <summary>
+  /// Creates a copy of the current specification.
+  /// </summary>
+  /// <returns>A cloned instance of the specification.</returns>
   public virtual ISpecification<T> Clone()
   {
     var clone = new GenericSpecification<T>

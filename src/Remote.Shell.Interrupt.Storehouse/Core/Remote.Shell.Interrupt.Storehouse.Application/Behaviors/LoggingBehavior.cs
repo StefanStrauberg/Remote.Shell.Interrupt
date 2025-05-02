@@ -1,34 +1,42 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 
+/// <summary>
+/// Implements a logging behavior in the request pipeline, capturing execution time and request details.
+/// </summary>
+/// <typeparam name="TRequest">The type of request being processed.</typeparam>
+/// <typeparam name="TResponse">The type of response returned after handling the request.</typeparam>
 public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
   where TRequest : notnull, IRequest<TResponse>
   where TResponse : notnull
 {
-  readonly IAppLogger<LoggingBehavior<TRequest, TResponse>> _logger = logger
-    ?? throw new ArgumentNullException(nameof(logger));
-
+  /// <summary>
+  /// Logs request details, measures execution time, and records performance warnings if needed.
+  /// </summary>
+  /// <param name="request">The incoming request instance.</param>
+  /// <param name="next">The delegate responsible for processing the request.</param>
+  /// <param name="cancellationToken">A token for canceling the operation if needed.</param>
+  /// <returns>The response generated after processing the request.</returns>
   public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
   {
-    _logger.LogInformation("[START] Handle request={Request} Response={Response} RequestData={RequestData}",
-                           typeof(TRequest).Name,
-                           typeof(TResponse).Name,
-                           request);
+    var requestName = typeof(TRequest).Name;
+    logger.LogInformation($"[START] Handling request: {requestName} with data: {request}");
 
-    var timer = new Stopwatch();
-    timer.Start();
-    var response = await next();
-    timer.Stop();
-    var timeTaken = timer.Elapsed;
+    var stopwatch = Stopwatch.StartNew();
+    
+    try
+    {
+      var response = await next();
+      return response;
+    }
+    finally
+    {
+      stopwatch.Stop();
+      var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
 
-    if (timeTaken.Seconds > 3)
-      _logger.LogWarning("[PERFORMANCE] The request {Request} took {TimeTaken}",
-                         typeof(TRequest).Name,
-                         timeTaken.Seconds);
-    else
-      _logger.LogInformation("[END] Handle {Request} with {Response}",
-                             typeof(TRequest).Name,
-                             typeof(TResponse).Name);
-
-    return response;
+      if (elapsedSeconds > 3)
+        logger.LogWarning($"[PERFORMANCE] Request {requestName} took {elapsedSeconds:F2} seconds");
+      else
+        logger.LogInformation($"[END] Finished handling request: {requestName} in {elapsedSeconds:F2} seconds");
+    }
   }
 }

@@ -1,8 +1,25 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceByVlanTag;
 
-// Запрос получения сетевого устройства по VLAN Tag.
+/// <summary>
+/// Represents a query to retrieve a network devices by a VLAN tag.
+/// </summary>
+/// <param name="VlanTag">The VLAN tag used to filter network devices.</param>
 public record GetNetworkDeviceByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
+/// <summary>
+/// Handles the GetNetworkDeviceByVlanTagQuery and retrieves network devices associated with the specified VLAN tag.
+/// </summary>
+/// <remarks>
+/// This handler checks the validity of the VLAN tag, retrieves related clients and network devices, 
+/// processes port aggregation, and returns the mapped results.
+/// </remarks>
+/// <param name="netDevUnitOfWork">Unit of work for network device-related database operations.</param>
+/// <param name="locBillUnitOfWork">Unit of work for local billing-related database operations.</param>
+/// <param name="networkDeviceSpecification">Specification used for filtering network devices.</param>
+/// <param name="sPRVlanSpecification">Specification used for filtering VLAN entities.</param>
+/// <param name="clientSpecification">Specification used for filtering client entities.</param>
+/// <param name="queryFilterParser">Parser for processing filter expressions.</param>
+/// <param name="mapper">Object mapper for DTO transformation.</param>
 internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
                                                      ILocBillUnitOfWork locBillUnitOfWork,
                                                      INetworkDeviceSpecification networkDeviceSpecification,
@@ -12,35 +29,42 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                                      IMapper mapper)
   : IQueryHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>
 {
+  /// <summary>
+  /// Handles the request to retrieve network devices associated with a VLAN tag.
+  /// </summary>
+  /// <param name="request">The query containing the VLAN tag.</param>
+  /// <param name="cancellationToken">Token to handle request cancellation.</param>
+  /// <returns>A compound object DTO containing network devices and associated clients.</returns>
   async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByVlanTagQuery request,
                                                                                                           CancellationToken cancellationToken)
   {
-    // Проверяем, что VLAN Tag задан корректно.
+    // Validate VLAN tag
     if (request.VlanTag == 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
 
-    // Создаем запрос для получения клиентов по VLAN Tag.
+    // Create a query for retrieving clients associated with the VLAN tag
     var getClientsByVlanTagQuery = new GetClientsByVlanTagQuery(request.VlanTag);
 
-    // Инициализируем обработчик запросов для клиентов.
+    // Initialize the handler for retrieving clients
     var getClientsByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(locBillUnitOfWork,
                                                                               sPRVlanSpecification,
                                                                               clientSpecification,
                                                                               queryFilterParser,
                                                                               mapper);
 
-    // Извлекаем список клиентов.
+    // Retrieve the list of clients associated with the VLAN tag
     var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)getClientsByVlanTagQueryHandler).Handle(getClientsByVlanTagQuery,
                                                                                                                                           cancellationToken);
     
-    // Инициализируем список сетевых устройств.
+    // Initialize the list for network devices
     List<NetworkDevice> networkDevices = [];
 
-    // Извлекаем VLAN теги из данных клиентов.
+    // Extract distinct VLAN tags from the clients' associated VLANs
     var vlanTags = clients.SelectMany(x => x.SPRVlans)
                           .Select(x => x.IdVlan)
                           .Distinct();
 
+    // Create filtering parameters to retrieve network devices by VLAN tag
     var requestParameters = new RequestParameters
     {
       Filters = [
@@ -53,71 +77,72 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
       ]
     };
 
-    // Parse filter
+    // Parse the filter expression
     var filterExpr = queryFilterParser.ParseFilters<NetworkDevice>(requestParameters.Filters);
 
-    // Build base specification
+    // Build the base specification with filtering applied
     var baseSpec = BuildSpecification(networkDeviceSpecification,
                                       filterExpr);
 
-    // Извлекаем устройства, связанные с VLAN тегами.
+    // Retrieve devices associated with VLAN tags
     networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
                                                   .GetManyWithChildrenAsync(baseSpec,
                                                                             cancellationToken));
 
-    // Заполнение агрегированных портов
+    // Process aggregated ports for network devices
     foreach (var networkDevice in networkDevices)
     {
-        // Извлекаем родительские порты и материализуем их в список
-        var parentPorts = networkDevice.PortsOfNetworkDevice
-                                      .Where(port => port.ParentPortId is null);
+      var parentPorts = networkDevice.PortsOfNetworkDevice
+                                     .Where(port => port.ParentPortId is null);
 
-        // Если родительских портов нет, переходим к следующему устройству.
-        if (!parentPorts.Any())
-            continue;
+      // Skip devices without parent ports
+      if (!parentPorts.Any())
+          continue;
 
-        // Извлекаем идентификаторы родительских портов
-        var parentPortsIds = parentPorts.Select(port => port.Id);
+      var parentPortsIds = parentPorts.Select(port => port.Id);
 
-        // Асинхронно получаем все дочерние порты для данных родительских портов.
-        var children = await netDevUnitOfWork.Ports
-                                             .GetAllAggregatedPortsByListAsync(parentPortsIds, cancellationToken);
+      // Retrieve all aggregated child ports for parent ports
+      var children = await netDevUnitOfWork.Ports
+                                           .GetAllAggregatedPortsByListAsync(parentPortsIds,
+                                                                             cancellationToken);
 
-        // Группируем дочерние порты, гарантируя, что ParentPortId имеет значение
-        var childrenByParent = children.Where(child => child.ParentPortId.HasValue)         // Отфильтровываем элементы с не null ParentPortId
-                                       .GroupBy(child => child.ParentPortId!.Value)            // Используем Value для получения Guid
-                                       .ToDictionary(group => group.Key, group => group.ToArray());
+      // Group child ports by their parent port ID
+      var childrenByParent = children.Where(child => child.ParentPortId.HasValue)
+                                     .GroupBy(child => child.ParentPortId!.Value)
+                                     .ToDictionary(group => group.Key, 
+                                                   group => group.ToArray());
 
-
-        // Записываем дочерние порты каждому родительскому порту
-        foreach (var port in parentPorts)
-        {
-            port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated)
-                                  ? aggregated
-                                  : []; // Если для родителя нет детей, устанавливаем пустой список.
-        }
+      // Assign aggregated child ports to their respective parent ports
+      foreach (var port in parentPorts)
+          port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated) ? aggregated
+                                                                                           : [];
     }
 
-
-    // Очищаем и подготавливаем данные портов.
+    // Clean and prepare aggregated ports for processing
     PrepareAndCleanAggregationPorts.Handle(networkDevices);
 
-    // Формируем финальный результат.
+    // Construct the final result DTO
     var result = new CompoundObjectDTO()
     {
       NetworkDevices = mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
       Clients = clients
     };
 
-    // Возвращаем результат.
+    // Return the result
     return result;
   }
 
+  /// <summary>
+  /// Builds the specification by applying filtering and includes related entities.
+  /// </summary>
+  /// <param name="baseSpec">The base network device specification.</param>
+  /// <param name="filterExpr">The filter expression to apply.</param>
+  /// <returns>An updated specification with filtering applied.</returns>
   static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
                                                         Expression<Func<NetworkDevice, bool>>? filterExpr)
   {
     var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice);
-    // TODO thenInclude...
+    // TODO: Consider using ThenInclude for deeper relationships.
 
     if (filterExpr is not null)
         spec.AddFilter(filterExpr);

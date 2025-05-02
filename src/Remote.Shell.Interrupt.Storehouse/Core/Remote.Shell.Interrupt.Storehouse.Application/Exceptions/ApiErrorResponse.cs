@@ -35,7 +35,5 @@ public class ApiErrorResponse(int status,
     /// Creates a generic error response.
     /// </summary>
     public static ApiErrorResponse CreateGenericError(int status, string message)
-    {
-        return new ApiErrorResponse(status, "An error occurred", message);
-    }
+        => new ApiErrorResponse(status, "An error occurred", message);
 }

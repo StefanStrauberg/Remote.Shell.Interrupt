@@ -1,17 +1,25 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsWithChildrenByFilter;
 
 /// <summary>
-/// Represents a query for retrieving all clients with their child entities.
+/// Represents a query to fetch clients along with their related child entities
+/// based on filtering criteria.
 /// </summary>
-/// <param name="RequestParameters">
-/// The request parameters, including pagination and filters.
-/// </param>
+/// <param name="RequestParameters">The request parameters containing filtering and pagination settings.</param>
 public record GetClientsWithChildrenByFilterQuery(RequestParameters RequestParameters) 
   : IQuery<PagedList<DetailClientDTO>>;
 
 /// <summary>
-/// Handles the processing of the <see cref="GetClientsWithChildrenByFilterQuery"/> query.
+/// Handles the GetClientsWithChildrenByFilterQuery and retrieves clients
+/// along with their child entities based on specified filters.
 /// </summary>
+/// <remarks>
+/// This handler applies filtering expressions, builds the necessary specifications,
+/// handles pagination, retrieves related child data, and returns mapped results.
+/// </remarks>
+/// <param name="locBillUnitOfWork">Unit of work for database operations.</param>
+/// <param name="specification">Client specification used for filtering.</param>
+/// <param name="queryFilterParser">Parser for processing filter expressions.</param>
+/// <param name="mapper">Object mapper for DTO transformation.</param>
 internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                                           IClientSpecification specification,
                                                           IQueryFilterParser queryFilterParser,
@@ -19,49 +27,53 @@ internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork loc
   : IQueryHandler<GetClientsWithChildrenByFilterQuery, PagedList<DetailClientDTO>>
 {
   /// <summary>
-  /// Processes the query to retrieve paginated and filtered clients with their children.
+  /// Handles the request to retrieve clients along with their child entities
+  /// based on filter conditions.
   /// </summary>
-  /// <param name="request">The query request object.</param>
-  /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
-  /// <returns>
-  /// A paginated list of client details, including children, after applying filters and pagination.
-  /// </returns>
+  /// <param name="request">The query request containing filtering and pagination parameters.</param>
+  /// <param name="cancellationToken">Token for request cancellation support.</param>
+  /// <returns>A paged list of detailed client DTOs.</returns>
   async Task<PagedList<DetailClientDTO>> IRequestHandler<GetClientsWithChildrenByFilterQuery, PagedList<DetailClientDTO>>.Handle(GetClientsWithChildrenByFilterQuery request,
                                                                                                                                  CancellationToken cancellationToken)
   {
-    // Parse filter
+    // Parse the filter expression
     var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
                                                                    .Filters);
 
-    // Build base specification
+    // Build the base specification with filtering applied
     var baseSpec = BuildSpecification(specification,
                                       filterExpr);
 
-    // Count specification
-    var countSpec = (IClientSpecification)baseSpec.Clone();
+    // Create a specification for counting total matching records
+    var countSpec = baseSpec.Clone();
 
-    // Pagination parameters
+    // Extract pagination parameters
     var pageNumber = request.RequestParameters.PageNumber ?? 0;
     var pageSize = request.RequestParameters.PageSize ?? 0;
 
+    // Apply pagination settings if enabled
     if (request.RequestParameters.EnablePagination)
         baseSpec.WithPagination(pageNumber,
                                 pageSize);
     
-    // Retrieve data
+    // Retrieve data, including related entities
     var clients = await locBillUnitOfWork.Clients
                                          .GetManyWithChildrenAsync(baseSpec,
                                                                    cancellationToken);
+
+    // Return an empty paginated list if no data are found.
+    if (!clients.Any())
+      return new PagedList<DetailClientDTO>([],0,0,0);
     
-    // Retrieve count
+    // Retrieve the total count of matching records
     var count = await locBillUnitOfWork.Clients
                                        .GetCountAsync(countSpec,
                                                       cancellationToken);
 
-    // Map results
+    // Map the retrieved data to the DTO
     var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 
-    // Return results
+    // Return the mapped result
     return new PagedList<DetailClientDTO>(result,
                                           count,
                                           pageNumber,
@@ -69,13 +81,11 @@ internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork loc
   }
 
   /// <summary>
-  /// Builds the specification with included entities and filters.
+  /// Builds the specification by applying filtering and includes related entities.
   /// </summary>
   /// <param name="baseSpec">The base client specification.</param>
   /// <param name="filterExpr">The filter expression to apply.</param>
-  /// <returns>
-  /// An updated client specification including related entities and filters.
-  /// </returns>
+  /// <returns>An updated specification with filtering and includes applied.</returns>
   static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
                                                  Expression<Func<Client, bool>>? filterExpr)
   {

@@ -13,12 +13,12 @@ public class RequestParameters
   /// <summary>
   /// Stores the current page size. Default value is 10.
   /// </summary>
-  private int? _pageSize;
+  int? _pageSize;
 
   /// <summary>
   /// Stores the current page number. Default value is 1.
   /// </summary>
-  private int? _pageNumber;
+  int? _pageNumber;
 
   /// <summary>
   /// Gets or sets the page number.

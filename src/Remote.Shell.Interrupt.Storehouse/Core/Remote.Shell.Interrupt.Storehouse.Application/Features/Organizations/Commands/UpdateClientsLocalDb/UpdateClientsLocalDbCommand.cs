@@ -1,19 +1,40 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.UpdateClientsLocalDb;
 
+/// <summary>
+/// Represents a command to update local client database records based on remote data.
+/// </summary>
 public record UpdateClientsLocalDbCommand : ICommand;
 
+/// <summary>
+/// Handles the UpdateClientsLocalDbCommand and synchronizes local client-related data
+/// with remote records.
+/// </summary>
+/// <remarks>
+/// This handler removes existing local records, retrieves updated data from the remote database,
+/// and inserts new entries to maintain consistency.
+/// </remarks>
+/// <param name="locBillUnitOfWork">Unit of work for local database operations.</param>
+/// <param name="remBillUnitOfWork">Unit of work for remote database operations.</param>
 internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                                   IRemBillUnitOfWork remBillUnitOfWork)
   : ICommandHandler<UpdateClientsLocalDbCommand, Unit>
 {
+  /// <summary>
+  /// Handles the request to update local client records based on remote data.
+  /// </summary>
+  /// <param name="request">The command initiating the update process.</param>
+  /// <param name="cancellationToken">Token to handle request cancellation.</param>
+  /// <returns>A unit value indicating successful execution.</returns>
   async Task<Unit> IRequestHandler<UpdateClientsLocalDbCommand, Unit>.Handle(UpdateClientsLocalDbCommand request,
                                                                              CancellationToken cancellationToken)
   {
+    // Retrieve all remote records
     var allClientCODRs = await remBillUnitOfWork.RemoteClients.GetAllAsync(cancellationToken);
     var allCODRs = await remBillUnitOfWork.RemoteCODs.GetAllAsync(cancellationToken);
     var allTfPlanRs = await remBillUnitOfWork.RemoteTfPlans.GetAllAsync(cancellationToken);
     var allSPRVlanRs = await remBillUnitOfWork.RemoteSPRVlans.GetAllAsync(cancellationToken);
 
+    // Remove existing local records
     var CODLsToDel = await locBillUnitOfWork.CODs.GetAllAsync(cancellationToken);
     if (CODLsToDel.Any())
       locBillUnitOfWork.CODs.DeleteMany(CODLsToDel);
@@ -30,11 +51,13 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
     if (SPRVlanLsToDel.Any())
       locBillUnitOfWork.SPRVlans.DeleteMany(SPRVlanLsToDel);
 
+    // Prepare lists for new records
     List<COD> CODLsToCre = [];
     List<TfPlan> TfPlanLsToCre = [];
     List<Client> ClientCodLsToCre = [];
     List<SPRVlan> SPRVlanLsToCre = [];
 
+    // Map and insert COD records
     foreach (var cod in allCODRs)
     {
       CODLsToCre.Add(new COD
@@ -49,9 +72,9 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
         Region = cod.Region?.TrimEnd() ?? string.Empty
       });
     }
-
     locBillUnitOfWork.CODs.InsertMany(CODLsToCre);
 
+    // Map and insert TfPlan records
     foreach (var tfPlan in allTfPlanRs)
     {
       TfPlanLsToCre.Add(new TfPlan
@@ -61,9 +84,9 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
         DescTfPlan = tfPlan.DescTfPlan.TrimEnd().Replace("\0", "")
       });
     }
-
     locBillUnitOfWork.TfPlans.InsertMany(TfPlanLsToCre);
 
+    // Map and insert Client records
     foreach (var client in allClientCODRs)
     {
       ClientCodLsToCre.Add(new Client
@@ -89,9 +112,9 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
         Id_TfPlan = client.Id_TfPlan,
       });
     }
-
     locBillUnitOfWork.Clients.InsertMany(ClientCodLsToCre);
 
+    // Map and insert SPRVlan records
     foreach (var SPRVlan in allSPRVlanRs)
     {
       SPRVlanLsToCre.Add(new SPRVlan
@@ -102,11 +125,12 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
         UseCOD = SPRVlan.UseCOD
       });
     }
-
     locBillUnitOfWork.SPRVlans.InsertMany(SPRVlanLsToCre);
 
+    // Commit the transaction
     locBillUnitOfWork.Complete();
 
+    // Return a unit value indicating completion
     return Unit.Value;
   }
 }

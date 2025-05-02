@@ -52,3 +52,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.UpdateGate;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.CreateGate;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetSPRVlansByFilter;
+global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;

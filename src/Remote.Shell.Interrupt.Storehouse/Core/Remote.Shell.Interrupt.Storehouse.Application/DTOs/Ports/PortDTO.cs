@@ -56,12 +56,4 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
                                                    .Select(x => new { x.NetworkAddress, x.Netmask })));
   }
-
-  private static string ConvertToString(long address)
-  {
-    var bytes = BitConverter.GetBytes(address);
-    Array.Resize(ref bytes, 4);
-    Array.Reverse(bytes); // Изменяем порядок байтов
-    return new IPAddress(bytes).ToString();
-  }
 }

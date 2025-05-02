@@ -1,7 +1,17 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.VirtualNetwork;
 
+/// <summary>
+/// Represents a Virtual LAN (VLAN) entity.
+/// </summary>
 public class VLAN : BaseEntity
 {
-  public int VLANTag { get; set; } // 10
-  public string VLANName { get; set; } = string.Empty; // "VLAN10"
+  /// <summary>
+  /// Gets or sets the VLAN tag identifier.
+  /// </summary>
+  public int VLANTag { get; set; } 
+
+  /// <summary>
+  /// Gets or sets the VLAN name.
+  /// </summary>
+  public string VLANName { get; set; } = string.Empty;
 }

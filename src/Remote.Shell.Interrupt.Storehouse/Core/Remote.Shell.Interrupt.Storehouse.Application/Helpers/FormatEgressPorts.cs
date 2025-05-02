@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 
 public static class FormatEgressPorts
 {
-  private static readonly char[] separator = [',', ' '];
+  static readonly char[] separator = [',', ' '];
 
   internal static int[] HandleJuniperData(string input)
   {

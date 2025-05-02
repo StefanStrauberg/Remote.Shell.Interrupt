@@ -1,10 +1,32 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
 
+/// <summary>
+/// Represents a network device with essential properties and associated ports.
+/// </summary>
 public class NetworkDevice : BaseEntity
 {
-  public required string Host { get; set; }// "192.168.101.29" 
+  /// <summary>
+  /// Gets or sets the host address of the network device.
+  /// </summary>
+  public required string Host { get; set; }
+
+  /// <summary>
+  /// Gets or sets the type of the network device.
+  /// </summary>
   public TypeOfNetworkDevice TypeOfNetworkDevice { get; set; }
-  public string NetworkDeviceName { get; set; } = string.Empty; // "Huawei"
+
+  /// <summary>
+  /// Gets or sets the name of the network device.
+  /// </summary>
+  public string NetworkDeviceName { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Gets or sets general information about the network device.
+  /// </summary>
   public string GeneralInformation { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Gets or sets the collection of ports associated with the network device.
+  /// </summary>
   public List<Port> PortsOfNetworkDevice { get; set; } = [];
 }

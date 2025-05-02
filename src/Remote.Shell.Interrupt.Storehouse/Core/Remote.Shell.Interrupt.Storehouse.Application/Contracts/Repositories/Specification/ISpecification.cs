@@ -54,5 +54,13 @@ public interface ISpecification<T> where T : BaseEntity
   /// <returns>An updated specification with pagination settings.</returns>
   ISpecification<T> WithPagination(int pageNumber, int pageSize);
 
+  /// <summary>
+  /// Creates a deep copy of the current specification instance.
+  /// </summary>
+  /// <returns>A new specification instance with the same criteria, includes, and pagination settings.</returns>
+  /// <remarks>
+  /// This method allows creating an independent copy of the current specification,
+  /// ensuring that modifications to the new instance do not affect the original.
+  /// </remarks>
   ISpecification<T> Clone();
 }

@@ -14,7 +14,7 @@ public class TerminatedNetworkEntityDTO : IMapWith<TerminatedNetworkEntity>
                       opt => opt.MapFrom(src => ConvertToString(src.Netmask)));
   }
 
-  private static string ConvertToString(long address)
+  static string ConvertToString(long address)
   {
     var bytes = BitConverter.GetBytes(address);
     Array.Reverse(bytes); // Изменяем порядок байтов
