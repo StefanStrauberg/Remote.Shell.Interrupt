@@ -18,44 +18,57 @@ internal class QueryFilterParser : IQueryFilterParser
     if (filters == null || filters.Count == 0)
       return null!;
 
-    Expression<Func<T, bool>>? combinedExpression = null;
+    // Группируем фильтры по одному и тому же свойству (PropertyPath)
+    var groupedFilters = filters.GroupBy(f => f.PropertyPath);
 
-    foreach (var filter in filters)
+    Expression<Func<T, bool>>? finalExpression = null;
+
+    foreach (var group in groupedFilters)
     {
-      var filterExpression = filter.ToExpression<T>();
-      
-      // Комбинируем фильтры через логическое "И" (AND)
-      if (combinedExpression is null)
-        combinedExpression = filterExpression;
-      else
-        combinedExpression = CombineExpressions(combinedExpression, filterExpression);
+      // Внутри группы условие объединяем через OR
+      Expression<Func<T, bool>>? groupExpression = null;
+
+      foreach (var filter in group)
+      {
+          var filterExpr = filter.ToExpression<T>();
+
+          if (groupExpression == null)
+              groupExpression = filterExpr;
+          else
+              groupExpression = CombineExpressionsOr(groupExpression, filterExpr);
+      }
+
+      // Объединяем полученные групповые выражения через AND
+      if (groupExpression != null)
+      {
+          if (finalExpression == null)
+              finalExpression = groupExpression;
+          else
+              finalExpression = CombineExpressionsAnd(finalExpression, groupExpression);
+      }
     }
     
-    return combinedExpression;
+    return finalExpression;
   }
 
-  /// <summary>
-  /// Combines two LINQ expressions using logical "AND".
-  /// </summary>
-  /// <typeparam name="T">The type of entity to which the filters apply.</typeparam>
-  /// <param name="expr1">The first expression.</param>
-  /// <param name="expr2">The second expression.</param>
-  /// <returns>
-  /// A new LINQ expression that combines the two filters.
-  /// </returns>
-  static Expression<Func<T, bool>> CombineExpressions<T>(Expression<Func<T, bool>> expr1,
-                                                         Expression<Func<T, bool>> expr2)
+  static Expression<Func<T, bool>> CombineExpressionsAnd<T>(Expression<Func<T, bool>> expr1,
+                                                            Expression<Func<T, bool>> expr2)
   {
-    var parameter = expr1.Parameters[0];
+    var parameter = Expression.Parameter(typeof(T), "x");
+    var left = new ParameterReplacerVisitor(expr1.Parameters[0], parameter).Visit(expr1.Body);
+    var right = new ParameterReplacerVisitor(expr2.Parameters[0], parameter).Visit(expr2.Body);
+    var body = Expression.AndAlso(left!, right!);
+    return Expression.Lambda<Func<T, bool>>(body, parameter);
+  }
 
-    var leftVisitor = new ParameterReplacerVisitor(expr1.Parameters[0], parameter);
-    var rightVisitor = new ParameterReplacerVisitor(expr2.Parameters[0], parameter);
-
-    var left = leftVisitor.Visit(expr1.Body);
-    var right = rightVisitor.Visit(expr2.Body);
-
-    var combined = Expression.AndAlso(left!, right!);
-    return Expression.Lambda<Func<T, bool>>(combined, parameter);
+  static Expression<Func<T, bool>> CombineExpressionsOr<T>(Expression<Func<T, bool>> expr1,
+                                                           Expression<Func<T, bool>> expr2)
+  {
+    var parameter = Expression.Parameter(typeof(T), "x");
+    var left = new ParameterReplacerVisitor(expr1.Parameters[0], parameter).Visit(expr1.Body);
+    var right = new ParameterReplacerVisitor(expr2.Parameters[0], parameter).Visit(expr2.Body);
+    var body = Expression.OrElse(left!, right!);
+    return Expression.Lambda<Func<T, bool>>(body, parameter);
   }
 
   /// <summary>

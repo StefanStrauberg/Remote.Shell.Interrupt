@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.NetDevRep;
 
-internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
-                                       IAppLogger<NetworkDeviceRepository> logger,
+internal class NetworkDeviceRepository(ApplicationDbContext context,
                                        IManyQueryRepository<NetworkDevice> manyQueryRepository,
                                        IExistenceQueryRepository<NetworkDevice> existenceQueryRepository,
                                        ICountRepository<NetworkDevice> countRepository,
@@ -9,115 +8,34 @@ internal class NetworkDeviceRepository(PostgreSQLDapperContext context,
                                        IReadRepository<NetworkDevice> readRepository) 
   : INetworkDeviceRepository
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<NetworkDevice> _dbSet = new(context.ModelBuilder, context);
+
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
-    context.BeginTransaction();
-    var connection = context.CreateConnection();
-    string query = string.Empty;
-    // Удаление VLANs
-    var vlanIds = networkDeviceToDelete.PortsOfNetworkDevice
-                                       .SelectMany(x => x.VLANs)
-                                       .Select(vlan => vlan.Id)
-                                       .ToList();
-    if (vlanIds.Count != 0)
-    {
-        query = $"DELETE FROM \"{GetTableName.Handle<VLAN>()}\" WHERE \"{nameof(VLAN.Id)}\" = ANY(@Ids)";
-        connection.Execute(query, new { Ids = vlanIds });
-        
-        query = $"DELETE FROM \"{GetTableName.Handle<PortVlan>()}\" WHERE \"{nameof(PortVlan.VLANId)}\" = ANY(@Ids)";
-        connection.Execute(query, new { Ids = vlanIds });
-    }
-    query = $"DELETE FROM \"{GetTableName.Handle<NetworkDevice>()}\" WHERE \"{nameof(NetworkDevice.Id)}\"=@Id";
     
-    logger.LogInformation(query);
-    
-    connection.Execute(query, new { Id = networkDeviceToDelete.Id });
   }
 
   async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                     CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
-
-    var sql = queryBuilder.Build();
-
-    logger.LogInformation(sql);
-    
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-    
-    var ndDictionary = new Dictionary<Guid, NetworkDevice>();
-    var pDicotionary = new Dictionary<Guid, Port>();
-    var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
-
-    await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
-        sql,
-        (nd, p, pv, v) =>
-        {
-          if (!ndDictionary.TryGetValue(nd.Id, out var networkDeviceEntry))
-          {
-            networkDeviceEntry = nd;
-            ndDictionary.Add(networkDeviceEntry.Id, networkDeviceEntry);
-          }
-
-          if (!pDicotionary.TryGetValue(p.Id, out var portEntry))
-          {
-            portEntry = p;
-            networkDeviceEntry.PortsOfNetworkDevice.Add(p);
-            pDicotionary.Add(portEntry.Id, portEntry);
-          }
-
-          // Добавление VLAN в PortsOfNetworkDevice
-          if (v is not null && !portEntry.VLANs.Any(x => x.Id == v.Id))
-            portEntry.VLANs.Add(v);
-
-          return networkDeviceEntry;
-        },
-        splitOn: $"{nameof(NetworkDevice.Id)},{nameof(Port.Id)},{nameof(PortVlan.Id)},{nameof(VLAN.Id)}");
-
-    return ndDictionary.Values.First();
+    using var connection = await _context.GetConnectionAsync();
+    var result = await _dbSet.Include(x => x.PortsOfNetworkDevice)
+                             .Where(specification.Criterias!)
+                             .Take(specification.Take)
+                             .FirstAsync(connection);
+    return result;
   }
 
   async Task<IEnumerable<NetworkDevice>> IManyQueryWithRelationsRepository<NetworkDevice>.GetManyWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                                    CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<NetworkDevice>(specification);
-
-    var sql = queryBuilder.Build();
-
-    logger.LogInformation(sql);
-    
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    var ndDictionary = new Dictionary<Guid, NetworkDevice>();
-    var pDicotionary = new Dictionary<Guid, Port>();
-    var vDictionary = new Dictionary<Guid, HashSet<VLAN>>();
-
-    await connection.QueryAsync<NetworkDevice, Port, PortVlan, VLAN, NetworkDevice>(
-        sql,
-        (nd, p, pv, v) =>
-        {
-          if (!ndDictionary.TryGetValue(nd.Id, out var networkDeviceEntry))
-          {
-            networkDeviceEntry = nd;
-            ndDictionary.Add(networkDeviceEntry.Id, networkDeviceEntry);
-          }
-
-          if (!pDicotionary.TryGetValue(p.Id, out var portEntry))
-          {
-            portEntry = p;
-            networkDeviceEntry.PortsOfNetworkDevice.Add(p);
-            pDicotionary.Add(portEntry.Id, portEntry);
-          }
-
-          // Добавление VLAN в PortsOfNetworkDevice
-          if (v is not null && !portEntry.VLANs.Any(x => x.Id == v.Id))
-            portEntry.VLANs.Add(v);
-
-          return networkDeviceEntry;
-        },
-        splitOn: $"{nameof(NetworkDevice.Id)},{nameof(Port.Id)},{nameof(PortVlan.Id)},{nameof(VLAN.Id)}");
-
-    return ndDictionary.Values;
+    using var connection = await _context.GetConnectionAsync();
+    var result = await _dbSet.Include(x => x.PortsOfNetworkDevice)
+                             .Where(specification.Criterias!)
+                             .Take(specification.Take)
+                             .ToListAsync(connection);
+    return result;
   }
 
   async Task<IEnumerable<NetworkDevice>> IManyQueryRepository<NetworkDevice>.GetManyShortAsync(ISpecification<NetworkDevice> specification,

@@ -1,20 +1,19 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class ManyQueryRepository<T>(PostgreSQLDapperContext context,
-                                      IAppLogger<ManyQueryRepository<T>> logger)
+internal class ManyQueryRepository<T>(ApplicationDbContext context)
   : IManyQueryRepository<T> where T : BaseEntity
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<T> _dbSet = new(context.ModelBuilder, context);
+
   async Task<IEnumerable<T>> IManyQueryRepository<T>.GetManyShortAsync(ISpecification<T> specification,
                                                                        CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<T>(specification);
-
-    var sql = queryBuilder.Build();
-
-    logger.LogInformation(sql);
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.QueryAsync<T>(sql);
+    using var connection = await _context.GetConnectionAsync();
+    var result = await _dbSet.Where(specification.Criterias!)
+                             .Skip(specification.Skip)
+                             .Take(specification.Take)
+                             .ToListAsync(connection);
+    return result;
   }
 }

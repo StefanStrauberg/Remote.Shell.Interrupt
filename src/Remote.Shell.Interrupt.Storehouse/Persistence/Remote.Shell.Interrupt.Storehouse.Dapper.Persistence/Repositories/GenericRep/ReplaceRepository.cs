@@ -1,18 +1,14 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class ReplaceRepository<T>(PostgreSQLDapperContext context,
-                                    IAppLogger<ReplaceRepository<T>> logger)
+internal class ReplaceRepository<T>(ApplicationDbContext context)
   : IReplaceRepository<T> where T : BaseEntity
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<T> _dbSet = new(context.ModelBuilder, context);
+
   void IReplaceRepository<T>.ReplaceOne(T entity)
   {
-    context.BeginTransaction();
-    string updateProperties = GetUpdateProperties.Handle<T>(excludeKey: true);
-    var baseQuery = $"UPDATE \"{GetTableName.Handle<T>()}\" SET {updateProperties} WHERE \"{nameof(BaseEntity.Id)}\"=@Id";
-
-    logger.LogInformation(baseQuery);
-
-    var connection = context.CreateConnection();
-    connection.Execute(baseQuery, entity);
+    using var connection = _context.GetConnection();
+    _dbSet.Update(connection, entity);
   }
 }

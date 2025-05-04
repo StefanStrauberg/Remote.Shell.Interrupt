@@ -1,20 +1,17 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class ExistenceQueryRepository<T>(PostgreSQLDapperContext context,
-                                           IAppLogger<ExistenceQueryRepository<T>> logger)
+internal class ExistenceQueryRepository<T>(ApplicationDbContext context)
   : IExistenceQueryRepository<T> where T : BaseEntity
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<T> _dbSet = new(context.ModelBuilder, context);
+
   async Task<bool> IExistenceQueryRepository<T>.AnyByQueryAsync(ISpecification<T> specification,
                                                                 CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<T>(specification);
-
-    var sql = queryBuilder.BuildCount();
-
-    logger.LogInformation(sql);
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.ExecuteScalarAsync<int>(sql) > 0;
+    using var connection = await _context.GetConnectionAsync();
+    var result = await _dbSet.Where(specification.Criterias!)
+                             .AnyAsync(connection);
+    return result;
   }
 }

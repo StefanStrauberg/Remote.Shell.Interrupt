@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.NetDevRep;
 
-internal class PortRepository(PostgreSQLDapperContext context,
-                              IAppLogger<PortRepository> logger,
+internal class PortRepository(ApplicationDbContext context,
                               IExistenceQueryRepository<Port> existenceQueryRepository,
                               IOneQueryRepository<Port> oneQueryRepository,
                               IBulkInsertRepository<Port> bulkInsertRepository,
@@ -9,30 +8,23 @@ internal class PortRepository(PostgreSQLDapperContext context,
                               IBulkReplaceRepository<Port> bulkReplaceRepository)
   : IPortRepository
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<Port> _dbSet = new(context.ModelBuilder, context);
+
   async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByListAsync(IEnumerable<Guid> Ids,
                                                                                  CancellationToken cancellationToken)
   {
-    StringBuilder sb = new();
-    var guids = $"{string.Join(", ", Ids.Select(id => $"'{id}'"))}";
-    sb.Append($"SELECT \"{nameof(Port.Id)}\", \"{nameof(Port.InterfaceNumber)}\", \"{nameof(Port.InterfaceName)}\", ");
-    sb.Append($"\"{nameof(Port.InterfaceType)}\", \"{nameof(Port.InterfaceStatus)}\", \"{nameof(Port.InterfaceSpeed)}\", ");
-    sb.Append($"\"{nameof(Port.NetworkDeviceId)}\", \"{nameof(Port.ParentPortId)}\",  \"{nameof(Port.MACAddress)}\", ");
-    sb.Append($"\"{nameof(Port.Description)}\" ");
-    sb.Append($"FROM \"{GetTableName.Handle<Port>()}\" ");
-    sb.Append($"WHERE \"{nameof(Port.ParentPortId)}\" IN ({guids})");
-
-    var query = sb.ToString();
-
-    logger.LogInformation(query);
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.QueryAsync<Port>(query);
+    using var connection = await _context.GetConnectionAsync();
+    var result = await _dbSet.Where(p => Ids.ToList().Contains(p.ParentPortId!.Value))
+                             .ToListAsync(connection);
+    return result;
   }
 
   async Task<string> IPortRepository.LookingForInterfaceNameByIPAsync(string ipAddress,
                                                                       CancellationToken cancellationToken)
   {
+    using var connection = await _context.GetConnectionAsync();
+    
     StringBuilder sb = new();
     sb.Append($"SELECT p.\"{nameof(Port.InterfaceName)}\" ");
     sb.Append($"FROM \"{GetTableName.Handle<Port>()}\" AS p ");
@@ -42,19 +34,21 @@ internal class PortRepository(PostgreSQLDapperContext context,
     sb.Append($"AND tn.\"{nameof(TerminatedNetworkEntity.NetworkAddress)}\" <> 0 ");
     sb.Append($"AND tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\" <> 0 ");
     sb.Append($"AND ((tn.\"{nameof(TerminatedNetworkEntity.NetworkAddress)}\" & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\") = ((@IP::inet - '0.0.0.0'::inet) & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\"))");
+    
+    var result = await _dbSet.FromSqlRaw(sb.ToString())
+                             .Select(x => x.InterfaceName)
+                             .ExecuteRawQueryAsync(connection);
 
-    var query = sb.ToString();
-
-    logger.LogInformation(query);
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-    return await connection.ExecuteScalarAsync<string>(query, new { IP = ipAddress }) ?? string.Empty;
+    return result.Select(x => x.InterfaceName)
+                 .First();
   }
 
   async Task<IEnumerable<Port>> IPortRepository.GetPortsWithMacAddressesAndSpecificHostsAsync(string MACAddress,
                                                                                               List<string> hosts,
                                                                                               CancellationToken cancellationToken)
   {
+    using var connection = await _context.GetConnectionAsync();
+
     var hostsToDelete = GetStringHosts.Handle(hosts);
     StringBuilder sb = new();
     sb.Append($"SELECT \"{nameof(Port.Id)}\", \"{nameof(Port.InterfaceNumber)}\", \"{nameof(Port.InterfaceName)}\", ");
@@ -67,13 +61,10 @@ internal class PortRepository(PostgreSQLDapperContext context,
     sb.Append($"WHERE mac.\"{nameof(MACEntity.MACAddress)}\" = @MAC ");
     sb.Append($"AND nd.\"{nameof(NetworkDevice.Host)}\" in ({hostsToDelete})");
 
-    var query = sb.ToString();
+    var result = await _dbSet.FromSqlRaw(sb.ToString())
+                             .ExecuteRawQueryAsync(connection);
 
-    logger.LogInformation(query);
-    
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    return await connection.QueryAsync<Port>(query, new { MAC = MACAddress });
+    return result;
   }
 
   async Task<bool> IExistenceQueryRepository<Port>.AnyByQueryAsync(ISpecification<Port> specification,

@@ -1,0 +1,34 @@
+namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
+
+public class ModelBuilder
+{
+  internal Dictionary<Type, EntityConfiguration> Configurations { get; } = [];
+
+  // Основной метод для получения EntityTypeBuilder
+  public EntityTypeBuilder<TEntity> Entity<TEntity>() where TEntity : class
+  {
+    var type = typeof(TEntity);
+    
+    if (!Configurations.TryGetValue(type, out var config))
+    {
+      config = new EntityConfiguration(type);
+      Configurations[type] = config;
+    }
+    
+    return new EntityTypeBuilder<TEntity>(config);
+  }
+
+  // Новая перегрузка для лямбда-конфигурации
+  public ModelBuilder Entity<TEntity>(Action<EntityTypeBuilder<TEntity>> buildAction) 
+    where TEntity : class
+  {
+    if (buildAction != null)
+    {
+      var builder = Entity<TEntity>();
+      buildAction(builder);
+      return this;
+    }
+
+    throw new ArgumentNullException(nameof(buildAction));
+  }
+}

@@ -1,21 +1,14 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.GenericRep;
 
-internal class DeleteRepository<T>(PostgreSQLDapperContext context,
-                                   IAppLogger<DeleteRepository<T>> logger)
+internal class DeleteRepository<T>(ApplicationDbContext context)
   : IDeleteRepository<T> where T : BaseEntity
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<T> _dbSet = new(context.ModelBuilder, context);
+  
   void IDeleteRepository<T>.DeleteOne(T entity)
   {
-    context.BeginTransaction();
-
-    var queryBuilder = new SqlQueryBuilder<T>();
-
-    var sql = queryBuilder.BuildDelete(entity.Id);
-
-    logger.LogInformation(sql);
-
-    var connection = context.CreateConnection();
-
-    connection.Execute(sql);
+    using var connection = _context.GetConnection();
+    _dbSet.Where(x => x.Id == entity.Id).Delete(connection);
   }
 }

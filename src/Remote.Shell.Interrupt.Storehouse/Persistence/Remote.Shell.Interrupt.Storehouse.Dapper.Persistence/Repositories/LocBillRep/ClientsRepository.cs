@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocBillRep;
 
-internal class ClientsRepository(PostgreSQLDapperContext context,
-                                 IAppLogger<ClientsRepository> appLogger,
+internal class ClientsRepository(ApplicationDbContext context,
                                  ICountRepository<Client> countRepository,
                                  IExistenceQueryRepository<Client> existenceQueryRepository,
                                  IManyQueryRepository<Client> manyQueryRepository,
@@ -10,82 +9,32 @@ internal class ClientsRepository(PostgreSQLDapperContext context,
                                  IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
 {
+  readonly ApplicationDbContext _context = context;
+  readonly DbSet<Client> _dbSet = new(context.ModelBuilder, context);
+  
   async Task<IEnumerable<Client>> IManyQueryWithRelationsRepository<Client>.GetManyWithChildrenAsync(ISpecification<Client> specification,
                                                                                                      CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<Client>(specification);
-
-    var sql = queryBuilder.Build();
-
-    appLogger.LogInformation(sql);
-
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    var ccDictionary = new Dictionary<Guid, Client>();
-
-    await connection.QueryAsync<Client, COD, TfPlan, SPRVlan, Client>(
-        sql,
-        (cc, c, tf, sprvl) =>
-        {
-          if (!ccDictionary.TryGetValue(cc.Id, out var client))
-          {
-            client = cc;
-            ccDictionary.Add(client.Id, client);
-          }
-
-          if (c is not null && client is not null)
-            client.COD = c;
-
-          if (tf is not null && client is not null)
-            client.TfPlan = tf;
-          
-          if (sprvl is not null && client is not null) 
-            client.SPRVlans.Add(sprvl);
-
-          return client!;
-        },
-        splitOn: $"{nameof(Client.Id)},{nameof(COD.Id)},{nameof(TfPlan.Id)},{nameof(SPRVlan.Id)}");
-
-    return ccDictionary.Values;
+    using var connection = await _context.GetConnectionAsync();
+    var clients = await _dbSet.Include(x => x.COD)
+                              .Include(x => x.TfPlan)
+                              .Include(x => x.SPRVlans)
+                              .Where(specification.Criterias!)
+                              .Take(specification.Take)
+                              .ToListAsync(connection);
+    return clients;
   }
 
   async Task<Client> IOneQueryWithRelationsRepository<Client>.GetOneWithChildrenAsync(ISpecification<Client> specification,
                                                                                       CancellationToken cancellationToken)
   {
-    var queryBuilder = new SqlQueryBuilder<Client>(specification);
-
-    var sql = queryBuilder.Build();
-
-    appLogger.LogInformation(sql);
-    
-    var connection = await context.CreateConnectionAsync(cancellationToken);
-
-    var ccDictionary = new Dictionary<Guid, Client>();
-
-    await connection.QueryAsync<Client, COD, TfPlan, SPRVlan, Client>(
-        sql,
-        (cc, c, tf, sprvl) =>
-        {
-          if (!ccDictionary.TryGetValue(cc.Id, out var client))
-          {
-            client = cc;
-            ccDictionary.Add(client.Id, client);
-          }
-
-          if (c is not null && client is not null)
-            client.COD = c;
-
-          if (tf is not null && client is not null)
-            client.TfPlan = tf;
-          
-          if (sprvl is not null && client is not null) 
-            client.SPRVlans.Add(sprvl);
-
-          return client!;
-        },
-        splitOn: $"{nameof(Client.Id)},{nameof(COD.Id)},{nameof(TfPlan.Id)},{nameof(SPRVlan.Id)}");
-
-    return ccDictionary.Values.First();
+    using var connection = await _context.GetConnectionAsync();
+    var clients = await _dbSet.Include(x => x.COD)
+                              .Include(x => x.TfPlan)
+                              .Include(x => x.SPRVlans)
+                              .Where(specification.Criterias!)
+                              .FirstAsync(connection);
+    return clients;
   }
 
   async Task<IEnumerable<Client>> IManyQueryRepository<Client>.GetManyShortAsync(ISpecification<Client> specification,

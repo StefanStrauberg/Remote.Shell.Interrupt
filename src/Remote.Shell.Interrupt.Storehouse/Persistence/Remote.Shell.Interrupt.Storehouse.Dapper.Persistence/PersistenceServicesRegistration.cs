@@ -4,8 +4,20 @@ public static class PersistenceServicesRegistration
 {
   public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
   {
-    services.AddScoped<PostgreSQLDapperContext>();
     services.AddScoped<MySQLDapperContext>();
+
+    services.AddScoped(provider => 
+    {
+      var configuration = provider.GetRequiredService<IConfiguration>();
+      var connectionString = configuration.GetConnectionString("DefaultConnection");
+      var logger = provider.GetService<IAppLogger>();
+
+      var applicationDbContext = new ApplicationDbContext(connectionString!, logger!);
+
+      applicationDbContext.EnableQueryLogging();
+      
+      return applicationDbContext;
+    });
 
     services.AddScoped(typeof(ICountRepository<>), typeof(CountRepository<>));
 

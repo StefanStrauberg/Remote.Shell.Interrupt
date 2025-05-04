@@ -1,8 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
-internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
-                                IAppLogger<NetworkDeviceRepository> networkDeviceRepositoryAppLogger,
-                                IAppLogger<PortRepository> portRepositoryAppLogger,
+internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
                                 IManyQueryRepository<NetworkDevice> networkDeviceManyQueryRepository,
                                 IExistenceQueryRepository<NetworkDevice> networkDeviceExistenceQueryRepository,
                                 ICountRepository<NetworkDevice> networkDeviceCountRepository,
@@ -21,8 +19,7 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
   : INetDevUnitOfWork, IDisposable
 {
   public INetworkDeviceRepository NetworkDevices 
-    => new NetworkDeviceRepository(context,
-                                   networkDeviceRepositoryAppLogger,
+    => new NetworkDeviceRepository(applicationContext,
                                    networkDeviceManyQueryRepository,
                                    networkDeviceExistenceQueryRepository,
                                    networkDeviceCountRepository,
@@ -31,8 +28,7 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
   public IVLANRepository VLANs 
     => new VLANRepository(vlanBulkInsertRepository);
   public IPortRepository Ports 
-    => new PortRepository(context,
-                          portRepositoryAppLogger,
+    => new PortRepository(applicationContext,
                           portExistenceQueryRepository,
                           portOneQueryRepository,
                           portBulkInsertRepository,
@@ -51,7 +47,7 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
 
   void INetDevUnitOfWork.Complete()
   {
-    context.CompleteTransaction();
+    // TODO CompleteTransaction
   }
 
   void IDisposable.Dispose()
@@ -65,7 +61,9 @@ internal class NetDevUnitOfWork(PostgreSQLDapperContext context,
     if (!disposed)
     {
       if (disposing)
-        ((IDisposable)context).Dispose();
+      {
+        // TODO Dispose context
+      }
 
       disposed = true;
     }

@@ -1,7 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
-internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
-                                 IAppLogger<ClientsRepository> clientsRepositoryAppLogger,
+internal class LocBillUnitOfWork(ApplicationDbContext applicationContext,
                                  ICountRepository<Client> clientCountRepository,
                                  IExistenceQueryRepository<Client> clientExistenceQueryRepository,
                                  IManyQueryRepository<Client> clientManyQueryRepository,
@@ -24,8 +23,7 @@ internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
   : ILocBillUnitOfWork, IDisposable
 {
   IClientsRepository ILocBillUnitOfWork.Clients 
-    => new ClientsRepository(context,
-                             clientsRepositoryAppLogger,
+    => new ClientsRepository(applicationContext,
                              clientCountRepository,
                              clientExistenceQueryRepository,
                              clientManyQueryRepository,
@@ -53,7 +51,7 @@ internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
 
   void ILocBillUnitOfWork.Complete()
   {
-    context.CompleteTransaction();
+    // TODO CompleteTransaction
   }
 
   void IDisposable.Dispose()
@@ -67,7 +65,9 @@ internal class LocBillUnitOfWork(PostgreSQLDapperContext context,
     if (!disposed)
     {
       if (disposing)
-        ((IDisposable)context).Dispose();
+      {
+        // TODO Dispose context
+      }
 
       disposed = true;
     }
