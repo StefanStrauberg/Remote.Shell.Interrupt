@@ -1,8 +1,8 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class ModelBuilder
+internal class ModelBuilder
 {
-  internal Dictionary<Type, EntityConfiguration> Configurations { get; } = [];
+  public Dictionary<Type, EntityConfiguration> Configurations { get; } = [];
 
   // Основной метод для получения EntityTypeBuilder
   public EntityTypeBuilder<TEntity> Entity<TEntity>() where TEntity : class

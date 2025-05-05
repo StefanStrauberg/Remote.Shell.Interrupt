@@ -1,10 +1,10 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class SQLQueryBuilder<TEntity>(ModelBuilder modelBuilder,
-                                      List<string> includes,
-                                      string whereClause,
-                                      int? skip,
-                                      int? take)
+internal class SQLQueryBuilder<TEntity>(ModelBuilder modelBuilder,
+                                        List<string> includes,
+                                        string whereClause,
+                                        int? skip,
+                                        int? take)
   where TEntity : class
 {
   readonly ModelBuilder _modelBuilder = modelBuilder;
@@ -17,94 +17,160 @@ public class SQLQueryBuilder<TEntity>(ModelBuilder modelBuilder,
 
   public string BuildQuery()
   {
+    var sb = new StringBuilder();
     var entityConfig = _modelBuilder.Configurations[typeof(TEntity)];
     var mainTable = entityConfig.TableName;
     var mainTableAlias = mainTable.ToLower();
-    var mainPk = entityConfig.PrimaryKey;
-    var select = _includes.Count > 0 ? BuildSelectClause(entityConfig, mainTableAlias) 
-                                     : (string.IsNullOrEmpty(CustomSelect) ? "*" : CustomSelect);
-    var from = string.IsNullOrEmpty(FromClause) ? $"{mainTable}" 
-                                                 : FromClause;
-    var sql = $"SELECT {select} FROM \"{from}\"";
+    
+    // Формируем SELECT-часть:
+    // Если включения заданы или задан CustomSelect, то полагаем, что нам нужен алиас.
+    var select = _includes.Count > 0 
+                   ? BuildSelectClause(entityConfig, mainTableAlias)
+                   : (string.IsNullOrEmpty(CustomSelect) ? "*" : CustomSelect);
+    var from = string.IsNullOrEmpty(FromClause) ? mainTable : FromClause;
+    
+    if (select == "*")
+      sb.Append($"SELECT {select} FROM \"{from}\"");
+    else
+      sb.Append($"SELECT {select} FROM \"{from}\" {mainTableAlias}");
 
+    // Добавляем JOINы для каждого include.
     foreach (var include in _includes)
+      sb.Append(BuildJoinClause(include, mainTableAlias, entityConfig));
+
+    if (!string.IsNullOrEmpty(_whereClause))
+      sb.Append($" WHERE {_whereClause}");
+
+    if (_take.HasValue && _skip.HasValue)
+      sb.Append($" LIMIT {_take.Value} OFFSET {_skip.Value}");
+
+    return sb.ToString();
+  }
+
+  // Метод формирует JOIN-часть для конкретного включения
+  string BuildJoinClause(string include, string mainTableAlias, EntityConfiguration entityConfig)
+  {
+    var sb = new StringBuilder();
+    var relationship = GetRelationship(include);
+    var joinType = relationship.IsRequired ? "INNER JOIN" : "LEFT JOIN";
+
+    string joiningTable;
+    string joiningTableAlias;
+    string fk;
+    string joinPK;
+
+    if (relationship.RelationshipType == RelationshipType.OneToMany)
     {
-      var relationship = GetRelationship(include);
-      var joinType = relationship.IsRequired ? "INNER JOIN" : "LEFT JOIN";
-      
-      if (relationship.IsManyToMany)
+      // Если основная сущность (entityConfig) является принципалом, используем зависимую сущность
+      if (relationship.PrincipalEntity == entityConfig.EntityType)
       {
-        if (relationship.JoinEntity == null)
-          throw new InvalidOperationException("JoinEntity not specified for many-to-many relationship");
-
-        var joinConfig = _modelBuilder.Configurations[relationship.JoinEntity];
-        var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
         var dependentConfig = _modelBuilder.Configurations[relationship.DependentEntity];
-
-        sql += $" {joinType} \"{joinConfig.TableName}\" AS jt" +
-               $" ON {mainTable}.{mainPk} = jt.{mainTable}Id";
-
-        sql += $" {joinType} {dependentConfig.TableName} AS d" +
-               $" ON jt.{dependentConfig.TableName}Id = d.{dependentConfig.PrimaryKey}";
+        joiningTable = dependentConfig.TableName;
+        joiningTableAlias = joiningTable.ToLower();
+        fk = relationship.ForeignKey ?? $"{entityConfig.TableName}Id";
+        joinPK = dependentConfig.PrimaryKey;
       }
       else
       {
+        // Иначе, используем конфигурацию принципала.
         var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
-        var joiningTable = principalConfig.TableName;
-        var joiningTableAlias = principalConfig.TableName.ToLower();
-        var fk = relationship.ForeignKey ?? $"{principalConfig.TableName}Id";
-
-        sql += $" {joinType} \"{joiningTable}\" AS {joiningTableAlias}" +
-               $" ON {mainTableAlias}.\"{fk}\" = {joiningTableAlias}.\"{principalConfig.PrimaryKey}\"";
+        joiningTable = principalConfig.TableName;
+        joiningTableAlias = joiningTable.ToLower();
+        fk = relationship.ForeignKey ?? $"{principalConfig.TableName}Id";
+        joinPK = principalConfig.PrimaryKey;
       }
     }
+    else // Для отношений HasOne и прочих
+    {
+      var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
+      joiningTable = principalConfig.TableName;
+      joiningTableAlias = joiningTable.ToLower();
+      fk = relationship.ForeignKey ?? $"{principalConfig.TableName}Id";
+      joinPK = principalConfig.PrimaryKey;
+    }
 
-    if (!string.IsNullOrEmpty(_whereClause))
-      sql += $" WHERE {_whereClause}";
-
-    if (_take.HasValue && _skip.HasValue)
-      sql += $" LIMIT {_take.Value} OFFSET {_skip.Value}";
-
-    return sql;
+    sb.Append($" {joinType} \"{joiningTable}\" AS {joiningTableAlias}");
+    sb.Append($" ON {mainTableAlias}.\"{fk}\" = {joiningTableAlias}.\"{joinPK}\"");
+    return sb.ToString();
   }
 
   string BuildSelectClause(EntityConfiguration entityConfig, string mainTableAlias)
   {
-    var columns = new List<string>();
+    var sb = new StringBuilder();
 
-    // Добавляем столбцы основной таблицы, например: clients."Id", clients."Name", ...
-    foreach (var col in entityConfig.Columns)
-      columns.Add($"{mainTableAlias}.\"{col}\"");
+    // Формируем список столбцов для основной сущности, отбирая только "простые" типы.
+    var mainProperties = entityConfig.EntityType
+                                     .GetProperties()
+                                     .Where(p => IsSimpleType(p.PropertyType))
+                                     .OrderBy(p => p.Name == "Id" ? 0 : 1) // "Id" всегда первым
+                                     .Select(p => p.Name);
 
-    // Если требуется добавить столбцы из join-таблиц, можно перебрать _includes.
-    // Здесь можно, например, добавить столбцы из каждой присоединяемой таблицы:
+    foreach (var col in mainProperties)
+    {
+      if (sb.Length > 0)
+        sb.Append(", ");
+      sb.Append($"{mainTableAlias}.\"{col}\"");
+    }
+
+    // Для каждого включения (Include) добавляем столбцы из связанной сущности.
     foreach (var include in _includes)
     {
       var relationship = GetRelationship(include);
 
-      // Если основная сущность (Client) является зависимой в отношении,
-      // это значит, что связь настроена как HasOne (например, COD или TfPlan),
-      // и связанные столбцы должны браться из принципальной сущности
+      // Если основная сущность является зависимой, берем свойства из ее принципала.
       if (relationship.DependentEntity == entityConfig.EntityType)
       {
         var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
-        var alias = principalConfig.TableName.ToLower();
-        foreach (var col in principalConfig.Columns)
-            columns.Add($"{alias}.\"{col}\"");
+        var alias = principalConfig.TableName
+                                   .ToLower();
+
+        var principalProperties = principalConfig.EntityType
+                                                 .GetProperties()
+                                                 .Where(p => IsSimpleType(p.PropertyType))
+                                                 .OrderBy(p => p.Name == "Id" ? 0 : 1)
+                                                 .Select(p => p.Name);
+
+        foreach (var col in principalProperties)
+        {
+          if (sb.Length > 0)
+            sb.Append(", ");
+          sb.Append($"{alias}.\"{col}\"");
+        }
       }
-      // Если же основная сущность является принципальной (например, для коллекционного отношения SPRVlans),
-      // то выбираем столбцы из зависимой сущности
+      // Если основная сущность является принципальной, берем свойства из зависимой сущности.
       else if (relationship.PrincipalEntity == entityConfig.EntityType)
       {
         var dependentConfig = _modelBuilder.Configurations[relationship.DependentEntity];
-        var alias = dependentConfig.TableName.ToLower();
-        foreach (var col in dependentConfig.Columns)
-            columns.Add($"{alias}.\"{col}\"");
+        var alias = dependentConfig.TableName
+                                   .ToLower();
+
+        var dependentProperties = dependentConfig.EntityType
+                                                 .GetProperties()
+                                                 .Where(p => IsSimpleType(p.PropertyType))
+                                                 .OrderBy(p => p.Name == "Id" ? 0 : 1)
+                                                 .Select(p => p.Name);
+
+        foreach (var col in dependentProperties)
+        {
+          if (sb.Length > 0)
+            sb.Append(", ");
+          sb.Append($"{alias}.\"{col}\"");
+        }
       }
     }
 
-    // Объединяем все столбцы, разделяя запятой.
-    return string.Join(", ", columns);
+    return sb.ToString();
+  }
+
+  static bool IsSimpleType(Type type)
+  {
+    var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+    return underlyingType.IsPrimitive || 
+           underlyingType.IsEnum ||
+           underlyingType == typeof(string) ||
+           underlyingType == typeof(decimal) ||
+           underlyingType == typeof(DateTime) ||
+           underlyingType == typeof(Guid);
   }
 
   Relationship GetRelationship(string navigationProperty)

@@ -8,9 +8,6 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                                        IReadRepository<NetworkDevice> readRepository) 
   : INetworkDeviceRepository
 {
-  readonly ApplicationDbContext _context = context;
-  readonly DbSet<NetworkDevice> _dbSet = new(context.ModelBuilder, context);
-
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
     
@@ -19,22 +16,22 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
   async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                     CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-    var result = await _dbSet.Include(x => x.PortsOfNetworkDevice)
-                             .Where(specification.Criterias!)
-                             .Take(specification.Take)
-                             .FirstAsync(connection);
+    var result = await context.Set<NetworkDevice>()
+                              .Include(x => x.PortsOfNetworkDevice)
+                              .Where(specification.Criterias!)
+                              .Take(specification.Take)
+                              .FirstAsync();
     return result;
   }
 
   async Task<IEnumerable<NetworkDevice>> IManyQueryWithRelationsRepository<NetworkDevice>.GetManyWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                                    CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-    var result = await _dbSet.Include(x => x.PortsOfNetworkDevice)
-                             .Where(specification.Criterias!)
-                             .Take(specification.Take)
-                             .ToListAsync(connection);
+    var result = await context.Set<NetworkDevice>()
+                              .Include(x => x.PortsOfNetworkDevice)
+                              .Where(specification.Criterias!)
+                              .Take(specification.Take)
+                              .ToListAsync();
     return result;
   }
 

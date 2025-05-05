@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context) 
+internal class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context) 
   where TEntity : class
 {
   readonly ModelBuilder _modelBuilder = modelBuilder;
@@ -21,10 +21,10 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
 
   public DbSet<TEntity> Select(Expression<Func<TEntity, object>> selector)
   {
-      var visitor = new SelectExpressionVisitor();
-      visitor.Visit(selector);
-      _customSelect = visitor.SelectedColumns;
-      return this;
+    var visitor = new SelectExpressionVisitor();
+    visitor.Visit(selector);
+    _customSelect = visitor.SelectedColumns;
+    return this;
   }
 
   public DbSet<TEntity> Include<TProperty>(Expression<Func<TEntity, TProperty>> navigationProperty)
@@ -36,7 +36,10 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
 
   public DbSet<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
   {
-    var visitor = new SqlExpressionVisitor();
+    // Если есть хотя бы одно включение, значит алиасы используются в JOIN, иначе — нет
+    var alias = _includes.Count > 0 ? _modelBuilder.Configurations[typeof(TEntity)].TableName.ToLower()
+                                    : null;
+    var visitor = new SqlExpressionVisitor(alias);
     visitor.Visit(predicate);
     _whereClause = visitor.WhereClause;
     _whereParameters = visitor.Parameters;
@@ -61,90 +64,106 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
     return this;
   }
 
-  public async Task<IEnumerable<TEntity>> ToListAsync(IDbConnection connection)
+  public async Task<IEnumerable<TEntity>> ToListAsync()
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take);
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = await _context.GetConnectionAsync();
     
     return await connection.QueryAsync<TEntity>(sql, _whereParameters);
   }
 
-  public async Task<TEntity> FirstAsync(IDbConnection connection)
+  public async Task<TEntity> FirstAsync()
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take);
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+    
+    var connection = await _context.GetConnectionAsync();
     
     return await connection.QueryFirstAsync<TEntity>(sql, _whereParameters);
   }
 
-  public async Task<TEntity?> FirstOrDefaultAsync(IDbConnection connection)
+  public async Task<TEntity?> FirstOrDefaultAsync()
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take);
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = await _context.GetConnectionAsync();
     
     return await connection.QueryFirstOrDefaultAsync<TEntity>(sql, _whereParameters);
   }
 
-  public async Task<int> CountAsync(IDbConnection connection)
+  public async Task<int> CountAsync()
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take)
     {
       CustomSelect = $"COUNT({_customSelect})"
     };
+
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = await _context.GetConnectionAsync();
 
     return await connection.ExecuteScalarAsync<int>(sql, _whereParameters);
   }
 
-  public async Task<bool> AnyAsync(IDbConnection connection)
+  public async Task<bool> AnyAsync()
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take)
     {
       CustomSelect = $"COUNT({_customSelect})"
     };
+
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = await _context.GetConnectionAsync();
     
     return await connection.ExecuteScalarAsync<int>(sql, _whereParameters) > 0;
   }
 
-  public void Delete(IDbConnection connection)
+  public void Delete(TEntity entity)
   {
     _sqlQueryBuilder = new(_modelBuilder, _includes, _whereClause, _skip, _take);
     var sql = _sqlQueryBuilder.BuildQuery();
     
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = _context.GetConnection();
     
     connection.Execute(sql, _whereParameters);
   }
 
-  public Guid Insert(IDbConnection connection, TEntity entity)
+  public Guid Insert(TEntity entity)
   {
     _sqlQueryBuilder = new(_modelBuilder, null!, null!, null!, null!);
     var sql = _sqlQueryBuilder.BuildQuery();
 
     if (_context.EnableSqlLogging)
       LogQuery(sql, null!);
+
+    var connection = _context.GetConnection();
 
     return connection.ExecuteScalar<Guid>(sql, entity);
   }
 
-  public void Update(IDbConnection connection, TEntity entity)
+  public void Update(TEntity entity)
   {
     _sqlQueryBuilder = new(_modelBuilder, null!, null!, null!, null!);
     var sql = _sqlQueryBuilder.BuildQuery();
@@ -152,10 +171,12 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
     if (_context.EnableSqlLogging)
       LogQuery(sql, null!);
 
+    var connection = _context.GetConnection();
+
     connection.Execute(sql, entity);
   }
 
-  public async Task<IEnumerable<TEntity>> ExecuteRawQueryAsync(IDbConnection connection)
+  public async Task<IEnumerable<TEntity>> ExecuteRawQueryAsync()
   {
     var sql = $"SELECT {_customSelect} {_fromClause}";
       
@@ -167,6 +188,8 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
 
     if (_context.EnableSqlLogging)
       LogQuery(sql, _whereParameters);
+
+    var connection = await _context.GetConnectionAsync();
 
     return await connection.QueryAsync<TEntity>(sql, _whereParameters ?? 0);
   }
@@ -193,4 +216,7 @@ public class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
     
     return JsonSerializer.Serialize(parameters, _jsonSerializerOptions);
   }
+
+  internal static DbSet<TEntity> Create(ModelBuilder modelBuilder, DbContext dbContext)
+    => new(modelBuilder, dbContext);
 }

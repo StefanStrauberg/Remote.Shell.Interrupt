@@ -20,6 +20,7 @@ internal static class GetTableName
 
     return sb.ToString();
   }
+  
   public static string Handle(string name)
   {
     StringBuilder sb = new();

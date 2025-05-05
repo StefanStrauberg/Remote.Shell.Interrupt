@@ -8,32 +8,29 @@ internal class ClientsRepository(ApplicationDbContext context,
                                  IBulkDeleteRepository<Client> bulkDeleteRepository,
                                  IBulkInsertRepository<Client> bulkInsertRepository)
   : IClientsRepository
-{
-  readonly ApplicationDbContext _context = context;
-  readonly DbSet<Client> _dbSet = new(context.ModelBuilder, context);
-  
+{ 
   async Task<IEnumerable<Client>> IManyQueryWithRelationsRepository<Client>.GetManyWithChildrenAsync(ISpecification<Client> specification,
                                                                                                      CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-    var clients = await _dbSet.Include(x => x.COD)
-                              .Include(x => x.TfPlan)
-                              .Include(x => x.SPRVlans)
-                              .Where(specification.Criterias!)
-                              .Take(specification.Take)
-                              .ToListAsync(connection);
+    var clients = await context.Clients
+                               .Include(x => x.COD)
+                               .Include(x => x.TfPlan)
+                               .Include(x => x.SPRVlans)
+                               .Where(specification.Criterias!)
+                               .Take(specification.Take)
+                               .ToListAsync();
     return clients;
   }
 
   async Task<Client> IOneQueryWithRelationsRepository<Client>.GetOneWithChildrenAsync(ISpecification<Client> specification,
                                                                                       CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-    var clients = await _dbSet.Include(x => x.COD)
-                              .Include(x => x.TfPlan)
-                              .Include(x => x.SPRVlans)
-                              .Where(specification.Criterias!)
-                              .FirstAsync(connection);
+    var clients = await context.Clients
+                               .Include(x => x.COD)
+                               .Include(x => x.TfPlan)
+                               .Include(x => x.SPRVlans)
+                               .Where(specification.Criterias!)
+                               .FirstAsync();
     return clients;
   }
 

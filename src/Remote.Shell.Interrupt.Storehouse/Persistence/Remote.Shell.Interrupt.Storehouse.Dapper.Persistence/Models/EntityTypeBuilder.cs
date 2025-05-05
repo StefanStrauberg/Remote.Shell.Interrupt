@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class EntityTypeBuilder<TEntity>(EntityConfiguration config) 
+internal class EntityTypeBuilder<TEntity>(EntityConfiguration config) 
   where TEntity : class
 {
   readonly EntityConfiguration _config = config;
@@ -8,25 +8,31 @@ public class EntityTypeBuilder<TEntity>(EntityConfiguration config)
   public CollectionNavigationBuilder<TEntity, TRelated> HasMany<TRelated>(Expression<Func<TEntity, IEnumerable<TRelated>>> navigationExpression) 
     where TRelated : class
   {
-    var memberInfo = ((MemberExpression)navigationExpression.Body).Member;
+    ArgumentNullException.ThrowIfNull(navigationExpression);
+
+    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
+
+    // Проверка на дублирование
+    if (_config.Relationships.Any(r => r.NavigationProperty == memberName))
+      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
     
     var relationship = new Relationship
     {
-        NavigationProperty = memberInfo.Name,
+        NavigationProperty = memberName,
         PrincipalEntity = typeof(TEntity),
         DependentEntity = typeof(TRelated),
         RelationshipType = RelationshipType.OneToMany
     };
 
     _config.Relationships.Add(relationship);
+    _config.Validate();
     
     return new CollectionNavigationBuilder<TEntity, TRelated>(_config, relationship);
   }
 
   public EntityTypeBuilder<TEntity> HasKey(Expression<Func<TEntity, object>> keyExpression)
   {
-    var memberName = GetMemberName(keyExpression);
-    _config.PrimaryKey = memberName;
+    _config.PrimaryKey = ExpressionHelper.GetMemberName(keyExpression);
     return this;
   }
 
@@ -39,29 +45,25 @@ public class EntityTypeBuilder<TEntity>(EntityConfiguration config)
   public ReferenceNavigationBuilder<TEntity, TRelated> HasOne<TRelated>(Expression<Func<TEntity, TRelated?>> navigationExpression) 
     where TRelated : class
   {
-    var member = ((MemberExpression)navigationExpression.Body).Member.Name;
+    ArgumentNullException.ThrowIfNull(navigationExpression);
+
+    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
+
+    // Проверка на дублирование
+    if (_config.Relationships.Any(r => r.NavigationProperty == memberName))
+      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
     
     var relationship = new Relationship 
     { 
-      NavigationProperty = member,
+      NavigationProperty = memberName,
       PrincipalEntity = typeof(TRelated),
-      DependentEntity = typeof(TEntity)
+      DependentEntity = typeof(TEntity),
+      RelationshipType = RelationshipType.OneToOne
     };
+
+    _config.Relationships.Add(relationship);
+    _config.Validate();
     
     return new ReferenceNavigationBuilder<TEntity, TRelated>(_config, relationship);
-  }
-
-  static string GetMemberName(Expression<Func<TEntity, object>> expression)
-  {
-    var body = expression.Body;
-
-    // Обработка оператора преобразования для value types
-    if (body is UnaryExpression unary && unary.NodeType == ExpressionType.Convert)
-      body = unary.Operand;
-
-    if (body is MemberExpression memberExpression)
-      return memberExpression.Member.Name;
-
-    throw new ArgumentException("Invalid key expression");
   }
 }

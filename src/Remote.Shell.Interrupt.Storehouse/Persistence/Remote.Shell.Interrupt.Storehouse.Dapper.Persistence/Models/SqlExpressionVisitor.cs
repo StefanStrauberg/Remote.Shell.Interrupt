@@ -1,11 +1,12 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class SqlExpressionVisitor : ExpressionVisitor
+internal class SqlExpressionVisitor(string? tableAlias = null) : ExpressionVisitor
 {
   readonly Stack<string> _stack = new();
   readonly Dictionary<string, object> _parameters = [];
   int _parameterIndex;
-  
+  readonly string? _tableAlias = tableAlias;
+
   public string WhereClause => _stack.Count > 0 ? _stack.Pop() : "";
   public object Parameters => _parameters;
 
@@ -26,7 +27,11 @@ public class SqlExpressionVisitor : ExpressionVisitor
   {
     if (node.Expression is ParameterExpression)
     {
-      _stack.Push($"\"{node.Member.Name}\"");
+      // Если алиас не задан или пуст, возвращаем просто имя столбца
+      if (string.IsNullOrWhiteSpace(_tableAlias))
+        _stack.Push($"\"{node.Member.Name}\"");
+      else
+        _stack.Push($"{_tableAlias}.\"{node.Member.Name}\"");
       return node;
     }
     

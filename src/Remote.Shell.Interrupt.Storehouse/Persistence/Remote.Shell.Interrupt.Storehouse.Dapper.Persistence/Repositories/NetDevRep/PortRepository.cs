@@ -8,23 +8,18 @@ internal class PortRepository(ApplicationDbContext context,
                               IBulkReplaceRepository<Port> bulkReplaceRepository)
   : IPortRepository
 {
-  readonly ApplicationDbContext _context = context;
-  readonly DbSet<Port> _dbSet = new(context.ModelBuilder, context);
-
   async Task<IEnumerable<Port>> IPortRepository.GetAllAggregatedPortsByListAsync(IEnumerable<Guid> Ids,
                                                                                  CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-    var result = await _dbSet.Where(p => Ids.ToList().Contains(p.ParentPortId!.Value))
-                             .ToListAsync(connection);
+    var result = await context.Set<Port>()
+                              .Where(p => Ids.ToList().Contains(p.ParentPortId!.Value))
+                              .ToListAsync();
     return result;
   }
 
   async Task<string> IPortRepository.LookingForInterfaceNameByIPAsync(string ipAddress,
                                                                       CancellationToken cancellationToken)
-  {
-    using var connection = await _context.GetConnectionAsync();
-    
+  {   
     StringBuilder sb = new();
     sb.Append($"SELECT p.\"{nameof(Port.InterfaceName)}\" ");
     sb.Append($"FROM \"{GetTableName.Handle<Port>()}\" AS p ");
@@ -35,9 +30,10 @@ internal class PortRepository(ApplicationDbContext context,
     sb.Append($"AND tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\" <> 0 ");
     sb.Append($"AND ((tn.\"{nameof(TerminatedNetworkEntity.NetworkAddress)}\" & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\") = ((@IP::inet - '0.0.0.0'::inet) & tn.\"{nameof(TerminatedNetworkEntity.Netmask)}\"))");
     
-    var result = await _dbSet.FromSqlRaw(sb.ToString())
-                             .Select(x => x.InterfaceName)
-                             .ExecuteRawQueryAsync(connection);
+    var result = await context.Set<Port>()
+                              .FromSqlRaw(sb.ToString())
+                              .Select(x => x.InterfaceName)
+                              .ExecuteRawQueryAsync();
 
     return result.Select(x => x.InterfaceName)
                  .First();
@@ -47,8 +43,6 @@ internal class PortRepository(ApplicationDbContext context,
                                                                                               List<string> hosts,
                                                                                               CancellationToken cancellationToken)
   {
-    using var connection = await _context.GetConnectionAsync();
-
     var hostsToDelete = GetStringHosts.Handle(hosts);
     StringBuilder sb = new();
     sb.Append($"SELECT \"{nameof(Port.Id)}\", \"{nameof(Port.InterfaceNumber)}\", \"{nameof(Port.InterfaceName)}\", ");
@@ -61,8 +55,9 @@ internal class PortRepository(ApplicationDbContext context,
     sb.Append($"WHERE mac.\"{nameof(MACEntity.MACAddress)}\" = @MAC ");
     sb.Append($"AND nd.\"{nameof(NetworkDevice.Host)}\" in ({hostsToDelete})");
 
-    var result = await _dbSet.FromSqlRaw(sb.ToString())
-                             .ExecuteRawQueryAsync(connection);
+    var result = await context.Set<Port>()
+                              .FromSqlRaw(sb.ToString())
+                              .ExecuteRawQueryAsync();
 
     return result;
   }

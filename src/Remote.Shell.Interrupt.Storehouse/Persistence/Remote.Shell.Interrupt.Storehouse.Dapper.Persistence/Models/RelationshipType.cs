@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public enum RelationshipType
+internal enum RelationshipType
 {
   OneToOne,
   OneToMany,

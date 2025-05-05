@@ -12,7 +12,11 @@ public static class PersistenceServicesRegistration
       var connectionString = configuration.GetConnectionString("DefaultConnection");
       var logger = provider.GetService<IAppLogger>();
 
-      var applicationDbContext = new ApplicationDbContext(connectionString!, logger!);
+      var applicationDbContext = new ApplicationDbContext
+      {
+        ConnectionString = connectionString!,
+        Logger = logger!
+      };
 
       applicationDbContext.EnableQueryLogging();
       

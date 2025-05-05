@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class SelectExpressionVisitor : ExpressionVisitor
+internal class SelectExpressionVisitor : ExpressionVisitor
 {
   public string SelectedColumns { get; private set; } = "";
 

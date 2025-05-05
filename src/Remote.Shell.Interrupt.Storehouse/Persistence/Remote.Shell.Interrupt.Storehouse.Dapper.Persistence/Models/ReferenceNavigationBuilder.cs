@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration config, Relationship relationship)
+internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration config, Relationship relationship)
   where TEntity : class
   where TRelated : class
 {
@@ -19,6 +19,7 @@ public class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration c
   {
     _relationship.RelationshipType = RelationshipType.OneToMany;
     _config.Relationships.Add(_relationship);
+    _config.Validate();
     return new ReferenceCollectionNavigationBuilder<TEntity, TRelated>(_config, _relationship);
   }
 

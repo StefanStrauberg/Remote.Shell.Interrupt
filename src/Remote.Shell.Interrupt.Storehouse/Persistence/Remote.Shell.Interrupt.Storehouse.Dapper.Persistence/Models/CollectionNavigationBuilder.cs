@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class CollectionNavigationBuilder<TEntity, TRelated>(EntityConfiguration config,
+internal class CollectionNavigationBuilder<TEntity, TRelated>(EntityConfiguration config,
                                                             Relationship relationship)
 {
   readonly EntityConfiguration _config = config;

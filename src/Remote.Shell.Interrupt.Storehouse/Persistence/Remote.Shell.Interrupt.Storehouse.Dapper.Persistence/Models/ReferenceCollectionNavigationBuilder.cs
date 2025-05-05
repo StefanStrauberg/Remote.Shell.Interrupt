@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class ReferenceCollectionNavigationBuilder<TEntity, TRelated>(EntityConfiguration config, Relationship relationship)
+internal class ReferenceCollectionNavigationBuilder<TEntity, TRelated>(EntityConfiguration config, Relationship relationship)
   where TEntity : class
   where TRelated : class
 {
@@ -10,7 +10,7 @@ public class ReferenceCollectionNavigationBuilder<TEntity, TRelated>(EntityConfi
   public ReferenceCollectionNavigationBuilder<TEntity, TRelated> HasForeignKey(
     Expression<Func<TEntity, object?>> foreignKeyExpression)
   {
-    var member = ReferenceCollectionNavigationBuilder<TEntity, TRelated>.GetMemberName(foreignKeyExpression);
+    var member = ExpressionHelper.GetMemberName(foreignKeyExpression!);
     _relationship.ForeignKey = member;
     return this;
   }
@@ -19,19 +19,5 @@ public class ReferenceCollectionNavigationBuilder<TEntity, TRelated>(EntityConfi
   {
     _relationship.IsRequired = isRequired;
     return this;
-  }
-
-  static string GetMemberName(Expression<Func<TEntity, object?>> expression)
-  {
-    var body = expression.Body;
-    
-    // Обрабатываем преобразование nullable типов
-    if (body is UnaryExpression { NodeType: ExpressionType.Convert } unary)
-      body = unary.Operand;
-
-    if (body is MemberExpression memberExpr)
-      return memberExpr.Member.Name;
-
-    throw new ArgumentException("Invalid foreign key expression");
   }
 }

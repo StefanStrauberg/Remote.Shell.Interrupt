@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-public class Relationship
+internal class Relationship
 {
   public Type PrincipalEntity { get; set; } = null!;
   public Type DependentEntity { get; set; } = null!;

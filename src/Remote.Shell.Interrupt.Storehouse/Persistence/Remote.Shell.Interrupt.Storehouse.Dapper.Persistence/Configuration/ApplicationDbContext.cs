@@ -1,21 +1,21 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 
-public class ApplicationDbContext : DbContext
+internal class ApplicationDbContext : DbContext
 {
-  public DbSet<Client> Clients { get; set; } = null!;
-  public DbSet<COD> CODs { get; set; } = null!;
-  public DbSet<TfPlan> TfPlans { get; set; } = null!;
-  public DbSet<SPRVlan> SPRVlans { get; set; } = null!;
-  public ModelBuilder ModelBuilder { get; }
+  public DbSet<Client> Clients { get; }
+  public DbSet<COD> CODs { get; }
+  public DbSet<TfPlan> TfPlans { get; }
+  public DbSet<SPRVlan> SPRVlans { get; }
+  public DbSet<Gate> Gates { get; }
 
-  public ApplicationDbContext(string connectionString,
-                              IAppLogger logger = null!) 
-    : base(connectionString, logger)
+  public ApplicationDbContext()
   {
-      ModelBuilder = new ModelBuilder(); // 2. Инициализируем ModelBuilder
-      OnModelCreating(ModelBuilder); // 3. Вызываем метод конфигурации
+    Clients = Set<Client>();
+    CODs = Set<COD>();
+    TfPlans = Set<TfPlan>();
+    SPRVlans = Set<SPRVlan>();
+    Gates = Set<Gate>();
   }
-
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -31,7 +31,7 @@ public class ApplicationDbContext : DbContext
       entity.HasOne(e => e.COD)
             .WithMany() // Если COD не имеет коллекции Clients
             .HasForeignKey(e => e.Id_COD)
-            .IsRequired();
+            .IsRequired(false); // Необязательная связь
 
       // Отношение с TfPlan
       entity.HasOne(e => e.TfPlan)
@@ -42,7 +42,8 @@ public class ApplicationDbContext : DbContext
       // Отношение с SPRVlan
       entity.HasMany(e => e.SPRVlans)
             .WithOne() // Если SPRVlan не имеет навигации к Client
-            .HasForeignKey(e => e.IdClient);
+            .HasForeignKey(e => e.IdClient)
+            .IsRequired(false); // Необязательная связь
     });
 
     modelBuilder.Entity<COD>(entity =>
