@@ -6,11 +6,11 @@ internal static class ExpressionHelper
   {
     return expression switch
     {
-        MemberExpression m => m.Member.Name,
-        UnaryExpression u when u.Operand is MemberExpression m => m.Member.Name,
-        MethodCallExpression mc when mc.Method.Name == "get_Item" 
-            => throw new NotSupportedException("Indexers are not supported."),
-        _ => throw new ArgumentException("Invalid member expression.")
+      MemberExpression m => m.Member.Name,
+      UnaryExpression u when u.Operand is MemberExpression m => m.Member.Name,
+      MethodCallExpression mc when mc.Method.Name == "get_Item" 
+          => throw new NotSupportedException("Indexers are not supported."),
+      _ => throw new ArgumentException("Invalid member expression.")
     };
   }
 

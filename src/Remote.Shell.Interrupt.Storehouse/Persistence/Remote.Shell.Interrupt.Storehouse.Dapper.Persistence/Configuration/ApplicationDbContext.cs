@@ -21,53 +21,100 @@ internal class ApplicationDbContext : DbContext
   {
     modelBuilder.Entity<Client>(entity =>
     {
-      // Первичный ключ
-      entity.HasKey(e => e.IdClient);
+      entity.ToTable("Clients")
+            .HasKey(x => x.IdClient);
 
-      // Настройка таблицы (опционально)
-      entity.ToTable("Clients");
+      entity.HasOne(x => x.COD)
+            .WithMany()
+            .HasForeignKey(x => x.Id_COD);
 
-      // Отношение с COD
-      entity.HasOne(e => e.COD)
-            .WithMany() // Если COD не имеет коллекции Clients
-            .HasForeignKey(e => e.Id_COD)
-            .IsRequired(false); // Необязательная связь
+      entity.HasOne(x => x.TfPlan)
+            .WithMany()
+            .HasForeignKey(x => x.Id_TfPlan);
 
-      // Отношение с TfPlan
-      entity.HasOne(e => e.TfPlan)
-            .WithMany() // Если TfPlan не имеет коллекции Clients
-            .HasForeignKey(e => e.Id_TfPlan)
-            .IsRequired(false); // Необязательная связь
-
-      // Отношение с SPRVlan
-      entity.HasMany(e => e.SPRVlans)
-            .WithOne() // Если SPRVlan не имеет навигации к Client
-            .HasForeignKey(e => e.IdClient)
-            .IsRequired(false); // Необязательная связь
+      entity.HasMany(x => x.SPRVlans)
+            .WithOne()
+            .HasForeignKey(x => x.IdClient);
     });
 
     modelBuilder.Entity<COD>(entity =>
     {
-      entity.HasKey(e => e.IdCOD);
-      entity.ToTable("CODs"); // Опционально
+      entity.ToTable("CODs")
+            .HasKey(x => x.IdCOD);
     });
 
     modelBuilder.Entity<TfPlan>(entity =>
     {
-      entity.HasKey(e => e.IdTfPlan);
-      entity.ToTable("TfPlans"); // Опционально
+      entity.ToTable("TfPlans")
+            .HasKey(x => x.IdTfPlan);
     });
 
     modelBuilder.Entity<SPRVlan>(entity =>
     {
-      entity.HasKey(e => e.IdVlan);
-      entity.ToTable("SPRVlans"); // Опционально
+      entity.ToTable("SPRVlans")
+            .HasKey(x => x.IdVlan);
     });
 
     modelBuilder.Entity<Gate>(entity => 
     {
-      entity.HasKey(e => e.Id);
-      entity.ToTable("Gates");
+      entity.ToTable("Gates")
+            .HasKey(x => x.Id);
+    });
+
+    modelBuilder.Entity<NetworkDevice>(entity => 
+    {
+      entity.ToTable("NetworkDevices")
+            .HasKey(x => x.Id);
+
+      entity.HasMany(x => x.PortsOfNetworkDevice)
+            .WithOne()
+            .HasForeignKey(x => x.NetworkDeviceId);
+    });
+
+    modelBuilder.Entity<Port>(entity => 
+    {
+      entity.ToTable("Ports")
+            .HasKey(x => x.Id);
+
+      entity.HasMany(x => x.ARPTableOfInterface)
+            .WithOne()
+            .HasForeignKey(x => x.PortId);
+
+      entity.HasMany(x => x.MACTable)
+            .WithOne()
+            .HasForeignKey(x => x.PortId);
+
+      entity.HasMany(x => x.NetworkTableOfInterface)
+            .WithOne()
+            .HasForeignKey(x => x.PortId);
+
+      entity.HasManyToMany(x => x.VLANs)
+            .UsingJoinEntity<PortVlan>()
+            .HasForeignKeys(p => p.Id, t => t.Id);
+    });
+
+    modelBuilder.Entity<ARPEntity>(entity => 
+    {
+      entity.ToTable("ARPEntities")
+            .HasKey(x => x.Id);
+    });
+
+    modelBuilder.Entity<MACEntity>(entity => 
+    {
+      entity.ToTable("MACEntities")
+            .HasKey(x => x.Id);
+    });
+
+    modelBuilder.Entity<TerminatedNetworkEntity>(entity => 
+    {
+      entity.ToTable("TerminatedNetworkEntities")
+            .HasKey(x => x.Id);
+    });
+
+    modelBuilder.Entity<VLAN>(entity => 
+    {
+      entity.ToTable("VLANs")
+            .HasKey(x => x.Id);
     });
   }
 }

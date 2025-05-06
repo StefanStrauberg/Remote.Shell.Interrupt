@@ -11,9 +11,9 @@ internal class ReferenceCollectionNavigationBuilder<TEntity, TRelated>(OneToMany
     return this;
   }
 
-  public ReferenceCollectionNavigationBuilder<TEntity, TRelated> IsRequired()
+  public ReferenceCollectionNavigationBuilder<TEntity, TRelated> IsRequired(bool isRequired = true)
   {
-    relationship.IsRequired = true;
+    relationship.IsRequired = isRequired;
     return this;
   }
 }

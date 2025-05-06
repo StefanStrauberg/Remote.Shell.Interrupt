@@ -22,15 +22,17 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config)
 
     var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
 
-    // Проверка на дублирование
-    if (config.Relationships.Any(r => r.NavigationProperty == memberName))
-      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
+    ValidateRelationshipUniqueness(memberName);
     
-    var relationship = CreateOneToOneRelationship(navigationExpression);
+    var relationship = new OneToOneRelationship
+    {
+      NavigationProperty = memberName,
+      PrincipalEntity = typeof(TEntity),
+      DependentEntity = typeof(TRelated),
+      RelationshipType = RelationshipType.OneToOne
+    };
 
     config.Relationships.Add(relationship);
-    config.Validate();
-    
     return new ReferenceNavigationBuilder<TEntity, TRelated>(config, relationship);
   }
 
@@ -41,39 +43,44 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config)
 
     var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
 
-    // Проверка на дублирование
-    if (config.Relationships.Any(r => r.NavigationProperty == memberName))
-      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
+    ValidateRelationshipUniqueness(memberName);
     
-    var relationship = CreateOneToManyRelationship(navigationExpression);
-
-    config.Relationships.Add(relationship);
-    config.Validate();
-    
-    return new CollectionNavigationBuilder<TEntity, TRelated>(config, relationship);
-  }
-
-  static OneToOneRelationship CreateOneToOneRelationship<TRelated>(Expression<Func<TEntity, TRelated?>> navigationExpression)
-  {
-    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
-    return new OneToOneRelationship 
-    { 
-      NavigationProperty = memberName,
-      PrincipalEntity = typeof(TRelated),
-      DependentEntity = typeof(TEntity),
-      RelationshipType = RelationshipType.OneToOne
-    };
-  }
-
-  static OneToManyRelationship CreateOneToManyRelationship<TRelated>(Expression<Func<TEntity, IEnumerable<TRelated>>> navigationExpression)
-  {
-    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
-    return new OneToManyRelationship
+    var relationship = new OneToManyRelationship
     {
       NavigationProperty = memberName,
       PrincipalEntity = typeof(TEntity),
       DependentEntity = typeof(TRelated),
       RelationshipType = RelationshipType.OneToMany
     };
+
+    config.Relationships.Add(relationship);
+    return new CollectionNavigationBuilder<TEntity, TRelated>(relationship);
+  }
+
+  public ManyToManyNavigationBuilder<TEntity, TRelated> HasManyToMany<TRelated>(Expression<Func<TEntity, IEnumerable<TRelated>>> navigationExpression)
+    where TRelated : class
+  {
+    ArgumentNullException.ThrowIfNull(navigationExpression);
+
+    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
+
+    ValidateRelationshipUniqueness(memberName);
+
+    var relationship = new ManyToManyRelationship
+    {
+      NavigationProperty = memberName,
+      PrincipalEntity = typeof(TEntity),
+      DependentEntity = typeof(TRelated),
+      RelationshipType = RelationshipType.ManyToMany
+    };
+
+    config.Relationships.Add(relationship);
+    return new ManyToManyNavigationBuilder<TEntity, TRelated>(relationship);
+  }
+
+  void ValidateRelationshipUniqueness(string memberName)
+  {
+    if (config.Relationships.Any(r => r.NavigationProperty == memberName))
+      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
   }
 }

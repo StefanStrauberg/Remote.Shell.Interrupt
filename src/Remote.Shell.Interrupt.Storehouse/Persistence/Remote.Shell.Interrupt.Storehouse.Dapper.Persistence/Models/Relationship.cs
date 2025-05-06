@@ -12,16 +12,18 @@ internal class Relationship
 internal class OneToManyRelationship : Relationship
 {
   public string ForeignKey { get; set; } = string.Empty;
+  public string? InverseNavigationProperty { get; set; }
 }
 
 internal class OneToOneRelationship : Relationship
 {
   public string ForeignKey { get; set; } = string.Empty;
+  public string? InverseNavigationProperty { get; set; }
 }
 
 internal class ManyToManyRelationship : Relationship
 {
   public Type JoinEntity { get; set; } = null!;
-  public string LeftForeignKey { get; set; } = string.Empty;
-  public string RightForeignKey { get; set; } = string.Empty;
+  public string PrincipalForeignKey { get; set; } = string.Empty;
+  public string DependentForeignKey { get; set; } = string.Empty;
 }

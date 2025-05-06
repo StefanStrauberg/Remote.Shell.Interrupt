@@ -57,40 +57,60 @@ internal class SQLQueryBuilder<TEntity>(ModelBuilder modelBuilder,
     string joiningTable;
     string joiningTableAlias;
     string fk;
-    string joinPK;
+    string pk;
 
-    if (relationship.RelationshipType == RelationshipType.OneToMany)
+    switch (relationship)
     {
-      // Если основная сущность (entityConfig) является принципалом, используем зависимую сущность
-      if (relationship.PrincipalEntity == entityConfig.EntityType)
-      {
-        var dependentConfig = _modelBuilder.Configurations[relationship.DependentEntity];
-        joiningTable = dependentConfig.TableName;
-        joiningTableAlias = joiningTable.ToLower();
-        fk = relationship.ForeignKey ?? $"{entityConfig.TableName}Id";
-        joinPK = dependentConfig.PrimaryKey;
-      }
-      else
-      {
-        // Иначе, используем конфигурацию принципала.
+      case OneToManyRelationship oneToMany:
+        var isDependentSide = relationship.DependentEntity == entityConfig.EntityType;
+
         var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
-        joiningTable = principalConfig.TableName;
+        var dependentConfig = _modelBuilder.Configurations[relationship.DependentEntity];
+
+        if (oneToMany.DependentEntity == entityConfig.EntityType)
+        {
+          joiningTable = principalConfig.TableName;
+          fk = oneToMany.ForeignKey ?? $"{principalConfig.TableName}Id";
+          pk = principalConfig.PrimaryKey;
+        }
+        else
+        {
+          joiningTable = dependentConfig.TableName;
+          fk = oneToMany.ForeignKey ?? $"{principalConfig.TableName}Id";
+          pk = dependentConfig.PrimaryKey;
+        }
         joiningTableAlias = joiningTable.ToLower();
-        fk = relationship.ForeignKey ?? $"{principalConfig.TableName}Id";
-        joinPK = principalConfig.PrimaryKey;
-      }
-    }
-    else // Для отношений HasOne и прочих
-    {
-      var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
-      joiningTable = principalConfig.TableName;
-      joiningTableAlias = joiningTable.ToLower();
-      fk = relationship.ForeignKey ?? $"{principalConfig.TableName}Id";
-      joinPK = principalConfig.PrimaryKey;
+
+        break;
+
+      case OneToOneRelationship oneToOne:
+        var targetConfig = _modelBuilder.Configurations[
+            relationship.DependentEntity == entityConfig.EntityType 
+                ? relationship.PrincipalEntity 
+                : relationship.DependentEntity];
+
+        joiningTable = targetConfig.TableName;
+        joiningTableAlias = joiningTable.ToLower();
+        fk = oneToOne.ForeignKey ?? $"{targetConfig.TableName}Id";
+        pk = targetConfig.PrimaryKey;
+        break;
+
+      case ManyToManyRelationship manyToMany:
+        joiningTable = manyToMany.JoinEntity.Name;
+        joiningTableAlias = joiningTable.ToLower();
+
+        // Обрабатываем составные ключи для M2M
+        sb.Append($" {joinType} \"{joiningTable}\" AS {joiningTableAlias}");
+        sb.Append($" ON {mainTableAlias}.\"{entityConfig.PrimaryKey}\"");
+        sb.Append($" = {joiningTableAlias}.\"{manyToMany.PrincipalForeignKey}\"");
+        return sb.ToString();
+
+      default:
+        throw new NotSupportedException($"Unsupported relationship type: {relationship.RelationshipType}");
     }
 
     sb.Append($" {joinType} \"{joiningTable}\" AS {joiningTableAlias}");
-    sb.Append($" ON {mainTableAlias}.\"{fk}\" = {joiningTableAlias}.\"{joinPK}\"");
+    sb.Append($" ON {mainTableAlias}.\"{fk}\" = {joiningTableAlias}.\"{pk}\"");
     return sb.ToString();
   }
 

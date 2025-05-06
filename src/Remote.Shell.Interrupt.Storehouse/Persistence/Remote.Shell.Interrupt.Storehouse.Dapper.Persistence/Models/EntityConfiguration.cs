@@ -52,6 +52,11 @@ internal class EntityConfiguration(Type entityType)
   {
     switch (rel)
     {
+      case OneToOneRelationship oneToOne:
+        if (string.IsNullOrEmpty(oneToOne.ForeignKey))
+            throw new InvalidOperationException($"ForeignKey required for {rel.NavigationProperty}");
+        break;
+
       case OneToManyRelationship oneToMany:
         if (string.IsNullOrEmpty(oneToMany.ForeignKey))
             throw new InvalidOperationException($"ForeignKey required for {rel.NavigationProperty}");
@@ -68,7 +73,7 @@ internal class EntityConfiguration(Type entityType)
     if (rel.JoinEntity == null)
       throw new InvalidOperationException($"JoinEntity required for {rel.NavigationProperty}");
     
-    if (string.IsNullOrEmpty(rel.LeftForeignKey) || string.IsNullOrEmpty(rel.RightForeignKey))
+    if (string.IsNullOrEmpty(rel.PrincipalForeignKey) || string.IsNullOrEmpty(rel.DependentForeignKey))
       throw new InvalidOperationException($"Both foreign keys required for {rel.NavigationProperty}");
   }
 }
