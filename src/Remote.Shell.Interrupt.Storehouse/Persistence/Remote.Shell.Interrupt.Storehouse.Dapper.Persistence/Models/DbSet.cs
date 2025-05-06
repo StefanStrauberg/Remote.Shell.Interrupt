@@ -73,8 +73,11 @@ internal class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
       LogQuery(sql, _whereParameters);
 
     var connection = await _context.GetConnectionAsync();
-    
-    return await connection.QueryAsync<TEntity>(sql, _whereParameters);
+
+    if (_includes.Count > 0)
+      return await ExecuteQueryDynamicWithIncludes(sql);
+    else
+      return await connection.QueryAsync<TEntity>(sql, _whereParameters);
   }
 
   public async Task<TEntity> FirstAsync()
@@ -86,8 +89,11 @@ internal class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
       LogQuery(sql, _whereParameters);
     
     var connection = await _context.GetConnectionAsync();
-    
-    return await connection.QueryFirstAsync<TEntity>(sql, _whereParameters);
+
+    if (_includes.Count > 0)
+      return (await ExecuteQueryDynamicWithIncludes(sql)).First();
+    else
+      return await connection.QueryFirstAsync<TEntity>(sql, _whereParameters);
   }
 
   public async Task<TEntity?> FirstOrDefaultAsync()
@@ -219,4 +225,111 @@ internal class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
 
   internal static DbSet<TEntity> Create(ModelBuilder modelBuilder, DbContext dbContext)
     => new(modelBuilder, dbContext);
+
+  private async Task<IEnumerable<TEntity>> ExecuteQueryDynamicWithIncludes(string sql)
+  {
+    var connection = await _context.GetConnectionAsync();
+    // Выполняем запрос динамически
+    var results = await connection.QueryAsync(sql, _whereParameters);
+
+    // Предполагаем, что первичный ключ родительской сущности определяется по эвристике:
+    // выбираем первое свойство, которое оканчивается на "Id" (например, OrderId)
+    var keyProperty = typeof(TEntity).GetProperties()
+                                     .FirstOrDefault(p => p.Name == nameof(BaseEntity.Id)) 
+      ?? throw new InvalidOperationException($"Primary key property not found for type {typeof(TEntity).Name}");
+
+    // Словарь для агрегации родительских объектов
+    var parents = new Dictionary<object, TEntity>();
+
+    foreach (var row in results)
+    {
+      // Приводим каждую строку к словарю: обеспечиваем доступ к колонкам по имени
+      var rowDict = (IDictionary<string, object>)row;
+      
+      // Получаем значение первичного ключа родителя (например, OrderId)
+      var parentKey = rowDict[keyProperty.Name];
+      if (!parents.TryGetValue(parentKey, out TEntity? parent))
+      {
+        // Создаём новый экземпляр родительского объекта
+        parent = Activator.CreateInstance<TEntity>()!;
+        
+        // Заполняем родительские свойства (если имена колонок совпадают с именами свойств)
+        foreach (var prop in typeof(TEntity).GetProperties())
+        {
+          if (rowDict.TryGetValue(prop.Name, out object? value))
+          {
+            if (value != DBNull.Value)
+              prop.SetValue(parent, value);
+          }
+        }
+        parents[parentKey] = parent;
+      }
+
+      // Для каждого указанного include обрабатываем дочернюю сущность
+      foreach (var include in _includes)
+      {
+        var navProp = typeof(TEntity).GetProperty(include);
+        if (navProp == null)
+          continue;
+
+        // Определяем тип дочернего объекта:
+        // Если навигационное свойство – коллекция, берем тип элемента,
+        // иначе – это сам тип.
+        Type childType;
+        bool isCollection;
+        if (navProp.PropertyType != typeof(string) &&
+            typeof(IEnumerable).IsAssignableFrom(navProp.PropertyType))
+        {
+          childType = navProp.PropertyType.GenericTypeArguments.FirstOrDefault() 
+            ?? throw new InvalidOperationException($"Unable to determine collection element type for property '{include}'");
+          isCollection = true;
+        }
+        else
+        {
+          childType = navProp.PropertyType;
+          isCollection = false;
+        }
+
+        // Создаём экземпляр дочернего объекта, заполняя свойства.
+        // Здесь предполагается, что столбцы для дочернего объекта имеют имена, совпадающие с его свойствами.
+        var childInstance = Activator.CreateInstance(childType)!;
+        bool hasNonNullValues = false;
+        foreach (var childProp in childType.GetProperties())
+        {
+          if (rowDict.TryGetValue(childProp.Name, out object? val))
+          {
+            if (val != DBNull.Value)
+            {
+              childProp.SetValue(childInstance, val);
+              hasNonNullValues = true;
+            }
+          }
+        }
+
+        // Если по дочерним полям все значения null – пропускаем
+        if (!hasNonNullValues)
+          continue;
+
+        // Если свойство – коллекция, добавляем элемент; иначе,
+        // присваиваем значение (если ещё не установлено)
+        if (isCollection)
+        {
+          if (navProp.GetValue(parent) is not IList list)
+          {
+            // Создаем экземпляр списка нужного типа, например, List<childType>
+            var listType = typeof(List<>).MakeGenericType(childType);
+            list = (IList)Activator.CreateInstance(listType)!;
+            navProp.SetValue(parent, list);
+          }
+          list.Add(childInstance);
+        }
+        else
+        {
+          if (navProp.GetValue(parent) == null)
+            navProp.SetValue(parent, childInstance);
+        }
+      }
+    }
+    return parents.Values;
+  }
 }

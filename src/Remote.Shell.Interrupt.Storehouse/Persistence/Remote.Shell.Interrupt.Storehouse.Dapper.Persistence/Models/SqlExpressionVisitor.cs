@@ -5,7 +5,6 @@ internal class SqlExpressionVisitor(string? tableAlias = null) : ExpressionVisit
   readonly Stack<string> _stack = new();
   readonly Dictionary<string, object> _parameters = [];
   int _parameterIndex;
-  readonly string? _tableAlias = tableAlias;
 
   public string WhereClause => _stack.Count > 0 ? _stack.Pop() : "";
   public object Parameters => _parameters;
@@ -28,10 +27,10 @@ internal class SqlExpressionVisitor(string? tableAlias = null) : ExpressionVisit
     if (node.Expression is ParameterExpression)
     {
       // Если алиас не задан или пуст, возвращаем просто имя столбца
-      if (string.IsNullOrWhiteSpace(_tableAlias))
+      if (string.IsNullOrWhiteSpace(tableAlias))
         _stack.Push($"\"{node.Member.Name}\"");
       else
-        _stack.Push($"{_tableAlias}.\"{node.Member.Name}\"");
+        _stack.Push($"{tableAlias}.\"{node.Member.Name}\"");
       return node;
     }
     

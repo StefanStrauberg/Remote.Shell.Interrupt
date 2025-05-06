@@ -2,36 +2,73 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
 internal class EntityConfiguration(Type entityType)
 {
-  private string _primaryKey = "Id";
+  string _primaryKey = nameof(BaseEntity.Id);
 
   public Type EntityType { get; } = entityType ?? throw new ArgumentNullException(nameof(entityType));
   public List<Relationship> Relationships { get; } = [];
   public string TableName { get; set; } = GetTableName.Handle(entityType.Name);
+  public List<string> Properties { get; } = [.. entityType.GetProperties().Select(p => p.Name)];
   public string PrimaryKey
   {
     get => _primaryKey;
-    set
-    {
-      if (!Columns.Contains(value))
-        throw new ArgumentException($"Property '{value}' not found in {EntityType.Name}");
-      _primaryKey = value;
-    }
+    set => ValidateAndSetPrimaryKey(value);
   }
-  public List<string> Columns { get; } = [.. entityType.GetProperties().Select(p => p.Name)];
 
   public void Validate()
   {
+    ValidatePrimaryKey();
+    ValidateRelationships();
+  }
+
+  void ValidateAndSetPrimaryKey(string value)
+  {
+    if (!Properties.Contains(value))
+        throw new ArgumentException($"Property '{value}' not found in {EntityType.Name}");
+    _primaryKey = value;
+  }
+
+  void ValidatePrimaryKey()
+  {
+    if (!Properties.Contains(PrimaryKey))
+        throw new InvalidOperationException($"Invalid primary key '{PrimaryKey}' for {EntityType.Name}");
+  }
+
+  void ValidateRelationships()
+  {
     foreach (var rel in Relationships)
     {
-      if (!Columns.Contains(rel.NavigationProperty))
-        throw new InvalidOperationException(
-          $"Navigation property '{rel.NavigationProperty}' not found in {EntityType.Name}"
-        );
+      ValidateNavigationProperty(rel);
+      ValidateRelationshipSpecifics(rel);
     }
+  }
 
-    if (!Columns.Contains(PrimaryKey))
-      throw new InvalidOperationException(
-        $"Primary key '{PrimaryKey}' is invalid for {EntityType.Name}"
-      );
+  void ValidateNavigationProperty(Relationship rel)
+  {
+    if (!Properties.Contains(rel.NavigationProperty))
+      throw new InvalidOperationException($"Navigation property '{rel.NavigationProperty}' not found in {EntityType.Name}");
+  }
+
+  static void ValidateRelationshipSpecifics(Relationship rel)
+  {
+    switch (rel)
+    {
+      case OneToManyRelationship oneToMany:
+        if (string.IsNullOrEmpty(oneToMany.ForeignKey))
+            throw new InvalidOperationException($"ForeignKey required for {rel.NavigationProperty}");
+        break;
+      
+      case ManyToManyRelationship manyToMany:
+        ValidateManyToManyRelationship(manyToMany);
+        break;
+    }
+  }
+
+  static void ValidateManyToManyRelationship(ManyToManyRelationship rel)
+  {
+    if (rel.JoinEntity == null)
+      throw new InvalidOperationException($"JoinEntity required for {rel.NavigationProperty}");
+    
+    if (string.IsNullOrEmpty(rel.LeftForeignKey) || string.IsNullOrEmpty(rel.RightForeignKey))
+      throw new InvalidOperationException($"Both foreign keys required for {rel.NavigationProperty}");
   }
 }

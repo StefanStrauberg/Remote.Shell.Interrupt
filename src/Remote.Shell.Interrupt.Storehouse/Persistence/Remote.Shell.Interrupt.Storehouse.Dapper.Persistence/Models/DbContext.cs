@@ -2,18 +2,19 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
 internal class DbContext
 {
-  readonly ModelBuilder _modelBuilder = new();
+  readonly ModelBuilder _modelBuilder;
   
   public string? ConnectionString { get; set; }
   public bool EnableSqlLogging { get; set; }
   public IAppLogger? Logger { get; set; }
   
-  protected virtual void OnModelCreating(ModelBuilder modelBuilder) { }
-
   public DbContext()
   {
+    _modelBuilder = new();
     OnModelCreating(_modelBuilder);
   }
+
+  protected virtual void OnModelCreating(ModelBuilder modelBuilder) { }
 
   public DbSet<T> Set<T>() where T : class
     => DbSet<T>.Create(_modelBuilder, this);

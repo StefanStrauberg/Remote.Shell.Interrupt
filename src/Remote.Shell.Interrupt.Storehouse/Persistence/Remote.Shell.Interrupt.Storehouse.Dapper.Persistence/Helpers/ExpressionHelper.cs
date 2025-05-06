@@ -17,7 +17,8 @@ internal static class ExpressionHelper
   public static string GetMemberName<T>(Expression<Func<T, object>> expression)
   {
     var body = expression.Body;
-    if (body is UnaryExpression unary) body = unary.Operand;
+    if (body is UnaryExpression unary) 
+      body = unary.Operand;
     return GetMemberName(body);
   }
 }

@@ -4,21 +4,22 @@ internal class ModelBuilder
 {
   public Dictionary<Type, EntityConfiguration> Configurations { get; } = [];
 
-  // Основной метод для получения EntityTypeBuilder
-  public EntityTypeBuilder<TEntity> Entity<TEntity>() where TEntity : class
+  // Main method to get EntityTypeBuilder
+  public EntityTypeBuilder<TEntity> Entity<TEntity>()
+    where TEntity : class
   {
     var type = typeof(TEntity);
     
     if (!Configurations.TryGetValue(type, out var config))
     {
       config = new EntityConfiguration(type);
-      Configurations[type] = config;
+      Configurations.Add(type, config);
     }
     
     return new EntityTypeBuilder<TEntity>(config);
   }
 
-  // Новая перегрузка для лямбда-конфигурации
+  // Overloading for lambda-configurations
   public ModelBuilder Entity<TEntity>(Action<EntityTypeBuilder<TEntity>> buildAction) 
     where TEntity : class
   {
