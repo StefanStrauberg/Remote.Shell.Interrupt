@@ -16,7 +16,6 @@ internal class ManyToManyNavigationBuilder<TEntity, TRelated>(ManyToManyRelation
   {
     relationship.PrincipalForeignKey = ExpressionHelper.GetMemberName(principalForeignKeyExpression);
     relationship.DependentForeignKey = ExpressionHelper.GetMemberName(dependentForeignKeyExpression);
-    RelationshipValidator.ValidateManyToManyRelationship(relationship);
     return this;
   }
 

@@ -31,3 +31,8 @@ global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 global using System.Text.Json;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 global using System.Collections;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models.Relationships;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Contracts.Relationships;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Services.Relationships;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Contracts.Factories;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Services.Factories;

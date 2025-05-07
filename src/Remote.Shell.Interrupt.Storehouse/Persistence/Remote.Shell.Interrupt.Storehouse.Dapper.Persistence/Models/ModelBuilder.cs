@@ -1,25 +1,21 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-internal class ModelBuilder
+internal class ModelBuilder(IRelationshipValidatorFactory relationshipValidatorFactory)
 {
   public Dictionary<Type, EntityConfiguration> Configurations { get; } = [];
 
-  // Main method to get EntityTypeBuilder
   public EntityTypeBuilder<TEntity> Entity<TEntity>()
     where TEntity : class
   {
     var type = typeof(TEntity);
-    
     if (!Configurations.TryGetValue(type, out var config))
     {
       config = new EntityConfiguration(type);
       Configurations.Add(type, config);
     }
-    
-    return new EntityTypeBuilder<TEntity>(config);
+    return new EntityTypeBuilder<TEntity>(config, relationshipValidatorFactory);
   }
 
-  // Overloading for lambda-configurations
   public ModelBuilder Entity<TEntity>(Action<EntityTypeBuilder<TEntity>> buildAction) 
     where TEntity : class
   {
@@ -29,7 +25,6 @@ internal class ModelBuilder
       buildAction(builder);
       return this;
     }
-
     throw new ArgumentNullException(nameof(buildAction));
   }
 }

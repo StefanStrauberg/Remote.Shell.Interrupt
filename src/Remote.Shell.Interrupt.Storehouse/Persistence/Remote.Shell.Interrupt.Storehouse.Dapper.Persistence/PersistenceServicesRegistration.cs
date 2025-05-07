@@ -23,6 +23,11 @@ public static class PersistenceServicesRegistration
       return applicationDbContext;
     });
 
+    services.AddSingleton<IRelationshipValidatorFactory, RelationshipValidatorFactory>();
+    services.AddSingleton<IManyToManyRelationshipValidator, ManyToManyRelationshipValidator>();
+    services.AddSingleton<IOneToManyRelationshipValidator, OneToManyRelationshipValidator>();
+    services.AddSingleton<IOneToOneRelationshipValidator, OneToOneRelationshipValidator>();
+
     services.AddScoped(typeof(ICountRepository<>), typeof(CountRepository<>));
 
     services.AddScoped(typeof(IExistenceQueryRepository<>), typeof(ExistenceQueryRepository<>));

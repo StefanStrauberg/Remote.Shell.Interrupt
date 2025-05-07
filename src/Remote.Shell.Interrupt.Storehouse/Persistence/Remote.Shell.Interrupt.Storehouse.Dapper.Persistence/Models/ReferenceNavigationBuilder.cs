@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
 internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration config,
+                                                             IRelationshipValidatorFactory relationshipValidatorFactory,
                                                              Relationship relationship)
   where TEntity : class
   where TRelated : class
@@ -19,50 +20,84 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
 
   public ReferenceCollectionNavigationBuilder<TEntity, TRelated> WithMany(Expression<Func<TRelated, IEnumerable<TEntity>>>? navigationExpression = null)
   {
-    config.Relationships.Remove(relationship);
-
     string navProp = navigationExpression != null ? ExpressionHelper.GetMemberName(navigationExpression) 
                                                   : string.Empty;
-    var oneToMany = new OneToManyRelationship
-    {
-        NavigationProperty = relationship.NavigationProperty,
-        InverseNavigationProperty = navProp,
-        PrincipalEntity = typeof(TEntity),
-        DependentEntity = typeof(TRelated),
-        ForeignKey = (relationship as OneToOneRelationship)?.ForeignKey ?? string.Empty,
-        IsRequired = relationship.IsRequired,
-        RelationshipType = RelationshipType.OneToMany
-    };
+    var fk =(relationship as OneToOneRelationship)?.ForeignKey ?? string.Empty;
+    var isRequired = relationship.IsRequired;
+    
+    // Check uniq
+    if (config.Relationships.Any(r => r.NavigationProperty == relationship.NavigationProperty))
+      throw new InvalidOperationException($"Relationship '{relationship.NavigationProperty}' already exists.");
 
-    config.Relationships.Add(oneToMany);
-    return new ReferenceCollectionNavigationBuilder<TEntity, TRelated>(oneToMany);
+    var relationshipType = RelationshipType.OneToMany;
+
+    var newRelationship = ReplaceRelationship<OneToManyRelationship>(relationship,
+                                                                     relationship.NavigationProperty,
+                                                                     relationshipType,
+                                                                     x => 
+                                                                     {
+                                                                      x.InverseNavigationProperty = navProp;
+                                                                      x.ForeignKey = fk;
+                                                                      x.IsRequired = isRequired;
+                                                                      x.PrincipalEntity = relationship.PrincipalEntity;
+                                                                      x.DependentEntity = relationship.DependentEntity;
+                                                                     });
+
+    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
+
+    return new ReferenceCollectionNavigationBuilder<TEntity, TRelated>(newRelationship);
   }
 
   public ReferenceNavigationBuilder<TEntity, TRelated> WithOne(Expression<Func<TRelated, TEntity>>? inverseNavigationExpression = null)
   {
-    config.Relationships.Remove(relationship);
-
     var inverseNavProp = inverseNavigationExpression != null ? ExpressionHelper.GetMemberName(inverseNavigationExpression) 
                                                              : string.Empty;
+    var fk =(relationship as OneToOneRelationship)?.ForeignKey ?? string.Empty;
+    var isRequired = relationship.IsRequired;
 
-    var oneToOne = new OneToOneRelationship
-    {
-        NavigationProperty = relationship.NavigationProperty,
-        InverseNavigationProperty = inverseNavProp,
-        PrincipalEntity = typeof(TEntity),
-        DependentEntity = typeof(TRelated),
-        ForeignKey = (relationship as OneToOneRelationship)?.ForeignKey ?? string.Empty,
-        IsRequired = relationship.IsRequired,
-        RelationshipType = RelationshipType.OneToOne
-    };
-    
-    config.Relationships.Add(oneToOne);
-    return new ReferenceNavigationBuilder<TEntity, TRelated>(config, oneToOne);
+    // Check uniq
+    if (config.Relationships.Any(r => r.NavigationProperty == relationship.NavigationProperty))
+      throw new InvalidOperationException($"Relationship '{relationship.NavigationProperty}' already exists.");
+
+    var relationshipType = RelationshipType.OneToOne;
+
+    var newRelationship = ReplaceRelationship<OneToOneRelationship>(relationship, 
+                                                                    relationship.NavigationProperty, 
+                                                                    RelationshipType.OneToOne, 
+                                                                    x =>
+                                                                    {
+                                                                      x.InverseNavigationProperty = inverseNavProp;
+                                                                      x.ForeignKey = fk;
+                                                                      x.IsRequired = isRequired;
+                                                                    });
+
+    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
+
+    return new ReferenceNavigationBuilder<TEntity, TRelated>(config,
+                                                             relationshipValidatorFactory,
+                                                             newRelationship);
   }
 
   public ReferenceNavigationBuilder<TEntity, TRelated> IsRequired(bool isRequired = true)
   {
     relationship.IsRequired = isRequired;
     return this;
+  }
+
+  TRelationship ReplaceRelationship<TRelationship>(Relationship oldRelationship,
+                                                   string navigationProperty,
+                                                   RelationshipType relationshipType,
+                                                   Action<TRelationship> configure) 
+    where TRelationship : Relationship, new()
+  {
+    config.Relationships.Remove(oldRelationship);
+
+    var relationship = RelationshipFactory<TEntity, TRelated>.Create<TRelationship>(navigationProperty,
+                                                                                    relationshipType,
+                                                                                    configure); 
+    // Adding configuration
+    config.Relationships.Add(relationship);
+
+    return relationship;
   }
 }

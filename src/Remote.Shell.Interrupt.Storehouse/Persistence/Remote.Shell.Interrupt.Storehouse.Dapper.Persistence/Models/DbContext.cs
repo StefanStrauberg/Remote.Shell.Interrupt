@@ -10,6 +10,7 @@ internal class DbContext
   
   public DbContext()
   {
+    var relationShipFactory = new RelationshipValidatorFactory();
     _modelBuilder = new();
     OnModelCreating(_modelBuilder);
   }
