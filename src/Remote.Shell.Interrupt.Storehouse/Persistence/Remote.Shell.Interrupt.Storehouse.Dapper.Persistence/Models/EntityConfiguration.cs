@@ -55,13 +55,4 @@ internal class EntityConfiguration(Type entityType)
         throw new ArgumentException($"Property '{value}' not found in {EntityType.Name}");
     _primaryKey = value;
   }
-
-  /// <summary>
-  /// Validates the entity configuration by ensuring primary key and relationships are correctly defined.
-  /// </summary>
-  public void Validate()
-  {
-    EntityTypeValidatior.ValidatePrimaryKey(this);
-    EntityTypeValidatior.ValidateRelationships(this);
-  }
 }

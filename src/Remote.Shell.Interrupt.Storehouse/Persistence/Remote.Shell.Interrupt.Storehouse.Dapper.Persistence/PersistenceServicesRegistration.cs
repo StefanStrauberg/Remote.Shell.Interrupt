@@ -11,8 +11,9 @@ public static class PersistenceServicesRegistration
       var configuration = provider.GetRequiredService<IConfiguration>();
       var connectionString = configuration.GetConnectionString("DefaultConnection");
       var logger = provider.GetService<IAppLogger>();
+      var validatonFactory = new RelationshipValidatorFactory(provider);
 
-      var applicationDbContext = new ApplicationDbContext
+      var applicationDbContext = new ApplicationDbContext(validatonFactory)
       {
         ConnectionString = connectionString!,
         Logger = logger!

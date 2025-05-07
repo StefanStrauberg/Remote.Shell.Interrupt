@@ -10,8 +10,7 @@ internal class ManyToManyRelationshipValidator : IManyToManyRelationshipValidato
     if (manyToMany.JoinEntity == null)
       throw new InvalidOperationException($"JoinEntity required for {relationship.NavigationProperty}");
     
-    if (string.IsNullOrEmpty(manyToMany.PrincipalForeignKey) || 
-        string.IsNullOrEmpty(manyToMany.DependentForeignKey))
+    if (string.IsNullOrEmpty(manyToMany.PrincipalForeignKey) || string.IsNullOrEmpty(manyToMany.DependentForeignKey))
       throw new InvalidOperationException($"Both foreign keys required for {manyToMany.NavigationProperty}");
   }
 }

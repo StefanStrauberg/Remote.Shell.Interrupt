@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-internal class ManyToManyNavigationBuilder<TEntity, TRelated>(ManyToManyRelationship relationship)
+internal class ManyToManyNavigationBuilder<TEntity, TRelated>(ManyToManyRelationship relationship,
+                                                              IRelationshipValidatorFactory relationshipValidatorFactory)
   where TEntity : class
   where TRelated : class
 {
@@ -16,6 +17,7 @@ internal class ManyToManyNavigationBuilder<TEntity, TRelated>(ManyToManyRelation
   {
     relationship.PrincipalForeignKey = ExpressionHelper.GetMemberName(principalForeignKeyExpression);
     relationship.DependentForeignKey = ExpressionHelper.GetMemberName(dependentForeignKeyExpression);
+    relationshipValidatorFactory.GetValidator(RelationshipType.ManyToMany).Validate(relationship);
     return this;
   }
 

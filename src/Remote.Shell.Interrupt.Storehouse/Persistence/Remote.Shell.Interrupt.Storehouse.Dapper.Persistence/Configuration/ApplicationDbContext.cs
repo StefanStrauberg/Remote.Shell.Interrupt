@@ -1,120 +1,115 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 
-internal class ApplicationDbContext : DbContext
+internal class ApplicationDbContext(IRelationshipValidatorFactory validatorFactory) : DbContext
 {
-  public DbSet<Client> Clients { get; }
-  public DbSet<COD> CODs { get; }
-  public DbSet<TfPlan> TfPlans { get; }
-  public DbSet<SPRVlan> SPRVlans { get; }
-  public DbSet<Gate> Gates { get; }
+  readonly IRelationshipValidatorFactory _validatorFactory = validatorFactory;
+  public DbSet<Client> Clients => Set<Client>();
+  public DbSet<COD> CODs => Set<COD>();
+  public DbSet<TfPlan> TfPlans => Set<TfPlan>();
+  public DbSet<SPRVlan> SPRVlans => Set<SPRVlan>();
+  public DbSet<Gate> Gates => Set<Gate>();
 
-  public ApplicationDbContext()
+  protected override IRelationshipValidatorFactory RelationshipValidatorFactory 
+      => _validatorFactory;
+
+  protected override void OnModelCreating(ModelBuilder builder)
   {
-    Clients = Set<Client>();
-    CODs = Set<COD>();
-    TfPlans = Set<TfPlan>();
-    SPRVlans = Set<SPRVlan>();
-    Gates = Set<Gate>();
-  }
-
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
-  {
-    modelBuilder.Entity<Client>(entity =>
+    builder.Entity<Client>(e =>
     {
-      entity.ToTable("Clients")
-            .HasKey(x => x.IdClient);
+      e.ToTable("Clients")
+       .HasKey(x => x.IdClient);
 
-      entity.HasOne(x => x.COD)
-            .WithMany()
-            .HasForeignKey(x => x.Id_COD);
+      e.HasOne(x => x.COD)
+       .WithMany()
+       .HasForeignKey(x => x.Id_COD);
 
-      entity.HasOne(x => x.TfPlan)
-            .WithMany()
-            .HasForeignKey(x => x.Id_TfPlan);
+      e.HasOne(x => x.TfPlan)
+       .WithMany()
+       .HasForeignKey(x => x.Id_TfPlan);
 
-      entity.HasMany(x => x.SPRVlans)
-            .WithOne()
-            .HasForeignKey(x => x.IdClient);
+      e.HasMany(x => x.SPRVlans)
+       .WithOne()
+       .HasForeignKey(x => x.IdClient);
     });
 
-    modelBuilder.Entity<COD>(entity =>
+    builder.Entity<COD>(e =>
     {
-      entity.ToTable("CODs")
-            .HasKey(x => x.IdCOD);
+      e.ToTable("CODs")
+       .HasKey(x => x.IdCOD);
     });
 
-    modelBuilder.Entity<TfPlan>(entity =>
+    builder.Entity<TfPlan>(e =>
     {
-      entity.ToTable("TfPlans")
-            .HasKey(x => x.IdTfPlan);
+      e.ToTable("TfPlans")
+       .HasKey(x => x.IdTfPlan);
     });
 
-    modelBuilder.Entity<SPRVlan>(entity =>
+    builder.Entity<SPRVlan>(e =>
     {
-      entity.ToTable("SPRVlans")
-            .HasKey(x => x.IdVlan);
+      e.ToTable("SPRVlans")
+       .HasKey(x => x.IdVlan);
     });
 
-    modelBuilder.Entity<Gate>(entity => 
+    builder.Entity<Gate>(e => 
     {
-      entity.ToTable("Gates")
-            .HasKey(x => x.Id);
+      e.ToTable("Gates")
+       .HasKey(x => x.Id);
     });
 
-    modelBuilder.Entity<NetworkDevice>(entity => 
+    builder.Entity<NetworkDevice>(e => 
     {
-      entity.ToTable("NetworkDevices")
-            .HasKey(x => x.Id);
+      e.ToTable("NetworkDevices")
+       .HasKey(x => x.Id);
 
-      entity.HasMany(x => x.PortsOfNetworkDevice)
-            .WithOne()
-            .HasForeignKey(x => x.NetworkDeviceId);
+      e.HasMany(x => x.PortsOfNetworkDevice)
+       .WithOne()
+       .HasForeignKey(x => x.NetworkDeviceId);
     });
 
-    modelBuilder.Entity<Port>(entity => 
+    builder.Entity<Port>(e => 
     {
-      entity.ToTable("Ports")
-            .HasKey(x => x.Id);
+      e.ToTable("Ports")
+       .HasKey(x => x.Id);
 
-      entity.HasMany(x => x.ARPTableOfInterface)
-            .WithOne()
-            .HasForeignKey(x => x.PortId);
+      e.HasMany(x => x.ARPTableOfInterface)
+       .WithOne()
+       .HasForeignKey(x => x.PortId);
 
-      entity.HasMany(x => x.MACTable)
-            .WithOne()
-            .HasForeignKey(x => x.PortId);
+      e.HasMany(x => x.MACTable)
+       .WithOne()
+       .HasForeignKey(x => x.PortId);
 
-      entity.HasMany(x => x.NetworkTableOfInterface)
-            .WithOne()
-            .HasForeignKey(x => x.PortId);
+      e.HasMany(x => x.NetworkTableOfInterface)
+       .WithOne()
+       .HasForeignKey(x => x.PortId);
 
-      entity.HasManyToMany(x => x.VLANs)
-            .UsingJoinEntity<PortVlan>()
-            .HasForeignKeys(p => p.Id, t => t.Id);
+      e.HasManyToMany(x => x.VLANs)
+       .UsingJoinEntity<PortVlan>()
+       .HasForeignKeys(p => p.Id, t => t.Id);
     });
 
-    modelBuilder.Entity<ARPEntity>(entity => 
+    builder.Entity<ARPEntity>(e => 
     {
-      entity.ToTable("ARPEntities")
-            .HasKey(x => x.Id);
+      e.ToTable("ARPEntities")
+       .HasKey(x => x.Id);
     });
 
-    modelBuilder.Entity<MACEntity>(entity => 
+    builder.Entity<MACEntity>(e => 
     {
-      entity.ToTable("MACEntities")
-            .HasKey(x => x.Id);
+      e.ToTable("MACEntities")
+       .HasKey(x => x.Id);
     });
 
-    modelBuilder.Entity<TerminatedNetworkEntity>(entity => 
+    builder.Entity<TerminatedNetworkEntity>(e => 
     {
-      entity.ToTable("TerminatedNetworkEntities")
-            .HasKey(x => x.Id);
+      e.ToTable("TerminatedNetworkEntities")
+       .HasKey(x => x.Id);
     });
 
-    modelBuilder.Entity<VLAN>(entity => 
+    builder.Entity<VLAN>(e => 
     {
-      entity.ToTable("VLANs")
-            .HasKey(x => x.Id);
+      e.ToTable("VLANs")
+       .HasKey(x => x.Id);
     });
   }
 }

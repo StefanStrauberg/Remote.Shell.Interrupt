@@ -7,7 +7,8 @@ internal class OneToManyRelationshipValidator : IOneToManyRelationshipValidator
     var oneToMany = relationship as OneToManyRelationship
       ?? throw new NullReferenceException($"Relationship can't be null");
 
-    if (string.IsNullOrEmpty(oneToMany.ForeignKey))
+    if (!string.IsNullOrEmpty(oneToMany.InverseNavigationProperty)
+        && string.IsNullOrEmpty(oneToMany.ForeignKey))
       throw new InvalidOperationException($"ForeignKey required for {oneToMany.NavigationProperty}");
   }
 }

@@ -14,6 +14,8 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
       oneToOne.ForeignKey = member;
     else
       throw new InvalidOperationException("Foreign key can only be set on one-to-one relationships using this method.");
+
+    relationshipValidatorFactory.GetValidator(RelationshipType.OneToOne).Validate(relationship);
     
     return this;
   }
@@ -25,15 +27,12 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
     var fk =(relationship as OneToOneRelationship)?.ForeignKey ?? string.Empty;
     var isRequired = relationship.IsRequired;
     
-    // Check uniq
-    if (config.Relationships.Any(r => r.NavigationProperty == relationship.NavigationProperty))
+    if (!config.Relationships.Any(r => r.NavigationProperty == relationship.NavigationProperty))
       throw new InvalidOperationException($"Relationship '{relationship.NavigationProperty}' already exists.");
-
-    var relationshipType = RelationshipType.OneToMany;
 
     var newRelationship = ReplaceRelationship<OneToManyRelationship>(relationship,
                                                                      relationship.NavigationProperty,
-                                                                     relationshipType,
+                                                                     RelationshipType.OneToMany,
                                                                      x => 
                                                                      {
                                                                       x.InverseNavigationProperty = navProp;
@@ -43,9 +42,8 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
                                                                       x.DependentEntity = relationship.DependentEntity;
                                                                      });
 
-    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
-
-    return new ReferenceCollectionNavigationBuilder<TEntity, TRelated>(newRelationship);
+    return new ReferenceCollectionNavigationBuilder<TEntity, TRelated>(newRelationship,
+                                                                       relationshipValidatorFactory);
   }
 
   public ReferenceNavigationBuilder<TEntity, TRelated> WithOne(Expression<Func<TRelated, TEntity>>? inverseNavigationExpression = null)
@@ -59,8 +57,6 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
     if (config.Relationships.Any(r => r.NavigationProperty == relationship.NavigationProperty))
       throw new InvalidOperationException($"Relationship '{relationship.NavigationProperty}' already exists.");
 
-    var relationshipType = RelationshipType.OneToOne;
-
     var newRelationship = ReplaceRelationship<OneToOneRelationship>(relationship, 
                                                                     relationship.NavigationProperty, 
                                                                     RelationshipType.OneToOne, 
@@ -70,8 +66,6 @@ internal class ReferenceNavigationBuilder<TEntity, TRelated>(EntityConfiguration
                                                                       x.ForeignKey = fk;
                                                                       x.IsRequired = isRequired;
                                                                     });
-
-    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
 
     return new ReferenceNavigationBuilder<TEntity, TRelated>(config,
                                                              relationshipValidatorFactory,

@@ -103,12 +103,12 @@ public class Client : BaseEntity
   /// <summary>
   /// Gets or sets the unique identifier of the client's tariff plan.
   /// </summary>
-  public int? Id_TfPlan { get; set; } = null!;
+  public int? Id_TfPlan { get; set; }
 
   /// <summary>
   /// Gets or sets the tariff plan associated with the client.
   /// </summary>
-  public TfPlan? TfPlan { get; set; } = null!;
+  public TfPlan? TfPlan { get; set; }
 
   /// <summary>
   /// Gets or sets the VLAN configuration associated with the client.

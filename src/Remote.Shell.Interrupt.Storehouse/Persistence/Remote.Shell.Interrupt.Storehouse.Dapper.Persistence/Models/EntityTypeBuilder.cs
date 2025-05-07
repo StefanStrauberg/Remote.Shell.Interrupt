@@ -43,19 +43,15 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config,
 
     var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
 
-    var relationshipType = RelationshipType.OneToOne;
-
     // Check uniq
     if (config.Relationships.Any(r => r.NavigationProperty == memberName))
       throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
 
     var relationship = RelationshipFactory<TEntity, TRelated>.Create<OneToOneRelationship>(memberName,
-                                                                                           relationshipType);
+                                                                                           RelationshipType.OneToOne);
 
     // Adding configuration
     config.Relationships.Add(relationship);
-
-    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
 
     return new ReferenceNavigationBuilder<TEntity, TRelated>(config,
                                                              relationshipValidatorFactory,
@@ -79,17 +75,14 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config,
     if (config.Relationships.Any(r => r.NavigationProperty == memberName))
       throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
 
-    var relationshipType = RelationshipType.OneToMany;
-
     var relationship = RelationshipFactory<TEntity, TRelated>.Create<OneToManyRelationship>(memberName,
-                                                                                            relationshipType);
+                                                                                            RelationshipType.OneToMany);
 
     // Adding configuration
     config.Relationships.Add(relationship);
-
-    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
     
-    return new CollectionNavigationBuilder<TEntity, TRelated>(relationship);
+    return new CollectionNavigationBuilder<TEntity, TRelated>(relationship,
+                                                              relationshipValidatorFactory);
   }
 
   /// <summary>
@@ -109,16 +102,13 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config,
     if (config.Relationships.Any(r => r.NavigationProperty == memberName))
       throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
 
-    var relationshipType = RelationshipType.ManyToMany;
-
     var relationship = RelationshipFactory<TEntity, TRelated>.Create<ManyToManyRelationship>(memberName,
-                                                                                             relationshipType);
+                                                                                             RelationshipType.ManyToMany);
 
     // Adding configuration
     config.Relationships.Add(relationship);
 
-    relationshipValidatorFactory.GetValidator(relationshipType).Validate(relationship);
-
-    return new ManyToManyNavigationBuilder<TEntity, TRelated>(relationship);
+    return new ManyToManyNavigationBuilder<TEntity, TRelated>(relationship,
+                                                              relationshipValidatorFactory);
   }
 }

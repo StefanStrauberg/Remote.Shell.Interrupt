@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Models;
 
-internal class CollectionNavigationBuilder<TEntity, TRelated>(OneToManyRelationship relationship)
+internal class CollectionNavigationBuilder<TEntity, TRelated>(OneToManyRelationship relationship,
+                                                              IRelationshipValidatorFactory relationshipValidatorFactory)
   where TEntity : class
   where TRelated : class
 { 
@@ -14,6 +15,7 @@ internal class CollectionNavigationBuilder<TEntity, TRelated>(OneToManyRelations
   public CollectionNavigationBuilder<TEntity, TRelated> HasForeignKey(Expression<Func<TRelated, object>> foreignKeyExpression)
   {   
     relationship.ForeignKey = ExpressionHelper.GetMemberName(foreignKeyExpression);
+    relationshipValidatorFactory.GetValidator(RelationshipType.OneToMany).Validate(relationship);
     return this;
   }
 
