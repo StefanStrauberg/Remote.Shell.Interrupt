@@ -43,8 +43,6 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;
-global using Remote.Shell.Interrupt.Storehouse.Application.Services.Specification;
-global using Remote.Shell.Interrupt.Storehouse.Application.Services.QueryFilterParser;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.DeleteNetworkDeviceById;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Commands.SNMPGet;
@@ -54,3 +52,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Comman
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetSPRVlansByFilter;
 global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Correlation;
+global using Remote.Shell.Interrupt.Storehouse.Application.Services.Correlation;

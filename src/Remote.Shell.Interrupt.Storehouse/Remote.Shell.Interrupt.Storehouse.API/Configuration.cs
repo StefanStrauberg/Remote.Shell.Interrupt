@@ -6,8 +6,11 @@ public static class Configuration
   {
     Log.Debug("Starting dependency injection registration...");
     builder.Services.AddLoggerServices();
+    builder.Services.AddSingleton<ILoggerFactory>(sp => new LoggerFactory().AddSerilog(Log.Logger));
     builder.Services.AddApplicationServices();
     builder.Services.AddSNMPCommandExecutorServices();
+    builder.Services.AddSpecificationServices();
+    builder.Services.AddQueryFilterParserServices();
     builder.Services.AddPersistenceServices();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();

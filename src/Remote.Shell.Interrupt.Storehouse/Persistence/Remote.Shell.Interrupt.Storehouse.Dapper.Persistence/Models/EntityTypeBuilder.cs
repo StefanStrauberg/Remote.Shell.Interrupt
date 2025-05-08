@@ -88,27 +88,20 @@ internal class EntityTypeBuilder<TEntity>(EntityConfiguration config,
   /// <summary>
   /// Configures a many-to-many relationship between the entity and a collection of related entities.
   /// </summary>
-  /// <typeparam name="TRelated">The type of the related entities.</typeparam>
   /// <param name="navigationExpression">An expression specifying the navigation property.</param>
   /// <returns>A <see cref="ManyToManyNavigationBuilder{TEntity, TRelated}"/> for further configuration.</returns>
   public ManyToManyNavigationBuilder<TEntity, TRelated> HasManyToMany<TRelated>(Expression<Func<TEntity, IEnumerable<TRelated>>> navigationExpression)
     where TRelated : class
   {
-    ArgumentNullException.ThrowIfNull(navigationExpression);
+    var nav = ExpressionHelper.GetMemberName(navigationExpression.Body);
+    
+    if (config.Relationships.Any(r => r.NavigationProperty == nav))
+      throw new InvalidOperationException($"Relationship '{nav}' already exists.");
 
-    var memberName = ExpressionHelper.GetMemberName(navigationExpression.Body);
+    var rel = RelationshipFactory<TEntity, TRelated>.Create<ManyToManyRelationship>(nav, RelationshipType.ManyToMany);
 
-    // Check uniq
-    if (config.Relationships.Any(r => r.NavigationProperty == memberName))
-      throw new InvalidOperationException($"Relationship '{memberName}' already exists.");
-
-    var relationship = RelationshipFactory<TEntity, TRelated>.Create<ManyToManyRelationship>(memberName,
-                                                                                             RelationshipType.ManyToMany);
-
-    // Adding configuration
-    config.Relationships.Add(relationship);
-
-    return new ManyToManyNavigationBuilder<TEntity, TRelated>(relationship,
-                                                              relationshipValidatorFactory);
+    config.Relationships.Add(rel);
+    
+    return new ManyToManyNavigationBuilder<TEntity, TRelated>(config, relationshipValidatorFactory, rel);
   }
 }

@@ -11,6 +11,8 @@
     <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.AppLogger\Remote.Shell.Interrupt.Storehouse.AppLogger.csproj" />
     <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor.csproj" />
     <ProjectReference Include="..\Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.Specification\Remote.Shell.Interrupt.Storehouse.Specification.csproj" />
+    <ProjectReference Include="..\Infrastructure\Remote.Shell.Interrupt.Storehouse.QueryFilterParser\Remote.Shell.Interrupt.Storehouse.QueryFilterParser.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

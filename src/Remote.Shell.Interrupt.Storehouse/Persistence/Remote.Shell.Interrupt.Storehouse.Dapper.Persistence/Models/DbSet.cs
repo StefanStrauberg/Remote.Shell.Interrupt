@@ -206,11 +206,7 @@ internal class DbSet<TEntity>(ModelBuilder modelBuilder, DbContext context)
 
     var className = $"{typeof(DbSet<TEntity>).Name}<{typeof(TEntity).Name}>";
 
-    var logMessage = $"""
-        SQL Query:
-        {sql}
-        Parameters: {SerializeParameters(parameters)}
-        """;
+    var logMessage = $"\nSQL Query: {sql}\nParameters: {SerializeParameters(parameters)}";
 
     _context.Logger.LogInformation(className, logMessage);
   }

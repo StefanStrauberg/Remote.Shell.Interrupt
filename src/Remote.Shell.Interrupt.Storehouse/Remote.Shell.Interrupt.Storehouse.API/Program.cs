@@ -1,12 +1,14 @@
-Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
+Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
+                                      .Enrich.FromLogContext()
                                       .WriteTo.Console()
-                                      .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+                                      .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
                                       .CreateLogger();
 
 try
 {
-  Log.Information("Starting application initialization...");
-  var builder = WebApplication.CreateBuilder(args);
+Log.Information("Starting application initialization...");
+
+var builder = WebApplication.CreateBuilder(args);
 
   // Register Services
   builder.RegisterServices();

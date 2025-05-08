@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Services.Specification;
+namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 /// <summary>
 /// Generic specification class for filtering, including related entities, 

@@ -62,8 +62,6 @@ internal class SQLQueryBuilder<TEntity>(ModelBuilder modelBuilder,
     switch (relationship)
     {
       case OneToManyRelationship oneToMany:
-        var isDependentSide = relationship.DependentEntity == entityConfig.EntityType;
-
         var principalConfig = _modelBuilder.Configurations[relationship.PrincipalEntity];
         var dependentConfig = _modelBuilder.Configurations[relationship.DependentEntity];
 

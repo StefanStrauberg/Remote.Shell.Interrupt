@@ -84,8 +84,9 @@ internal class ApplicationDbContext(IRelationshipValidatorFactory validatorFacto
        .HasForeignKey(x => x.PortId);
 
       e.HasManyToMany(x => x.VLANs)
+       .WithMany(x => x.Ports)
        .UsingJoinEntity<PortVlan>()
-       .HasForeignKeys(p => p.Id, t => t.Id);
+       .HasForeignKeys(x => x.Id, x => x.Id);
     });
 
     builder.Entity<ARPEntity>(e => 

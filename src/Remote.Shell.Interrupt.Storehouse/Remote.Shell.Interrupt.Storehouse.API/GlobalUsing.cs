@@ -36,3 +36,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceById;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceByVlanTag;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.CreateNetworkDevice;
+global using Remote.Shell.Interrupt.Storehouse.Specification;
+global using Remote.Shell.Interrupt.Storehouse.QueryFilterParser;

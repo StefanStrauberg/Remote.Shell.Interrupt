@@ -14,4 +14,6 @@ public class VLAN : BaseEntity
   /// Gets or sets the VLAN name.
   /// </summary>
   public string VLANName { get; set; } = string.Empty;
+
+  public ICollection<Port> Ports { get; set; } = [];
 }

@@ -19,4 +19,9 @@ internal class ManyToManyRelationship : Relationship
   /// Gets or sets the foreign key in the dependent entity.
   /// </summary>
   public string? DependentForeignKey { get; set; }
+
+  /// <summary>
+  /// Gets or sets the inverse navigation property in the principal entity.
+  /// </summary>
+  public string? InverseNavigationProperty { get; set; }
 }

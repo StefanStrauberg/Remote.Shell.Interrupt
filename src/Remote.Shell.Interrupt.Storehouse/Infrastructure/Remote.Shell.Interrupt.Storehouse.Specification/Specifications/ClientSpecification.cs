@@ -1,4 +1,4 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Services.Specification;
+namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 /// <summary>
 /// Specification class for filtering and querying Client entities.

@@ -1,9 +1,9 @@
-namespace Remote.Shell.Interrupt.Storehouse.Application.Services.QueryFilterParser;
+namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.QueryFilterParsers;
 
 /// <summary>
 /// Provides functionality to parse filter descriptors into LINQ expressions for filtering data.
 /// </summary>
-internal class QueryFilterParser : IQueryFilterParser
+internal class CommonQueryFilterParser : IQueryFilterParser
 {
   /// <summary>
   /// Parses a list of filter descriptors into a combined LINQ expression using logical "AND".
