@@ -5,8 +5,11 @@ internal class CountRepository<T>(ApplicationDbContext context)
 {
   async Task<int> ICountRepository<T>.GetCountAsync(ISpecification<T> specification,
                                                     CancellationToken cancellationToken)
-    => await context.Set<T>()
-                    .Select(x => x.Id)
-                    .Where(specification.Criterias!)
-                    .CountAsync();
+  {
+    var result = await context.Set<T>()
+                              .Where(specification.Criterias is null ? x => true : specification.Criterias)
+                              .Select(x => x.Id)
+                              .ToListAsync(cancellationToken);
+    return result.Count;
+  }
 }

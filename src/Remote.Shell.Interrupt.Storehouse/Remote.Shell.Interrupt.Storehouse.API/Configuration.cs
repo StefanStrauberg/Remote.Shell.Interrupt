@@ -11,7 +11,7 @@ public static class Configuration
     builder.Services.AddSNMPCommandExecutorServices();
     builder.Services.AddSpecificationServices();
     builder.Services.AddQueryFilterParserServices();
-    builder.Services.AddPersistenceServices();
+    builder.Services.AddPersistenceServices(builder.Configuration);
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();

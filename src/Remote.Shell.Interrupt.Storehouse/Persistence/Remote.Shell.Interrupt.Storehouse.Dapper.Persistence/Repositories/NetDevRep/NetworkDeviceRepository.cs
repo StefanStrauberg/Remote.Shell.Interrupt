@@ -20,7 +20,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                               .Include(x => x.PortsOfNetworkDevice)
                               .Where(specification.Criterias!)
                               .Take(specification.Take)
-                              .FirstAsync();
+                              .FirstAsync(cancellationToken);
     return result;
   }
 
@@ -31,7 +31,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                               .Include(x => x.PortsOfNetworkDevice)
                               .Where(specification.Criterias!)
                               .Take(specification.Take)
-                              .ToListAsync();
+                              .ToListAsync(cancellationToken);
     return result;
   }
 

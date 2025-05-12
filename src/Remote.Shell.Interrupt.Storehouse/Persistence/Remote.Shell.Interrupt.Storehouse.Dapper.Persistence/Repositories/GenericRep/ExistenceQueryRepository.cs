@@ -6,6 +6,6 @@ internal class ExistenceQueryRepository<T>(ApplicationDbContext context)
   async Task<bool> IExistenceQueryRepository<T>.AnyByQueryAsync(ISpecification<T> specification,
                                                                 CancellationToken cancellationToken)
     => await context.Set<T>()
-                    .Where(specification.Criterias!)
-                    .AnyAsync();
+                    .Where(specification.Criterias is null ? x => true : specification.Criterias)
+                    .AnyAsync(cancellationToken);
 }

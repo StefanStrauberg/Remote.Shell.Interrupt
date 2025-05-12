@@ -2,32 +2,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
 
 public static class PersistenceServicesRegistration
 {
-  public static IServiceCollection AddPersistenceServices(this IServiceCollection services)
+  public static IServiceCollection AddPersistenceServices(this IServiceCollection services,
+                                                          IConfiguration configuration)
   {
     services.AddScoped<MySQLDapperContext>();
 
-    services.AddScoped(provider => 
+    services.AddDbContext<ApplicationDbContext>(optionsBuilder => 
     {
-      var configuration = provider.GetRequiredService<IConfiguration>();
-      var connectionString = configuration.GetConnectionString("DefaultConnection");
-      var logger = provider.GetService<IAppLogger>();
-      var validatonFactory = new RelationshipValidatorFactory(provider);
-
-      var applicationDbContext = new ApplicationDbContext(validatonFactory)
-      {
-        ConnectionString = connectionString!,
-        Logger = logger!
-      };
-
-      applicationDbContext.EnableQueryLogging();
-      
-      return applicationDbContext;
+      optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
     });
-
-    services.AddSingleton<IRelationshipValidatorFactory, RelationshipValidatorFactory>();
-    services.AddSingleton<IManyToManyRelationshipValidator, ManyToManyRelationshipValidator>();
-    services.AddSingleton<IOneToManyRelationshipValidator, OneToManyRelationshipValidator>();
-    services.AddSingleton<IOneToOneRelationshipValidator, OneToOneRelationshipValidator>();
 
     services.AddScoped(typeof(ICountRepository<>), typeof(CountRepository<>));
 

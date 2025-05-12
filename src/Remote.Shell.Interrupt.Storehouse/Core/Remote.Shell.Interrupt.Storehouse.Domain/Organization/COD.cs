@@ -18,30 +18,30 @@ public class COD : BaseEntity
   /// <summary>
   /// Gets or sets the contact telephone number.
   /// </summary>
-  public string Telephone { get; set; } = string.Empty;
+  public string? Telephone { get; set; } = string.Empty;
 
   /// <summary>
   /// Gets or sets the primary email address.
   /// </summary>
-  public string Email1 { get; set; } = string.Empty;
+  public string? Email1 { get; set; } = string.Empty;
 
   /// <summary>
   /// Gets or sets the secondary email address.
   /// </summary>
-  public string Email2 { get; set; } = string.Empty;
+  public string? Email2 { get; set; } = string.Empty;
 
   /// <summary>
   /// Gets or sets the contact person associated with the COD entity.
   /// </summary>
-  public string Contact { get; set; } = string.Empty;
+  public string? Contact { get; set; } = string.Empty;
 
   /// <summary>
   /// Gets or sets the description of the COD entity.
   /// </summary>
-  public string Description { get; set; } = string.Empty;
+  public string? Description { get; set; } = string.Empty;
 
   /// <summary>
   /// Gets or sets the region where the COD entity operates.
   /// </summary>
-  public string Region { get; set; } = string.Empty;
+  public string? Region { get; set; } = string.Empty;
 }

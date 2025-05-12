@@ -24,9 +24,6 @@ public static class ApplicationServicesRegistration
     // FluentValidation injection
     services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-    // Correlation Context injection
-    services.AddScoped<ICorrelationContext, CorrelationContext>();
-
     return services;
   }
 }

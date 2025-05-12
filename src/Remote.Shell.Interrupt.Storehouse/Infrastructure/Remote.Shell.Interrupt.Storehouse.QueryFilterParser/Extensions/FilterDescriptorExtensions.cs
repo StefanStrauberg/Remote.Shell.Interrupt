@@ -1,10 +1,5 @@
-using System.Collections;
-
 namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.Extensions;
 
-/// <summary>
-/// Provides extension methods for the <see cref="FilterDescriptor"/> class.
-/// </summary>
 internal static class FilterDescriptorExtensions
 {
   public static Expression<Func<T, bool>> ToExpression<T>(this FilterDescriptor filter)
@@ -16,7 +11,11 @@ internal static class FilterDescriptorExtensions
       return Expression.Lambda<Func<T, bool>>(body, parameter);
   }
 
-  private static Expression BuildNestedExpression(Expression expression, string[] members, int index, FilterOperator op, string valueStr)
+  static Expression BuildNestedExpression(Expression expression,
+                                          string[] members,
+                                          int index,
+                                          FilterOperator op,
+                                          string valueStr)
   {
     // Получаем следующее свойство в цепочке
     Expression property = Expression.PropertyOrField(expression, members[index]);
@@ -37,7 +36,7 @@ internal static class FilterDescriptorExtensions
       }
       catch (Exception ex)
       {
-        throw new InvalidOperationException($"Не удалось преобразовать значение '{valueStr}' к типу '{propertyType}'.", ex);
+        throw new InvalidOperationException($"The value of '{valueStr}' couldn't be converted to the type '{propertyType}'.", ex);
       }
 
       var constant = Expression.Constant(convertedValue, propertyType);
@@ -50,7 +49,7 @@ internal static class FilterDescriptorExtensions
       if (IsEnumerableButNotString(propertyType))
       {
         var elementType = GetElementType(propertyType) 
-          ?? throw new InvalidOperationException($"Не удалось определить элемент коллекции для типа {propertyType}.");
+          ?? throw new InvalidOperationException($"Couldn't define a collection item for the {propertyType} type.");
 
         // Создадим параметр для элементов коллекции
         var lambdaParameter = Expression.Parameter(elementType, "e");
@@ -96,12 +95,6 @@ internal static class FilterDescriptorExtensions
         _ => throw new NotImplementedException($"Operator {op} is not supported.")
     };
 
-  /// <summary>
-  /// Retrieves the <see cref="string.Contains(string)"/> method information.
-  /// </summary>
-  /// <returns>
-  /// The method information for the <see cref="string.Contains(string)"/> method.
-  /// </returns>
   static MethodInfo GetContainsMethodInfo()
     => typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
 }

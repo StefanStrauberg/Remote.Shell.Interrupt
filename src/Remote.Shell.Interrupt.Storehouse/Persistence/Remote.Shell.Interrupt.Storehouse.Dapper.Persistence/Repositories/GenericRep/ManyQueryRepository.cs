@@ -6,8 +6,8 @@ internal class ManyQueryRepository<T>(ApplicationDbContext context)
   async Task<IEnumerable<T>> IManyQueryRepository<T>.GetManyShortAsync(ISpecification<T> specification,
                                                                        CancellationToken cancellationToken)
     => await context.Set<T>()
-                    .Where(specification.Criterias!)
+                    .Where(specification.Criterias is null ? x => true : specification.Criterias)
                     .Skip(specification.Skip)
                     .Take(specification.Take)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 }

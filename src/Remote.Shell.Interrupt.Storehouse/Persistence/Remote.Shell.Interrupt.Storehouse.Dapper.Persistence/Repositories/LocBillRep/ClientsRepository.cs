@@ -18,7 +18,7 @@ internal class ClientsRepository(ApplicationDbContext context,
                                .Include(x => x.SPRVlans)
                                .Where(specification.Criterias!)
                                .Take(specification.Take)
-                               .ToListAsync();
+                               .ToListAsync(cancellationToken);
     return clients;
   }
 
@@ -30,7 +30,7 @@ internal class ClientsRepository(ApplicationDbContext context,
                                .Include(x => x.TfPlan)
                                .Include(x => x.SPRVlans)
                                .Where(specification.Criterias!)
-                               .FirstAsync();
+                               .FirstAsync(cancellationToken);
     return clients;
   }
 
