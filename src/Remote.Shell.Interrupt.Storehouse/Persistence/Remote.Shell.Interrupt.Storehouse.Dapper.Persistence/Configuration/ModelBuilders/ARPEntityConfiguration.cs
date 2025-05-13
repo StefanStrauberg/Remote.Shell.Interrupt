@@ -10,23 +10,23 @@ public class ARPEntityConfiguration : IEntityTypeConfiguration<ARPEntity>
 
     builder.Property(x => x.Id)
            .HasColumnName("Id")
-           .HasColumnType<Guid>("uuid")
+           .HasColumnType("uuid")
            .HasDefaultValueSql("gen_random_uuid()");
     builder.Property(x => x.CreatedAt)
            .HasColumnName("CreatedAt")
-           .HasColumnType<DateTime>("timestamptz")
+           .HasColumnType("timestamptz")
            .HasDefaultValueSql("CURRENT_TIMESTAMP");
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
-           .HasColumnType<DateTime?>("timestamptz");
+           .HasColumnType("timestamptz");
     builder.Property(x => x.MAC)
            .HasColumnName("MAC")
-           .HasColumnType<string>("text");
+           .HasColumnType("text");
     builder.Property(x => x.IPAddress)
            .HasColumnName("IPAddress")
-           .HasColumnType<string>("text");
+           .HasColumnType("text");
     builder.Property(x => x.PortId)
            .HasColumnName("PortId")
-           .HasColumnType<Guid>("uuid");
+           .HasColumnType("uuid");
   }
 }

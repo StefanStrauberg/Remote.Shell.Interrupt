@@ -21,7 +21,7 @@ public class NetworkDeviceConfiguration : IEntityTypeConfiguration<NetworkDevice
            .HasColumnType("timestamptz");
     builder.Property(x => x.Host)
            .HasColumnName("Host")
-           .HasColumnType<string>("text");
+           .HasColumnType("text");
     builder.Property(x => x.TypeOfNetworkDevice)
            .HasColumnName("TypeOfNetworkDevice")
            .HasColumnType("integer");

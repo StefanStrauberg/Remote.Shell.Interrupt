@@ -21,7 +21,7 @@ public class MACEntityConfiguration : IEntityTypeConfiguration<MACEntity>
            .HasColumnType("timestamptz");
     builder.Property(x => x.MACAddress)
            .HasColumnName("MACAddress")
-           .HasColumnType<string>("text");
+           .HasColumnType("text");
     builder.Property(x => x.PortId)
            .HasColumnName("PortId")
            .HasColumnType("uuid");
