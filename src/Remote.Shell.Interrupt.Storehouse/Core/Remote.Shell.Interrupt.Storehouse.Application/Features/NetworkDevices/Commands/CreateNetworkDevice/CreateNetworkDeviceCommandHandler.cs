@@ -166,15 +166,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                     .InsertMany(networkDevice.PortsOfNetworkDevice
                                         .SelectMany(x => x.VLANs));
 
-    List<PortVlan> portVlans = networkDevice.PortsOfNetworkDevice
+    List<PortVlan> portVlans = [.. networkDevice.PortsOfNetworkDevice
                                             .Where(port => port.VLANs.Count > 0) // Фильтруем порты с VLAN
                                             .SelectMany(port => port.VLANs,
                                                         (port, vlan) => new PortVlan
                                                         {
                                                           PortId = port.Id,
                                                           VLANId = vlan.Id
-                                                        })
-                                            .ToList();
+                                                        })];
 
     netDevUnitOfWork.PortVlans
                     .InsertMany(portVlans);

@@ -12,6 +12,7 @@ internal class PortRepository(ApplicationDbContext context,
                                                                                  CancellationToken cancellationToken)
   {
     var result = await context.Set<Port>()
+                              .AsNoTracking()
                               .Where(p => Ids.ToList().Contains(p.ParentPortId!.Value))
                               .ToListAsync(cancellationToken);
     return result;

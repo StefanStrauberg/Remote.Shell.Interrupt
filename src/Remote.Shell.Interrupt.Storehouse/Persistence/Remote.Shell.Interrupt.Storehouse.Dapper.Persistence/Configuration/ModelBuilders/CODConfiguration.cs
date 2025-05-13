@@ -10,38 +10,38 @@ public class CODConfiguration : IEntityTypeConfiguration<COD>
 
     builder.Property(x => x.Id)
            .HasColumnName("Id")
-           .HasColumnType<Guid>("uuid")
+           .HasColumnType("uuid")
            .HasDefaultValueSql("gen_random_uuid()");
     builder.Property(x => x.CreatedAt)
            .HasColumnName("CreatedAt")
-           .HasColumnType<DateTime>("timestamptz")
+           .HasColumnType("timestamptz")
            .HasDefaultValueSql("CURRENT_TIMESTAMP");
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
-           .HasColumnType<DateTime?>("timestamptz");
+           .HasColumnType("timestamptz");
     builder.Property(x => x.IdCOD)
            .HasColumnName("IdCOD")
-           .HasColumnType<int>("integer");
+           .HasColumnType("integer");
     builder.Property(x => x.NameCOD)
            .HasColumnName("NameCOD")
-           .HasColumnType<string>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Telephone)
            .HasColumnName("Telephone")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Email1)
            .HasColumnName("Email1")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Email2)
            .HasColumnName("Email2")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Contact)
            .HasColumnName("Contact")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Description)
            .HasColumnName("Description")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
     builder.Property(x => x.Region)
            .HasColumnName("Region")
-           .HasColumnType<string?>("text");
+           .HasColumnType("text");
   }
 }

@@ -10,16 +10,24 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
 {
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
-    
+    // TODO
   }
 
   async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                     CancellationToken cancellationToken)
   {
+    var query = context.Set<NetworkDevice>()
+                       .AsNoTracking()
+                       .ApplyIncludes(specification.Includes)
+                       .ApplyWhere(specification.Criterias)
+                       .ToQueryString();
+    
+    Console.WriteLine(query);
+
     var result = await context.Set<NetworkDevice>()
-                              .Include(x => x.PortsOfNetworkDevice)
-                              .Where(specification.Criterias!)
-                              .Take(specification.Take)
+                              .AsNoTracking()
+                              .ApplyIncludes(specification.Includes)
+                              .ApplyWhere(specification.Criterias)
                               .FirstAsync(cancellationToken);
     return result;
   }
@@ -28,9 +36,11 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                                                                                                                    CancellationToken cancellationToken)
   {
     var result = await context.Set<NetworkDevice>()
-                              .Include(x => x.PortsOfNetworkDevice)
-                              .Where(specification.Criterias!)
-                              .Take(specification.Take)
+                              .AsNoTracking()
+                              .ApplyIncludes(specification.Includes)
+                              .ApplyWhere(specification.Criterias)
+                              .ApplySkip(specification.Skip)
+                              .ApplyTake(specification.Take)
                               .ToListAsync(cancellationToken);
     return result;
   }

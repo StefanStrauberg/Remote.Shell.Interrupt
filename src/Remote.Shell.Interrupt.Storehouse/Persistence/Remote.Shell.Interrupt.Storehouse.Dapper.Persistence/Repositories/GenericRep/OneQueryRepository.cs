@@ -6,6 +6,7 @@ internal class OneQueryRepository<T>(ApplicationDbContext context)
   async Task<T> IOneQueryRepository<T>.GetOneShortAsync(ISpecification<T> specification,
                                                         CancellationToken cancellationToken)
     => await context.Set<T>()
-                    .Where(specification.Criterias is null ? x => true : specification.Criterias)
+                    .AsNoTracking()
+                    .ApplyWhere(specification.Criterias)
                     .FirstAsync(cancellationToken);
 }

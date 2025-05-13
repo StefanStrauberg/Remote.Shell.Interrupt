@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.LocB
 internal class CODRepository(IBulkDeleteRepository<COD> bulkDeleteRepository,
                              IReadRepository<COD> readRepository,
                              IBulkInsertRepository<COD> bulkInsertRepository)
-    : ICODRepository
+  : ICODRepository
 {
   void IBulkDeleteRepository<COD>.DeleteMany(IEnumerable<COD> entities)
     => bulkDeleteRepository.DeleteMany(entities);

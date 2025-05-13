@@ -7,7 +7,8 @@ internal class CountRepository<T>(ApplicationDbContext context)
                                                     CancellationToken cancellationToken)
   {
     var result = await context.Set<T>()
-                              .Where(specification.Criterias is null ? x => true : specification.Criterias)
+                              .AsNoTracking()
+                              .ApplyWhere(specification.Criterias)
                               .Select(x => x.Id)
                               .ToListAsync(cancellationToken);
     return result.Count;

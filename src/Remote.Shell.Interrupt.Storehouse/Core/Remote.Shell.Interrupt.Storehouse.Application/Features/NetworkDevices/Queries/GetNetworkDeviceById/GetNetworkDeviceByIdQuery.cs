@@ -101,7 +101,7 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
     var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice);
 
     if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+      spec.AddFilter(filterExpr);
 
     return (INetworkDeviceSpecification)spec;
   }

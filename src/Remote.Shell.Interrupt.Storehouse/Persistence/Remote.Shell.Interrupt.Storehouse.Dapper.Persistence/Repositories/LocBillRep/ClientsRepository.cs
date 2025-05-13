@@ -13,11 +13,11 @@ internal class ClientsRepository(ApplicationDbContext context,
                                                                                                      CancellationToken cancellationToken)
   {
     var clients = await context.Clients
-                               .Include(x => x.COD)
-                               .Include(x => x.TfPlan)
-                               .Include(x => x.SPRVlans)
-                               .Where(specification.Criterias!)
-                               .Take(specification.Take)
+                               .AsNoTracking()
+                               .ApplyIncludes(specification.Includes)
+                               .ApplyWhere(specification.Criterias)
+                               .ApplySkip(specification.Skip)
+                               .ApplyTake(specification.Take)
                                .ToListAsync(cancellationToken);
     return clients;
   }
@@ -26,10 +26,9 @@ internal class ClientsRepository(ApplicationDbContext context,
                                                                                       CancellationToken cancellationToken)
   {
     var clients = await context.Clients
-                               .Include(x => x.COD)
-                               .Include(x => x.TfPlan)
-                               .Include(x => x.SPRVlans)
-                               .Where(specification.Criterias!)
+                               .AsNoTracking()
+                               .ApplyIncludes(specification.Includes)
+                               .ApplyWhere(specification.Criterias)
                                .FirstAsync(cancellationToken);
     return clients;
   }

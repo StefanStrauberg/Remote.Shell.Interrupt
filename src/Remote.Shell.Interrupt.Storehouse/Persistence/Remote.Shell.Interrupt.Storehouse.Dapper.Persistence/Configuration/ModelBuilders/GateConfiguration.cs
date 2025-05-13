@@ -1,10 +1,10 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.ModelBuilders;
 
-public class SPRVlanConfiguration : IEntityTypeConfiguration<SPRVlan>
+public class GateConfiguration : IEntityTypeConfiguration<Gate>
 {
-  public void Configure(EntityTypeBuilder<SPRVlan> builder)
+  public void Configure(EntityTypeBuilder<Gate> builder)
   {
-    builder.ToTable("SPRVlans");
+    builder.ToTable("Gates");
 
     builder.HasKey(x => x.Id);
 
@@ -19,17 +19,17 @@ public class SPRVlanConfiguration : IEntityTypeConfiguration<SPRVlan>
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
            .HasColumnType("timestamptz");
-    builder.Property(x => x.UseClient)
-           .HasColumnName("UseClient")
-           .HasColumnType("boolean");
-    builder.Property(x => x.UseCOD)
-           .HasColumnName("UseCOD")
-           .HasColumnType("boolean");
-    builder.Property(x => x.IdVlan)
-           .HasColumnName("IdVlan")
-           .HasColumnType("integer");
-    builder.Property(x => x.IdClient)
-           .HasColumnName("IdClient")
+    builder.Property(x => x.Name)
+           .HasColumnName("Name")
+           .HasColumnType("text");
+    builder.Property(x => x.IPAddress)
+           .HasColumnName("IPAddress")
+           .HasColumnType("text");
+    builder.Property(x => x.Community)
+           .HasColumnName("Community")
+           .HasColumnType("text");
+    builder.Property(x => x.TypeOfNetworkDevice)
+           .HasColumnName("TypeOfNetworkDevice")
            .HasColumnType("integer");
   }
 }

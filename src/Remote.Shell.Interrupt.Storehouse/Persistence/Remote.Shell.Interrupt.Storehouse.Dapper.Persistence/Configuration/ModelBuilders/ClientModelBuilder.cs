@@ -10,15 +10,15 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
 
     builder.Property(x => x.Id)
            .HasColumnName("Id")
-           .HasColumnType<Guid>("uuid")
+           .HasColumnType("uuid")
            .HasDefaultValueSql("gen_random_uuid()");
     builder.Property(x => x.CreatedAt)
            .HasColumnName("CreatedAt")
-           .HasColumnType<DateTime>("timestamptz")
+           .HasColumnType("timestamptz")
            .HasDefaultValueSql("CURRENT_TIMESTAMP");
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
-           .HasColumnType<DateTime?>("timestamptz");
+           .HasColumnType("timestamptz");
     builder.Property(x => x.IdClient)
            .HasColumnName("IdClient")
            .HasColumnType<int>("integer");
@@ -60,10 +60,10 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
            .HasColumnType<int?>("integer");
     builder.Property(x => x.Dat1)
            .HasColumnName("Dat1")
-           .HasColumnType<DateTime?>("timestamptz");
+           .HasColumnType("timestamptz");
     builder.Property(x => x.Dat2)
            .HasColumnName("Dat2")
-           .HasColumnType<DateTime?>("timestamptz");
+           .HasColumnType("timestamptz");
     builder.Property(x => x.Prim1)
            .HasColumnName("Prim1")
            .HasColumnType<string?>("text");
@@ -78,15 +78,15 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
            .HasColumnType<string>("text")
            .HasDefaultValue("unknown");
 
-    builder.HasOne<COD>(x => x.COD)
+    builder.HasOne(x => x.COD)
            .WithMany()
            .HasForeignKey(x => x.Id_COD);
 
-    builder.HasOne<TfPlan>(x => x.TfPlan)
+    builder.HasOne(x => x.TfPlan)
            .WithMany()
            .HasForeignKey(x => x.Id_TfPlan);
 
-    builder.HasMany<SPRVlan>(x => x.SPRVlans)
+    builder.HasMany(x => x.SPRVlans)
            .WithOne()
            .HasForeignKey(x => x.IdClient);
   }

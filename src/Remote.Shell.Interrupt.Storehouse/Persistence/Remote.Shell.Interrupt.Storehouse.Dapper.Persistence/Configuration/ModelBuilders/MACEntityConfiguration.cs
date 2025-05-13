@@ -1,12 +1,12 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.ModelBuilders;
 
-public class TfPlanConfiguration : IEntityTypeConfiguration<TfPlan>
+public class MACEntityConfiguration : IEntityTypeConfiguration<MACEntity>
 {
-  public void Configure(EntityTypeBuilder<TfPlan> builder)
+  public void Configure(EntityTypeBuilder<MACEntity> builder)
   {
-    builder.ToTable("TfPlans");
+    builder.ToTable("MACEntities");
 
-    builder.HasKey(x => x.IdTfPlan);
+    builder.HasKey(x => x.Id);
 
     builder.Property(x => x.Id)
            .HasColumnName("Id")
@@ -19,14 +19,11 @@ public class TfPlanConfiguration : IEntityTypeConfiguration<TfPlan>
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
            .HasColumnType("timestamptz");
-    builder.Property(x => x.IdTfPlan)
-           .HasColumnName("IdTfPlan")
-           .HasColumnType("integer");
-    builder.Property(x => x.NameTfPlan)
-           .HasColumnName("NameTfPlan")
-           .HasColumnType("text");
-    builder.Property(x => x.DescTfPlan)
-           .HasColumnName("DescTfPlan")
-           .HasColumnType("text");
+    builder.Property(x => x.MACAddress)
+           .HasColumnName("MACAddress")
+           .HasColumnType<string>("text");
+    builder.Property(x => x.PortId)
+           .HasColumnName("PortId")
+           .HasColumnType("uuid");
   }
 }

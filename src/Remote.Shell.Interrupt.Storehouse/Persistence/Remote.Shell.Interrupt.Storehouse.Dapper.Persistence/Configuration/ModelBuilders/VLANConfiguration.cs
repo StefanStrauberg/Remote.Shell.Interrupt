@@ -1,10 +1,10 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.ModelBuilders;
 
-public class SPRVlanConfiguration : IEntityTypeConfiguration<SPRVlan>
+public class VLANConfiguration : IEntityTypeConfiguration<VLAN>
 {
-  public void Configure(EntityTypeBuilder<SPRVlan> builder)
+  public void Configure(EntityTypeBuilder<VLAN> builder)
   {
-    builder.ToTable("SPRVlans");
+    builder.ToTable("VLANs");
 
     builder.HasKey(x => x.Id);
 
@@ -19,17 +19,11 @@ public class SPRVlanConfiguration : IEntityTypeConfiguration<SPRVlan>
     builder.Property(x => x.UpdatedAt)
            .HasColumnName("UpdatedAt")
            .HasColumnType("timestamptz");
-    builder.Property(x => x.UseClient)
-           .HasColumnName("UseClient")
-           .HasColumnType("boolean");
-    builder.Property(x => x.UseCOD)
-           .HasColumnName("UseCOD")
-           .HasColumnType("boolean");
-    builder.Property(x => x.IdVlan)
-           .HasColumnName("IdVlan")
+    builder.Property(x => x.VLANTag)
+           .HasColumnName("VLANTag")
            .HasColumnType("integer");
-    builder.Property(x => x.IdClient)
-           .HasColumnName("IdClient")
-           .HasColumnType("integer");
+    builder.Property(x => x.VLANName)
+           .HasColumnName("VLANName")
+           .HasColumnType("text");
   }
 }
