@@ -57,7 +57,7 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
            .HasColumnType("integer");
     builder.Property(x => x.Id_TfPlan)
            .HasColumnName("Id_TfPlan")
-           .HasColumnType<int?>("integer");
+           .HasColumnType("integer");
     builder.Property(x => x.Dat1)
            .HasColumnName("Dat1")
            .HasColumnType("timestamptz");
