@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
+
 namespace Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 
 /// <summary>
@@ -61,6 +63,11 @@ public class Port : BaseEntity
   public ICollection<VLAN> VLANs { get; set; } = [];
 
   /// <summary>
+  /// Gets or sets the unique identifier of the parent port if applicable.
+  /// </summary>
+  public Guid? ParentId { get; set; }
+
+  /// <summary>
   /// Gets or sets the aggregated ports associated with this interface.
   /// </summary>
   public ICollection<Port> AggregatedPorts { get; set; } = [];
@@ -69,9 +76,4 @@ public class Port : BaseEntity
   /// Gets or sets the unique identifier of the network device this port belongs to.
   /// </summary>
   public Guid NetworkDeviceId { get; set; }
-
-  /// <summary>
-  /// Gets or sets the unique identifier of the parent port if applicable.
-  /// </summary>
-  public Guid? ParentPortId { get; set; }
 }

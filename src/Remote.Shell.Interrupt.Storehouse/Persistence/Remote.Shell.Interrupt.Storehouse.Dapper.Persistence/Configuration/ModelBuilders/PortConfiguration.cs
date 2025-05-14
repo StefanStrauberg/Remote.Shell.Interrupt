@@ -40,8 +40,8 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
     builder.Property(x => x.Description)
            .HasColumnName("Description")
            .HasColumnType("text");
-    builder.Property(x => x.ParentPortId)
-           .HasColumnName("ParentPortId")
+    builder.Property(x => x.ParentId)
+           .HasColumnName("ParentId")
            .HasColumnType("uuid");
     builder.Property(x=> x.NetworkDeviceId)
            .HasColumnName("NetworkDeviceId")
@@ -56,5 +56,12 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
     builder.HasMany(x => x.NetworkTableOfInterface)
            .WithOne()
            .HasForeignKey(x => x.PortId);
+
+    builder.HasMany(x => x.VLANs)
+           .WithMany(x => x.Ports);
+
+    builder.HasMany(x => x.AggregatedPorts)
+           .WithOne()
+           .HasForeignKey(x => x.ParentId);
   }
 }

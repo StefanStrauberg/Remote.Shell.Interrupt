@@ -773,7 +773,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         {
           aggPort.AggregatedPorts
                  .Add(exPort);
-          exPort.ParentPortId = aggPort.Id;
+          exPort.ParentId = aggPort.Id;
           aggregatedPorts.Add(exPort);
         }
       }
@@ -839,7 +839,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
             if (portsDictionary.TryGetValue(lookingForPort, out var port))
             {
               aePort.AggregatedPorts.Add(port);
-              port.ParentPortId = aePort.Id;
+              port.ParentId = aePort.Id;
               aggregatedPorts.Add(port);
             }
           }
@@ -863,7 +863,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
         {
           aePort.AggregatedPorts.Add(gePort);
-          gePort.ParentPortId = aePort.Id;
+          gePort.ParentId = aePort.Id;
           aggregatedPorts.Add(gePort);
         }
       }
@@ -914,7 +914,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
         if (!aePort.AggregatedPorts.Any(x => x.InterfaceNumber == gePort.InterfaceNumber))
         {
           aePort.AggregatedPorts.Add(gePort);
-          gePort.ParentPortId = aePort.Id;
+          gePort.ParentId = aePort.Id;
           aggregatedPorts.Add(gePort);
         }
       }

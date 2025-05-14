@@ -70,9 +70,9 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
       Filters = [
         new ()
         {
-          PropertyPath = "PortsOfNetworkDevice.VLANs.VLANTag",
+          PropertyPath = $"{nameof(NetworkDevice.PortsOfNetworkDevice)}.{nameof(Port.VLANs)}.{nameof(VLAN.VLANTag)}",
           Operator = FilterOperator.Equals,
-          Value = request.VlanTag.ToString(),
+          Value = vlanTags,
         }
       ]
     };
@@ -93,7 +93,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
     foreach (var networkDevice in networkDevices)
     {
       var parentPorts = networkDevice.PortsOfNetworkDevice
-                                     .Where(port => port.ParentPortId is null);
+                                     .Where(port => port.ParentId is null);
 
       // Skip devices without parent ports
       if (!parentPorts.Any())
@@ -107,8 +107,8 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                                                              cancellationToken);
 
       // Group child ports by their parent port ID
-      var childrenByParent = children.Where(child => child.ParentPortId.HasValue)
-                                     .GroupBy(child => child.ParentPortId!.Value)
+      var childrenByParent = children.Where(child => child.ParentId.HasValue)
+                                     .GroupBy(child => child.ParentId!.Value)
                                      .ToDictionary(group => group.Key, 
                                                    group => group.ToArray());
 
@@ -142,7 +142,6 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                                         Expression<Func<NetworkDevice, bool>>? filterExpr)
   {
     var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice);
-    // TODO: Consider using ThenInclude for deeper relationships.
 
     if (filterExpr is not null)
         spec.AddFilter(filterExpr);

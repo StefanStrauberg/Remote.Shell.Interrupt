@@ -16,11 +16,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers
 
         // Обрабатываем все порты, у которых задан родительский порт.
         foreach (var childPort in networkDevice.PortsOfNetworkDevice
-                                               .Where(port => port.ParentPortId != null))
+                                               .Where(port => port.ParentId != null))
         {
           // Если родительский порт найден, добавляем childPort в агрегированные порты родителя.
-          if (childPort.ParentPortId.HasValue &&
-              portDictionary.TryGetValue(childPort.ParentPortId.Value, out var parentPort))
+          if (childPort.ParentId.HasValue &&
+              portDictionary.TryGetValue(childPort.ParentId.Value, out var parentPort))
           {
             parentPort.AggregatedPorts.Add(childPort);
             aggregatedPortsIds.Add(childPort.Id);

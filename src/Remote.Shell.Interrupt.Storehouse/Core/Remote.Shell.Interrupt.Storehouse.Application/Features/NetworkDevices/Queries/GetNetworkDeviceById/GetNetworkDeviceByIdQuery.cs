@@ -70,17 +70,17 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
     // Process port aggregation by linking child ports to their parent ports
     HashSet<Guid> aggregatedPortsIds = [];
 
-    foreach (var port in networkDevice.PortsOfNetworkDevice.Where(x => x.ParentPortId is not null))
+    foreach (var port in networkDevice.PortsOfNetworkDevice.Where(x => x.ParentId is not null))
     {
-      var parentPort = networkDevice.PortsOfNetworkDevice.First(x => x.Id == port.ParentPortId);
+      var parentPort = networkDevice.PortsOfNetworkDevice.First(x => x.Id == port.ParentId);
       parentPort.AggregatedPorts.Add(port);
       aggregatedPortsIds.Add(port.Id);
     }
 
     // Filter PortsOfNetworkDevice, excluding duplicate aggregated ports
     networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice
-          .Where(port => !aggregatedPortsIds.Contains(port.Id))
-          .OrderBy(port => port.InterfaceName)];
+                                                          .Where(port => !aggregatedPortsIds.Contains(port.Id))
+                                                          .OrderBy(port => port.InterfaceName)];
 
     // Map the network device entity to a DTO
     var networkDeviceDTO = mapper.Map<NetworkDeviceDTO>(networkDevice);

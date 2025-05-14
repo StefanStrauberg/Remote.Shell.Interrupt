@@ -94,7 +94,7 @@ internal class GetClientsWithChildrenByFilterQueryHandler(ILocBillUnitOfWork loc
                        .AddInclude(c => c.SPRVlans);
 
     if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+      spec.AddFilter(filterExpr);
 
     return (IClientSpecification)spec;
   }

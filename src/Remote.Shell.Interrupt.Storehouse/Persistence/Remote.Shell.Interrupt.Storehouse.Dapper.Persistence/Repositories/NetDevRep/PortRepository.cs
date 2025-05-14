@@ -13,7 +13,7 @@ internal class PortRepository(ApplicationDbContext context,
   {
     var result = await context.Set<Port>()
                               .AsNoTracking()
-                              .Where(p => Ids.ToList().Contains(p.ParentPortId!.Value))
+                              .Where(p => Ids.ToList().Contains(p.ParentId!.Value))
                               .ToListAsync(cancellationToken);
     return result;
   }

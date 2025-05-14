@@ -30,21 +30,21 @@ internal class CommonQueryFilterParser : IQueryFilterParser
 
       foreach (var filter in group)
       {
-          var filterExpr = filter.ToExpression<T>();
+        var filterExpr = filter.ToExpression<T>();
 
-          if (groupExpression == null)
-              groupExpression = filterExpr;
-          else
-              groupExpression = CombineExpressionsOr(groupExpression, filterExpr);
+        if (groupExpression == null)
+          groupExpression = filterExpr;
+        else
+          groupExpression = CombineExpressionsOr(groupExpression, filterExpr);
       }
 
       // Объединяем полученные групповые выражения через AND
       if (groupExpression != null)
       {
-          if (finalExpression == null)
-              finalExpression = groupExpression;
-          else
-              finalExpression = CombineExpressionsAnd(finalExpression, groupExpression);
+        if (finalExpression == null)
+          finalExpression = groupExpression;
+        else
+          finalExpression = CombineExpressionsAnd(finalExpression, groupExpression);
       }
     }
     
