@@ -28,6 +28,5 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
     builder.ApplyConfiguration(new MACEntityConfiguration());
     builder.ApplyConfiguration(new TerminatedNetworkEntityConfiguration());
     builder.ApplyConfiguration(new VLANConfiguration());
-    builder.ApplyConfiguration(new PortVlanConfiguration());
   }
 }

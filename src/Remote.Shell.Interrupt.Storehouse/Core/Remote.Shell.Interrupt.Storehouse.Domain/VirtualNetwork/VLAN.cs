@@ -16,6 +16,4 @@ public class VLAN : BaseEntity
   public string VLANName { get; set; } = string.Empty;
 
   public IEnumerable<Port> Ports { get; set; } = [];
-
-  public IEnumerable<PortVlan> Enrollments { get; set; } = [];
 }

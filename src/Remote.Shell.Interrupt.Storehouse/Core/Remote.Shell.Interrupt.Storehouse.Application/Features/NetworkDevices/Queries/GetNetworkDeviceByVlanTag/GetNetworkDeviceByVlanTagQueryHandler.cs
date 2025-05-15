@@ -71,8 +71,8 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
         new ()
         {
           PropertyPath = $"{nameof(NetworkDevice.PortsOfNetworkDevice)}.{nameof(Port.VLANs)}.{nameof(VLAN.VLANTag)}",
-          Operator = FilterOperator.Equals,
-          Value = vlanTags,
+          Operator = FilterOperator.In,
+          Value = Converter.ArrayToString<int>(vlanTags),
         }
       ]
     };
@@ -141,10 +141,11 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
   static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
                                                         Expression<Func<NetworkDevice, bool>>? filterExpr)
   {
-    var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice);
+    var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice)
+                       .AddThenInclude(x => x.PortsOfNetworkDevice, p => p.VLANs);
 
     if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+      spec.AddFilter(filterExpr);
 
     return (INetworkDeviceSpecification)spec;
   }

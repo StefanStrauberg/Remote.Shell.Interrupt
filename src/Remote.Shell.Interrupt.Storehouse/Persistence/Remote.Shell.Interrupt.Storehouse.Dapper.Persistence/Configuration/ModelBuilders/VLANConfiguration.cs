@@ -25,8 +25,5 @@ public class VLANConfiguration : IEntityTypeConfiguration<VLAN>
     builder.Property(x => x.VLANName)
            .HasColumnName("VLANName")
            .HasColumnType("text");
-
-    builder.HasMany(x => x.Ports)
-           .WithMany(x => x.VLANs);
   }
 }

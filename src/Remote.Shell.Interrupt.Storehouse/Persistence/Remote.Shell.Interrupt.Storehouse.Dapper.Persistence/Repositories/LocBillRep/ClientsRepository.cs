@@ -14,7 +14,7 @@ internal class ClientsRepository(ApplicationDbContext context,
   {
     var clients = await context.Clients
                                .AsNoTracking()
-                               .ApplyIncludes(specification.Includes)
+                               .ApplyIncludes(specification.IncludeChains)
                                .ApplyWhere(specification.Criterias)
                                .ApplySkip(specification.Skip)
                                .ApplyTake(specification.Take)
@@ -27,7 +27,7 @@ internal class ClientsRepository(ApplicationDbContext context,
   {
     var clients = await context.Clients
                                .AsNoTracking()
-                               .ApplyIncludes(specification.Includes)
+                               .ApplyIncludes(specification.IncludeChains)
                                .ApplyWhere(specification.Criterias)
                                .FirstAsync(cancellationToken);
     return clients;

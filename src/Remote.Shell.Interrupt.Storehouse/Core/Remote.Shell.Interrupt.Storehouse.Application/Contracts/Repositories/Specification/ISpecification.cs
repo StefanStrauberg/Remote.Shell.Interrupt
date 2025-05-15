@@ -20,7 +20,7 @@ public interface ISpecification<T> where T : BaseEntity
   /// <remarks>
   /// These expressions specify navigation properties to include in the query.
   /// </remarks>
-  IReadOnlyCollection<Expression<Func<T, object>>> Includes { get; }
+  IEnumerable<IIncludeChain<T>> IncludeChains { get; }
 
   /// <summary>
   /// Gets the maximum number of entities to retrieve.
@@ -37,7 +37,21 @@ public interface ISpecification<T> where T : BaseEntity
   /// </summary>
   /// <param name="include">The expression specifying the navigation property to include.</param>
   /// <returns>An updated specification with the include added.</returns>
-  ISpecification<T> AddInclude(Expression<Func<T, object>> include);
+  ISpecification<T> AddInclude<TProperty>(Expression<Func<T, TProperty>> include);
+
+  /// <summary>
+  /// Adds a nested include expression for related entities.
+  /// </summary>
+  /// <typeparam name="T">The type of the root entity.</typeparam>
+  /// <typeparam name="TPreviousProperty">The type of the related entity being included.</typeparam>
+  /// <param name="include">The expression specifying the collection navigation property.</param>
+  /// <param name="thenInclude">The expression specifying the nested navigation property.</param>
+  /// <returns>An updated specification with the applied includes.</returns>
+  ISpecification<T> AddThenInclude<TProperty, TNextProperty>(Expression<Func<T, TProperty>> include,
+                                                             Expression<Func<TProperty, TNextProperty>> thenInclude);
+
+  ISpecification<T> AddThenInclude<TCollection, TProperty>(Expression<Func<T, IEnumerable<TCollection>>> include,
+                                                           Expression<Func<TCollection, TProperty>> thenInclude);
 
   /// <summary>
   /// Adds a filtering criterion to the specification.

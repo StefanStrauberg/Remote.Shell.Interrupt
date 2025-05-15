@@ -24,23 +24,55 @@ internal static class FilterDescriptorExtensions
     // Если это последний элемент пути – строим сравнение
     if (index == members.Length - 1)
     {
-      object convertedValue;
-      try
+      if (op == FilterOperator.In)
       {
-        if (propertyType == typeof(Guid))
-          convertedValue = Guid.Parse(valueStr);
-        else if (propertyType.IsEnum)
-          convertedValue = Enum.Parse(propertyType, valueStr, ignoreCase: true);
-        else
-          convertedValue = Convert.ChangeType(valueStr, propertyType);
-      }
-      catch (Exception ex)
-      {
-        throw new InvalidOperationException($"The value of '{valueStr}' couldn't be converted to the type '{propertyType}'.", ex);
-      }
+        var rawValues = valueStr.Split(',')
+                                .Select(val =>
+                                {
+                                   try
+                                   {
+                                     if (propertyType == typeof(Guid))
+                                       return Guid.Parse(val.Trim());
+                                     if (propertyType.IsEnum)
+                                       return Enum.Parse(propertyType, val.Trim(), ignoreCase: true);
+                                     return Convert.ChangeType(val.Trim(), propertyType);
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                     throw new InvalidOperationException(
+                                       $"Невозможно преобразовать '{val}' к типу '{propertyType}'.", ex);
+                                   }
+                                })
+                                .ToList();
+        var listType = typeof(List<>).MakeGenericType(propertyType);
+        var listInstance = (IList)Activator.CreateInstance(listType)!;
+        
+        foreach (var rawValue in rawValues)
+          listInstance.Add(rawValue);
 
-      var constant = Expression.Constant(convertedValue, propertyType);
-      return BuildComparisonExpression(property, constant, op);
+        var constant = Expression.Constant(listInstance, listType);
+        return BuildComparisonExpression(property, constant, op);
+      }
+      else
+      {
+        object convertedValue;
+        try
+        {
+          if (propertyType == typeof(Guid))
+            convertedValue = Guid.Parse(valueStr);
+          else if (propertyType.IsEnum)
+            convertedValue = Enum.Parse(propertyType, valueStr, ignoreCase: true);
+          else
+            convertedValue = Convert.ChangeType(valueStr, propertyType);
+        }
+        catch (Exception ex)
+        {
+          throw new InvalidOperationException($"The value of '{valueStr}' couldn't be converted to the type '{propertyType}'.", ex);
+        }
+
+        var constant = Expression.Constant(convertedValue, propertyType);
+        return BuildComparisonExpression(property, constant, op);
+      }
     }
     else
     {
@@ -92,9 +124,14 @@ internal static class FilterDescriptorExtensions
         FilterOperator.GraterThan => Expression.GreaterThan(left, right),
         FilterOperator.LessThan => Expression.LessThan(left, right),
         FilterOperator.Contains => Expression.Call(left, GetContainsMethodInfo(), right),
+        FilterOperator.In => Expression.Call(right, GetInMethodInfo(left.Type), left),
         _ => throw new NotImplementedException($"Operator {op} is not supported.")
     };
 
   static MethodInfo GetContainsMethodInfo()
     => typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+
+  static MethodInfo GetInMethodInfo(Type elementType) 
+    => typeof(List<>).MakeGenericType(elementType)
+                     .GetMethod("Contains", [elementType])!;
 }

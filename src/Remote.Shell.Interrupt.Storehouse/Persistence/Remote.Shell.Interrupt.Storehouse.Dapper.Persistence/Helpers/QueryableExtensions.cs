@@ -10,39 +10,34 @@ public static class QueryableExtensions
   /// <param name="includes">Collection of expressions specifying navigation properties to include.</param>
   /// <returns>An <see cref="IQueryable{T}"/> with the applied includes.</returns>
   public static IQueryable<T> ApplyIncludes<T>(this IQueryable<T> query,
-                                               IReadOnlyCollection<Expression<Func<T, object>>> includes)
+                                               IEnumerable<IIncludeChain<T>> includeChains)
     where T : BaseEntity
   {
-    if (includes is null || includes.Count == 0)
-      return query;
-
-    foreach (var include in includes)
-      query = query.Include(include);
-
+    foreach (var chain in includeChains.OfType<IncludeChain<T, object>>())
+    {
+      var includes = chain.Includes;
+      IIncludableQueryable<T, object>? currentInclude = null;
+      
+      foreach (var include in includes)
+      {
+        if (currentInclude == null)
+          currentInclude = query.Include((Expression<Func<T, object>>)include);
+        else
+          currentInclude = currentInclude.ThenInclude((Expression<Func<object, object>>)include);
+      }
+      
+      if (currentInclude != null)
+        query = currentInclude as IQueryable<T> ?? query;
+    }
     return query;
   }
 
   public static IQueryable<T> ApplyTake<T>(this IQueryable<T> query, int take)
-  {
-    if (take > 0) 
-      return query.Take(take); 
-      
-    return query;
-  }
+    => take > 0 ? query.Take(take) : query;
 
   public static IQueryable<T> ApplySkip<T>(this IQueryable<T> query, int skip)
-  {
-    if (skip > 0) 
-      return query.Skip(skip); 
-      
-    return query;
-  }
+    => skip > 0 ? query.Skip(skip) : query;
 
   public static IQueryable<T> ApplyWhere<T>(this IQueryable<T> query, Expression<Func<T, bool>>? criterias)
-  {
-    if (criterias is null) 
-      return query; 
-      
-    return query.Where(criterias);
-  }
+    => criterias is not null ? query.Where(criterias) : query;
 }

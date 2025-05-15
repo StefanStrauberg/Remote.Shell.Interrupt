@@ -14,16 +14,18 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers
         var portDictionary = networkDevice.PortsOfNetworkDevice
                                           .ToDictionary(port => port.Id);
 
+        var aggregatedPorts = networkDevice.PortsOfNetworkDevice
+                                           .Where(port => port.ParentId != null);
+
         // Обрабатываем все порты, у которых задан родительский порт.
-        foreach (var childPort in networkDevice.PortsOfNetworkDevice
-                                               .Where(port => port.ParentId != null))
+        foreach (var aggregatedPort in aggregatedPorts)
         {
           // Если родительский порт найден, добавляем childPort в агрегированные порты родителя.
-          if (childPort.ParentId.HasValue &&
-              portDictionary.TryGetValue(childPort.ParentId.Value, out var parentPort))
+          if (aggregatedPort.ParentId.HasValue &&
+              portDictionary.TryGetValue(aggregatedPort.ParentId.Value, out var parentPort))
           {
-            parentPort.AggregatedPorts.Add(childPort);
-            aggregatedPortsIds.Add(childPort.Id);
+            parentPort.AggregatedPorts.Add(aggregatedPort);
+            aggregatedPortsIds.Add(aggregatedPort.Id);
           }
         }
 

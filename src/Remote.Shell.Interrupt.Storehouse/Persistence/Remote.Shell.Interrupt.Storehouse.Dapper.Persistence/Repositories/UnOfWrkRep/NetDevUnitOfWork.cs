@@ -14,8 +14,7 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
                                 IBulkReplaceRepository<Port> portBulkReplaceRepository,
                                 IBulkInsertRepository<ARPEntity> arpEntityBulkInsertRepository,
                                 IBulkInsertRepository<MACEntity> macEntityBulkInsertRepository,
-                                IBulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository,
-                                IBulkInsertRepository<PortVlan> portVlanBulkInsertRepository) 
+                                IBulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository) 
   : INetDevUnitOfWork, IDisposable
 {
   public INetworkDeviceRepository NetworkDevices 
@@ -40,8 +39,6 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
     => new MACEntityRepository(macEntityBulkInsertRepository);
   public ITerminatedNetworkEntityRepository TerminatedNetworkEntities 
     => new TerminatedNetworkEntityRepository(terminatedNetworkEntityBulkInsertRepository);
-  public IPortVlanRepository PortVlans 
-    => new PortVlanRepository(portVlanBulkInsertRepository);
 
   bool disposed = false;
 

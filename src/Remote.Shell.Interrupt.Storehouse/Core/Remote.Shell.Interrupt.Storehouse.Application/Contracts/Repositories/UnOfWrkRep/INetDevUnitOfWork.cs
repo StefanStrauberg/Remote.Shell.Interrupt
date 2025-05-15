@@ -36,11 +36,6 @@ public interface INetDevUnitOfWork
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
 
   /// <summary>
-  /// Gets the repository for PortVlan records.
-  /// </summary>
-  IPortVlanRepository PortVlans { get; }
-
-  /// <summary>
   /// Commits the current unit of work, persisting changes.
   /// </summary>
   void Complete();

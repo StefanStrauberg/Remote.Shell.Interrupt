@@ -57,9 +57,6 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
            .WithOne()
            .HasForeignKey(x => x.PortId);
 
-    builder.HasMany(x => x.VLANs)
-           .WithMany(x => x.Ports);
-
     builder.HasMany(x => x.AggregatedPorts)
            .WithOne()
            .HasForeignKey(x => x.ParentId);

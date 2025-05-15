@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Specification;
+
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 /// <summary>
@@ -10,7 +12,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   /// <summary>
   /// List of expressions for including related entities in queries.
   /// </summary>
-  protected readonly List<Expression<Func<T, object>>> _includes = [];
+  protected readonly List<IIncludeChain<T>> _includeChains = [];
 
   /// <summary>
   /// Filtering criteria applied to the specification.
@@ -25,7 +27,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   /// <summary>
   /// Gets the collection of expressions for including related entities.
   /// </summary>
-  public IReadOnlyCollection<Expression<Func<T, object>>> Includes => _includes;
+  public IEnumerable<IIncludeChain<T>> IncludeChains => _includeChains;
 
   /// <summary>
   /// Gets the number of records to take for pagination.
@@ -96,9 +98,26 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   /// </summary>
   /// <param name="include">The include expression.</param>
   /// <returns>The updated specification instance.</returns>
-  public virtual ISpecification<T> AddInclude(Expression<Func<T, object>> include)
+  public virtual ISpecification<T> AddInclude<TProperty>(Expression<Func<T, TProperty>> include)
   {
-    _includes.Add(include);
+    var chain = new IncludeChain<T, TProperty>(include);
+    _includeChains.Add(chain);
+    return this;
+  }
+
+  public ISpecification<T> AddThenInclude<TProperty, TNextProperty>(Expression<Func<T, TProperty>> include,
+                                                                    Expression<Func<TProperty, TNextProperty>> thenInclude)
+  {
+    var chain = new IncludeChain<T, TProperty>(include).AddThenInclude(thenInclude);
+    _includeChains.Add(chain);
+    return this;
+  }
+
+  public ISpecification<T> AddThenInclude<TCollection, TProperty>(Expression<Func<T, IEnumerable<TCollection>>> collectionInclude,
+                                                                  Expression<Func<TCollection, TProperty>> thenInclude)
+  {
+    var chain = new IncludeChain<T, TProperty>(collectionInclude).AddThenInclude(thenInclude);
+    _includeChains.Add(chain);
     return this;
   }
 
@@ -133,8 +152,8 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     if (_criteria is not null)
       clone.AddFilter(_criteria);
 
-    foreach (var include in _includes)
-      clone.AddInclude(include);
+    foreach (var includeChain in _includeChains)
+      _includeChains.Add(includeChain);
 
     return clone;
   }

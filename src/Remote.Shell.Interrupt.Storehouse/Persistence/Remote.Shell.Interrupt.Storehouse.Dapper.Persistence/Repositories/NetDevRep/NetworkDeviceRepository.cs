@@ -18,7 +18,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
   {
     var query = context.Set<NetworkDevice>()
                        .AsNoTracking()
-                       .ApplyIncludes(specification.Includes)
+                       .ApplyIncludes(specification.IncludeChains)
                        .ApplyWhere(specification.Criterias)
                        .ToQueryString();
     
@@ -26,7 +26,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
 
     var result = await context.Set<NetworkDevice>()
                               .AsNoTracking()
-                              .ApplyIncludes(specification.Includes)
+                              .ApplyIncludes(specification.IncludeChains)
                               .ApplyWhere(specification.Criterias)
                               .FirstAsync(cancellationToken);
     return result;
@@ -37,7 +37,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
   {
     var result = await context.Set<NetworkDevice>()
                               .AsNoTracking()
-                              .ApplyIncludes(specification.Includes)
+                              .ApplyIncludes(specification.IncludeChains)
                               .ApplyWhere(specification.Criterias)
                               .ApplySkip(specification.Skip)
                               .ApplyTake(specification.Take)

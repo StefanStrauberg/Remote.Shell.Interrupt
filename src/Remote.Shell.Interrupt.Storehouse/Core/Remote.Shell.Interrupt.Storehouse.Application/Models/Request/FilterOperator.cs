@@ -28,5 +28,10 @@ public enum FilterOperator
   /// <summary>
   /// Checks if the value contains the comparison value (typically for strings).
   /// </summary>
-  Contains
+  Contains,
+
+  /// <summary>
+  /// Checks if the value is present within a predefined set.
+  /// </summary>
+  In
 }

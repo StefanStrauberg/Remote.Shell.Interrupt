@@ -11,9 +11,8 @@ public static class FormatEgressPorts
       return [];
 
     // Разделяем строку по запятой и пробелам, убираем лишние пробелы и конвертируем в массив целых чисел
-    return input.Split(separator, StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToArray();
+    return [.. input.Split(separator, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)];
   }
 
   public static int[] HandleHuaweiHexStringOld(string input)

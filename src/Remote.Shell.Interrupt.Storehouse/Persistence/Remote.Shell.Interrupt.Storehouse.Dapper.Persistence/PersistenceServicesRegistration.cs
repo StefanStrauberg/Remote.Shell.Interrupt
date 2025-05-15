@@ -45,7 +45,6 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IARPEntityRepository, ARPEntityRepository>();
     services.AddScoped<IMACEntityRepository, MACEntityRepository>();
     services.AddScoped<IVLANRepository, VLANRepository>();
-    services.AddScoped<IPortVlanRepository, PortVlanRepository>();
     services.AddScoped<ITerminatedNetworkEntityRepository, TerminatedNetworkEntityRepository>();
 
     services.AddScoped<IGateUnitOfWork, GateUnitOfWork>();
