@@ -10,6 +10,7 @@ public static class SpecificationServicesRegistration
     services.AddScoped<INetworkDeviceSpecification, NetworkDeviceSpecification>();
     services.AddScoped<ISPRVlanSpecification, SPRVlanSpecification>();
     services.AddScoped<ITfPlanSpecification, TfPlanSpecification>();
+    services.AddScoped(typeof(IIncludeChain<>), typeof(IncludeChain<>));
     return services;
   }
 }

@@ -13,7 +13,7 @@ public static class QueryableExtensions
                                                IEnumerable<IIncludeChain<T>> includeChains)
     where T : BaseEntity
   {
-    foreach (var chain in includeChains.OfType<IncludeChain<T, object>>())
+    foreach (var chain in includeChains.OfType<IIncludeChain<T>>())
     {
       var includes = chain.Includes;
       IIncludableQueryable<T, object>? currentInclude = null;

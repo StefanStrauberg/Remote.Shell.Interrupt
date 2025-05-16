@@ -55,9 +55,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
     // Retrieve the list of clients associated with the VLAN tag
     var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)getClientsByVlanTagQueryHandler).Handle(getClientsByVlanTagQuery,
                                                                                                                                           cancellationToken);
-    
-    // Initialize the list for network devices
-    List<NetworkDevice> networkDevices = [];
+  
 
     // Extract distinct VLAN tags from the clients' associated VLANs
     var vlanTags = clients.SelectMany(x => x.SPRVlans)
@@ -85,9 +83,9 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                       filterExpr);
 
     // Retrieve devices associated with VLAN tags
-    networkDevices.AddRange(await netDevUnitOfWork.NetworkDevices
-                                                  .GetManyWithChildrenAsync(baseSpec,
-                                                                            cancellationToken));
+    var networkDevices = await netDevUnitOfWork.NetworkDevices
+                                               .GetManyWithChildrenAsync(baseSpec,
+                                                                         cancellationToken);
 
     // Process aggregated ports for network devices
     foreach (var networkDevice in networkDevices)

@@ -30,5 +30,4 @@ global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.ModelBuilders;
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 global using System.Linq.Expressions;
-global using Remote.Shell.Interrupt.Storehouse.Application.Models.Specification;
 global using Microsoft.EntityFrameworkCore.Query;

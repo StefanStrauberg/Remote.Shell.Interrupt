@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Models.Specification;
-
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 /// <summary>
@@ -100,7 +98,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   /// <returns>The updated specification instance.</returns>
   public virtual ISpecification<T> AddInclude<TProperty>(Expression<Func<T, TProperty>> include)
   {
-    var chain = new IncludeChain<T, TProperty>(include);
+    var chain = new IncludeChain<T>().AddInclude(include);
     _includeChains.Add(chain);
     return this;
   }
@@ -108,7 +106,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   public ISpecification<T> AddThenInclude<TProperty, TNextProperty>(Expression<Func<T, TProperty>> include,
                                                                     Expression<Func<TProperty, TNextProperty>> thenInclude)
   {
-    var chain = new IncludeChain<T, TProperty>(include).AddThenInclude(thenInclude);
+    var chain = new IncludeChain<T>().AddInclude(include).AddThenInclude(thenInclude);
     _includeChains.Add(chain);
     return this;
   }
@@ -116,7 +114,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
   public ISpecification<T> AddThenInclude<TCollection, TProperty>(Expression<Func<T, IEnumerable<TCollection>>> collectionInclude,
                                                                   Expression<Func<TCollection, TProperty>> thenInclude)
   {
-    var chain = new IncludeChain<T, TProperty>(collectionInclude).AddThenInclude(thenInclude);
+    var chain = new IncludeChain<T>().AddInclude(collectionInclude).AddThenInclude(thenInclude);
     _includeChains.Add(chain);
     return this;
   }
@@ -153,7 +151,7 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
       clone.AddFilter(_criteria);
 
     foreach (var includeChain in _includeChains)
-      _includeChains.Add(includeChain);
+      clone._includeChains.Add(new IncludeChain<T>(includeChain.Includes));
 
     return clone;
   }
