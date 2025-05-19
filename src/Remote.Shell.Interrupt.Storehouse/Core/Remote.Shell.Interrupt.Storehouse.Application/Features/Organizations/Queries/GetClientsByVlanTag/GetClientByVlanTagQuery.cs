@@ -63,20 +63,6 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork locBillUnitOfW
       clients.Add(client);
     }
 
-    // // Проверка всех ли клиентов извлекли
-    // var uniqName = ClientNameHelper.ExtractUniqName([.. clients.Select(x => x.Name)]);
-
-    // if (!string.IsNullOrEmpty(uniqName))
-    // {
-    //   var additionalClients = await locBillUnitOfWork.Clients
-    //                                                  .GetManyWithChildrenAsync(new RequestParameters()
-    //                                                  {
-    //                                                    Filters = $"Name~={uniqName}"
-    //                                                  }, 
-    //                                                  cancellationToken);
-    //   // TODO
-    // }
-
     // Преобразуем данные клиентов в DTO.
     var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 

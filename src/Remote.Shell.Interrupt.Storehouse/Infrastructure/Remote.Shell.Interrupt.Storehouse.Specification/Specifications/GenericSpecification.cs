@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 /// and applying pagination.
 /// </summary>
 /// <typeparam name="T">The entity type that this specification operates on.</typeparam>
-public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
+internal class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
 {
   /// <summary>
   /// List of expressions for including related entities in queries.
@@ -91,31 +91,22 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
       => node == _oldParam ? _newParam : node;
   }
 
-  /// <summary>
-  /// Adds an expression for including related entities in queries.
-  /// </summary>
-  /// <param name="include">The include expression.</param>
-  /// <returns>The updated specification instance.</returns>
+
   public virtual ISpecification<T> AddInclude<TProperty>(Expression<Func<T, TProperty>> include)
   {
-    var chain = new IncludeChain<T>().AddInclude(include);
+    var chain = new IncludeChain<T>();
+    chain.AddInclude(include);
     _includeChains.Add(chain);
     return this;
   }
 
-  public ISpecification<T> AddThenInclude<TProperty, TNextProperty>(Expression<Func<T, TProperty>> include,
-                                                                    Expression<Func<TProperty, TNextProperty>> thenInclude)
+  public ISpecification<T> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
   {
-    var chain = new IncludeChain<T>().AddInclude(include).AddThenInclude(thenInclude);
-    _includeChains.Add(chain);
-    return this;
-  }
+    if (_includeChains.Count == 0)
+      throw new InvalidOperationException("No Include found to apply ThenInclude");
 
-  public ISpecification<T> AddThenInclude<TCollection, TProperty>(Expression<Func<T, IEnumerable<TCollection>>> collectionInclude,
-                                                                  Expression<Func<TCollection, TProperty>> thenInclude)
-  {
-    var chain = new IncludeChain<T>().AddInclude(collectionInclude).AddThenInclude(thenInclude);
-    _includeChains.Add(chain);
+    var lastChain = _includeChains.Last();
+    lastChain.AddThenInclude(thenInclude);
     return this;
   }
 
@@ -144,14 +135,26 @@ public class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     var clone = new GenericSpecification<T>
     {
       Take = Take,
-      Skip = Skip
+      Skip = Skip,
+      _criteria = this._criteria // Expression trees are immutable and safe to reference
     };
 
-    if (_criteria is not null)
-      clone.AddFilter(_criteria);
-
-    foreach (var includeChain in _includeChains)
-      clone._includeChains.Add(new IncludeChain<T>(includeChain.Includes));
+    foreach (var chain in this._includeChains)
+    {
+      var newChain = new IncludeChain<T>();
+        
+      // Copy each include item with type information
+      foreach (var include in chain.Includes)
+      {
+        var method = typeof(IncludeChain<T>).GetMethod(nameof(IncludeChain<T>.AddTypedInclude))!
+                                            .MakeGenericMethod(include.EntityType,
+                                                               include.PropertyType);
+            
+        method.Invoke(newChain, [include.Expression]);
+      }
+        
+      clone._includeChains.Add(newChain);
+    }
 
     return clone;
   }

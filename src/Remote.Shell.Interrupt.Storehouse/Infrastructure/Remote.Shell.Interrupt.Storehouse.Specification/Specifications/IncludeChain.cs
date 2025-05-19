@@ -1,31 +1,39 @@
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
-public class IncludeChain<TBase> : IIncludeChain<TBase>  
-  where TBase : BaseEntity
+internal class IncludeChain<TBase> : IIncludeChain<TBase> where TBase : BaseEntity
 {
-  readonly List<LambdaExpression> _includes;
+  readonly List<IncludeChainItem> _includes = [];
 
-  public IncludeChain()
-    => _includes = [];
-  
-  public IncludeChain(IEnumerable<LambdaExpression> includes)
-    => _includes = [.. includes];
+  public IReadOnlyList<(Type EntityType, Type PropertyType, LambdaExpression Expression)> Includes
+    => [.. _includes.Select(x => (x.EntityType, x.PropertyType, x.Expression))];
 
-  public IncludeChain(Expression<Func<TBase>> include)
-    => _includes!.Add(include);
-
-  public IncludeChain<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
+  public IIncludeChain<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
-    _includes.Add(include);
+    _includes.Add(new IncludeChainItem(typeof(TBase), typeof(TProperty), include));
     return this;
   }
 
-  public IncludeChain<TBase> AddThenInclude<TProperty, TNextProperty>(Expression<Func<TProperty, TNextProperty>> thenInclude)
+  public IIncludeChain<TBase> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
   {
-    _includes.Add(thenInclude);
+    if (_includes.Count == 0)
+      throw new InvalidOperationException("Cannot add ThenInclude without Include");
+          
+    _includes.Add(new IncludeChainItem(typeof(TPrevious), typeof(TProperty), thenInclude));
     return this;
   }
 
-  public IReadOnlyList<LambdaExpression> Includes 
-    => _includes;
+  public void AddTypedInclude<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> include)
+    => _includes.Add(new IncludeChainItem(typeof(TEntity), typeof(TProperty), include));
+
+  public object Clone()
+  {
+    var clone = new IncludeChain<TBase>();
+
+    foreach (var item in this._includes)
+      clone._includes.Add(new IncludeChainItem(item.EntityType, item.PropertyType, item.Expression));
+
+    return clone;
+  }
+
+  record IncludeChainItem(Type EntityType, Type PropertyType, LambdaExpression Expression);
 }

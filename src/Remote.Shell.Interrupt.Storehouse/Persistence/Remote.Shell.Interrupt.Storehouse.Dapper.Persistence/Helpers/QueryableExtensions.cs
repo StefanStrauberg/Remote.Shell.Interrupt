@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 
-public static class QueryableExtensions
+internal static class QueryableExtensions
 {
   /// <summary>
   /// Applies multiple include expressions to the query.
@@ -13,21 +13,33 @@ public static class QueryableExtensions
                                                IEnumerable<IIncludeChain<T>> includeChains)
     where T : BaseEntity
   {
-    foreach (var chain in includeChains.OfType<IIncludeChain<T>>())
+    foreach (var chain in includeChains)
     {
-      var includes = chain.Includes;
-      IIncludableQueryable<T, object>? currentInclude = null;
-      
-      foreach (var include in includes)
+      foreach (var includeInfo in chain.Includes)
       {
-        if (currentInclude == null)
-          currentInclude = query.Include((Expression<Func<T, object>>)include);
+        var (entityType, propertyType, expression) = includeInfo;
+
+        if (entityType == typeof(T))
+        {
+          // Применяем Include
+          var includeMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
+                                                                        .First(x => x.Name == nameof(EntityFrameworkQueryableExtensions.Include) &&
+                                                                               x.GetParameters().Length == 2)
+                                                                        .MakeGenericMethod(typeof(T), propertyType);
+          query = (IQueryable<T>)includeMethod.Invoke(null, [query, expression])!;
+        }
         else
-          currentInclude = currentInclude.ThenInclude((Expression<Func<object, object>>)include);
+        {
+          // Применяем ThenInclude
+          var genericMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
+                                                                        .First(m => m.Name == nameof(EntityFrameworkQueryableExtensions.ThenInclude) &&
+                                                                               m.GetParameters().Length == 2 &&
+                                                                               m.GetParameters()[0].ParameterType.IsGenericType &&
+                                                                               m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>))
+                                                                        .MakeGenericMethod(typeof(T), entityType, propertyType);
+          query = (IQueryable<T>)genericMethod.Invoke(null, [query, expression])!;
+        }
       }
-      
-      if (currentInclude != null)
-        query = currentInclude as IQueryable<T> ?? query;
     }
     return query;
   }

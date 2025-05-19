@@ -140,7 +140,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
                                                         Expression<Func<NetworkDevice, bool>>? filterExpr)
   {
     var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice)
-                       .AddThenInclude(x => x.PortsOfNetworkDevice, p => p.VLANs);
+                       .AddThenInclude<Port, IEnumerable<VLAN>>(p => p.VLANs);
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
