@@ -51,16 +51,19 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
-    _includeChains.Add(new IncludeChain(typeof(TBase), typeof(TProperty), include));
+    var chain = new IncludeChain<TBase>();
+    chain.AddInclude(include);
+    _includeChains.Add(chain);
     return this;
   }
 
   public ISpecification<TBase> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
   {
     if (_includeChains.Count == 0)
-      throw new InvalidOperationException("Cannot add ThenInclude without Include");
-          
-    _includeChains.Add(new IncludeChain(typeof(TPrevious), typeof(TProperty), thenInclude));
+      throw new InvalidOperationException("No Include found to apply ThenInclude");
+
+    var lastChain = _includeChains.Last();
+    lastChain.AddThenInclude(thenInclude);
     return this;
   }
 
@@ -83,9 +86,21 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
       _criteria = this._criteria // Expression trees are immutable and safe to reference
     };
 
-    foreach (var chain in IncludeChains)
+    foreach (var chain in this._includeChains)
     {
-      clone._includeChains.Add(chain);
+      var newChain = new IncludeChain<TBase>();
+        
+      // Copy each include item with type information
+      foreach (var include in chain.Includes)
+      {
+        var method = typeof(IncludeChain<TBase>).GetMethod(nameof(IncludeChain<TBase>.AddTypedInclude))!
+                                                .MakeGenericMethod(include.EntityType,
+                                                                   include.PropertyType);
+            
+        method.Invoke(newChain, [include.Expression]);
+      }
+        
+      clone._includeChains.Add(newChain);
     }
 
     return clone;

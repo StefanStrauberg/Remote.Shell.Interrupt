@@ -20,7 +20,7 @@ public interface ISpecification<T> where T : BaseEntity
   /// <remarks>
   /// These expressions specify navigation properties to include in the query.
   /// </remarks>
-  IEnumerable<IIncludeChain<T>> IncludeChains { get; }
+  IReadOnlyList<IIncludeChain<T>> IncludeChains { get; }
 
   /// <summary>
   /// Gets the maximum number of entities to retrieve.
