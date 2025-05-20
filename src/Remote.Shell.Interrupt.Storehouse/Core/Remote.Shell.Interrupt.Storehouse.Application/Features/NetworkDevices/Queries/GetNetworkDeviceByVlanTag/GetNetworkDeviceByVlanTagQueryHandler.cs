@@ -108,7 +108,7 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
       var childrenByParent = children.Where(child => child.ParentId.HasValue)
                                      .GroupBy(child => child.ParentId!.Value)
                                      .ToDictionary(group => group.Key, 
-                                                   group => group.ToArray());
+                                                   group => group.ToList());
 
       // Assign aggregated child ports to their respective parent ports
       foreach (var port in parentPorts)

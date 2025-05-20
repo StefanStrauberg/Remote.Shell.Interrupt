@@ -1,5 +1,3 @@
-using Remote.Shell.Interrupt.Storehouse.Domain.Gateway;
-
 namespace Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 
 /// <summary>
@@ -45,22 +43,22 @@ public class Port : BaseEntity
   /// <summary>
   /// Gets or sets the ARP table associated with this interface.
   /// </summary>
-  public ICollection<ARPEntity> ARPTableOfInterface { get; set; } = [];
+  public List<ARPEntity> ARPTableOfInterface { get; set; } = [];
 
   /// <summary>
   /// Gets or sets the MAC address table of the interface.
   /// </summary>
-  public ICollection<MACEntity> MACTable { get; set; } = [];
+  public List<MACEntity> MACTable { get; set; } = [];
 
   /// <summary>
   /// Gets or sets the list of terminated network entities on this interface.
   /// </summary>
-  public ICollection<TerminatedNetworkEntity> NetworkTableOfInterface { get; set; } = [];
+  public List<TerminatedNetworkEntity> NetworkTableOfInterface { get; set; } = [];
 
   /// <summary>
   /// Gets or sets the VLANs associated with this interface.
   /// </summary>
-  public ICollection<VLAN> VLANs { get; set; } = [];
+  public List<VLAN> VLANs { get; set; } = [];
 
   /// <summary>
   /// Gets or sets the unique identifier of the parent port if applicable.
@@ -70,7 +68,7 @@ public class Port : BaseEntity
   /// <summary>
   /// Gets or sets the aggregated ports associated with this interface.
   /// </summary>
-  public ICollection<Port> AggregatedPorts { get; set; } = [];
+  public List<Port> AggregatedPorts { get; set; } = [];
 
   /// <summary>
   /// Gets or sets the unique identifier of the network device this port belongs to.

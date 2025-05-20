@@ -27,22 +27,7 @@ internal static class FilterDescriptorExtensions
       if (op == FilterOperator.In)
       {
         var rawValues = valueStr.Split(',')
-                                .Select(val =>
-                                {
-                                   try
-                                   {
-                                     if (propertyType == typeof(Guid))
-                                       return Guid.Parse(val.Trim());
-                                     if (propertyType.IsEnum)
-                                       return Enum.Parse(propertyType, val.Trim(), ignoreCase: true);
-                                     return Convert.ChangeType(val.Trim(), propertyType);
-                                   }
-                                   catch (Exception ex)
-                                   {
-                                     throw new InvalidOperationException(
-                                       $"Невозможно преобразовать '{val}' к типу '{propertyType}'.", ex);
-                                   }
-                                })
+                                .Select(val => ConvertValue(val, propertyType))
                                 .ToList();
         var listType = typeof(List<>).MakeGenericType(propertyType);
         var listInstance = (IList)Activator.CreateInstance(listType)!;
@@ -55,21 +40,7 @@ internal static class FilterDescriptorExtensions
       }
       else
       {
-        object convertedValue;
-        try
-        {
-          if (propertyType == typeof(Guid))
-            convertedValue = Guid.Parse(valueStr);
-          else if (propertyType.IsEnum)
-            convertedValue = Enum.Parse(propertyType, valueStr, ignoreCase: true);
-          else
-            convertedValue = Convert.ChangeType(valueStr, propertyType);
-        }
-        catch (Exception ex)
-        {
-          throw new InvalidOperationException($"The value of '{valueStr}' couldn't be converted to the type '{propertyType}'.", ex);
-        }
-
+        object convertedValue = ConvertValue(valueStr, propertyType);
         var constant = Expression.Constant(convertedValue, propertyType);
         return BuildComparisonExpression(property, constant, op);
       }
@@ -79,28 +50,45 @@ internal static class FilterDescriptorExtensions
       // Если текущее свойство – коллекция (но не строка),
       // генерируем вызов Any(...) для дальнейшей фильтрации
       if (IsEnumerableButNotString(propertyType))
-      {
-        var elementType = GetElementType(propertyType) 
-          ?? throw new InvalidOperationException($"Couldn't define a collection item for the {propertyType} type.");
-
-        // Создадим параметр для элементов коллекции
-        var lambdaParameter = Expression.Parameter(elementType, "e");
-        // Рекурсивно строим выражение для оставшейся части пути
-        Expression nested = BuildNestedExpression(lambdaParameter, members, index + 1, op, valueStr);
-        var lambda = Expression.Lambda(nested, lambdaParameter);
-        
-        // Ищем метод Enumerable.Any<T>(IEnumerable<T>, Func<T, bool>)
-        MethodInfo anyMethod = typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                 .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
-                                                 .MakeGenericMethod(elementType);
-
-        return Expression.Call(anyMethod, property, lambda);
-      }
+        return BuildCollectionExpression(property, members, index, op, valueStr);
       else
-      {
         // Если не коллекция – продолжаем цепочку навигации
         return BuildNestedExpression(property, members, index + 1, op, valueStr);
-      }
+    }
+  }
+
+  static MethodCallExpression BuildCollectionExpression(Expression property,
+                                                        string[] members,
+                                                        int index,
+                                                        FilterOperator op,
+                                                        string valueStr)
+  {
+    var elementType = GetElementType(property.Type) 
+      ?? throw new InvalidOperationException($"Couldn't define a collection item for the {property} type.");
+
+    var lambdaParameter = Expression.Parameter(elementType, "e");
+    var nested = BuildNestedExpression(lambdaParameter, members, index + 1, op, valueStr);
+    var lambda = Expression.Lambda(nested, lambdaParameter);
+    var anyMethod = typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                                      .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+                                      .MakeGenericMethod(elementType);
+
+    return Expression.Call(anyMethod, property, lambda);
+  }
+
+  static object ConvertValue(string valueStr, Type targetType)
+  {
+    try
+    {
+      if (targetType == typeof(Guid))
+        return Guid.Parse(valueStr);
+      if (targetType.IsEnum)
+        return Enum.Parse(targetType, valueStr, ignoreCase: true);
+      return Convert.ChangeType(valueStr, targetType);
+    }
+    catch (Exception ex)
+    {
+      throw new InvalidOperationException($"The value of '{valueStr}' couldn't be converted to the type '{targetType}'.", ex);
     }
   }
 

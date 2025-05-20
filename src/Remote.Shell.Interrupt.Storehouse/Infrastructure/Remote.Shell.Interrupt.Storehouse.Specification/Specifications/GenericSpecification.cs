@@ -1,52 +1,25 @@
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
-/// <summary>
-/// Generic specification class for filtering, including related entities, 
-/// and applying pagination.
-/// </summary>
-/// <typeparam name="T">The entity type that this specification operates on.</typeparam>
-internal class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
+internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase : BaseEntity
 {
-  /// <summary>
-  /// List of expressions for including related entities in queries.
-  /// </summary>
-  protected readonly List<IIncludeChain<T>> _includeChains = [];
 
-  /// <summary>
-  /// Filtering criteria applied to the specification.
-  /// </summary>
-  protected Expression<Func<T, bool>>? _criteria = null;
+  protected readonly List<IIncludeChain<TBase>> _includeChains = [];
 
-  /// <summary>
-  /// Gets the filtering criteria applied to the specification.
-  /// </summary>
-  public Expression<Func<T, bool>>? Criterias => _criteria;
+  protected Expression<Func<TBase, bool>>? _criteria = null;
 
-  /// <summary>
-  /// Gets the collection of expressions for including related entities.
-  /// </summary>
-  public IEnumerable<IIncludeChain<T>> IncludeChains => _includeChains;
+  public Expression<Func<TBase, bool>>? Criterias => _criteria;
 
-  /// <summary>
-  /// Gets the number of records to take for pagination.
-  /// </summary>
-  public int Take {get; protected set; }
+  public IReadOnlyList<IIncludeChain<TBase>> IncludeChains => [.. _includeChains];
 
-  /// <summary>
-  /// Gets the number of records to skip for pagination.
-  /// </summary>
-  public int Skip {get; protected set; }
+  public int Take { get; protected set; }
 
-  /// <summary>
-  /// Adds a filtering expression to the specification.
-  /// </summary>
-  /// <param name="criteria">The filtering expression to apply.</param>
-  /// <returns>The updated specification instance.</returns>
-  public virtual ISpecification<T> AddFilter(Expression<Func<T, bool>> criteria)
+  public int Skip { get; protected set; }
+
+  public virtual ISpecification<TBase> AddFilter(Expression<Func<TBase, bool>> criteria)
   {
     if (criteria == null)
       return this;
-    
+
     if (_criteria == null)
       _criteria = criteria;
     else
@@ -55,105 +28,64 @@ internal class GenericSpecification<T> : ISpecification<T> where T : BaseEntity
     return this;
   }
 
-  /// <summary>
-  /// Combines two filtering expressions using a logical AND operation.
-  /// </summary>
-  /// <param name="expr1">The first filtering expression.</param>
-  /// <param name="expr2">The second filtering expression.</param>
-  /// <returns>The combined filtering expression.</returns>
-  static Expression<Func<T, bool>> CombineExpressions(Expression<Func<T, bool>> expr1,
-                                                      Expression<Func<T, bool>> expr2)
+  static Expression<Func<TBase, bool>> CombineExpressions(Expression<Func<TBase, bool>> expr1,
+                                                          Expression<Func<TBase, bool>> expr2)
   {
-    var parameter = Expression.Parameter(typeof(T));
+    var parameter = Expression.Parameter(typeof(TBase));
     var visitor = new ReplaceParameterVisitor(expr1.Parameters[0], parameter);
     var left = visitor.Visit(expr1.Body);
     visitor = new ReplaceParameterVisitor(expr2.Parameters[0], parameter);
     var right = visitor.Visit(expr2.Body);
-    return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left!, right!), parameter);
+    return Expression.Lambda<Func<TBase, bool>>(Expression.AndAlso(left!, right!), parameter);
   }
 
-  /// <summary>
-  /// Expression visitor for replacing parameter expressions.
-  /// </summary>
-  class ReplaceParameterVisitor(ParameterExpression oldParam,
-                                ParameterExpression newParam) 
+  class ReplaceParameterVisitor(ParameterExpression oldParam, ParameterExpression newParam)
     : ExpressionVisitor
   {
     readonly ParameterExpression _oldParam = oldParam;
     readonly ParameterExpression _newParam = newParam;
-
-    /// <summary>
-    /// Replaces the parameter expression if it matches the old parameter.
-    /// </summary>
-    /// <param name="node">The parameter expression to visit.</param>
-    /// <returns>The updated parameter expression.</returns>
     protected override Expression VisitParameter(ParameterExpression node)
       => node == _oldParam ? _newParam : node;
   }
 
 
-  public virtual ISpecification<T> AddInclude<TProperty>(Expression<Func<T, TProperty>> include)
+  public virtual ISpecification<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
-    var chain = new IncludeChain<T>();
-    chain.AddInclude(include);
-    _includeChains.Add(chain);
+    _includeChains.Add(new IncludeChain(typeof(TBase), typeof(TProperty), include));
     return this;
   }
 
-  public ISpecification<T> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
+  public ISpecification<TBase> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
   {
     if (_includeChains.Count == 0)
-      throw new InvalidOperationException("No Include found to apply ThenInclude");
-
-    var lastChain = _includeChains.Last();
-    lastChain.AddThenInclude(thenInclude);
+      throw new InvalidOperationException("Cannot add ThenInclude without Include");
+          
+    _includeChains.Add(new IncludeChain(typeof(TPrevious), typeof(TProperty), thenInclude));
     return this;
   }
 
-  /// <summary>
-  /// Applies pagination settings to the specification.
-  /// </summary>
-  /// <param name="pageNumber">The page number.</param>
-  /// <param name="pageSize">The number of records per page.</param>
-  /// <returns>The updated specification instance.</returns>
-  public virtual ISpecification<T> WithPagination(int pageNumber, int pageSize)
+  public virtual ISpecification<TBase> WithPagination(int pageNumber, int pageSize)
   {
     if (pageNumber < 1) pageNumber = 1;
     if (pageSize < 1) pageSize = 10;
-    
+
     Skip = (pageNumber - 1) * pageSize;
     Take = pageSize;
     return this;
   }
 
-  /// <summary>
-  /// Creates a copy of the current specification.
-  /// </summary>
-  /// <returns>A cloned instance of the specification.</returns>
-  public virtual ISpecification<T> Clone()
+  public virtual ISpecification<TBase> Clone()
   {
-    var clone = new GenericSpecification<T>
+    var clone = new GenericSpecification<TBase>
     {
       Take = Take,
       Skip = Skip,
       _criteria = this._criteria // Expression trees are immutable and safe to reference
     };
 
-    foreach (var chain in this._includeChains)
+    foreach (var chain in IncludeChains)
     {
-      var newChain = new IncludeChain<T>();
-        
-      // Copy each include item with type information
-      foreach (var include in chain.Includes)
-      {
-        var method = typeof(IncludeChain<T>).GetMethod(nameof(IncludeChain<T>.AddTypedInclude))!
-                                            .MakeGenericMethod(include.EntityType,
-                                                               include.PropertyType);
-            
-        method.Invoke(newChain, [include.Expression]);
-      }
-        
-      clone._includeChains.Add(newChain);
+      clone._includeChains.Add(chain);
     }
 
     return clone;

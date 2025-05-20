@@ -42,6 +42,12 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                               .ApplySkip(specification.Skip)
                               .ApplyTake(specification.Take)
                               .ToListAsync(cancellationToken);
+    // var result = await context.Set<NetworkDevice>()
+    //                           .AsNoTracking()
+    //                           .Include(x => x.PortsOfNetworkDevice)
+    //                           .ThenInclude(x => x.VLANs.Where(x => new[] { 253, 810, 828 }.Contains(x.VLANTag)))
+    //                           .Where(x => x.PortsOfNetworkDevice.Any(x => x.VLANs.Any(x => new[] { 253, 810, 828}.Contains(x.VLANTag))))
+    //                           .ToListAsync(cancellationToken);
     return result;
   }
 

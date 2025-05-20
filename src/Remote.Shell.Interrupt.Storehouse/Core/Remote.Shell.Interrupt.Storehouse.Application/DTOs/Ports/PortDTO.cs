@@ -12,12 +12,12 @@ public class PortDTO : IMapWith<Port>
   public string MACAddress { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
 
-  public ICollection<PortDTO> AggregatedPorts { get; set; } = [];
-  public ICollection<string> MacTable { get; set; } = [];
+  public List<PortDTO> AggregatedPorts { get; set; } = [];
+  public List<string> MacTable { get; set; } = [];
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, string> NetworkTableOfPort { get; set; } = null!;
-  public ICollection<VLANDTO> VLANs { get; set; } = null!;
+  public List<VLANDTO> VLANs { get; set; } = null!;
 
   void IMapWith<Port>.Mapping(Profile profile)
   {

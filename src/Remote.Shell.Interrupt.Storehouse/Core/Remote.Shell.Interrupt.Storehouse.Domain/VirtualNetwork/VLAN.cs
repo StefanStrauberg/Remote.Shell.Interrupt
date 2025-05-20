@@ -15,5 +15,5 @@ public class VLAN : BaseEntity
   /// </summary>
   public string VLANName { get; set; } = string.Empty;
 
-  public IEnumerable<Port> Ports { get; set; } = [];
+  public List<Port> Ports { get; set; } = [];
 }
