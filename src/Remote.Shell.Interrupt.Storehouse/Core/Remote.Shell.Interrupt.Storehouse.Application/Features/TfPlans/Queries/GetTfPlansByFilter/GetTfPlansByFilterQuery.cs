@@ -3,8 +3,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Queries
 /// <summary>
 /// Represents a query to retrieve TF plans based on filtering criteria.
 /// </summary>
-/// <param name="RequestParameters">The request parameters containing filtering and pagination settings.</param>
-public record GetTfPlansByFilterQuery(RequestParameters RequestParameters) 
+/// <param name="Parameters">The request parameters containing filtering and pagination settings.</param>
+public record GetTfPlansByFilterQuery(RequestParameters Parameters) 
     : IQuery<PagedList<TfPlanDTO>>;
 
 /// <summary>
@@ -21,7 +21,7 @@ public record GetTfPlansByFilterQuery(RequestParameters RequestParameters)
 internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                               ITfPlanSpecification specification,
                                               IQueryFilterParser queryFilterParser,
-                                              IMapper mapper) 
+                                              IMapper mapper)
     : IQueryHandler<GetTfPlansByFilterQuery, PagedList<TfPlanDTO>>
 {
   /// <summary>
@@ -33,64 +33,66 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   async Task<PagedList<TfPlanDTO>> IRequestHandler<GetTfPlansByFilterQuery, PagedList<TfPlanDTO>>.Handle(GetTfPlansByFilterQuery request,
                                                                                                          CancellationToken cancellationToken)
   {
-    // Parse the filter expression
-    var filterExpr = queryFilterParser.ParseFilters<TfPlan>(request.RequestParameters
-                                                                   .Filters);
+    var parameters = request.Parameters;
+    var filterExpr = queryFilterParser.ParseFilters<TfPlan>(parameters.Filters);
 
-    // Build the base specification with filtering applied
-    var baseSpec = BuildSpecification(specification,
-                                      filterExpr);
-
-    // Create a specification for counting total matching records
+    var baseSpec = BuildSpecification(filterExpr);
     var countSpec = baseSpec.Clone();
 
-    // Extract pagination parameters
-    var pageNumber = request.RequestParameters.PageNumber ?? 0;
-    var pageSize = request.RequestParameters.PageSize ?? 0;
+    var (pageNumber, pageSize) = GetPaginationValues(parameters);
 
-    // Apply pagination settings if enabled
-    if (request.RequestParameters.EnablePagination)
-        baseSpec.WithPagination(pageNumber,
-                                pageSize);
+    if (request.Parameters.EnablePagination)
+      baseSpec.WithPagination(pageNumber,
+                              pageSize);
 
-    // Retrieve data, including related entities
     var tfPlans = await locBillUnitOfWork.TfPlans
                                          .GetManyShortAsync(baseSpec,
                                                             cancellationToken);
 
-    // Return an empty paginated list if no data are found.
     if (!tfPlans.Any())
-        return new PagedList<TfPlanDTO>([],0,0,0);
+      return CreateEmptyPagedResult();
+    //return new PagedList<TfPlanDTO>([], 0, 0, 0);
 
-    // Retrieve the total count of matching records
     var count = await locBillUnitOfWork.TfPlans
                                        .GetCountAsync(countSpec,
                                                       cancellationToken);
 
-    // Map the retrieved data to the DTO
     var result = mapper.Map<IEnumerable<TfPlanDTO>>(tfPlans);
 
-    // Return the mapped result
-    return new PagedList<TfPlanDTO>(result,
-                                    count,
-                                    pageNumber,
-                                    pageSize);
+    return new PagedList<TfPlanDTO>(result, count, pageNumber, pageSize);
   }
 
   /// <summary>
   /// Builds the specification by applying filtering criteria.
   /// </summary>
-  /// <param name="baseSpec">The base TF plan specification.</param>
   /// <param name="filterExpr">The filter expression to apply.</param>
   /// <returns>An updated specification with filtering applied.</returns>
-  static ITfPlanSpecification BuildSpecification(ITfPlanSpecification baseSpec,
-                                                 Expression<Func<TfPlan, bool>>? filterExpr)
+  ITfPlanSpecification BuildSpecification(Expression<Func<TfPlan, bool>>? filterExpr)
   {
-    var spec = baseSpec;
-
     if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+      specification.AddFilter(filterExpr);
 
-    return spec;
+    return specification;
   }
+
+  /// <summary>
+  /// Extracts pagination values from the request parameters,
+  /// applying default values if pagination settings are not provided.
+  /// </summary>
+  /// <param name="parameters">The request parameters containing pagination options.</param>
+  /// <returns>
+  /// A tuple containing the page number and page size.
+  /// Defaults to 0 for both values if not specified in the parameters.
+  /// </returns>
+  static (int PageNumber, int PageSize) GetPaginationValues(RequestParameters parameters)
+    => new(parameters.PageNumber ?? 0, parameters.PageSize ?? 0);
+    
+  /// <summary>
+  /// Creates an empty paginated list of <see cref="SPRVlanDTO"/> objects.
+  /// </summary>
+  /// <returns>
+  /// A <see cref="PagedList{T}"/> containing an empty result set with zero total count and pagination values set to 0.
+  /// </returns>
+  static PagedList<TfPlanDTO> CreateEmptyPagedResult()
+    => new([], 0, 0, 0);
 }
