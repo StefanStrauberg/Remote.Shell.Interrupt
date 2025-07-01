@@ -6,21 +6,16 @@ Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
 
 try
 {
-Log.Information("Starting application initialization...");
-
-var builder = WebApplication.CreateBuilder(args);
+  var builder = WebApplication.CreateBuilder(args);
 
   // Register Services
-  builder.RegisterServices();
+  builder.AddApplicationServices();
 
-  Log.Information("Building application...");
   var app = builder.Build();
 
   // Register Middlewares
-  Log.Information("Registering middlewares...");
-  app.RegisterMiddlewares();
+  app.ConfigurePipeline();
 
-  Log.Information("Running application...");
   app.Run();
 }
 catch (Exception ex)

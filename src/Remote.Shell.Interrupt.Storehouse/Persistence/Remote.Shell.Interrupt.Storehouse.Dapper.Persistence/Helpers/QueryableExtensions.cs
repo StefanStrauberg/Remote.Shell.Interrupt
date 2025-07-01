@@ -21,7 +21,6 @@ internal static class QueryableExtensions
 
         if (entityType == typeof(T))
         {
-          // Применяем Include
           var includeMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
                                                                         .First(x => x.Name == nameof(EntityFrameworkQueryableExtensions.Include) &&
                                                                                x.GetParameters().Length == 2)
@@ -30,7 +29,6 @@ internal static class QueryableExtensions
         }
         else
         {
-          // Применяем ThenInclude
           var genericMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
                                                                         .First(m => m.Name == nameof(EntityFrameworkQueryableExtensions.ThenInclude) &&
                                                                                m.GetParameters().Length == 2 &&
