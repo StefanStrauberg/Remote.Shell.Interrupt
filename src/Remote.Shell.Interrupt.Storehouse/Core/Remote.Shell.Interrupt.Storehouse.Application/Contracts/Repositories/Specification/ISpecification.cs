@@ -49,7 +49,7 @@ public interface ISpecification<T> where T : BaseEntity
   /// <param name="pageNumber">The page number to retrieve.</param>
   /// <param name="pageSize">The size of the page.</param>
   /// <returns>An updated specification with pagination settings.</returns>
-  ISpecification<T> WithPagination(int pageNumber, int pageSize);
+  ISpecification<T> ConfigurePagination(PaginationContext paginationContext);
 
   /// <summary>
   /// Creates a deep copy of the current specification instance.

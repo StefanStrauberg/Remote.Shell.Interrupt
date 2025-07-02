@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
+
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase : BaseEntity
@@ -67,10 +69,10 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     return this;
   }
 
-  public virtual ISpecification<TBase> WithPagination(int pageNumber, int pageSize)
+  public virtual ISpecification<TBase> ConfigurePagination(PaginationContext paginationContext)
   {
-    if (pageNumber < 1) pageNumber = 1;
-    if (pageSize < 1) pageSize = 10;
+    int pageNumber = paginationContext.PageNumber < 1 ? pageNumber = 1 : paginationContext.PageNumber;
+    int pageSize = paginationContext.PageSize < 1 ? pageSize = 10 : paginationContext.PageSize;
 
     Skip = (pageNumber - 1) * pageSize;
     Take = pageSize;

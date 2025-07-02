@@ -45,13 +45,12 @@ public class PagedList<T> : List<T>
     /// <param name="pageSize">The number of items per page.</param>
     public PagedList(IEnumerable<T> items,
                      int count,
-                     int pageNumber,
-                     int pageSize)
+                     PaginationContext paginationContext)
     {
         TotalCount = count;
-        PageSize = pageSize;
-        CurrentPage = pageNumber;
-        TotalPages = (int)Math.Ceiling(count/(double)pageSize);
+        PageSize = paginationContext.PageSize;
+        CurrentPage = paginationContext.PageNumber;
+        TotalPages = (int)Math.Ceiling(count/(double)paginationContext.PageSize);
         AddRange(items);
     }
 }

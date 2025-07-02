@@ -32,48 +32,48 @@ internal class GetNetworkDevicesByFilterQueryHandler(INetDevUnitOfWork netDevUni
   async Task<PagedList<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesByFilterQuery, PagedList<NetworkDeviceDTO>>.Handle(GetNetworkDevicesByFilterQuery request,
                                                                                                                               CancellationToken cancellationToken)
   {
-    // Parse the filter expression to extract filtering conditions
-    var filterExpr = queryFilterParser.ParseFilters<NetworkDevice>(request.RequestParameters
-                                                                   .Filters);
+    // // Parse the filter expression to extract filtering conditions
+    // var filterExpr = queryFilterParser.ParseFilters<NetworkDevice>(request.RequestParameters
+    //                                                                .Filters);
 
-    // Build the base specification with filtering applied
-    var baseSpec = BuildSpecification(specification,
-                                      filterExpr);
+    // // Build the base specification with filtering applied
+    // var baseSpec = BuildSpecification(specification,
+    //                                   filterExpr);
 
-    // Create a specification for counting total matching records
-    var countSpec = baseSpec.Clone();
+    // // Create a specification for counting total matching records
+    // var countSpec = baseSpec.Clone();
 
-    // Pagination parameters
-    var pageNumber = request.RequestParameters.PageNumber ?? 0;
-    var pageSize = request.RequestParameters.PageSize ?? 0;
+    // // Pagination parameters
+    // var pageNumber = request.RequestParameters.PageNumber ?? 0;
+    // var pageSize = request.RequestParameters.PageSize ?? 0;
 
-    // Apply pagination settings if enabled
-    if (request.RequestParameters.EnablePagination)
-        baseSpec.WithPagination(pageNumber,
-                                pageSize);
+    // // Apply pagination settings if enabled
+    // if (request.RequestParameters.IsPaginated)
+    //   baseSpec.ConfigurePagination(pageNumber, pageSize);
 
-    // Retrieve the list of network devices based on specifications
-    var networkDevices = await netDevUnitOfWork.NetworkDevices
-                                               .GetManyShortAsync(baseSpec,
-                                                                  cancellationToken);
+    // // Retrieve the list of network devices based on specifications
+    // var networkDevices = await netDevUnitOfWork.NetworkDevices
+    //                                            .GetManyShortAsync(baseSpec,
+    //                                                               cancellationToken);
 
-    // If no network devices are found, return an empty paginated list
-    if (!networkDevices.Any())
-      return new PagedList<NetworkDeviceDTO>([],0,0,0);
+    // // If no network devices are found, return an empty paginated list
+    // if (!networkDevices.Any())
+    //   return new PagedList<NetworkDeviceDTO>([], 0, 0, 0);
 
-    // Retrieve the total count of matching records
-    var count = await netDevUnitOfWork.NetworkDevices
-                                      .GetCountAsync(countSpec,
-                                                     cancellationToken);
+    // // Retrieve the total count of matching records
+    // var count = await netDevUnitOfWork.NetworkDevices
+    //                                   .GetCountAsync(countSpec,
+    //                                                  cancellationToken);
 
-    // Convert retrieved network device entities to DTOs
-    var result = mapper.Map<List<NetworkDeviceDTO>>(networkDevices);
+    // // Convert retrieved network device entities to DTOs
+    // var result = mapper.Map<List<NetworkDeviceDTO>>(networkDevices);
 
-    // Return the paginated list of DTOs
-    return new PagedList<NetworkDeviceDTO>(result,
-                                           count,
-                                           pageNumber,
-                                           pageSize);
+    // // Return the paginated list of DTOs
+    // return new PagedList<NetworkDeviceDTO>(result,
+    //                                        count,
+    //                                        pageNumber,
+    //                                        pageSize);
+    return await Task.FromResult<PagedList<NetworkDeviceDTO>>(new PagedList<NetworkDeviceDTO>([],0,new(0,0)));
   }
 
   /// <summary>
@@ -82,14 +82,14 @@ internal class GetNetworkDevicesByFilterQueryHandler(INetDevUnitOfWork netDevUni
   /// <param name="baseSpec">The base network device specification.</param>
   /// <param name="filterExpr">The filter expression to apply.</param>
   /// <returns>An updated specification with filtering applied.</returns>
-  static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
-                                                        Expression<Func<NetworkDevice, bool>>? filterExpr)
-  {
-    var spec = baseSpec;
+  // static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
+  //                                                       Expression<Func<NetworkDevice, bool>>? filterExpr)
+  // {
+  //   var spec = baseSpec;
 
-    if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+  //   if (filterExpr is not null)
+  //       spec.AddFilter(filterExpr);
 
-    return spec;
-  }
+  //   return spec;
+  // }
 }

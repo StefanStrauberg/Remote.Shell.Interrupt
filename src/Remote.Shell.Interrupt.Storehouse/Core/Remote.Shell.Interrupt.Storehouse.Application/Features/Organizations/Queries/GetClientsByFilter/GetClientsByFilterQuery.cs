@@ -33,48 +33,49 @@ internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   async Task<PagedList<ShortClientDTO>> IRequestHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>.Handle(GetClientsByFilterQuery request,
                                                                                                                    CancellationToken cancellationToken)
   {
-    // Parse the filter expression
-    var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
-                                                                   .Filters);
+    // // Parse the filter expression
+    // var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
+    //                                                                .Filters);
 
-    // Build the base specification with filtering applied
-    var baseSpec = BuildSpecification(specification,
-                                      filterExpr);
+    // // Build the base specification with filtering applied
+    // var baseSpec = BuildSpecification(specification,
+    //                                   filterExpr);
 
-    // Create a specification for counting total matching records
-    var countSpec = baseSpec.Clone();
+    // // Create a specification for counting total matching records
+    // var countSpec = baseSpec.Clone();
 
-    // Extract pagination parameters
-    var pageNumber = request.RequestParameters.PageNumber ?? 0;
-    var pageSize = request.RequestParameters.PageSize ?? 0;
+    // // Extract pagination parameters
+    // var pageNumber = request.RequestParameters.PageNumber ?? 0;
+    // var pageSize = request.RequestParameters.PageSize ?? 0;
 
-    // Apply pagination settings if enabled
-    if (request.RequestParameters.EnablePagination)
-        baseSpec.WithPagination(pageNumber,
-                                pageSize);
-                              
-    // Retrieve data
-    var clients = await locBillUnitOfWork.Clients
-                                         .GetManyShortAsync(baseSpec,
-                                                            cancellationToken);
+    // // Apply pagination settings if enabled
+    // if (request.RequestParameters.IsPaginated)
+    //     baseSpec.ConfigurePagination(pageNumber,
+    //                             pageSize);
 
-    // Return an empty paginated list if no data are found.
-    if (!clients.Any())
-      return new PagedList<ShortClientDTO>([],0,0,0);
+    // // Retrieve data
+    // var clients = await locBillUnitOfWork.Clients
+    //                                      .GetManyShortAsync(baseSpec,
+    //                                                         cancellationToken);
 
-    // Retrieve the total count of matching records
-    var count = await locBillUnitOfWork.Clients
-                                       .GetCountAsync(countSpec,
-                                                      cancellationToken);
+    // // Return an empty paginated list if no data are found.
+    // if (!clients.Any())
+    //   return new PagedList<ShortClientDTO>([],0,0,0);
 
-    // Map the retrieved data to the DTO
-    var result = mapper.Map<IEnumerable<ShortClientDTO>>(clients);
+    // // Retrieve the total count of matching records
+    // var count = await locBillUnitOfWork.Clients
+    //                                    .GetCountAsync(countSpec,
+    //                                                   cancellationToken);
 
-    // Return the mapped result
-    return new PagedList<ShortClientDTO>(result,
-                                         count,
-                                         pageNumber,
-                                         pageSize);
+    // // Map the retrieved data to the DTO
+    // var result = mapper.Map<IEnumerable<ShortClientDTO>>(clients);
+
+    // // Return the mapped result
+    // return new PagedList<ShortClientDTO>(result,
+    //                                      count,
+    //                                      pageNumber,
+    //                                      pageSize);
+    return await Task.FromResult<PagedList<ShortClientDTO>>(new PagedList<ShortClientDTO>([],0,new(0,0)));
   }
 
   /// <summary>
@@ -83,14 +84,14 @@ internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// <param name="baseSpec">The base client specification.</param>
   /// <param name="filterExpr">The filter expression to apply.</param>
   /// <returns>An updated specification with filtering applied.</returns>
-  static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-                                                 Expression<Func<Client, bool>>? filterExpr)
-  {
-    var spec = baseSpec;
+  // static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
+  //                                                Expression<Func<Client, bool>>? filterExpr)
+  // {
+  //   var spec = baseSpec;
 
-    if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+  //   if (filterExpr is not null)
+  //       spec.AddFilter(filterExpr);
 
-    return spec;
-  }
+  //   return spec;
+  // }
 }
