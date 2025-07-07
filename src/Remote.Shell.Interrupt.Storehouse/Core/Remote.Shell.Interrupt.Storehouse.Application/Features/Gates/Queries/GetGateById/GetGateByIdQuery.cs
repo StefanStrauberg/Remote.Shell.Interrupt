@@ -28,46 +28,38 @@ internal class GetGateByIdQueryHandler(IGateUnitOfWork gateUnitOfWork,
   async Task<GateDTO> IRequestHandler<GetGateByIdQuery, GateDTO>.Handle(GetGateByIdQuery request,
                                                                         CancellationToken cancellationToken)
   {
-    var requestParameters = RequestParameters.ForId(request.Id);
-    var filter = BuildFilteringSpec(requestParameters);
+    var specification = BuildSpecification(request.Id);
 
-    var isExist = await CheckIfGateExistsAsync(filter, cancellationToken);
+    await EnsureGateExistAsync(specification, cancellationToken);
 
-    if (isExist is not true)
-      ThrowNotFoundException(requestParameters);
-
-    var gate = await FetchGateAsync(filter, cancellationToken);
+    var gate = await FetchGateAsync(specification, cancellationToken);
 
     return MapToDto(gate);
   }
 
   /// <summary>
-  /// Throws an <see cref="EntityNotFoundException"/> if the gate is not found using provided parameters.
+  /// Validates that existing gate matches the provided specification.
   /// </summary>
-  /// <param name="parameters">Filtering parameters used for gate lookup.</param>
-  void ThrowNotFoundException(RequestParameters parameters)
+  /// <param name="specification">Specification used for gate uniqueness check.</param>
+  /// <param name="cancellationToken">Supports cancellation of the async operation.</param>
+  /// <exception cref="EntityAlreadyExists">Thrown if a gate with the same filter already exists.</exception>
+  async Task EnsureGateExistAsync(ISpecification<Gate> specification,
+                                  CancellationToken cancellationToken)
   {
-    var filterExpr = queryFilterParser.ParseFilters<Gate>(parameters.Filters);
-    throw new EntityNotFoundException(typeof(Gate), filterExpr is not null ? filterExpr.ToString() : string.Empty);
+    bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
+
+    if (exists is not true)
+      throw new EntityAlreadyExists(typeof(Gate), specification.ToString() ?? string.Empty);
   }
 
   /// <summary>
-  /// Determines whether a gate exists that matches the specified filter.
+  /// Builds a specification for querying the gate using the provided ID.
   /// </summary>
-  /// <param name="filter">Filtering specification for gate lookup.</param>
-  /// <param name="cancellationToken">Token for cancellation support.</param>
-  /// <returns><c>true</c> if a matching gate is found; otherwise, <c>false</c>.</returns>
-  async Task<bool> CheckIfGateExistsAsync(ISpecification<Gate> filter, CancellationToken cancellationToken)
-    => await gateUnitOfWork.Gates.AnyByQueryAsync(filter, cancellationToken);
-
-  /// <summary>
-  /// Builds a filtering specification based on the provided request parameters.
-  /// </summary>
-  /// <param name="parameters">Request filters to apply during gate query.</param>
+  /// <param name="gateId">The unique identifier used for gate filtering.</param>
   /// <returns>A specification object containing filtering logic.</returns>
-  ISpecification<Gate> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<Gate> BuildSpecification(Guid gateId)
   {
-    var filterExpr = queryFilterParser.ParseFilters<Gate>(parameters.Filters);
+    var filterExpr = queryFilterParser.ParseFilters<Gate>(RequestParameters.ForId(gateId).Filters);
     var spec = baseSpecification.Clone();
 
     if (filterExpr is not null)

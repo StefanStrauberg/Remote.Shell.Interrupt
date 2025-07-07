@@ -42,7 +42,7 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
 
   bool disposed = false;
 
-  void INetDevUnitOfWork.Complete()
+  void IUnitOfWork.Complete()
   {
     // TODO CompleteTransaction
   }

@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.U
 /// <summary>
 /// Defines a unit of work interface for managing network-related repository operations.
 /// </summary>
-public interface INetDevUnitOfWork
+public interface INetDevUnitOfWork : IUnitOfWork
 {
   /// <summary>
   /// Gets the repository for network device entities.
@@ -34,9 +34,4 @@ public interface INetDevUnitOfWork
   /// Gets the repository for terminated network entities.
   /// </summary>
   ITerminatedNetworkEntityRepository TerminatedNetworkEntities { get; }
-
-  /// <summary>
-  /// Commits the current unit of work, persisting changes.
-  /// </summary>
-  void Complete();
 }

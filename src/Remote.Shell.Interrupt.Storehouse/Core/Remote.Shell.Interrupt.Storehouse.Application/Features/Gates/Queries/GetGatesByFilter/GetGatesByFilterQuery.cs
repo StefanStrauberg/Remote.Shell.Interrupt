@@ -31,21 +31,21 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   async Task<PagedList<GateDTO>> IRequestHandler<GetGatesByFilterQuery, PagedList<GateDTO>>.Handle(GetGatesByFilterQuery request,
                                                                                                    CancellationToken cancellationToken)
   {
-    var filter = BuildFilteringSpec(request.Parameters);
-    var pagination = BuildPaginationSpec(request.Parameters);
+    var specification = BuildSpecification(request.Parameters);
+    var pagination = BuildPagination(request.Parameters);
 
     if (request.Parameters.IsPaginated)
-      filter.ConfigurePagination(pagination);
+      specification.ConfigurePagination(pagination);
 
-    var gates = await FetchGatesAsync(filter, cancellationToken);
+    var gates = await FetchGatesAsync(specification, cancellationToken);
 
-    if (NoResultsFound(gates))
-      return EmptyResult.GetFor<GateDTO>();
+    if (IsEmptyResult(gates))
+      return PagedList<GateDTO>.Empty();
 
-    var total = await CountResultsAsync(filter, cancellationToken);
-    var dtos = MapToDto(gates);
+    var totalCount = await CountGatesAsync(specification, cancellationToken);
+    var gateDtos = MapToGateDtos(gates);
 
-    return CreatePagedResult(dtos, total, pagination);
+    return PagedList<GateDTO>.Create(gateDtos, totalCount, pagination);
   }
 
   /// <summary>
@@ -53,7 +53,7 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="parameters">The request parameters containing optional filtering expressions.</param>
   /// <returns>An <see cref="ISpecification{T}"/> representing the applied filter criteria.</returns>
-  ISpecification<Gate> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<Gate> BuildSpecification(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<Gate>(parameters.Filters);
     var spec = baseSpecification.Clone();
@@ -69,7 +69,7 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="parameters">The request parameters specifying pagination options.</param>
   /// <returns>A pagination context including page number and size, defaulting to 0 if unspecified.</returns>
-  static PaginationContext BuildPaginationSpec(RequestParameters parameters)
+  static PaginationContext BuildPagination(RequestParameters parameters)
     => new(parameters.PageNumber ?? 0, parameters.PageSize ?? 0);
 
   /// <summary>
@@ -87,7 +87,7 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// <param name="spec">Specification used to count matching records.</param>
   /// <param name="cancellationToken">Token for cancellation support.</param>
   /// <returns>The total number of matching gate records.</returns>
-  async Task<int> CountResultsAsync(ISpecification<Gate> spec, CancellationToken cancellationToken)
+  async Task<int> CountGatesAsync(ISpecification<Gate> spec, CancellationToken cancellationToken)
     => await gateUnitOfWork.Gates.GetCountAsync(spec, cancellationToken);
 
   /// <summary>
@@ -95,7 +95,7 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="entities">The gate entities to map.</param>
   /// <returns>A collection of <see cref="GateDTO"/> instances.</returns>
-  IEnumerable<GateDTO> MapToDto(IEnumerable<Gate> entities)
+  IEnumerable<GateDTO> MapToGateDtos(IEnumerable<Gate> entities)
     => mapper.Map<IEnumerable<GateDTO>>(entities);
 
   /// <summary>
@@ -103,19 +103,6 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="gates">The collection to evaluate.</param>
   /// <returns><c>true</c> if the collection is null or contains no elements; otherwise, <c>false</c>.</returns>
-  static bool NoResultsFound(IEnumerable<Gate> gates)
+  static bool IsEmptyResult(IEnumerable<Gate> gates)
     => gates == null || !gates.Any();
-
-  /// <summary>
-  /// Creates a paginated result using the provided DTOs, total count, and pagination metadata.
-  /// </summary>
-  /// <typeparam name="TResult">The type of DTO in the paginated result.</typeparam>
-  /// <param name="dtoList">The list of DTOs to include on the current page.</param>
-  /// <param name="totalAmount">The total number of items matching the query.</param>
-  /// <param name="paginationContext">The pagination context defining page number and size.</param>
-  /// <returns>A fully constructed <see cref="PagedList{T}"/> result.</returns>
-  static PagedList<TResult> CreatePagedResult<TResult>(IEnumerable<TResult> dtoList,
-                                                       int totalAmount,
-                                                       PaginationContext paginationContext)
-    => new(dtoList, totalAmount, paginationContext);
 }

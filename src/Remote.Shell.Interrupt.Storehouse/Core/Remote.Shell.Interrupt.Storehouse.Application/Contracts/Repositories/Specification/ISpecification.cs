@@ -46,8 +46,7 @@ public interface ISpecification<T> where T : BaseEntity
   /// <summary>
   /// Configures the specification with pagination parameters.
   /// </summary>
-  /// <param name="pageNumber">The page number to retrieve.</param>
-  /// <param name="pageSize">The size of the page.</param>
+  /// <param name="paginationContext">The page size and number to retrieve.</param>
   /// <returns>An updated specification with pagination settings.</returns>
   ISpecification<T> ConfigurePagination(PaginationContext paginationContext);
 

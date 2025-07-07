@@ -20,7 +20,7 @@ internal class GateUnitOfWork(IExistenceQueryRepository<Gate> existenceQueryRepo
   
   bool disposed = false;
 
-  void IGateUnitOfWork.Complete()
+  void IUnitOfWork.Complete()
   {
     // TODO CompleteTransaction
   }

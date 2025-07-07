@@ -31,21 +31,21 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   async Task<PagedList<SPRVlanDTO>> IRequestHandler<GetSPRVlansByFilterQuery, PagedList<SPRVlanDTO>>.Handle(GetSPRVlansByFilterQuery request,
                                                                                                             CancellationToken cancellationToken)
   {
-    var filter = BuildFilteringSpec(request.Parameters);
-    var pagination = BuildPaginationSpec(request.Parameters);
+    var specification = BuildSpecification(request.Parameters);
+    var pagination = BuildPagination(request.Parameters);
 
     if (request.Parameters.IsPaginated)
-      filter.ConfigurePagination(pagination);
+      specification.ConfigurePagination(pagination);
 
-    var sprVlans = await FetchSPRVlansAsync(filter, cancellationToken);
+    var sprVlans = await FetchSPRVlansAsync(specification, cancellationToken);
 
-    if (NoResultsFound(sprVlans))
-      return EmptyResult.GetFor<SPRVlanDTO>();
+    if (IsEmptyResult(sprVlans))
+      return PagedList<SPRVlanDTO>.Empty();
 
-    var total = await CountResultsAsync(filter, cancellationToken);
-    var dtos = MapToDto(sprVlans);
+    var totalCount = await CountResultsAsync(specification, cancellationToken);
+    var sprVlanDtos = MapToSPRVlanDtos(sprVlans);
 
-    return CreatePagedResult(dtos, total, pagination);
+    return PagedList<SPRVlanDTO>.Create(sprVlanDtos, totalCount, pagination);
   }
 
   /// <summary>
@@ -53,7 +53,7 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   /// </summary>
   /// <param name="parameters">The filtering parameters provided in the query request.</param>
   /// <returns>A filtering specification for SPR VLAN entities.</returns>
-  ISpecification<SPRVlan> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<SPRVlan> BuildSpecification(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<SPRVlan>(parameters.Filters);
     var spec = specification.Clone();
@@ -69,7 +69,7 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   /// </summary>
   /// <param name="parameters">The pagination-related request parameters.</param>
   /// <returns>A <see cref="PaginationContext"/> with calculated page number and size.</returns>
-  static PaginationContext BuildPaginationSpec(RequestParameters parameters)
+  static PaginationContext BuildPagination(RequestParameters parameters)
     => new(parameters.PageNumber ?? 0, parameters.PageSize ?? 0);
 
   /// <summary>
@@ -95,7 +95,7 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   /// </summary>
   /// <param name="entities">The list of domain entities to convert.</param>
   /// <returns>A collection of <see cref="SPRVlanDTO"/>s.</returns>
-  IEnumerable<SPRVlanDTO> MapToDto(IEnumerable<SPRVlan> entities)
+  IEnumerable<SPRVlanDTO> MapToSPRVlanDtos(IEnumerable<SPRVlan> entities)
     => mapper.Map<IEnumerable<SPRVlanDTO>>(entities);
 
   /// <summary>
@@ -103,19 +103,6 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   /// </summary>
   /// <param name="sprVlans">The collection of SPR VLANs to evaluate.</param>
   /// <returns><c>true</c> if there are no results; otherwise, <c>false</c>.</returns>
-  static bool NoResultsFound(IEnumerable<SPRVlan> sprVlans)
+  static bool IsEmptyResult(IEnumerable<SPRVlan> sprVlans)
     => sprVlans == null || !sprVlans.Any();
-
-  /// <summary>
-  /// Wraps the mapped DTOs and pagination metadata into a paged result structure.
-  /// </summary>
-  /// <typeparam name="TResult">The type of items contained in the result.</typeparam>
-  /// <param name="dtoList">The list of DTOs to include in the paginated result.</param>
-  /// <param name="totalAmount">The total number of records matching the filter.</param>
-  /// <param name="paginationContext">Pagination metadata used to format the result.</param>
-  /// <returns>A <see cref="PagedList{T}"/> containing the paginated response.</returns>
-  static PagedList<TResult> CreatePagedResult<TResult>(IEnumerable<TResult> dtoList,
-                                                       int totalAmount,
-                                                       PaginationContext paginationContext)
-    => new(dtoList, totalAmount, paginationContext);
 }

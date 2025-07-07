@@ -31,21 +31,21 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   async Task<PagedList<TfPlanDTO>> IRequestHandler<GetTfPlansByFilterQuery, PagedList<TfPlanDTO>>.Handle(GetTfPlansByFilterQuery request,
                                                                                                          CancellationToken cancellationToken)
   {
-    var filter = BuildFilteringSpec(request.Parameters);
-    var pagination = BuildPaginationSpec(request.Parameters);
+    var specification = BuildSpecification(request.Parameters);
+    var pagination = BuildPagination(request.Parameters);
 
     if (request.Parameters.IsPaginated)
-      filter.ConfigurePagination(pagination);
+      specification.ConfigurePagination(pagination);
 
-    var tfPlans = await FetchTfPlansAsync(filter, cancellationToken);
+    var tfPlans = await FetchTfPlansAsync(specification, cancellationToken);
 
-    if (NoResultsFound(tfPlans))
-      return EmptyResult.GetFor<TfPlanDTO>();
+    if (IsEmptyResult(tfPlans))
+      return PagedList<TfPlanDTO>.Empty();
 
-    var total = await CountResultsAsync(filter, cancellationToken);
-    var dtos = MapToDto(tfPlans);
+    var totalCount = await CountResultsAsync(specification, cancellationToken);
+    var tfPlanDtos = MapToTfPlanDtos(tfPlans);
 
-    return CreatePagedResult(dtos, total, pagination);
+    return PagedList<TfPlanDTO>.Create(tfPlanDtos, totalCount, pagination);
   }
   
   /// <summary>
@@ -54,7 +54,7 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// </summary>
   /// <param name="parameters">The request parameters containing filtering instructions.</param>
   /// <returns>A configured filtering specification.</returns>
-  ISpecification<TfPlan> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<TfPlan> BuildSpecification(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<TfPlan>(parameters.Filters);
     var spec = specification.Clone();
@@ -71,7 +71,7 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// </summary>
   /// <param name="parameters">The pagination settings from the request.</param>
   /// <returns>A fully formed <see cref="PaginationContext"/>.</returns>
-  static PaginationContext BuildPaginationSpec(RequestParameters parameters)
+  static PaginationContext BuildPagination(RequestParameters parameters)
     => new(parameters.PageNumber ?? 0, parameters.PageSize ?? 0);
 
   /// <summary>
@@ -97,7 +97,7 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// </summary>
   /// <param name="entities">The domain entities to convert.</param>
   /// <returns>The corresponding <see cref="TfPlanDTO"/> representations.</returns>
-  IEnumerable<TfPlanDTO> MapToDto(IEnumerable<TfPlan> entities)
+  IEnumerable<TfPlanDTO> MapToTfPlanDtos(IEnumerable<TfPlan> entities)
     => mapper.Map<IEnumerable<TfPlanDTO>>(entities);
 
   /// <summary>
@@ -105,20 +105,6 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// </summary>
   /// <param name="tfPlans">The collection of TF plans to inspect.</param>
   /// <returns><c>true</c> if the collection is null or contains no items; otherwise, <c>false</c>.</returns>
-  static bool NoResultsFound(IEnumerable<TfPlan> tfPlans)
+  static bool IsEmptyResult(IEnumerable<TfPlan> tfPlans)
     => tfPlans == null || !tfPlans.Any();
-
-  /// <summary>
-  /// Creates a paginated result object containing the provided DTOs, total item count,
-  /// and pagination metadata.
-  /// </summary>
-  /// <typeparam name="TResult">The type of result DTO.</typeparam>
-  /// <param name="dtoList">The list of data transfer objects.</param>
-  /// <param name="totalAmount">Total number of matching entities.</param>
-  /// <param name="paginationContext">The pagination metadata used for the response.</param>
-  /// <returns>A structured <see cref="PagedList{T}"/> result.</returns>
-  static PagedList<TResult> CreatePagedResult<TResult>(IEnumerable<TResult> dtoList,
-                                                       int totalAmount,
-                                                       PaginationContext paginationContext)
-    => new(dtoList, totalAmount, paginationContext);
 }

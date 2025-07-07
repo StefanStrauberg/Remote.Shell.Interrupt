@@ -49,7 +49,7 @@ internal class LocBillUnitOfWork(ApplicationDbContext applicationContext,
 
   bool disposed = false;
 
-  void ILocBillUnitOfWork.Complete()
+  void IUnitOfWork.Complete()
   {
     // TODO CompleteTransaction
   }

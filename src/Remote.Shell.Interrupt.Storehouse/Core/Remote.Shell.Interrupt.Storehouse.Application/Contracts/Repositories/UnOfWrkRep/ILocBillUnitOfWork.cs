@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.U
 /// <summary>
 /// Defines a unit of work interface for managing repository operations related to local billing.
 /// </summary>
-public interface ILocBillUnitOfWork
+public interface ILocBillUnitOfWork : IUnitOfWork
 {
   /// <summary>
   /// Gets the repository for client entities.
@@ -24,9 +24,4 @@ public interface ILocBillUnitOfWork
   /// Gets the repository for SPRVlan entities.
   /// </summary>
   ISPRVlansRepository SPRVlans { get; }
-
-  /// <summary>
-  /// Commits the current unit of work, persisting changes.
-  /// </summary>
-  void Complete();
 }

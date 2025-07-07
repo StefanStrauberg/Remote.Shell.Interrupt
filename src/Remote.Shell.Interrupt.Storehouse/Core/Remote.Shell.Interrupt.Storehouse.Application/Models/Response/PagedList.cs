@@ -1,3 +1,5 @@
+
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 
 /// <summary>
@@ -50,7 +52,13 @@ public class PagedList<T> : List<T>
         TotalCount = count;
         PageSize = paginationContext.PageSize;
         CurrentPage = paginationContext.PageNumber;
-        TotalPages = (int)Math.Ceiling(count/(double)paginationContext.PageSize);
+        TotalPages = (int)Math.Ceiling(count / (double)paginationContext.PageSize);
         AddRange(items);
     }
+
+    public static PagedList<T> Create(IEnumerable<T> items, int totalCount, PaginationContext pagination)
+        => new(items, totalCount, pagination);
+
+    public static PagedList<T> Empty()
+        => new([], 0, new(0, 0));
 }
