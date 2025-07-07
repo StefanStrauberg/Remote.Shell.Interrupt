@@ -54,7 +54,7 @@ internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWo
   /// </summary>
   /// <param name="parameters">The request parameters containing filtering instructions.</param>
   /// <returns>A configured filtering specification.</returns>
-  private ISpecification<TfPlan> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<TfPlan> BuildFilteringSpec(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<TfPlan>(parameters.Filters);
     var spec = specification.Clone();

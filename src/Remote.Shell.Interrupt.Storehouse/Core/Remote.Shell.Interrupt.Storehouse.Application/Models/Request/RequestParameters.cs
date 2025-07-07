@@ -72,4 +72,17 @@ public class RequestParameters
   /// </summary>
   public bool IsPaginated 
     => _pageNumber is not null && _pageSize is not null;
+
+  internal static RequestParameters ForId(Guid id)
+    => new()
+    {
+      Filters = [
+        new ()
+        {
+          PropertyPath = "Id",
+          Operator = FilterOperator.Equals,
+          Value = id.ToString()
+        }
+      ]
+    };
 }

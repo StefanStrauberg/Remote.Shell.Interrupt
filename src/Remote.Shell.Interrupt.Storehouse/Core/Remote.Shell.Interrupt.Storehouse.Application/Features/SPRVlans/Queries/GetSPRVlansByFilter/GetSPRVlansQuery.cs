@@ -53,7 +53,7 @@ internal class GetSPRVlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   /// </summary>
   /// <param name="parameters">The filtering parameters provided in the query request.</param>
   /// <returns>A filtering specification for SPR VLAN entities.</returns>
-  private ISpecification<SPRVlan> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<SPRVlan> BuildFilteringSpec(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<SPRVlan>(parameters.Filters);
     var spec = specification.Clone();

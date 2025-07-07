@@ -53,7 +53,7 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="parameters">The request parameters containing optional filtering expressions.</param>
   /// <returns>An <see cref="ISpecification{T}"/> representing the applied filter criteria.</returns>
-  private ISpecification<Gate> BuildFilteringSpec(RequestParameters parameters)
+  ISpecification<Gate> BuildFilteringSpec(RequestParameters parameters)
   {
     var filterExpr = queryFilterParser.ParseFilters<Gate>(parameters.Filters);
     var spec = baseSpecification.Clone();
