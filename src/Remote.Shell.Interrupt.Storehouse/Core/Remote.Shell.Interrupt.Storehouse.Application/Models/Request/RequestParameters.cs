@@ -73,6 +73,11 @@ public class RequestParameters
   public bool IsPaginated 
     => _pageNumber is not null && _pageSize is not null;
 
+  /// <summary>
+  /// Creates a predefined filter to query an entity by its <c>Id</c> value.
+  /// </summary>
+  /// <param name="id">The unique identifier to filter by.</param>
+  /// <returns>A <see cref="RequestParameters"/> with ID-based filtering applied.</returns>
   internal static RequestParameters ForId(Guid id)
     => new()
     {
