@@ -1,86 +1,71 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientWithChildrenByFilter;
 
 /// <summary>
-/// Represents a query to retrieve a client along with its related child entities
-/// based on filtering criteria.
+/// Represents a query to retrieve a single client entity along with its related children,
+/// based on filter criteria supplied in <see cref="RequestParameters"/>.
 /// </summary>
-/// <param name="RequestParameters">The request parameters containing filtering criteria.</param>
-public record GetClientWithChildrenByFilterQuery(RequestParameters RequestParameters) : IRequest<DetailClientDTO>;
+/// <param name="Parameters">The filter descriptors used to locate and shape the query result.</param>
+public record GetClientWithChildrenByFilterQuery(RequestParameters Parameters)
+  : FindEntityByFilterQuery<DetailClientDTO>(Parameters);
 
 /// <summary>
-/// Handles the GetClientWithChildrenByFilterQuery and retrieves the requested client
-/// along with its related child entities.
+/// Handles <see cref="GetClientWithChildrenByFilterQuery"/> by composing filtering logic,
+/// validating entity existence, fetching relational data, and mapping it to a DTO.
 /// </summary>
-/// <remarks>
-/// This handler applies filtering criteria, verifies the client's existence,
-/// retrieves related data, and returns the mapped result.
-/// </remarks>
-/// <param name="locBillUnitOfWork">Unit of work for database operations.</param>
-/// <param name="specification">Client specification used for filtering.</param>
-/// <param name="queryFilterParser">Parser for processing filter expressions.</param>
-/// <param name="mapper">Object mapper for DTO transformation.</param>
+/// <param name="locBillUnitOfWork">Unit of work providing access to client-related repositories.</param>
+/// <param name="specification">Base specification used to enrich queries with includes and filters.</param>
+/// <param name="queryFilterParser">Parses request filters into executable query expressions.</param>
+/// <param name="mapper">Maps domain <see cref="Client"/> entities to <see cref="DetailClientDTO"/> results.</param>
 internal class GetClientWithChildrenByFilterHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                                     IClientSpecification specification,
                                                     IQueryFilterParser queryFilterParser,
-                                                    IMapper mapper) 
-  : IRequestHandler<GetClientWithChildrenByFilterQuery, DetailClientDTO>
+                                                    IMapper mapper)
+  : FindEntityByFilterQueryHandler<Client, DetailClientDTO, GetClientWithChildrenByFilterQuery>(specification, queryFilterParser, mapper)
 {
-  /// <summary>
-  /// Handles the request to retrieve a client along with its child entities
-  /// based on filtering conditions.
-  /// </summary>
-  /// <param name="request">The query request containing filtering parameters.</param>
-  /// <param name="cancellationToken">Token that allows operation cancellation.</param>
-  /// <returns>A detailed client DTO including its related child entities.</returns>
-  async Task<DetailClientDTO> IRequestHandler<GetClientWithChildrenByFilterQuery, DetailClientDTO>.Handle(GetClientWithChildrenByFilterQuery request,
-                                                                                                          CancellationToken cancellationToken)
-  {
-    // Parse the filter expression
-    var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
-                                                                   .Filters);
-
-    // Build the base specification with filtering applied
-    var baseSpec = BuildSpecification(specification,
-                                      filterExpr);
-
-    // Check if a client with the filtering already exists
-    var existingClient = await locBillUnitOfWork.Clients
-                                                .AnyByQueryAsync(baseSpec,
-                                                                 cancellationToken);
-
-    // If a matching client doesn't exists, throw an exception
-    if (!existingClient)
-      throw new EntityNotFoundException(typeof(Client),
-                                        filterExpr is not null ? filterExpr.ToString() : string.Empty);
-
-    // Retrieve data, including related entities
-    var client = await locBillUnitOfWork.Clients
-                                        .GetOneWithChildrenAsync(baseSpec,
-                                                                  cancellationToken);
-    
-    // Map the retrieved data to the DTO
-    var result = mapper.Map<DetailClientDTO>(client);
-    
-    // Return the mapped result
-    return result;
-  }
+  readonly IQueryFilterParser _queryFilterParser = queryFilterParser;
 
   /// <summary>
-  /// Builds the specification by applying filtering and includes related entities.
+  /// Builds a specification for querying the client entity, including related data and filtering rules.
   /// </summary>
-  /// <param name="baseSpec">The base client specification.</param>
-  /// <param name="filterExpr">The filter expression to apply.</param>
-  /// <returns>An updated specification with filtering and includes applied.</returns>
-  static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-                                                 Expression<Func<Client, bool>>? filterExpr)
+  /// <param name="requestParameters">The parameters defining filters and query intent.</param>
+  /// <returns>A specification configured with includes and filters.</returns>
+  protected override ISpecification<Client> BuildSpecification(RequestParameters requestParameters)
   {
-    var spec = baseSpec.AddInclude(c => c.COD)
-                       .AddInclude(c => c.TfPlan!)
-                       .AddInclude(c => c.SPRVlans);
-    
+    var filterExpr = _queryFilterParser.ParseFilters<Client>(requestParameters.Filters);
+
+    var spec = specification.AddInclude(c => c.COD)
+                            .AddInclude(c => c.TfPlan!)
+                            .AddInclude(c => c.SPRVlans)
+                            .Clone();
+
     if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
-    
-    return (IClientSpecification)spec;
+      spec.AddFilter(filterExpr);
+
+    return spec;
   }
+
+  /// <summary>
+  /// Ensures that a client entity exists matching the specification; otherwise, throws an exception.
+  /// </summary>
+  /// <param name="specification">Specification used to check for existence.</param>
+  /// <param name="cancellationToken">Token for monitoring cancellation requests.</param>
+  /// <exception cref="EntityNotFoundException">Thrown when no matching client entity is found.</exception>
+  protected override async Task EnsureEntityExistAsync(ISpecification<Client> specification,
+                                                       CancellationToken cancellationToken)
+  {
+    var existing = await locBillUnitOfWork.Clients.AnyByQueryAsync(specification, cancellationToken);
+
+    if (existing is not true)
+      throw new EntityNotFoundException(typeof(Client), specification.ToString() ?? string.Empty);
+  }
+
+  /// <summary>
+  /// Retrieves the client entity along with its related children using the specified filtering logic.
+  /// </summary>
+  /// <param name="specification">Specification used to query and shape the client result.</param>
+  /// <param name="cancellationToken">Token for task cancellation monitoring.</param>
+  /// <returns>The fully populated <see cref="Client"/> entity.</returns>
+  protected override async Task<Client> FetchEntityAsync(ISpecification<Client> specification,
+                                                         CancellationToken cancellationToken)
+    => await locBillUnitOfWork.Clients.GetOneWithChildrenAsync(specification, cancellationToken);
 }

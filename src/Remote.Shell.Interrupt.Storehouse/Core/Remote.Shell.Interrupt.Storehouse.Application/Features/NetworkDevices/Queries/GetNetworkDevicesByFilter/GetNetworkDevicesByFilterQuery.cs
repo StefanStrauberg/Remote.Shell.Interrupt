@@ -1,34 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDevicesByFilter;
 
-/// <summary>
-/// Represents a query to retrieve network devices based on filtering criteria.
-/// </summary>
-/// <param name="RequestParameters">The request parameters containing filtering and pagination settings.</param>
 public record GetNetworkDevicesByFilterQuery(RequestParameters RequestParameters) : IQuery<PagedList<NetworkDeviceDTO>>;
 
-/// <summary>
-/// Handles the GetNetworkDevicesByFilterQuery and retrieves filtered network devices.
-/// </summary>
-/// <remarks>
-/// This handler applies filtering expressions, builds the necessary specifications,
-/// manages pagination, retrieves network devices, and returns the mapped results.
-/// </remarks>
-/// <param name="netDevUnitOfWork">Unit of work for network device-related database operations.</param>
-/// <param name="specification">Specification used for filtering network device entities.</param>
-/// <param name="queryFilterParser">Parser for processing filter expressions.</param>
-/// <param name="mapper">Object mapper for DTO transformation.</param>
 internal class GetNetworkDevicesByFilterQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
                                                      INetworkDeviceSpecification specification,
                                                      IQueryFilterParser queryFilterParser,
                                                      IMapper mapper)
   : IQueryHandler<GetNetworkDevicesByFilterQuery, PagedList<NetworkDeviceDTO>>
 {
-  /// <summary>
-  /// Handles the request to retrieve network devices based on filtering criteria.
-  /// </summary>
-  /// <param name="request">The query request containing filtering and pagination parameters.</param>
-  /// <param name="cancellationToken">Token to support request cancellation.</param>
-  /// <returns>A paginated list of network device DTOs.</returns>
   async Task<PagedList<NetworkDeviceDTO>> IRequestHandler<GetNetworkDevicesByFilterQuery, PagedList<NetworkDeviceDTO>>.Handle(GetNetworkDevicesByFilterQuery request,
                                                                                                                               CancellationToken cancellationToken)
   {
@@ -76,12 +55,6 @@ internal class GetNetworkDevicesByFilterQueryHandler(INetDevUnitOfWork netDevUni
     return await Task.FromResult<PagedList<NetworkDeviceDTO>>(new PagedList<NetworkDeviceDTO>([],0,new(0,0)));
   }
 
-  /// <summary>
-  /// Builds the specification by applying filtering criteria.
-  /// </summary>
-  /// <param name="baseSpec">The base network device specification.</param>
-  /// <param name="filterExpr">The filter expression to apply.</param>
-  /// <returns>An updated specification with filtering applied.</returns>
   // static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
   //                                                       Expression<Func<NetworkDevice, bool>>? filterExpr)
   // {

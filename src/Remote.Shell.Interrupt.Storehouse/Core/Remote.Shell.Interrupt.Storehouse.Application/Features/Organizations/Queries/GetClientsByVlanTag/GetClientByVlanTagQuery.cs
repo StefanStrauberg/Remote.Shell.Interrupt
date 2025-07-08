@@ -13,81 +13,74 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork locBillUnitOfW
   async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
                                                                                                                           CancellationToken cancellationToken)
   {
-    // Проверяем корректность значения VLAN Tag.
-    if (request.VlanTag == 0)
-      throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
+    // // Проверяем корректность значения VLAN Tag.
+    // if (request.VlanTag == 0)
+    //   throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
 
-    // Формируем запрос для получения данных VLAN.
-    var requestParameters = new RequestParameters
-    {
-      Filters = [
-        new ()
-        {
-          PropertyPath = nameof(SPRVlan.IdVlan),
-          Operator = FilterOperator.Equals,
-          Value = request.VlanTag.ToString()
-        }
-      ]
-    };
+    // // Формируем запрос для получения данных VLAN.
+    // var requestParameters = new RequestParameters
+    // {
+    //   Filters = [
+    //     new ()
+    //     {
+    //       PropertyPath = nameof(SPRVlan.IdVlan),
+    //       Operator = FilterOperator.Equals,
+    //       Value = request.VlanTag.ToString()
+    //     }
+    //   ]
+    // };
 
-    // Формируем запрос для получения данных VLAN.
-    var getSPRVlansByFilterQuery = new GetSPRVlansByFilterQuery(requestParameters);
-    
-    // Инициализируем обработчик запроса для SPR VLAN.
-    var getSPRVlansByFilterQueryHandler = new GetSPRVlansByFilterQueryHandler(locBillUnitOfWork,
-                                                                              sPRVlanSpecification,
-                                                                              queryFilterParser,
-                                                                              mapper);
+    // // Формируем запрос для получения данных VLAN.
+    // var getSPRVlansByFilterQuery = new GetSPRVlansByFilterQuery(requestParameters);
 
-    var sprVlans = await ((IRequestHandler<GetSPRVlansByFilterQuery, PagedList<SPRVlanDTO>>)getSPRVlansByFilterQueryHandler).Handle(getSPRVlansByFilterQuery,
-                                                                                                                                    cancellationToken);
+    // // Инициализируем обработчик запроса для SPR VLAN.
+    // var getSPRVlansByFilterQueryHandler = new GetSPRVlansByFilterQueryHandler(locBillUnitOfWork,
+    //                                                                           sPRVlanSpecification,
+    //                                                                           queryFilterParser,
+    //                                                                           mapper);
 
-    // Создаем коллекцию клиентов.
-    HashSet<Client> clients = [];
+    // var sprVlans = await ((IRequestHandler<GetSPRVlansByFilterQuery, PagedList<SPRVlanDTO>>)getSPRVlansByFilterQueryHandler).Handle(getSPRVlansByFilterQuery,
+    //                                                                                                                                 cancellationToken);
 
-    foreach (var item in sprVlans)
-    {
-      requestParameters.Filters[0].PropertyPath = nameof(Client.IdClient);
-      requestParameters.Filters[0].Value = item.IdClient.ToString();
+    // // Создаем коллекцию клиентов.
+    // HashSet<Client> clients = [];
 
-      // Parse filter
-      var filterExpr = queryFilterParser.ParseFilters<Client>(requestParameters.Filters);
-      
-      // Build base specification
-      var baseSpec = BuildSpecification(clientSpecification, filterExpr);
+    // foreach (var item in sprVlans)
+    // {
+    //   requestParameters.Filters[0].PropertyPath = nameof(Client.IdClient);
+    //   requestParameters.Filters[0].Value = item.IdClient.ToString();
 
-      // Извлекаем данные клиента из базы.
-      var client = await locBillUnitOfWork.Clients
-                                          .GetOneWithChildrenAsync(baseSpec, 
-                                                                   cancellationToken);
-      clients.Add(client);
-    }
+    //   // Parse filter
+    //   var filterExpr = queryFilterParser.ParseFilters<Client>(requestParameters.Filters);
 
-    // Преобразуем данные клиентов в DTO.
-    var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
+    //   // Build base specification
+    //   var baseSpec = BuildSpecification(clientSpecification, filterExpr);
 
-    // Возвращаем преобразованные данные.
-    return result;
+    //   // Извлекаем данные клиента из базы.
+    //   var client = await locBillUnitOfWork.Clients
+    //                                       .GetOneWithChildrenAsync(baseSpec, 
+    //                                                                cancellationToken);
+    //   clients.Add(client);
+    // }
+
+    // // Преобразуем данные клиентов в DTO.
+    // var result = mapper.Map<IEnumerable<DetailClientDTO>>(clients);
+
+    // // Возвращаем преобразованные данные.
+    // return result;
+    return await Task.FromResult<IEnumerable<DetailClientDTO>>([]);
   }
 
-  /// <summary>
-  /// Builds the specification with included entities and filters.
-  /// </summary>
-  /// <param name="baseSpec">The base client specification.</param>
-  /// <param name="filterExpr">The filter expression to apply.</param>
-  /// <returns>
-  /// An updated client specification including related entities and filters.
-  /// </returns>
-  static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-                                                 Expression<Func<Client, bool>>? filterExpr)
-  {
-    var spec = baseSpec.AddInclude(c => c.COD)
-                       .AddInclude(c => c.TfPlan!)
-                       .AddInclude(c => c.SPRVlans);
+  // static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
+  //                                                Expression<Func<Client, bool>>? filterExpr)
+  // {
+  //   var spec = baseSpec.AddInclude(c => c.COD)
+  //                      .AddInclude(c => c.TfPlan!)
+  //                      .AddInclude(c => c.SPRVlans);
 
-    if (filterExpr is not null)
-        spec.AddFilter(filterExpr);
+  //   if (filterExpr is not null)
+  //       spec.AddFilter(filterExpr);
 
-    return (IClientSpecification)spec;
-  }
+  //   return (IClientSpecification)spec;
+  // }
 }

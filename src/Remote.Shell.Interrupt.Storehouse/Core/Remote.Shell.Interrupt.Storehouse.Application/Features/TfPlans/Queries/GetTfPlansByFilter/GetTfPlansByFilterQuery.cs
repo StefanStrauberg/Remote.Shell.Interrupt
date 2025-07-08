@@ -1,110 +1,43 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.TfPlans.Queries.GetTfPlansByFilter;
 
 /// <summary>
-/// Represents a query to retrieve TF plans based on filtering criteria and pagination settings.
+/// Defines a query for retrieving a filtered and paginated list of <see cref="TfPlanDTO"/> items.
 /// </summary>
-/// <param name="Parameters">The filtering and pagination parameters provided in the request.</param>
-public record GetTfPlansByFilterQuery(RequestParameters Parameters) 
-    : IQuery<PagedList<TfPlanDTO>>;
+/// <param name="Parameters">Contains filtering and pagination parameters.</param>
+public sealed record GetTfPlansByFilterQuery(RequestParameters Parameters)
+    : FindEntitiesByFilterQuery<TfPlanDTO>(Parameters);
 
 /// <summary>
-/// Handles the <see cref="GetTfPlansByFilterQuery"/> and returns a paginated list of TF plan DTOs
-/// based on filter expressions and pagination settings.
+/// Handles <see cref="GetTfPlansByFilterQuery"/> by applying filter logic,
+/// pagination configuration, and entity-to-DTO transformation using base functionality.
 /// </summary>
-/// <param name="locBillUnitOfWork">The unit of work for accessing TF Plan repositories.</param>
-/// <param name="specification">The base specification to build query filters on top of.</param>
-/// <param name="queryFilterParser">The service that parses query filters into expressions.</param>
-/// <param name="mapper">The object mapper used to convert domain entities to DTOs.</param>
+/// <param name="locBillUnitOfWork">Provides access to <see cref="TfPlan"/> repositories.</param>
+/// <param name="specification">Base specification used to layer filtering conditions.</param>
+/// <param name="queryFilterParser">Parses filter strings into query expressions.</param>
+/// <param name="mapper">Maps domain entities to their corresponding DTOs.</param>
 internal class GetTfPlansByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                               ITfPlanSpecification specification,
                                               IQueryFilterParser queryFilterParser,
                                               IMapper mapper)
-    : IQueryHandler<GetTfPlansByFilterQuery, PagedList<TfPlanDTO>>
+    : FindEntitiesByFilterQueryHandler<TfPlan, TfPlanDTO, GetTfPlansByFilterQuery>(specification, queryFilterParser, mapper)
 {
   /// <summary>
-  /// Processes the incoming TF plan query, applies filters and pagination,
-  /// and returns a paginated result of matching TF plan DTOs.
+  /// Retrieves all <see cref="TfPlan"/> entities matching the specified filter and pagination context.
   /// </summary>
-  /// <param name="request">The incoming request containing filter and pagination parameters.</param>
-  /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-  /// <returns>A paginated list of <see cref="TfPlanDTO"/>s.</returns>
-  async Task<PagedList<TfPlanDTO>> IRequestHandler<GetTfPlansByFilterQuery, PagedList<TfPlanDTO>>.Handle(GetTfPlansByFilterQuery request,
-                                                                                                         CancellationToken cancellationToken)
-  {
-    var specification = BuildSpecification(request.Parameters);
-    var pagination = BuildPagination(request.Parameters);
-
-    if (request.Parameters.IsPaginated)
-      specification.ConfigurePagination(pagination);
-
-    var tfPlans = await FetchTfPlansAsync(specification, cancellationToken);
-
-    if (IsEmptyResult(tfPlans))
-      return PagedList<TfPlanDTO>.Empty();
-
-    var totalCount = await CountResultsAsync(specification, cancellationToken);
-    var tfPlanDtos = MapToTfPlanDtos(tfPlans);
-
-    return PagedList<TfPlanDTO>.Create(tfPlanDtos, totalCount, pagination);
-  }
-  
-  /// <summary>
-  /// Builds a filtering specification by applying parsed filter expressions
-  /// from the incoming request parameters to a cloned base specification.
-  /// </summary>
-  /// <param name="parameters">The request parameters containing filtering instructions.</param>
-  /// <returns>A configured filtering specification.</returns>
-  ISpecification<TfPlan> BuildSpecification(RequestParameters parameters)
-  {
-    var filterExpr = queryFilterParser.ParseFilters<TfPlan>(parameters.Filters);
-    var spec = specification.Clone();
-
-    if (filterExpr is not null)
-      spec.AddFilter(filterExpr);
-
-    return spec;
-  }
-
-  /// <summary>
-  /// Creates a <see cref="PaginationContext"/> based on the provided request parameters.
-  /// Defaults to 0 if no values are specified.
-  /// </summary>
-  /// <param name="parameters">The pagination settings from the request.</param>
-  /// <returns>A fully formed <see cref="PaginationContext"/>.</returns>
-  static PaginationContext BuildPagination(RequestParameters parameters)
-    => new(parameters.PageNumber ?? 0, parameters.PageSize ?? 0);
-
-  /// <summary>
-  /// Retrieves a filtered collection of <see cref="TfPlan"/> entities from the data store.
-  /// </summary>
-  /// <param name="spec">The filtering specification to apply.</param>
-  /// <param name="cancellationToken">Token to support request cancellation.</param>
-  /// <returns>A list of matching <see cref="TfPlan"/> entities.</returns>    
-  async Task<IEnumerable<TfPlan>> FetchTfPlansAsync(ISpecification<TfPlan> spec, CancellationToken cancellationToken)
+  /// <param name="spec">The filtering specification.</param>
+  /// <param name="cancellationToken">Propagates cancellation signals.</param>
+  /// <returns>A collection of <see cref="TfPlan"/> domain entities.</returns>
+  protected override async Task<IEnumerable<TfPlan>> FetchEntitiesAsync(ISpecification<TfPlan> spec,
+                                                                        CancellationToken cancellationToken)
     => await locBillUnitOfWork.TfPlans.GetManyShortAsync(spec, cancellationToken);
 
   /// <summary>
-  /// Counts the total number of <see cref="TfPlan"/> entities matching the specified criteria.
+  /// Retrieves the total count of <see cref="TfPlan"/> entities matching the given filter specification.
   /// </summary>
-  /// <param name="spec">The specification used for counting matches.</param>
-  /// <param name="cancellationToken">Token to support request cancellation.</param>
-  /// <returns>The total number of matching records.</returns>
-  async Task<int> CountResultsAsync(ISpecification<TfPlan> spec, CancellationToken cancellationToken)
+  /// <param name="spec">Specification used for filtering and counting entities.</param>
+  /// <param name="cancellationToken">Token used to cancel the operation if needed.</param>
+  /// <returns>The count of matching <see cref="TfPlan"/> records.</returns>
+  protected override async Task<int> CountResultsAsync(ISpecification<TfPlan> spec,
+                                                       CancellationToken cancellationToken)
     => await locBillUnitOfWork.TfPlans.GetCountAsync(spec, cancellationToken);
-
-  /// <summary>
-  /// Maps a collection of <see cref="TfPlan"/> domain entities to a collection of DTOs.
-  /// </summary>
-  /// <param name="entities">The domain entities to convert.</param>
-  /// <returns>The corresponding <see cref="TfPlanDTO"/> representations.</returns>
-  IEnumerable<TfPlanDTO> MapToTfPlanDtos(IEnumerable<TfPlan> entities)
-    => mapper.Map<IEnumerable<TfPlanDTO>>(entities);
-
-  /// <summary>
-  /// Determines whether a given collection of <see cref="TfPlan"/> entities is empty or null.
-  /// </summary>
-  /// <param name="tfPlans">The collection of TF plans to inspect.</param>
-  /// <returns><c>true</c> if the collection is null or contains no items; otherwise, <c>false</c>.</returns>
-  static bool IsEmptyResult(IEnumerable<TfPlan> tfPlans)
-    => tfPlans == null || !tfPlans.Any();
 }

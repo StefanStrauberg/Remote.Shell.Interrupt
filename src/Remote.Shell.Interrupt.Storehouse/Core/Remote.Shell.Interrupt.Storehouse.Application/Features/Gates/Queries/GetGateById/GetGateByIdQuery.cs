@@ -1,50 +1,34 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Queries.GetGateById;
 
 /// <summary>
-/// Defines a query for retrieving a gate by its unique identifier.
+/// Represents a query to retrieve a single <see cref="GateDTO"/> by its unique identifier.
 /// </summary>
-public record GetGateByIdQuery(Guid Id) : IQuery<GateDTO>;
+/// <param name="Id">The unique ID used to locate the gate entity.</param>
+public sealed record GetGateByIdQuery(Guid Id)
+  : FindEntityByIdQuery<GateDTO>(Id);
 
 /// <summary>
-/// Handles <see cref="GetGateByIdQuery"/> by validating existence,
-/// applying filtering, and returning the mapped gate DTO.
+/// Handles <see cref="GetGateByIdQuery"/> by validating the existence of the gate entity,
+/// retrieving it from the data store, and mapping it to a DTO.
 /// </summary>
-/// <param name="gateUnitOfWork">Provides access to gate-related data operations.</param>
-/// <param name="baseSpecification">Clonable base specification used to build query filters.</param>
-/// <param name="queryFilterParser">Parses textual filters into executable query expressions.</param>
-/// <param name="mapper">Transforms gate entities into <see cref="GateDTO"/> objects.</param>
+/// <param name="gateUnitOfWork">Provides access to gate-related persistence operations.</param>
+/// <param name="specification">A clonable specification used to build filter criteria.</param>
+/// <param name="queryFilterParser">Parses filter definitions into expression trees.</param>
+/// <param name="mapper">Maps <see cref="Gate"/> entities to <see cref="GateDTO"/> representations.</param>
 internal class GetGateByIdQueryHandler(IGateUnitOfWork gateUnitOfWork,
-                                       IGateSpecification baseSpecification,
+                                       IGateSpecification specification,
                                        IQueryFilterParser queryFilterParser,
                                        IMapper mapper)
-  : IQueryHandler<GetGateByIdQuery, GateDTO>
+  : FindEntityByIdQueryHandler<Gate, GateDTO, GetGateByIdQuery>(specification, queryFilterParser, mapper)
 {
   /// <summary>
-  /// Executes the query by applying filters, checking existence, and retrieving the gate entity.
+  /// Ensures that a gate entity matching the given specification exists; otherwise, throws an exception.
   /// </summary>
-  /// <param name="request">Contains the gate ID to locate.</param>
-  /// <param name="cancellationToken">Signals cancellation if requested by the caller.</param>
-  /// <returns>A mapped <see cref="GateDTO"/> corresponding to the specified ID.</returns>
-  async Task<GateDTO> IRequestHandler<GetGateByIdQuery, GateDTO>.Handle(GetGateByIdQuery request,
-                                                                        CancellationToken cancellationToken)
-  {
-    var specification = BuildSpecification(request.Id);
-
-    await EnsureGateExistAsync(specification, cancellationToken);
-
-    var gate = await FetchGateAsync(specification, cancellationToken);
-
-    return MapToDto(gate);
-  }
-
-  /// <summary>
-  /// Validates that existing gate matches the provided specification.
-  /// </summary>
-  /// <param name="specification">Specification used for gate uniqueness check.</param>
-  /// <param name="cancellationToken">Supports cancellation of the async operation.</param>
-  /// <exception cref="EntityAlreadyExists">Thrown if a gate with the same filter already exists.</exception>
-  async Task EnsureGateExistAsync(ISpecification<Gate> specification,
-                                  CancellationToken cancellationToken)
+  /// <param name="specification">The specification defining the gate lookup criteria.</param>
+  /// <param name="cancellationToken">Token used to signal cancellation.</param>
+  /// <exception cref="EntityAlreadyExists">Thrown when no gate is found matching the specification.</exception>
+  protected override async Task EnsureEntityExistAsync(ISpecification<Gate> specification,
+                                                       CancellationToken cancellationToken)
   {
     bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
 
@@ -53,35 +37,12 @@ internal class GetGateByIdQueryHandler(IGateUnitOfWork gateUnitOfWork,
   }
 
   /// <summary>
-  /// Builds a specification for querying the gate using the provided ID.
+  /// Retrieves the gate entity that matches the provided filter specification.
   /// </summary>
-  /// <param name="gateId">The unique identifier used for gate filtering.</param>
-  /// <returns>A specification object containing filtering logic.</returns>
-  ISpecification<Gate> BuildSpecification(Guid gateId)
-  {
-    var filterExpr = queryFilterParser.ParseFilters<Gate>(RequestParameters.ForId(gateId).Filters);
-    var spec = baseSpecification.Clone();
-
-    if (filterExpr is not null)
-      spec.AddFilter(filterExpr);
-
-    return spec;
-  }
-
-  /// <summary>
-  /// Fetches a gate entity matching the filtering specification.
-  /// </summary>
-  /// <param name="spec">Filtering specification used during query.</param>
-  /// <param name="cancellationToken">Token indicating cancellation request.</param>
-  /// <returns>The retrieved <see cref="Gate"/> entity.</returns>
-  async Task<Gate> FetchGateAsync(ISpecification<Gate> spec, CancellationToken cancellationToken)
+  /// <param name="spec">The specification used to locate the gate.</param>
+  /// <param name="cancellationToken">Token used to monitor for cancellation.</param>
+  /// <returns>The matching <see cref="Gate"/> entity.</returns>
+  protected override async Task<Gate> FetchEntityAsync(ISpecification<Gate> spec,
+                                                       CancellationToken cancellationToken)
     => await gateUnitOfWork.Gates.GetOneShortAsync(spec, cancellationToken);
-
-  /// <summary>
-  /// Maps a gate domain entity to its data transfer object equivalent.
-  /// </summary>
-  /// <param name="entities">Gate entity to convert.</param>
-  /// <returns>A mapped <see cref="GateDTO"/> instance.</returns>
-  GateDTO MapToDto(Gate entities)
-    => mapper.Map<GateDTO>(entities);
 }
