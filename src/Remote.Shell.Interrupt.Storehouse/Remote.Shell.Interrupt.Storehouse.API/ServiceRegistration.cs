@@ -1,12 +1,19 @@
 namespace Remote.Shell.Interrupt.Storehouse.API;
 
+/// <summary>
+/// Provides extension methods for registering services and configuring middleware in the application pipeline.
+/// </summary>
 public static class ServiceRegistration
 {
+  /// <summary>
+  /// Configures dependency injection for core application components, infrastructure services, and cross-cutting concerns.
+  /// </summary>
+  /// <param name="builder">The application builder used to register services during startup.</param>
   public static void AddApplicationServices(this WebApplicationBuilder builder)
   {
     // Logging
     builder.Services.AddLoggerServices();
-    builder.Services.AddSingleton<ILoggerFactory>(sp => new LoggerFactory().AddSerilog(Log.Logger));
+    builder.Services.AddSingleton(sp => new LoggerFactory().AddSerilog(Log.Logger));
 
     // Application Layers
     builder.Services.AddApplicationServices();
@@ -32,6 +39,10 @@ public static class ServiceRegistration
     Log.Debug("Dependency injection registration completed.");
   }
 
+  /// <summary>
+  /// Configures middleware components for the application, including CORS, Swagger UI, and global exception handling.
+  /// </summary>
+  /// <param name="app">The web application instance to configure.</param>
   public static void ConfigurePipeline(this WebApplication app)
   {
     app.UseCors("CorsPolicy");

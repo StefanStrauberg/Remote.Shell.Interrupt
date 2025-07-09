@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 /// <summary>
 /// Represents a command to delete all network devices.
 /// </summary>
-public record DeleteNetworkDevicesCommand : ICommand<Unit>;
+public record DeleteAllNetworkDevicesCommand : ICommand<Unit>;
 
 /// <summary>
 /// Handles the DeleteNetworkDevicesCommand and removes all network devices.
@@ -15,10 +15,10 @@ public record DeleteNetworkDevicesCommand : ICommand<Unit>;
 /// <param name="netDevUnitOfWork">Unit of work for network device-related operations.</param>
 /// <param name="specification">Specification used for filtering network devices.</param>
 /// <param name="queryFilterParser">Parser for processing filter expressions.</param>
-internal class DeleteNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUnitOfWork,
-                                                  INetworkDeviceSpecification specification,
-                                                  IQueryFilterParser queryFilterParser)
-  : ICommandHandler<DeleteNetworkDevicesCommand, Unit>
+internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUnitOfWork,
+                                                     INetworkDeviceSpecification specification,
+                                                     IQueryFilterParser queryFilterParser)
+  : ICommandHandler<DeleteAllNetworkDevicesCommand, Unit>
 {
   /// <summary>
   /// Handles the request to delete all network devices.
@@ -26,7 +26,7 @@ internal class DeleteNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUnitOf
   /// <param name="request">The command initiating the deletion process.</param>
   /// <param name="cancellationToken">Token to support request cancellation.</param>
   /// <returns>A unit value indicating successful execution.</returns>
-  async Task<Unit> IRequestHandler<DeleteNetworkDevicesCommand, Unit>.Handle(DeleteNetworkDevicesCommand request,
+  async Task<Unit> IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>.Handle(DeleteAllNetworkDevicesCommand request,
                                                                              CancellationToken cancellationToken)
   {
     // Retrieve all network devices

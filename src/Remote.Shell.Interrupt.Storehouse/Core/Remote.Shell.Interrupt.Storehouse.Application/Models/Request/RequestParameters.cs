@@ -78,7 +78,7 @@ public class RequestParameters
   /// </summary>
   /// <param name="id">The unique identifier to filter by.</param>
   /// <returns>A <see cref="RequestParameters"/> with ID-based filtering applied.</returns>
-  internal static RequestParameters ForId(Guid id)
+  public static RequestParameters ForId(Guid id)
     => new()
     {
       Filters = [

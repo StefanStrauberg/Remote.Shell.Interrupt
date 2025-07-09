@@ -53,11 +53,11 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   /// <summary>
   /// Constructs a filtering specification based on request parameters.
   /// </summary>
-  /// <param name="parameters">The request parameters containing filter expressions.</param>
+  /// <param name="requestParameters">The request parameters containing filter expressions.</param>
   /// <returns>A specification for filtering <typeparamref name="TEntity"/> entities.</returns>
-  protected virtual ISpecification<TEntity> BuildSpecification(RequestParameters parameters)
+  protected virtual ISpecification<TEntity> BuildSpecification(RequestParameters requestParameters)
   {
-    var filterExpr = queryFilterParser.ParseFilters<TEntity>(parameters.Filters);
+    var filterExpr = queryFilterParser.ParseFilters<TEntity>(requestParameters.Filters);
     var spec = specification.Clone();
 
     if (filterExpr is not null)
