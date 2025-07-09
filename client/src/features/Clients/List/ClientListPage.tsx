@@ -1,13 +1,13 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import ClientCard from "./ClientCard";
 import { ClientShort } from "../../../lib/types/Clients/ClientShort";
-import { PaginationHeader } from "../../../lib/types/Common/PaginationHeader";
+import { PaginationMetadata } from "../../../lib/types/Common/PaginationMetadata";
 
 type Props = {
   clients: ClientShort[] | undefined;
   isPending: boolean;
   pageNumber: number;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 

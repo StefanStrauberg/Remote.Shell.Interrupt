@@ -1,41 +1,38 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import TfPlanCard from "./TfPlanCard";
 import { TfPlan } from "../../lib/types/TfPlans/TfPlan";
-import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
+import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
 
 type Props = {
-  tfPlans: TfPlan[] | undefined;
-  isPending: boolean;
+  tfPlans: TfPlan[];
+  isLoading: boolean;
   pageNumber: number;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 
 export default function TfPlanListPage({
   tfPlans,
-  isPending,
+  isLoading,
   pageNumber,
   pagination,
   setPageNumber,
 }: Props) {
-  // Loading state
-  if (!tfPlans || isPending) return <Typography>Loading ...</Typography>;
+  if (isLoading) return <Typography>Loading ...</Typography>;
 
-  // Handle page change
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
-    setPageNumber(value); // Update the page number
+    setPageNumber(value);
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Render tfPlans */}
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)", // Two columns
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: 3,
         }}
       >
@@ -44,11 +41,10 @@ export default function TfPlanListPage({
         ))}
       </Box>
 
-      {/* Pagination Component */}
       <Pagination
-        count={pagination.TotalPages || 1} // Total pages based on pagination metadata
-        page={pageNumber} // Current active page
-        onChange={handlePageChange} // Handle page change
+        count={pagination.TotalPages}
+        page={pageNumber}
+        onChange={handlePageChange}
         variant="outlined"
         color="primary"
         sx={{ alignSelf: "center", mt: 2 }}

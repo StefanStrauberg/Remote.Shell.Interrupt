@@ -1,4 +1,4 @@
-export type PaginationHeader = {
+export type PaginationMetadata = {
   TotalCount: number;
   PageSize: number;
   CurrentPage: number;

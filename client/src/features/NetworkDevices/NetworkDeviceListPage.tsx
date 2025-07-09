@@ -1,13 +1,13 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import { NetworkDevice } from "../../lib/types/NetworkDevices/NetworkDevice";
-import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
+import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
 import NetworkDeviceCard from "./NetworkDeviceCard";
 
 type Props = {
   networkDevices: NetworkDevice[] | undefined;
   isLoadingNetworkDevices: boolean;
   pageNumber: number;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 

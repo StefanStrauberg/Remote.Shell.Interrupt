@@ -10,7 +10,6 @@ import {
   Grid2,
   TextField,
 } from "@mui/material";
-import { SPRVlanFilter } from "../../lib/types/SPRVlans/SPRVlanFilter";
 import { useState } from "react";
 import { FilterList } from "@mui/icons-material";
 

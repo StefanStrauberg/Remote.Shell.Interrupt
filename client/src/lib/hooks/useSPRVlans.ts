@@ -2,28 +2,30 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router";
 import agent from "../api/agent";
 import { SprVlan } from "../types/SPRVlans/SprVlan";
-import { SPRVlanFilter } from "../types/SPRVlans/SPRVlanFilter";
+import { PaginationParams } from "../types/Common/PaginationParams";
+import { FilterDescriptor } from "../types/Common/FilterDescriptor";
+import { buildTfPlansParams } from "../api/tfPlans/buildTfPlansParams";
 
 export const useSPRVlans = (
-  pageNumber: number = 1,
-  pageSize: number = 10,
-  filters: SPRVlanFilter = {}
+  pagination: PaginationParams,
+  filters: FilterDescriptor[] = []
 ) => {
   const location = useLocation();
+  const { pageNumber, pageSize } = pagination;
 
-  const { data: sprVlansResponse, isPending } = useQuery({
-    queryKey: ["sprVlans", pageNumber, pageSize, filters],
+  const queryKey = ["sprVlans", pageNumber, pageSize, JSON.stringify(filters)];
+
+  const { data: sprVlansResponse, isLoading } = useQuery({
+    queryKey,
     queryFn: async () => {
-      // Преобразуем фильтры в строку Sieve-формата: e.g. "Name@=John,Working==true"
-      const filterString = Object.entries(filters)
-        .map(([key, { op, value }]) => `${key}${op}${value}`)
-        .join(",");
+      const params = buildTfPlansParams(pagination, filters);
 
-      console.log(filterString);
-
-      const response = await agent.get<SprVlan[]>("/api/SPRVlans/GetSPRVlans", {
-        params: { pageNumber, pageSize, Filters: filterString },
-      });
+      const response = await agent.get<SprVlan[]>(
+        "/api/SPRVlans/GetSPRVlansByFilter",
+        {
+          params,
+        }
+      );
       return {
         data: response.data,
         pagination: JSON.parse(response.headers["x-pagination"]),
@@ -35,9 +37,13 @@ export const useSPRVlans = (
   return {
     sprVlans: sprVlansResponse?.data ?? [],
     pagination: sprVlansResponse?.pagination ?? {
-      totalPages: 0,
-      currentPage: 0,
+      TotalPages: 0,
+      CurrentPage: 0,
+      PageSize: 0,
+      TotalCount: 0,
+      HasNext: false,
+      HasPrevious: false,
     },
-    isPending,
+    isLoading,
   };
 };

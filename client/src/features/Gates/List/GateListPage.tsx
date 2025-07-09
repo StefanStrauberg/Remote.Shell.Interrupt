@@ -1,13 +1,13 @@
 import { Box, Pagination, Typography } from "@mui/material";
 import GateCard from "./GateCard";
 import { Gate } from "../../../lib/types/Gates/Gate";
-import { PaginationHeader } from "../../../lib/types/Common/PaginationHeader";
+import { PaginationMetadata } from "../../../lib/types/Common/PaginationMetadata";
 
 type Props = {
   gates: Gate[] | undefined;
   isPending: boolean;
   pageNumber: number;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 

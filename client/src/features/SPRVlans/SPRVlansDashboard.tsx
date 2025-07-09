@@ -3,27 +3,23 @@ import SPRVlanListPage from "./SPRVlanListPage";
 import { useState } from "react";
 import { useSPRVlans } from "../../lib/hooks/useSPRVlans";
 import SPRVlanListFilter from "./SPRVlanListFilter";
-import { SPRVlanFilter } from "../../lib/types/SPRVlans/SPRVlanFilter";
 import EmptyPage from "../../app/shared/components/EmptyPage";
 
 export default function SPRVlansDashboard() {
-  const [filters, setFilters] = useState<SPRVlanFilter>({
-    UseClient: { op: "==", value: true },
-  });
-  // Manage local state for pagination
-  const [pageNumber, setPageNumber] = useState<number>(1); // TablePagination uses zero-based index
-  const pageSize = 15; // Default page size
+  const [filters, setFilters] = useState<SPRVlanFilter>();
+
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const pageSize = 15;
 
   // Hook for fetching data
-  const { sprVlans, pagination, isPending } = useSPRVlans(
-    pageNumber,
-    pageSize,
+  const { sprVlans, pagination, isLoading } = useSPRVlans(
+    { pageNumber, pageSize },
     filters
   );
 
   const handleApplyFilters = (newFilters: SPRVlanFilter) => {
     setFilters(newFilters);
-    setPageNumber(1); // сбросить страницу
+    setPageNumber(1);
   };
 
   return (
@@ -42,7 +38,7 @@ export default function SPRVlansDashboard() {
           <Grid2 size={9}>
             <SPRVlanListPage
               sprVlans={sprVlans}
-              isPending={isPending}
+              isPending={isLoading}
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}

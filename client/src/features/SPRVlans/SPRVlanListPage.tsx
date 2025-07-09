@@ -11,7 +11,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { PaginationHeader } from "../../lib/types/Common/PaginationHeader";
+import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
 import { SprVlan } from "../../lib/types/SPRVlans/SprVlan";
 import { Link } from "react-router";
 
@@ -19,7 +19,7 @@ type Props = {
   sprVlans: SprVlan[] | undefined;
   isPending: boolean;
   pageNumber: number;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 

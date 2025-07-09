@@ -9,7 +9,7 @@ import agent from "../api/agent";
 import { Client } from "../types/Clients/Client";
 import { ClientFilter } from "../types/Clients/ClientFilter";
 import { useLocation } from "react-router";
-import { PaginationHeader } from "../types/Common/PaginationHeader";
+import { PaginationMetadata } from "../types/Common/PaginationMetadata";
 
 export const useClients = (
   pageNumber: number = 1,
@@ -18,7 +18,7 @@ export const useClients = (
   id?: string | number
 ): {
   clients: ClientShort[];
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
   isLoadingClients: boolean;
   clientById: Client | undefined;
   isLoadingById: boolean;
@@ -94,8 +94,8 @@ export const useClients = (
   return {
     clients: clientsResponse?.data ?? [],
     pagination: clientsResponse?.pagination ?? {
-      totalPages: 0,
-      currentPage: 0,
+      TotalPages: 0,
+      CurrentPage: 0,
     },
     isLoadingClients,
     clientById: clientById,

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { NetworkDevice } from "../types/NetworkDevices/NetworkDevice";
-import { PaginationHeader } from "../types/Common/PaginationHeader";
+import { PaginationMetadata } from "../types/Common/PaginationMetadata";
 import { useLocation } from "react-router";
 import { NetworkDeviceFilter } from "../types/NetworkDevices/NetworkDeviceFilter";
 import agent from "../api/agent";
@@ -12,7 +12,7 @@ export const useNetworkDevices = (
 ): {
   networkDevices: NetworkDevice[];
   isLoadingNetworkDevices: boolean;
-  pagination: PaginationHeader;
+  pagination: PaginationMetadata;
 } => {
   const location = useLocation();
 
@@ -44,8 +44,8 @@ export const useNetworkDevices = (
   return {
     networkDevices: networkDevicesResponse?.data ?? [],
     pagination: networkDevicesResponse?.pagination ?? {
-      totalPages: 0,
-      currentPage: 0,
+      TotalPages: 0,
+      CurrentPage: 0,
     },
     isLoadingNetworkDevices,
   };
