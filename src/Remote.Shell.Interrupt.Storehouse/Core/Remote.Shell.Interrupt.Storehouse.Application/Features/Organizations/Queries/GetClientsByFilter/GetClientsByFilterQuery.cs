@@ -1,70 +1,43 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByFilter;
 
-public record GetClientsByFilterQuery(RequestParameters RequestParameters) 
-  : IQuery<PagedList<ShortClientDTO>>;
+/// <summary>
+/// Defines a query to retrieve a paginated and filtered collection of client summaries.
+/// </summary>
+/// <param name="Parameters">Contains filter descriptors and pagination settings.</param>
+public record GetClientsByFilterQuery(RequestParameters Parameters)
+  : FindEntitiesByFilterQuery<ShortClientDTO>(Parameters);
 
+/// <summary>
+/// Handles <see cref="GetClientsByFilterQuery"/> by applying filtering and pagination,
+/// querying client entities, and mapping them into summary DTOs.
+/// </summary>
+/// <param name="locBillUnitOfWork">Provides access to client-related data operations.</param>
+/// <param name="specification">Clonable specification used to layer filtering conditions.</param>
+/// <param name="queryFilterParser">Parses textual filters into queryable expressions.</param>
+/// <param name="mapper">Maps domain <see cref="Client"/> entities to <see cref="ShortClientDTO"/> representations.</param>
 internal class GetClientsByFilterQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                               IClientSpecification specification,
                                               IQueryFilterParser queryFilterParser,
                                               IMapper mapper)
-  : IQueryHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>
+  : FindEntitiesByFilterQueryHandler<Client, ShortClientDTO, GetClientsByFilterQuery>(specification, queryFilterParser, mapper)
 {
-  async Task<PagedList<ShortClientDTO>> IRequestHandler<GetClientsByFilterQuery, PagedList<ShortClientDTO>>.Handle(GetClientsByFilterQuery request,
-                                                                                                                   CancellationToken cancellationToken)
-  {
-    // // Parse the filter expression
-    // var filterExpr = queryFilterParser.ParseFilters<Client>(request.RequestParameters
-    //                                                                .Filters);
+  /// <summary>
+  /// Counts the number of <see cref="Client"/> entities matching the given specification.
+  /// </summary>
+  /// <param name="specification">Specification containing filtering logic.</param>
+  /// <param name="cancellationToken">Token used to monitor for cancellation signals.</param>
+  /// <returns>The total count of matching client records.</returns>
+  protected override async Task<int> CountResultsAsync(ISpecification<Client> specification,
+                                                       CancellationToken cancellationToken)
+    => await locBillUnitOfWork.Clients.GetCountAsync(specification, cancellationToken);
 
-    // // Build the base specification with filtering applied
-    // var baseSpec = BuildSpecification(specification,
-    //                                   filterExpr);
-
-    // // Create a specification for counting total matching records
-    // var countSpec = baseSpec.Clone();
-
-    // // Extract pagination parameters
-    // var pageNumber = request.RequestParameters.PageNumber ?? 0;
-    // var pageSize = request.RequestParameters.PageSize ?? 0;
-
-    // // Apply pagination settings if enabled
-    // if (request.RequestParameters.IsPaginated)
-    //     baseSpec.ConfigurePagination(pageNumber,
-    //                             pageSize);
-
-    // // Retrieve data
-    // var clients = await locBillUnitOfWork.Clients
-    //                                      .GetManyShortAsync(baseSpec,
-    //                                                         cancellationToken);
-
-    // // Return an empty paginated list if no data are found.
-    // if (!clients.Any())
-    //   return new PagedList<ShortClientDTO>([],0,0,0);
-
-    // // Retrieve the total count of matching records
-    // var count = await locBillUnitOfWork.Clients
-    //                                    .GetCountAsync(countSpec,
-    //                                                   cancellationToken);
-
-    // // Map the retrieved data to the DTO
-    // var result = mapper.Map<IEnumerable<ShortClientDTO>>(clients);
-
-    // // Return the mapped result
-    // return new PagedList<ShortClientDTO>(result,
-    //                                      count,
-    //                                      pageNumber,
-    //                                      pageSize);
-    return await Task.FromResult<PagedList<ShortClientDTO>>(new PagedList<ShortClientDTO>([],0,new(0,0)));
-  }
-
-  // static IClientSpecification BuildSpecification(IClientSpecification baseSpec,
-  //                                                Expression<Func<Client, bool>>? filterExpr)
-  // {
-  //   var spec = baseSpec;
-
-  //   if (filterExpr is not null)
-  //       spec.AddFilter(filterExpr);
-
-  //   return spec;
-  // }
+  /// <summary>
+  /// Retrieves a collection of <see cref="Client"/> entities using the provided filter specification.
+  /// </summary>
+  /// <param name="specification">Filtering specification used for querying entities.</param>
+  /// <param name="cancellationToken">Token used to propagate cancellation.</param>
+  /// <returns>A collection of client entities that match the filtering criteria.</returns>
+  protected override async Task<IEnumerable<Client>> FetchEntitiesAsync(ISpecification<Client> specification,
+                                                                        CancellationToken cancellationToken)
+    => await locBillUnitOfWork.Clients.GetManyShortAsync(specification, cancellationToken);
 }
