@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// <summary>
 /// Provides API endpoints for retrieving, creating, updating, and deleting gate entities.
 /// </summary>
-public class GatesController : BaseAPIController
+public class GatesController(ISender sender) : BaseAPIController(sender)
 {
   /// <summary>
   /// Retrieves a filtered and paginated list of gate entities.
@@ -19,14 +19,14 @@ public class GatesController : BaseAPIController
                                                     CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetGatesByFilterQuery(requestParameters), cancellationToken);
-    var metadata = new
+    var metadata = new PaginationMetadata()
     {
-      result.TotalCount,
-      result.PageSize,
-      result.CurrentPage,
-      result.TotalPages,
-      result.HasNext,
-      result.HasPrevious
+      TotalCount = result.TotalCount,
+      PageSize = result.PageSize,
+      CurrentPage = result.CurrentPage,
+      TotalPages = result.TotalPages,
+      HasNext = result.HasNext,
+      HasPrevious = result.HasPrevious
     };
     Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
     return Ok(result);

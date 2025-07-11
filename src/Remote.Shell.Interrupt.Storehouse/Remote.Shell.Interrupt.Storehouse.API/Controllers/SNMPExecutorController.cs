@@ -3,7 +3,7 @@
 /// <summary>
 /// Provides endpoints for executing SNMP (Simple Network Management Protocol) commands.
 /// </summary>
-public class SNMPExecutorController : BaseAPIController
+public class SNMPExecutorController(ISender sender) : BaseAPIController(sender)
 {
     /// <summary>
     /// Executes a single SNMP GET operation based on the provided command parameters.

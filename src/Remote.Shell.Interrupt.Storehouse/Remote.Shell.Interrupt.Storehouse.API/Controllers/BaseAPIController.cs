@@ -6,7 +6,7 @@
 /// </summary>
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class BaseAPIController : ControllerBase
+public class BaseAPIController(ISender sender) : ControllerBase
 {
   /// <summary>
   /// Lazily resolves an <see cref="ISender"/> instance from the current request's service provider.
@@ -15,6 +15,6 @@ public class BaseAPIController : ControllerBase
   /// <exception cref="ArgumentNullException">
   /// Thrown if the <see cref="ISender"/> service is not available in the request context.
   /// </exception>
-  protected ISender Sender => HttpContext.RequestServices.GetService<ISender>()
-    ?? throw new ArgumentNullException("ISender service is unavailable");
+  protected ISender Sender = sender
+    ?? throw new ArgumentNullException(nameof(sender));
 }

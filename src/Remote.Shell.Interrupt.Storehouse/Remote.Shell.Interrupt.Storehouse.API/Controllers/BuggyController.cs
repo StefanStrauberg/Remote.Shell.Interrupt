@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// <summary>
 /// Controller for simulating common HTTP error responses for testing and diagnostics.
 /// </summary>
-public class BuggyController : BaseAPIController
+public class BuggyController(ISender sender) : BaseAPIController(sender)
 {
     /// <summary>
     /// Returns a simulated 404 Not Found response.

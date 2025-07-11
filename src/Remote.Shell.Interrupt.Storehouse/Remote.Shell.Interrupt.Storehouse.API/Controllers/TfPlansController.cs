@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// <summary>
 /// Handles API requests related to tariff plans.
 /// </summary>
-public class TfPlansController : BaseAPIController
+public class TfPlansController(ISender sender) : BaseAPIController(sender)
 {
   /// <summary>
   /// Retrieves tariff plan records based on the specified filter and pagination parameters.
@@ -19,16 +19,15 @@ public class TfPlansController : BaseAPIController
   public async Task<IActionResult> GetTfPlansByFilter([FromQuery] RequestParameters requestParameters,
                                                       CancellationToken cancellationToken)
   {
-    var result = await Sender.Send(new GetTfPlansByFilterQuery(requestParameters),
-                                   cancellationToken);
-    var metadata = new
+    var result = await Sender.Send(new GetTfPlansByFilterQuery(requestParameters), cancellationToken);
+    var metadata = new PaginationMetadata()
     {
-      result.TotalCount,
-      result.PageSize,
-      result.CurrentPage,
-      result.TotalPages,
-      result.HasNext,
-      result.HasPrevious
+      TotalCount = result.TotalCount,
+      PageSize = result.PageSize,
+      CurrentPage = result.CurrentPage,
+      TotalPages = result.TotalPages,
+      HasNext = result.HasNext,
+      HasPrevious = result.HasPrevious
     };
     Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
     return Ok(result);

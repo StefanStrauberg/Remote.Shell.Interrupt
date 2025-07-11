@@ -6,6 +6,7 @@ import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { TfPlansResponse } from "../api/tfPlans/TfPlansResponse";
 import { buildTfPlansParams } from "../api/tfPlans/buildTfPlansParams";
+import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
 
 export const useTfPlans = (
   pagination: PaginationParams,
@@ -36,14 +37,7 @@ export const useTfPlans = (
 
   return {
     tfPlans: tfPlansResponse?.data ?? [],
-    pagination: tfPlansResponse?.pagination ?? {
-      TotalPages: 0,
-      CurrentPage: 0,
-      PageSize: 0,
-      TotalCount: 0,
-      HasNext: false,
-      HasPrevious: false,
-    },
+    pagination: tfPlansResponse?.pagination ?? DEFAULT_PAGINATION,
     isLoading,
   };
 };

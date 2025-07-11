@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// <summary>
 /// Handles API requests related to SPRVlan entities.
 /// </summary>
-public class SPRVlansController : BaseAPIController
+public class SPRVlansController(ISender sender) : BaseAPIController(sender)
 {
   /// <summary>
   /// Retrieves a filtered and paginated list of SPRVlan records based on the provided query parameters.
@@ -19,16 +19,15 @@ public class SPRVlansController : BaseAPIController
   public async Task<IActionResult> GetSPRVlansByFilter([FromQuery] RequestParameters requestParameters,
                                                        CancellationToken cancellationToken)
   {
-    var result = await Sender.Send(new GetSPRVlansByFilterQuery(requestParameters),
-                                   cancellationToken);
-    var metadata = new
+    var result = await Sender.Send(new GetSPRVlansByFilterQuery(requestParameters), cancellationToken);
+    var metadata = new PaginationMetadata()
     {
-      result.TotalCount,
-      result.PageSize,
-      result.CurrentPage,
-      result.TotalPages,
-      result.HasNext,
-      result.HasPrevious
+      TotalCount = result.TotalCount,
+      PageSize = result.PageSize,
+      CurrentPage = result.CurrentPage,
+      TotalPages = result.TotalPages,
+      HasNext = result.HasNext,
+      HasPrevious = result.HasPrevious
     };
     Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
     return Ok(result);

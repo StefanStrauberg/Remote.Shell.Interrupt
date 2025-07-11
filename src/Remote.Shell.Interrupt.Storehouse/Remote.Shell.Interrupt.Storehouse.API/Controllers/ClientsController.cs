@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// <summary>
 /// Provides API endpoints for querying, updating, and deleting client entities.
 /// </summary>
-public class ClientsController : BaseAPIController
+public class ClientsController(ISender sender) : BaseAPIController(sender)
 {
   /// <summary>
   /// Retrieves a paginated list of client summaries based on filter criteria.
@@ -20,14 +20,14 @@ public class ClientsController : BaseAPIController
                                                       CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetClientsByFilterQuery(requestParameters), cancellationToken);
-    var metadata = new
+    var metadata = new PaginationMetadata()
     {
-      result.TotalCount,
-      result.PageSize,
-      result.CurrentPage,
-      result.TotalPages,
-      result.HasNext,
-      result.HasPrevious
+      TotalCount = result.TotalCount,
+      PageSize = result.PageSize,
+      CurrentPage = result.CurrentPage,
+      TotalPages = result.TotalPages,
+      HasNext = result.HasNext,
+      HasPrevious = result.HasPrevious
     };
     Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
     return Ok(result);
@@ -48,14 +48,14 @@ public class ClientsController : BaseAPIController
                                                                   CancellationToken cancellationToken)
   {
     var result = await Sender.Send(new GetClientsWithChildrenByFilterQuery(requestParameters), cancellationToken);
-    var metadata = new
+    var metadata = new PaginationMetadata()
     {
-      result.TotalCount,
-      result.PageSize,
-      result.CurrentPage,
-      result.TotalPages,
-      result.HasNext,
-      result.HasPrevious
+      TotalCount = result.TotalCount,
+      PageSize = result.PageSize,
+      CurrentPage = result.CurrentPage,
+      TotalPages = result.TotalPages,
+      HasNext = result.HasNext,
+      HasPrevious = result.HasPrevious
     };
     Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
     return Ok(result);
