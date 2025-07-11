@@ -4,7 +4,9 @@ import agent from "../api/agent";
 import { SprVlan } from "../types/SPRVlans/SprVlan";
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
-import { buildTfPlansParams } from "../api/tfPlans/buildTfPlansParams";
+import { buildRequestParams } from "../api/common/buildRequestParams";
+import { SPRVlansResponse } from "../api/sprVlans/SPRVlansResponse";
+import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
 
 export const useSPRVlans = (
   pagination: PaginationParams,
@@ -15,10 +17,10 @@ export const useSPRVlans = (
 
   const queryKey = ["sprVlans", pageNumber, pageSize, JSON.stringify(filters)];
 
-  const { data: sprVlansResponse, isLoading } = useQuery({
+  const { data: sprVlansResponse, isLoading } = useQuery<SPRVlansResponse>({
     queryKey,
     queryFn: async () => {
-      const params = buildTfPlansParams(pagination, filters);
+      const params = buildRequestParams(pagination, filters);
 
       const response = await agent.get<SprVlan[]>(
         "/api/SPRVlans/GetSPRVlansByFilter",
@@ -36,14 +38,7 @@ export const useSPRVlans = (
 
   return {
     sprVlans: sprVlansResponse?.data ?? [],
-    pagination: sprVlansResponse?.pagination ?? {
-      TotalPages: 0,
-      CurrentPage: 0,
-      PageSize: 0,
-      TotalCount: 0,
-      HasNext: false,
-      HasPrevious: false,
-    },
+    pagination: sprVlansResponse?.pagination ?? DEFAULT_PAGINATION,
     isLoading,
   };
 };

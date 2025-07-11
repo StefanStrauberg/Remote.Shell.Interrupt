@@ -1,7 +1,7 @@
 import { FilterDescriptor } from "../../types/Common/FilterDescriptor";
 import { PaginationParams } from "../../types/Common/PaginationParams";
 
-export function buildTfPlansParams(
+export function buildRequestParams(
   pagination: PaginationParams,
   filters: FilterDescriptor[] = []
 ): Record<string, string | number> {

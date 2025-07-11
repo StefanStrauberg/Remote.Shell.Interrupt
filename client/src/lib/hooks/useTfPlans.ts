@@ -5,7 +5,7 @@ import { useLocation } from "react-router";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { TfPlansResponse } from "../api/tfPlans/TfPlansResponse";
-import { buildTfPlansParams } from "../api/tfPlans/buildTfPlansParams";
+import { buildRequestParams } from "../api/common/buildRequestParams";
 import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
 
 export const useTfPlans = (
@@ -20,7 +20,7 @@ export const useTfPlans = (
   const { data: tfPlansResponse, isLoading } = useQuery<TfPlansResponse>({
     queryKey,
     queryFn: async () => {
-      const params = buildTfPlansParams(pagination, filters);
+      const params = buildRequestParams(pagination, filters);
 
       const response = await agent.get<TfPlan[]>(
         "/api/TfPlans/GetTfPlansByFilter",
