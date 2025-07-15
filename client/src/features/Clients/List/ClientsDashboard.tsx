@@ -2,24 +2,23 @@ import { Grid2 } from "@mui/material";
 import ClientListPage from "./ClientListPage";
 import ClientListFilter from "./ClientListFilter";
 import { useState } from "react";
-import { ClientFilter } from "../../../lib/types/Clients/ClientFilter";
 import { useClients } from "../../../lib/hooks/useClients";
 import EmptyPage from "../../../app/shared/components/EmptyPage";
+import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DefaultFiltersClients";
+import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 
 export default function ClientsDashboard() {
-  const [filters, setFilters] = useState<ClientFilter>({
-    Working: { op: "==", value: true },
-  });
+  const [filters, setFilters] = useState<FilterDescriptor[]>(
+    DEFAULT_FILTERS_Clients
+  );
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 10;
-
   const { clients, pagination, isLoadingClients } = useClients(
-    pageNumber,
-    pageSize,
+    { pageNumber, pageSize },
     filters
   );
 
-  const handleApplyFilters = (newFilters: ClientFilter) => {
+  const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
     setPageNumber(1); // сбросить страницу
   };

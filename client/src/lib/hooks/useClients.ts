@@ -7,14 +7,18 @@ import {
 import { ClientShort } from "../types/Clients/ClientShort";
 import agent from "../api/agent";
 import { Client } from "../types/Clients/Client";
-import { ClientFilter } from "../types/Clients/ClientFilter";
 import { useLocation } from "react-router";
-import { PaginationMetadata } from "../types/Common/PaginationMetadata";
+import {
+  DEFAULT_PAGINATION,
+  PaginationMetadata,
+} from "../types/Common/PaginationMetadata";
+import { PaginationParams } from "../types/Common/PaginationParams";
+import { FilterDescriptor } from "../types/Common/FilterDescriptor";
+import { buildRequestParams } from "../api/common/buildRequestParams";
 
 export const useClients = (
-  pageNumber: number = 1,
-  pageSize: number = 10,
-  filters: ClientFilter = {},
+  pagination: PaginationParams,
+  filters: FilterDescriptor[] = [],
   id?: string | number
 ): {
   clients: ClientShort[];
@@ -25,27 +29,22 @@ export const useClients = (
   updateClients: UseMutationResult<void, unknown, void, unknown>;
   deleteClients: UseMutationResult<void, Error, void, unknown>;
 } => {
-  const queryClient = useQueryClient();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const isGuid =
     typeof id === "string" && /^[0-9a-fA-F-]{36}$/.test(id.toString());
+  const { pageNumber, pageSize } = pagination;
+  const queryKey = ["clients", pageNumber, pageSize, JSON.stringify(filters)];
 
   const { data: clientsResponse, isLoading: isLoadingClients } = useQuery({
-    queryKey: ["clients", pageNumber, pageSize, filters],
+    queryKey,
     queryFn: async () => {
-      // Преобразуем фильтры в строку Sieve-формата: e.g. "Name@=John,Working==true"
-      const filterString =
-        Object.entries(filters)
-          .filter(([, { op, value }]) => op && value) // Исключаем пустые значения
-          .map(([key, { op, value }]) => `${key}${op}${value}`)
-          .join(",") || ""; // Если фильтры пустые, возвращаем пустую строку
-
-      console.log(filterString);
+      const params = buildRequestParams(pagination, filters);
 
       const response = await agent.get<ClientShort[]>(
-        "/api/Clients/GetShortClients",
+        "/api/Clients/GetClientsByFilter",
         {
-          params: { pageNumber, pageSize, Filters: filterString },
+          params,
         }
       );
       return {
@@ -93,10 +92,7 @@ export const useClients = (
 
   return {
     clients: clientsResponse?.data ?? [],
-    pagination: clientsResponse?.pagination ?? {
-      TotalPages: 0,
-      CurrentPage: 0,
-    },
+    pagination: clientsResponse?.pagination ?? DEFAULT_PAGINATION,
     isLoadingClients,
     clientById: clientById,
     isLoadingById: isLoadingById,
