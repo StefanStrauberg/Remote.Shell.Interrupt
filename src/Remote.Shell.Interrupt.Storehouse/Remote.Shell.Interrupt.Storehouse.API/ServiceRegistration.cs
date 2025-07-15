@@ -30,13 +30,12 @@ public static class ServiceRegistration
     // Cross-cutting concerns
     builder.Services.AddCors(options =>
                     {
-                      options.AddPolicy("CorsPolicy",
-                                            builder => builder.AllowAnyOrigin()
-                                                              .AllowAnyHeader()
-                                                              .AllowAnyMethod()
-                                                              .WithExposedHeaders("X-Pagination"));
+                      options.AddPolicy(DefaultEntities.CorsPolicyName,
+                                        builder => builder.AllowAnyOrigin()
+                                                          .AllowAnyHeader()
+                                                          .AllowAnyMethod()
+                                                          .WithExposedHeaders(DefaultEntities.ExposedHeaders));
                     });
-    Log.Debug("Dependency injection registration completed.");
   }
 
   /// <summary>
@@ -45,7 +44,7 @@ public static class ServiceRegistration
   /// <param name="app">The web application instance to configure.</param>
   public static void ConfigurePipeline(this WebApplication app)
   {
-    app.UseCors("CorsPolicy");
+    app.UseCors(DefaultEntities.CorsPolicyName);
 
     // Development-specific middleware
     app.UseSwagger();

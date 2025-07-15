@@ -1,7 +1,7 @@
 Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
                                       .Enrich.FromLogContext()
                                       .WriteTo.Console()
-                                      .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+                                      .WriteTo.File(DefaultEntities.LoggingTo, rollingInterval: RollingInterval.Day)
                                       .CreateLogger();
 
 try

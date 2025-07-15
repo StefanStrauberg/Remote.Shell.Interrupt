@@ -30,15 +30,13 @@ export default function SPRVlanListPage({
   pagination,
   setPageNumber,
 }: Props) {
-  // Loading state
   if (!sprVlans || isPending) return <Typography>Загрузка ...</Typography>;
 
-  // Handle page change
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
-    setPageNumber(value); // Update the page number
+    setPageNumber(value);
   };
 
   return (

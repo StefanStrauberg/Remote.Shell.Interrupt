@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
@@ -12,25 +13,90 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { FilterList } from "@mui/icons-material";
+import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 
-type Props = {
-  onApplyFilters: (filters: SPRVlanFilter) => void;
+type SPRVlanListFilterProps = {
+  onApplyFilters: (filters: FilterDescriptor[]) => void;
+  initialFilters?: FilterDescriptor[];
+  onResetFilters?: () => void;
 };
 
-export default function SPRVlanListFilter({ onApplyFilters }: Props) {
-  const [idVlan, setIdVlan] = useState<number>(0);
-  const [idClient, setIdClient] = useState<number>(0);
-  const [useClient, setUseClient] = useState<boolean>(true);
-  const [useCOD, setUseCOD] = useState<boolean>(false);
+export default function SPRVlanListFilter({
+  onApplyFilters,
+  initialFilters = [],
+  onResetFilters,
+}: SPRVlanListFilterProps) {
+  // Parse initial filters
+  const getInitialBoolean = (
+    property: string,
+    defaultValue: boolean
+  ): boolean => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? filter.Value === "true" : defaultValue;
+  };
 
-  const handleApplyClick = () => {
-    const filters: SPRVlanFilter = {};
-    if (idVlan) filters.IdVlan = { op: "==", value: idVlan };
-    if (idClient) filters.IdClient = { op: "==", value: idClient };
-    if (useClient) filters.UseClient = { op: "==", value: useClient };
-    if (useCOD) filters.UseCOD = { op: "==", value: useCOD };
+  const getInitialNumber = (property: string, defaultValue: number): number => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? parseInt(filter.Value) || defaultValue : defaultValue;
+  };
+
+  // Form state
+  const [idVlan, setIdVlan] = useState<number>(getInitialNumber("IdVlan", 0));
+  const [idClient, setIdClient] = useState<number>(
+    getInitialNumber("IdClient", 0)
+  );
+  const [useClient, setUseClient] = useState<boolean>(
+    getInitialBoolean("UseClient", true)
+  );
+  const [useCOD, setUseCOD] = useState<boolean>(
+    getInitialBoolean("UseCOD", false)
+  );
+
+  const createFilter = (
+    property: string,
+    operator: string,
+    value: string | number | boolean
+  ): FilterDescriptor => ({
+    PropertyPath: property,
+    Operator: operator,
+    Value: String(value),
+  });
+
+  const handleApply = () => {
+    const filters: FilterDescriptor[] = [
+      createFilter("UseClient", "Equals", useClient),
+      createFilter("UseCOD", "Equals", useCOD),
+      ...(idVlan !== 0 ? [createFilter("IdVlan", "Equals", idVlan)] : []),
+      ...(idClient !== 0 ? [createFilter("IdClient", "Equals", idClient)] : []),
+    ];
     onApplyFilters(filters);
   };
+
+  const handleReset = () => {
+    // Сбрасываем локальное состояние
+    setIdVlan(0);
+    setIdClient(0);
+    setUseClient(true);
+    setUseCOD(false);
+
+    // Сбрасываем фильтры на начальные
+    const defaultFilters: FilterDescriptor[] = [
+      { PropertyPath: "UseClient", Operator: "Equals", Value: "true" },
+    ];
+    onApplyFilters(defaultFilters);
+
+    // Вызываем дополнительный callback если он передан
+    onResetFilters?.();
+  };
+
+  const handleNumberChange =
+    (setter: React.Dispatch<React.SetStateAction<number>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (value === "" || /^\d*$/.test(value)) {
+        setter(parseInt(value) || 0);
+      }
+    };
 
   return (
     <Card
@@ -52,12 +118,7 @@ export default function SPRVlanListFilter({ onApplyFilters }: Props) {
           <TextField
             label="Id влана"
             value={idVlan.toString() || ""}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              if (!isNaN(Number(newValue))) {
-                setIdVlan(Number(newValue)); // Преобразуем введенное значение в число
-              }
-            }}
+            onChange={handleNumberChange(setIdVlan)}
             variant="outlined"
             fullWidth
             type="number" // Устанавливаем тип поля как "number"
@@ -68,12 +129,7 @@ export default function SPRVlanListFilter({ onApplyFilters }: Props) {
           <TextField
             label="Id клиента"
             value={idClient.toString() || ""}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              if (!isNaN(Number(newValue))) {
-                setIdClient(Number(newValue)); // Преобразуем введенное значение в число
-              }
-            }}
+            onChange={handleNumberChange(setIdClient)}
             variant="outlined"
             fullWidth
             type="number" // Устанавливаем тип поля как "number"
@@ -107,13 +163,14 @@ export default function SPRVlanListFilter({ onApplyFilters }: Props) {
             </Grid2>
           </Grid2>
           <Divider />
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleApplyClick}
-          >
-            Применить
-          </Button>
+          <ButtonGroup>
+            <Button variant="contained" color="info" onClick={handleReset}>
+              Сбросить
+            </Button>
+            <Button variant="contained" color="success" onClick={handleApply}>
+              Применить
+            </Button>
+          </ButtonGroup>
         </Box>
       </CardContent>
     </Card>

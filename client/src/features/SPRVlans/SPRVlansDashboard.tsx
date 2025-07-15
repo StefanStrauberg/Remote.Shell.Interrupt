@@ -2,23 +2,29 @@ import { Grid2 } from "@mui/material";
 import SPRVlanListPage from "./SPRVlanListPage";
 import { useState } from "react";
 import { useSPRVlans } from "../../lib/hooks/useSPRVlans";
-import SPRVlanListFilter from "./SPRVlanListFilter";
 import EmptyPage from "../../app/shared/components/EmptyPage";
+import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
+import SPRVlanListFilter from "./SPRVlanListFilter";
+import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DefaultFiltersSPRVlans";
 
 export default function SPRVlansDashboard() {
-  const [filters, setFilters] = useState<SPRVlanFilter>();
-
+  const [filters, setFilters] = useState<FilterDescriptor[]>(
+    DEFAULT_FILTERS_SPRVlans
+  );
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 15;
-
-  // Hook for fetching data
   const { sprVlans, pagination, isLoading } = useSPRVlans(
     { pageNumber, pageSize },
     filters
   );
 
-  const handleApplyFilters = (newFilters: SPRVlanFilter) => {
+  const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
+    setPageNumber(1); // Reset to first page when filters change
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS_SPRVlans);
     setPageNumber(1);
   };
 
@@ -30,7 +36,11 @@ export default function SPRVlansDashboard() {
             <EmptyPage input="Вланы не найдены" />
           </Grid2>
           <Grid2 size={3}>
-            <SPRVlanListFilter onApplyFilters={handleApplyFilters} />
+            <SPRVlanListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_SPRVlans}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       ) : (
@@ -45,7 +55,12 @@ export default function SPRVlansDashboard() {
             />
           </Grid2>
           <Grid2 size={3}>
-            <SPRVlanListFilter onApplyFilters={handleApplyFilters} />
+            <SPRVlanListFilter
+              onApplyFilters={(newFilters) => {
+                setFilters(newFilters);
+                setPageNumber(1);
+              }}
+            />
           </Grid2>
         </Grid2>
       )}
