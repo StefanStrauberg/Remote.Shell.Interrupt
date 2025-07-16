@@ -1,30 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
 import { Gate } from "../types/Gates/Gate";
-import { GateFilter } from "../types/Gates/GateFilter";
 import { useLocation } from "react-router";
+import { PaginationParams } from "../types/Common/PaginationParams";
+import { FilterDescriptor } from "../types/Common/FilterDescriptor";
+import { buildRequestParams } from "../api/common/buildRequestParams";
+import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
 
 export const useGates = (
-  pageNumber: number = 1,
-  pageSize: number = 10,
-  filters: GateFilter = {},
+  pagination: PaginationParams,
+  filters: FilterDescriptor[] = [],
   id?: string
 ) => {
   const queryClient = useQueryClient();
   const location = useLocation();
+  const { pageNumber, pageSize } = pagination;
+  const queryKey = ["gates", pageNumber, pageSize, JSON.stringify(filters)];
 
   const { data: gatesResponse, isPending } = useQuery({
-    queryKey: ["gates", pageNumber, pageSize, filters],
+    queryKey,
     queryFn: async () => {
-      // Преобразуем фильтры в строку Sieve-формата: e.g. "Name@=John,Working==true"
-      const filterString = Object.entries(filters)
-        .map(([key, { op, value }]) => `${key}${op}${value}`)
-        .join(",");
+      const params = buildRequestParams(pagination, filters);
 
-      console.log(filterString);
-
-      const response = await agent.get<Gate[]>("/api/Gates/GetGates", {
-        params: { pageNumber, pageSize, Filters: filterString },
+      const response = await agent.get<Gate[]>("/api/Gates/GetGatesByFilter", {
+        params,
       });
       return {
         data: response.data,
@@ -80,10 +79,7 @@ export const useGates = (
 
   return {
     gates: gatesResponse?.data ?? [],
-    pagination: gatesResponse?.pagination ?? {
-      totalPages: 0,
-      currentPage: 0,
-    },
+    pagination: gatesResponse?.pagination ?? DEFAULT_PAGINATION,
     isPending,
     gate,
     isLoadingGate,

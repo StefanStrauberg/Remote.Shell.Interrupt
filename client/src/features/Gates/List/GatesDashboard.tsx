@@ -2,24 +2,30 @@ import { Grid2 } from "@mui/material";
 import GateListPage from "./GateListPage";
 import GateListFilter from "./GateListFilter";
 import { useGates } from "../../../lib/hooks/useGates";
-import { GateFilter } from "../../../lib/types/Gates/GateFilter";
 import { useState } from "react";
 import EmptyPage from "../../../app/shared/components/EmptyPage";
+import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
+import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DefaultFiltersGates";
 
 export default function GatesDashboard() {
-  const [filters, setFilters] = useState<GateFilter>({});
+  const [filters, setFilters] = useState<FilterDescriptor[]>(
+    DEFAULT_FILTERS_Gates
+  );
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 10;
-
   const { gates, pagination, isPending } = useGates(
-    pageNumber,
-    pageSize,
+    { pageNumber, pageSize },
     filters
   );
 
-  const handleApplyFilters = (newFilters: GateFilter) => {
+  const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
     setPageNumber(1); // сбросить страницу
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS_Gates);
+    setPageNumber(1);
   };
 
   return (
@@ -30,7 +36,11 @@ export default function GatesDashboard() {
             <EmptyPage input="Маршрутизаторы не найдены" />
           </Grid2>
           <Grid2 size={3}>
-            <GateListFilter onApplyFilters={handleApplyFilters} />
+            <GateListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_Gates}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       ) : (
@@ -45,7 +55,11 @@ export default function GatesDashboard() {
             />
           </Grid2>
           <Grid2 size={3}>
-            <GateListFilter onApplyFilters={handleApplyFilters} />
+            <GateListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_Gates}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       )}

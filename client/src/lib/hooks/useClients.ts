@@ -15,6 +15,7 @@ import {
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
+import { ClientsResponse } from "../api/Clients/ClientsResponse";
 
 export const useClients = (
   pagination: PaginationParams,
@@ -36,27 +37,28 @@ export const useClients = (
   const { pageNumber, pageSize } = pagination;
   const queryKey = ["clients", pageNumber, pageSize, JSON.stringify(filters)];
 
-  const { data: clientsResponse, isLoading: isLoadingClients } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const params = buildRequestParams(pagination, filters);
+  const { data: clientsResponse, isLoading: isLoadingClients } =
+    useQuery<ClientsResponse>({
+      queryKey,
+      queryFn: async () => {
+        const params = buildRequestParams(pagination, filters);
 
-      const response = await agent.get<ClientShort[]>(
-        "/api/Clients/GetClientsByFilter",
-        {
-          params,
-        }
-      );
-      return {
-        data: response.data,
-        pagination: JSON.parse(response.headers["x-pagination"]),
-      };
-    },
-    enabled: !id && location.pathname === "/clients",
-  });
+        const response = await agent.get<ClientShort[]>(
+          "/api/Clients/GetClientsByFilter",
+          {
+            params,
+          }
+        );
+        return {
+          data: response.data,
+          pagination: JSON.parse(response.headers["x-pagination"]),
+        };
+      },
+      enabled: !id && location.pathname === "/clients",
+    });
 
   // Get client by ID
-  const { data: clientById, isLoading: isLoadingById } = useQuery({
+  const { data: clientById, isLoading: isLoadingById } = useQuery<Client>({
     queryKey: ["clients", id],
     queryFn: async () => {
       const endpoint = isGuid
