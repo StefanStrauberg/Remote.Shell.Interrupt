@@ -17,10 +17,15 @@ import ClientDetailTechnicalContact from "./ClientDetailTechnicalContact";
 import ClientDetailHistory from "./ClientDetailHistory";
 import ClientDetailCOD from "./ClientDetailCOD";
 import ClientDetailSPRVlans from "./ClientDetailSPRVlans";
+import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/PaginationParams";
 
 export default function ClientDetailPage() {
   const { id } = useParams();
-  const { clientById, isLoadingById } = useClients(0, 0, {}, id);
+  const { clientById, isLoadingById } = useClients(
+    DEFAULT_PAGINATION_PARAMS,
+    [],
+    id
+  );
 
   if (isLoadingById) return <Typography>Loading...</Typography>;
 
