@@ -14,6 +14,8 @@ import {
 import { useState } from "react";
 import { FilterList } from "@mui/icons-material";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
+import { FilterOperator } from "../../lib/types/Common/FilterOperator";
+import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DefaultFiltersSPRVlans";
 
 type SPRVlanListFilterProps = {
   onApplyFilters: (filters: FilterDescriptor[]) => void;
@@ -54,7 +56,7 @@ export default function SPRVlanListFilter({
 
   const createFilter = (
     property: string,
-    operator: string,
+    operator: FilterOperator,
     value: string | number | boolean
   ): FilterDescriptor => ({
     PropertyPath: property,
@@ -64,28 +66,25 @@ export default function SPRVlanListFilter({
 
   const handleApply = () => {
     const filters: FilterDescriptor[] = [
-      createFilter("UseClient", "Equals", useClient),
-      createFilter("UseCOD", "Equals", useCOD),
-      ...(idVlan !== 0 ? [createFilter("IdVlan", "Equals", idVlan)] : []),
-      ...(idClient !== 0 ? [createFilter("IdClient", "Equals", idClient)] : []),
+      createFilter("UseClient", FilterOperator.Equals, useClient),
+      createFilter("UseCOD", FilterOperator.Equals, useCOD),
+      ...(idVlan !== 0
+        ? [createFilter("IdVlan", FilterOperator.Equals, idVlan)]
+        : []),
+      ...(idClient !== 0
+        ? [createFilter("IdClient", FilterOperator.Equals, idClient)]
+        : []),
     ];
     onApplyFilters(filters);
   };
 
   const handleReset = () => {
-    // Сбрасываем локальное состояние
     setIdVlan(0);
     setIdClient(0);
     setUseClient(true);
     setUseCOD(false);
 
-    // Сбрасываем фильтры на начальные
-    const defaultFilters: FilterDescriptor[] = [
-      { PropertyPath: "UseClient", Operator: "Equals", Value: "true" },
-    ];
-    onApplyFilters(defaultFilters);
-
-    // Вызываем дополнительный callback если он передан
+    onApplyFilters(DEFAULT_FILTERS_SPRVlans);
     onResetFilters?.();
   };
 

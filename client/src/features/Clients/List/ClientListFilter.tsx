@@ -13,25 +13,77 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { ClientFilter } from "../../../lib/types/Clients/ClientFilter";
+import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
+import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
+import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DefaultFiltersClients";
 
-type Props = {
-  onApplyFilters: (filters: ClientFilter) => void;
+type ClientListFilterProps = {
+  onApplyFilters: (filters: FilterDescriptor[]) => void;
+  initialFilters?: FilterDescriptor[];
+  onResetFilters?: () => void;
 };
 
-export default function ClientListFilter({ onApplyFilters }: Props) {
-  const [name, setName] = useState<string>("");
-  const [nrDogovor, setNrDogovor] = useState<string>("");
-  const [working, setWorking] = useState<boolean>(true);
-  const [antiDDOS, setAntiDDOS] = useState<boolean>(false);
+export default function ClientListFilter({
+  onApplyFilters,
+  initialFilters = [],
+  onResetFilters,
+}: ClientListFilterProps) {
+  const getInitialBoolean = (
+    property: string,
+    defaultValue: boolean
+  ): boolean => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? filter.Value === "true" : defaultValue;
+  };
 
-  const handleApplyClick = () => {
-    const filters: ClientFilter = {};
-    if (name) filters.Name = { op: "~=", value: name };
-    if (nrDogovor) filters.NrDogovor = { op: "~=", value: nrDogovor };
-    if (working) filters.Working = { op: "==", value: working };
-    if (antiDDOS) filters.AntiDDOS = { op: "==", value: antiDDOS };
+  const getInitialString = (property: string, defaultValue: string): string => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? filter.Value : defaultValue;
+  };
+
+  const [name, setName] = useState<string>(getInitialString("Name", ""));
+  const [nrDogovor, setNrDogovor] = useState<string>(
+    getInitialString("NrDogovor", "")
+  );
+  const [working, setWorking] = useState<boolean>(
+    getInitialBoolean("Working", true)
+  );
+  const [antiDDOS, setAntiDDOS] = useState<boolean>(
+    getInitialBoolean("AntiDDOS", false)
+  );
+
+  const createFilter = (
+    property: string,
+    operator: FilterOperator,
+    value: string | boolean
+  ): FilterDescriptor => ({
+    PropertyPath: property,
+    Operator: operator,
+    Value: String(value),
+  });
+
+  const handleApply = () => {
+    const filters: FilterDescriptor[] = [
+      createFilter("Working", FilterOperator.Equals, working),
+      createFilter("AntiDDOS", FilterOperator.Equals, antiDDOS),
+      ...(name !== ""
+        ? [createFilter("Name", FilterOperator.Contains, name)]
+        : []),
+      ...(nrDogovor !== ""
+        ? [createFilter("NrDogovor", FilterOperator.Contains, nrDogovor)]
+        : []),
+    ];
     onApplyFilters(filters);
+  };
+
+  const handleReset = () => {
+    setName("");
+    setNrDogovor("");
+    setWorking(true);
+    setAntiDDOS(false);
+
+    onApplyFilters(DEFAULT_FILTERS_Clients);
+    onResetFilters?.();
   };
 
   return (
@@ -92,23 +144,10 @@ export default function ClientListFilter({ onApplyFilters }: Props) {
           </Grid2>
           <Divider />
           <ButtonGroup>
-            <Button
-              variant="contained"
-              color="info"
-              onClick={() => {
-                setName("");
-                setNrDogovor("");
-                setWorking(true);
-                setAntiDDOS(false);
-              }}
-            >
+            <Button variant="contained" color="info" onClick={handleReset}>
               Сбросить
             </Button>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleApplyClick}
-            >
+            <Button variant="contained" color="success" onClick={handleApply}>
               Применить
             </Button>
           </ButtonGroup>

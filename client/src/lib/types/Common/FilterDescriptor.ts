@@ -1,5 +1,7 @@
+import { FilterOperator } from "./FilterOperator";
+
 export type FilterDescriptor = {
   PropertyPath: string;
-  Operator: string;
+  Operator: FilterOperator;
   Value: string;
 };

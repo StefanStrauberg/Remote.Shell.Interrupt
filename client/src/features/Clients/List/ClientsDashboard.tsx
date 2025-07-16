@@ -20,7 +20,12 @@ export default function ClientsDashboard() {
 
   const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
-    setPageNumber(1); // сбросить страницу
+    setPageNumber(1); // Reset to first page when filters change
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS_Clients);
+    setPageNumber(1);
   };
 
   return (
@@ -31,7 +36,11 @@ export default function ClientsDashboard() {
             <EmptyPage input={"Клиенты не найдены"} />
           </Grid2>
           <Grid2 size={3}>
-            <ClientListFilter onApplyFilters={handleApplyFilters} />
+            <ClientListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_Clients}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       ) : (
@@ -46,7 +55,11 @@ export default function ClientsDashboard() {
             />
           </Grid2>
           <Grid2 size={3}>
-            <ClientListFilter onApplyFilters={handleApplyFilters} />
+            <ClientListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_Clients}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       )}
