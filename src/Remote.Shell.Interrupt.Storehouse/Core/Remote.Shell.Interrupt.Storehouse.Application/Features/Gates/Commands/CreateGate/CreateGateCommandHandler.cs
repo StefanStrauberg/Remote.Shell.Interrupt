@@ -1,51 +1,27 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.CreateGate;
 
 /// <summary>
-/// Defines a command for creating a new gate entity based on supplied DTO.
+/// Command for creating a new <see cref="Gate"/> entity using a <see cref="CreateGateDTO"/> payload.
 /// </summary>
-/// <param name="GateDto">Contains the input data for the gate creation process.</param>
-public record CreateGateCommand(CreateGateDTO GateDto) : ICommand<Unit>;
+public record CreateGateCommand(CreateGateDTO GateDto)
+  : CreateEntityCommand<CreateGateDTO>(GateDto);
 
 /// <summary>
-/// Handles <see cref="CreateGateCommand"/> by validating uniqueness,
-/// converting input to entity, and persisting the new gate.
+/// Handles creation of <see cref="Gate"/> entities using validation, filtering, and persistence logic.
+/// Leverages specifications to prevent duplicates based on IP address.
 /// </summary>
-/// <param name="gateUnitOfWork">Provides transactional access to gate persistence operations.</param>
-/// <param name="specification">Base specification used to build uniqueness checks.</param>
-/// <param name="queryFilterParser">Converts filter expressions into executable predicates.</param>
-/// <param name="mapper">Maps data transfer objects to domain entities.</param>
 internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
                                         IGateSpecification specification,
                                         IQueryFilterParser queryFilterParser,
                                         IMapper mapper)
-  : ICommandHandler<CreateGateCommand, Unit>
+  : CreateEntityCommandHandler<Gate, CreateGateDTO, CreateGateCommand>(specification, mapper)
 {
   /// <summary>
-  /// Executes the create gate workflow—checks for duplication, transforms DTO, and persists.
+  /// Constructs a filter expression to identify existing gates with a matching IP address.
   /// </summary>
-  /// <param name="request">Contains the gate creation input.</param>
-  /// <param name="cancellationToken">Propagates cancellation signals from upstream.</param>
-  /// <returns><see cref="Unit.Value"/> upon successful completion.</returns>
-  public async Task<Unit> Handle(CreateGateCommand request,
-                                 CancellationToken cancellationToken)
-  {
-    var ipAddressFilter = BuildIpAddressFilter(request.GateDto.IPAddress);
-    var specification = BuildSpecification(ipAddressFilter);
-
-    await EnsureGateDoesNotExistAsync(specification, cancellationToken);
-
-    var newGate = MapToEntity(request.GateDto);
-    PersistNewGate(newGate);
-
-    return Unit.Value;
-  }
-
-  /// <summary>
-  /// Constructs a predicate expression using IP address.
-  /// </summary>
-  /// <param name="ipAddress">The IP address to filter by.</param>
-  /// <returns>Expression representing the IP-based filter condition.</returns>
-  Expression<Func<Gate, bool>>? BuildIpAddressFilter(string ipAddress)
+  /// <param name="createDto">The DTO containing gate creation data.</param>
+  /// <returns>A LINQ expression for uniqueness filtering.</returns>
+  protected override Expression<Func<Gate, bool>>? BuildDuplicateCheckFilter(CreateGateDTO createDto)
     => queryFilterParser.ParseFilters<Gate>(new RequestParameters
     {
       Filters =
@@ -54,34 +30,19 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
           {
               PropertyPath = "IPAddress",
               Operator = FilterOperator.Equals,
-              Value = ipAddress
+              Value = createDto.IPAddress
           }
         ]
     }.Filters);
 
   /// <summary>
-  /// Builds a specification object that includes optional filter logic.
+  /// Ensures that no gate entity already exists matching the specified filter.
+  /// Throws <see cref="EntityAlreadyExists"/> if a duplicate is detected.
   /// </summary>
-  /// <param name="filterExpr">An expression predicate for entity filtering.</param>
-  /// <returns>A specification configured with the provided filter.</returns>
-  ISpecification<Gate> BuildSpecification(Expression<Func<Gate, bool>>? filterExpr)
-  {
-    var spec = specification.Clone();
-
-    if (filterExpr is not null)
-      spec.AddFilter(filterExpr);
-
-    return spec;
-  }
-
-  /// <summary>
-  /// Validates that no existing gate matches the provided specification.
-  /// </summary>
-  /// <param name="specification">Specification used for gate uniqueness check.</param>
-  /// <param name="cancellationToken">Supports cancellation of the async operation.</param>
-  /// <exception cref="EntityAlreadyExists">Thrown if a gate with the same filter already exists.</exception>
-  async Task EnsureGateDoesNotExistAsync(ISpecification<Gate> specification,
-                                         CancellationToken cancellationToken)
+  /// <param name="specification">The specification used to check for duplicates.</param>
+  /// <param name="cancellationToken">Token to cancel the operation if needed.</param>
+  protected override async Task ValidateEntityDoesNotExistAsync(ISpecification<Gate> specification,
+                                                                CancellationToken cancellationToken)
   {
     bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
 
@@ -90,18 +51,10 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
   }
 
   /// <summary>
-  /// Maps a gate creation DTO to its domain entity counterpart.
+  /// Persists the newly mapped gate entity to the underlying data store.
   /// </summary>
-  /// <param name="gateDto">DTO carrying gate input data.</param>
-  /// <returns>A <see cref="Gate"/> entity ready for persistence.</returns>
-  Gate MapToEntity(CreateGateDTO gateDto)
-    => mapper.Map<Gate>(gateDto);
-
-  /// <summary>
-  /// Persists a newly created gate to the database and completes the transaction.
-  /// </summary>
-  /// <param name="gate">The new gate entity to store.</param>
-  void PersistNewGate(Gate gate)
+  /// <param name="gate">The gate entity to insert.</param>
+  protected override void PersistNewEntity(Gate gate)
   {
     gateUnitOfWork.Gates.InsertOne(gate);
     gateUnitOfWork.Complete();

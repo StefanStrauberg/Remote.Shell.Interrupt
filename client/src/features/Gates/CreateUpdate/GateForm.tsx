@@ -8,14 +8,14 @@ import { useEffect } from "react";
 import TextInput from "../../../app/shared/components/TextImput";
 import SelectInput from "../../../app/shared/components/SelectInput";
 import { typeOfNetworkDeviceOptions } from "../../../lib/types/Gates/typeOfNetworkDeviceOptions";
+import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/PaginationParams";
 
 export default function GateForm() {
   const { id } = useParams();
   const navigate = useNavigate(); // Initialize useNavigate hook
   const { updateGate, createGate, gate, isLoadingGate } = useGates(
-    0,
-    0,
-    {},
+    DEFAULT_PAGINATION_PARAMS,
+    [],
     id
   );
 

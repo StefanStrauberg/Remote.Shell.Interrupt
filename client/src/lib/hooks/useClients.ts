@@ -63,7 +63,7 @@ export const useClients = (
     queryFn: async () => {
       const endpoint = isGuid
         ? `/api/Clients/GetClientById/${id}`
-        : `/api/Clients/GetClientByIdClient/${id}`;
+        : `/api/Clients/GetClientWithChildrenByFilter/?Filters[0].PropertyPath=IdClient&Filters[0].Operator=Equals&Filters[0].Value=${id}`;
       const response = await agent.get<Client>(endpoint);
       return response.data;
     },

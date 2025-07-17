@@ -53,3 +53,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Que
 global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;

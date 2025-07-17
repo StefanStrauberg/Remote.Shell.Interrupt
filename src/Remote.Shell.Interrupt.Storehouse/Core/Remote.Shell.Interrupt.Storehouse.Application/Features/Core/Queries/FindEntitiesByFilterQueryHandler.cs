@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 /// </summary>
 /// <param name="Parameters">The request parameters containing filtering and pagination logic.</param>
 public abstract record FindEntitiesByFilterQuery<TResponse>(RequestParameters Parameters)
-    : IQuery<PagedList<TResponse>>;
+  : IQuery<PagedList<TResponse>>;
 
 /// <summary>
 /// Provides a base handler for executing filtered and paginated queries.
