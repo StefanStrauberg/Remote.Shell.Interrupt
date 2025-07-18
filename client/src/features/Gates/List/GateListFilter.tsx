@@ -80,7 +80,7 @@ export default function GateListFilter({
         ? [
             createFilter(
               "TypeOfNetworkDevice",
-              FilterOperator.Contains,
+              FilterOperator.Equals,
               typeOfNetworkDevice
             ),
           ]
