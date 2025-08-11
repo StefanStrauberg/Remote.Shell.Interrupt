@@ -15,4 +15,15 @@ public interface IQueryFilterParser
   /// or <c>null</c> if the filter list is empty or invalid.
   /// </returns>
   Expression<Func<T, bool>>? ParseFilters<T>(List<FilterDescriptor>? filters);
+
+/// <summary>
+  /// Parses a property name into a LINQ expression for sorting entities.
+  /// </summary>
+  /// <typeparam name="T">The type of entity to sort.</typeparam>
+  /// <param name="propertyName">The name of the property to sort by.</param>
+  /// <returns>
+  /// A LINQ expression representing the property accessor for sorting,
+  /// or <c>null</c> if the property name is null or invalid.
+  /// </returns>
+  Expression<Func<T, Object>>? ParseOrderBy<T>(string? propertyName);
 }

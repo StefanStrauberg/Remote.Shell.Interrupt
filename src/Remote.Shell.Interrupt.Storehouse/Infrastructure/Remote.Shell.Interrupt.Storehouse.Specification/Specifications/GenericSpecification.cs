@@ -1,17 +1,24 @@
-using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
-
 namespace Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase : BaseEntity
 {
-
+  // Includes
   protected readonly List<IIncludeChain<TBase>> _includeChains = [];
 
-  protected Expression<Func<TBase, bool>>? _criteria = null;
+  // Filters
+  protected Expression<Func<TBase, bool>>? _criteria;
 
+  // OrderBy
+  protected Expression<Func<TBase, object>>? _orderBy;
+  protected Expression<Func<TBase, object>>? _orderByDescending;
+
+  // Properties
   public Expression<Func<TBase, bool>>? Criterias => _criteria;
 
-  public IReadOnlyList<IIncludeChain<TBase>> IncludeChains => [.. _includeChains];
+  public IReadOnlyList<IIncludeChain<TBase>> IncludeChains => _includeChains.AsReadOnly();
+
+  public Expression<Func<TBase, object>>? OrderBy => _orderBy;
+  public Expression<Func<TBase, object>>? OrderByDescending => _orderByDescending;
 
   public int Take { get; protected set; }
 
@@ -19,15 +26,42 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> AddFilter(Expression<Func<TBase, bool>> criteria)
   {
-    if (criteria == null)
+    if (criteria is null)
       return this;
 
-    if (_criteria == null)
-      _criteria = criteria;
-    else
-      _criteria = CombineExpressions(_criteria, criteria);
+    _criteria = _criteria is null ? criteria : CombineExpressions(_criteria, criteria);
 
     return this;
+  }
+
+  public virtual ISpecification<TBase> AddOrderBy<TKey>(Expression<Func<TBase, TKey>> orderByExpression)
+  {
+    if (orderByExpression is not null)
+    {
+      _orderBy = ConvertToObjectExpression(orderByExpression);
+      _orderByDescending = null;
+    }
+
+    return this;
+  }
+
+  public virtual ISpecification<TBase> AddOrderByDescending<TKey>(Expression<Func<TBase, TKey>> orderByExpression)
+  {
+    if (orderByExpression != null)
+    {
+      _orderByDescending = ConvertToObjectExpression(orderByExpression);
+      _orderBy = null;
+    }
+
+    return this;
+  }
+
+  static Expression<Func<TBase, object>> ConvertToObjectExpression<TKey>(Expression<Func<TBase, TKey>> expression)
+  {
+    var param = expression.Parameters[0];
+    var body = Expression.Convert(expression.Body, typeof(object));
+
+    return Expression.Lambda<Func<TBase, object>>(body, param);
   }
 
   static Expression<Func<TBase, bool>> CombineExpressions(Expression<Func<TBase, bool>> expr1,
@@ -59,7 +93,7 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     return this;
   }
 
-  public ISpecification<TBase> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
+  public virtual ISpecification<TBase> AddThenInclude<TPrevious, TProperty>(Expression<Func<TPrevious, TProperty>> thenInclude)
   {
     if (_includeChains.Count == 0)
       throw new InvalidOperationException("No Include found to apply ThenInclude");
@@ -85,14 +119,15 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     {
       Take = Take,
       Skip = Skip,
-      _criteria = this._criteria // Expression trees are immutable and safe to reference
+      _criteria = this._criteria,
+      _orderBy = this._orderBy,
+      _orderByDescending = this._orderByDescending
     };
 
     foreach (var chain in this._includeChains)
     {
       var newChain = new IncludeChain<TBase>();
         
-      // Copy each include item with type information
       foreach (var include in chain.Includes)
       {
         var method = typeof(IncludeChain<TBase>).GetMethod(nameof(IncludeChain<TBase>.AddTypedInclude))!

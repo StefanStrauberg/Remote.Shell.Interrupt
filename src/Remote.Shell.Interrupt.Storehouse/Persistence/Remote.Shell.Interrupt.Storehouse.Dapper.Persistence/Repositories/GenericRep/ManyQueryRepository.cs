@@ -8,6 +8,7 @@ internal class ManyQueryRepository<T>(ApplicationDbContext context)
     => await context.Set<T>()
                     .AsNoTracking()
                     .ApplyWhere(specification.Criterias)
+                    .ApplyOrderBy(specification.OrderBy ?? specification.OrderByDescending, specification.OrderByDescending is not null)
                     .ApplySkip(specification.Skip)
                     .ApplyTake(specification.Take)
                     .ToListAsync(cancellationToken);

@@ -8,7 +8,7 @@ public class RequestParameters
   /// <summary>
   /// The maximum allowed page size.
   /// </summary>
-  const int MAX_PAGE_SIZE = 50;
+  const int MaxPageSize = 50;
 
   /// <summary>
   /// Stores the current page size. Default value is 10.
@@ -29,16 +29,10 @@ public class RequestParameters
   /// <exception cref="ArgumentOutOfRangeException">
   /// Thrown when the value is less than 1.
   /// </exception>
-  public int? PageNumber 
-  { 
-      get => _pageNumber; 
-      set
-      {
-        if (value < 1)
-          throw new ArgumentOutOfRangeException(nameof(value), "PageNumber must be greater than 0.");
-
-        _pageNumber = value;
-      }
+  public int? PageNumber
+  {
+    get => _pageNumber;
+    set => _pageNumber = ValidatePageNumber(value);
   }
 
   /// <summary>
@@ -50,16 +44,10 @@ public class RequestParameters
   /// <exception cref="ArgumentOutOfRangeException">
   /// Thrown when the value is less than 1.
   /// </exception>
-  public int? PageSize 
-  { 
-      get => _pageSize;
-      set 
-      {
-        if (value < 1)
-          throw new ArgumentOutOfRangeException(nameof(value), "PageSize must be greater than 0.");
-
-        _pageSize = value > MAX_PAGE_SIZE ? MAX_PAGE_SIZE : value;
-      }
+  public int? PageSize
+  {
+    get => _pageSize;
+    set => _pageSize = ValidatePageSize(value);
   }
 
   /// <summary>
@@ -68,10 +56,26 @@ public class RequestParameters
   public List<FilterDescriptor>? Filters { get; set; } = [];
 
   /// <summary>
+  /// Gets or sets the property name used for sorting.
+  /// </summary>
+  /// <remarks>
+  /// If null or empty, no sorting will be applied.
+  /// </remarks>
+  public string? OrderBy { get; set; }
+
+  /// <summary>
+  /// Indicates whether sorting should be in descending order.
+  /// </summary>
+  /// <remarks>
+  /// Applies only if <c>OrderBy</c> is set.
+  /// </remarks>
+  public bool OrderByDescending { get; set; } = false;
+
+  /// <summary>
   /// Enable pagination when size and page number are set.
   /// </summary>
-  public bool IsPaginated 
-    => _pageNumber is not null && _pageSize is not null;
+  public bool IsPaginated
+    => _pageNumber.HasValue && _pageSize.HasValue;
 
   /// <summary>
   /// Creates a predefined filter to query an entity by its <c>Id</c> value.
@@ -90,4 +94,30 @@ public class RequestParameters
         }
       ]
     };
+
+  /// <summary>
+  /// Validates and normalizes the page number.
+  /// </summary>
+  /// <param name="value">The page number to validate.</param>
+  /// <returns>Normalized page number, defaulting to 1 if null.</returns>
+  static int? ValidatePageNumber(int? value)
+  {
+    if (value < 1)
+      throw new ArgumentOutOfRangeException(nameof(value), "PageNumber must be greater than 0.");
+
+    return value ?? 1;
+  }
+
+  /// <summary>
+  /// Validates and normalizes the page size.
+  /// </summary>
+  /// <param name="value">The page size to validate.</param>
+  /// <returns>Capped page size, defaulting to <c>MaxPageSize</c> if null.</returns>
+  static int? ValidatePageSize(int? value)
+  {
+    if (value < 1)
+      throw new ArgumentOutOfRangeException(nameof(value), "PageSize must be greater than 0.");
+
+    return Math.Min(value ?? MaxPageSize, MaxPageSize);
+  }
 }

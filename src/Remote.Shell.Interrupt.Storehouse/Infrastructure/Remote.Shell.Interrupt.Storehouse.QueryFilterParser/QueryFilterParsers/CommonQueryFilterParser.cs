@@ -7,15 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.QueryFilterParsers
 internal class CommonQueryFilterParser : IQueryFilterParser
 {
 
-  /// <summary>
-  /// Parses a list of filters into a composed expression tree.
-  /// Returns null if filters are empty or null.
-  /// </summary>
-  /// <typeparam name="T">The target entity type for filtering.</typeparam>
-  /// <param name="filters">List of filter descriptors to parse.</param>
-  /// <returns>
-  /// A composed expression representing the filters, or null if no processing is needed.
-  /// </returns>
+  // <inheritdoc />
   Expression<Func<T, bool>>? IQueryFilterParser.ParseFilters<T>(List<FilterDescriptor>? filters)
   {
     if (ShouldSkipProcessing(filters))
@@ -23,16 +15,26 @@ internal class CommonQueryFilterParser : IQueryFilterParser
 
     var filterGroups = GroupFiltersByProperty(filters!);
 
-    return BuildFinalExpression<T>(filterGroups);
+    return BuildFilterExpression<T>(filterGroups);
+  }
+
+  /// <inheritdoc />
+  Expression<Func<T, Object>>? IQueryFilterParser.ParseOrderBy<T>(string? propertyName)
+  {
+    if (ShouldSkipProcessing(propertyName))
+      return null;
+
+    return BuildOrderByExpression<T>(propertyName!);
   }
 
   /// <summary>
   /// Determines whether filter processing should be skipped.
   /// </summary>
-  /// <param name="filters">The filter list to evaluate.</param>
-  /// <returns>True if filters are null or empty; otherwise false.</returns>
   static bool ShouldSkipProcessing(List<FilterDescriptor>? filters)
     => filters == null || filters.Count == 0;
+
+  static bool ShouldSkipProcessing(string? propertyName)
+    => string.IsNullOrWhiteSpace(propertyName);
 
   /// <summary>
   /// Groups filters by their property path.
@@ -48,7 +50,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   /// <typeparam name="T">The target entity type.</typeparam>
   /// <param name="filterGroups">Grouped filters by property.</param>
   /// <returns>Composed expression representing all filters.</returns>
-  static Expression<Func<T, bool>>? BuildFinalExpression<T>(IEnumerable<IGrouping<string, FilterDescriptor>> filterGroups)
+  static Expression<Func<T, bool>>? BuildFilterExpression<T>(IEnumerable<IGrouping<string, FilterDescriptor>> filterGroups)
   {
     Expression<Func<T, bool>>? finalExpression = null;
 
@@ -59,6 +61,19 @@ internal class CommonQueryFilterParser : IQueryFilterParser
     }
 
     return finalExpression;
+  }
+
+  static Expression<Func<T, Object>>? BuildOrderByExpression<T>(string propertyName)
+  {
+    var parameter = Expression.Parameter(typeof(T), "entity");
+    Expression propertyExpression = parameter;
+    
+    foreach (var member in propertyName!.Split('.'))
+      propertyExpression = Expression.PropertyOrField(propertyExpression, member);
+
+    var converted = Expression.Convert(propertyExpression, typeof(object));
+
+    return Expression.Lambda<Func<T, Object>>(converted, parameter);
   }
 
   /// <summary>

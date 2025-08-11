@@ -57,11 +57,20 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   /// <returns>A specification for filtering <typeparamref name="TEntity"/> entities.</returns>
   protected virtual ISpecification<TEntity> BuildSpecification(RequestParameters requestParameters)
   {
-    var filterExpr = queryFilterParser.ParseFilters<TEntity>(requestParameters.Filters);
     var spec = specification.Clone();
 
+    var filterExpr = queryFilterParser.ParseFilters<TEntity>(requestParameters.Filters);
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
+
+    var orderByExpr = queryFilterParser.ParseOrderBy<TEntity>(requestParameters.OrderBy);
+    if (orderByExpr is not null)
+    {
+      if (requestParameters.OrderByDescending)
+        spec.AddOrderByDescending(orderByExpr);
+      else
+        spec.AddOrderBy(orderByExpr);
+    }
 
     return spec;
   }
@@ -80,7 +89,7 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   /// <param name="entities">Collection of queried entities.</param>
   /// <returns><c>true</c> if the result is null or empty; otherwise, <c>false</c>.</returns>
   protected static bool IsEmptyResult(IEnumerable<TEntity> entities)
-    => entities == null || !entities.Any();
+    => entities is null || !entities.Any();
 
   /// <summary>
   /// Retrieves entities based on the provided specification.
