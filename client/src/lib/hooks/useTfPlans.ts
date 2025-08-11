@@ -7,20 +7,29 @@ import { PaginationParams } from "../types/Common/PaginationParams";
 import { TfPlansResponse } from "../api/tfPlans/TfPlansResponse";
 import { buildRequestParams } from "../api/common/buildRequestParams";
 import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
+import { OrderByParams } from "../api/common/orderByParams";
 
 export const useTfPlans = (
   pagination: PaginationParams,
-  filters: FilterDescriptor[] = []
+  filters: FilterDescriptor[] = [],
+  orderBy: OrderByParams
 ) => {
   const location = useLocation();
   const { pageNumber, pageSize } = pagination;
 
-  const queryKey = ["tfPlans", pageNumber, pageSize, JSON.stringify(filters)];
+  const queryKey = [
+    "tfPlans",
+    pageNumber,
+    pageSize,
+    JSON.stringify(filters),
+    orderBy.property,
+    orderBy.descending,
+  ];
 
   const { data: tfPlansResponse, isLoading } = useQuery<TfPlansResponse>({
     queryKey,
     queryFn: async () => {
-      const params = buildRequestParams(pagination, filters);
+      const params = buildRequestParams(pagination, orderBy, filters);
 
       const response = await agent.get<TfPlan[]>(
         "/api/TfPlans/GetTfPlansByFilter",

@@ -7,13 +7,17 @@ import TfPlanListPage from "./TfPlanListPage";
 
 export default function TfPlansDashboard() {
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [orderBy] = useState<string>("idTfPlan");
+  const [orderByDescending] = useState<boolean>(false);
+
   const pageSize = 15;
 
   const filters: FilterDescriptor[] = [];
 
   const { tfPlans, pagination, isLoading } = useTfPlans(
     { pageNumber, pageSize },
-    filters
+    filters,
+    { property: orderBy, descending: orderByDescending }
   );
 
   return (
