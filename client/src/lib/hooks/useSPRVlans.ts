@@ -7,20 +7,29 @@ import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
 import { SPRVlansResponse } from "../api/sprVlans/SPRVlansResponse";
 import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
+import { OrderByParams } from "../api/common/orderByParams";
 
 export const useSPRVlans = (
   pagination: PaginationParams,
-  filters: FilterDescriptor[] = []
+  filters: FilterDescriptor[] = [],
+  orderBy: OrderByParams
 ) => {
   const location = useLocation();
   const { pageNumber, pageSize } = pagination;
 
-  const queryKey = ["sprVlans", pageNumber, pageSize, JSON.stringify(filters)];
+  const queryKey = [
+    "sprVlans",
+    pageNumber,
+    pageSize,
+    JSON.stringify(filters),
+    orderBy.property,
+    orderBy.descending,
+  ];
 
   const { data: sprVlansResponse, isLoading } = useQuery<SPRVlansResponse>({
     queryKey,
     queryFn: async () => {
-      const params = buildRequestParams(pagination, filters);
+      const params = buildRequestParams(pagination, orderBy, filters);
 
       const response = await agent.get<SprVlan[]>(
         "/api/SPRVlans/GetSPRVlansByFilter",

@@ -12,10 +12,14 @@ export default function SPRVlansDashboard() {
     DEFAULT_FILTERS_SPRVlans
   );
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [orderBy, setOrderBy] = useState<string>("idClient");
+  const [orderByDescending, setOrderByDescending] = useState<boolean>(false);
+
   const pageSize = 15;
   const { sprVlans, pagination, isLoading } = useSPRVlans(
     { pageNumber, pageSize },
-    filters
+    filters,
+    { property: orderBy, descending: orderByDescending }
   );
 
   const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
@@ -26,6 +30,18 @@ export default function SPRVlansDashboard() {
   const handleResetFilters = () => {
     setFilters(DEFAULT_FILTERS_SPRVlans);
     setPageNumber(1);
+  };
+
+  const handleSort = (property: string) => {
+    if (orderBy === property) {
+      // Toggle direction if same property is clicked
+      setOrderByDescending(!orderByDescending);
+    } else {
+      // New property, default to ascending
+      setOrderBy(property);
+      setOrderByDescending(false);
+    }
+    setPageNumber(1); // Reset to first page when sorting changes
   };
 
   return (
@@ -52,6 +68,9 @@ export default function SPRVlansDashboard() {
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}
+              orderBy={orderBy}
+              orderByDescending={orderByDescending}
+              onSort={handleSort}
             />
           </Grid2>
           <Grid2 size={3}>

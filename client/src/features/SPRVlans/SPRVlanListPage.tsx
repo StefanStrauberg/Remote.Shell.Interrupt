@@ -9,6 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography,
 } from "@mui/material";
 import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
@@ -21,6 +22,9 @@ type Props = {
   pageNumber: number;
   pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
+  orderBy: string;
+  orderByDescending: boolean;
+  onSort: (property: string) => void;
 };
 
 export default function SPRVlanListPage({
@@ -29,6 +33,9 @@ export default function SPRVlanListPage({
   pageNumber,
   pagination,
   setPageNumber,
+  orderBy,
+  orderByDescending,
+  onSort,
 }: Props) {
   if (!sprVlans || isPending) return <Typography>Загрузка ...</Typography>;
 
@@ -39,16 +46,54 @@ export default function SPRVlanListPage({
     setPageNumber(value);
   };
 
+  const createSortHandler = (property: string) => () => {
+    onSort(property);
+  };
+
+  const columns = [
+    { id: "idVlan", label: "ID VLAN" },
+    { id: "idClient", label: "ID Client" },
+    { id: "useClient", label: "Use Client" },
+    { id: "useCOD", label: "Use COD" },
+    { id: "actions", label: "Actions", sortable: false },
+  ];
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID VLAN</TableCell>
-              <TableCell>ID Client</TableCell>
-              <TableCell>Use Client</TableCell>
-              <TableCell>Use COD</TableCell>
+              {columns.map((column) => (
+                <TableCell
+                  key={column.id}
+                  sortDirection={
+                    orderBy === column.id
+                      ? orderByDescending
+                        ? "desc"
+                        : "asc"
+                      : false
+                  }
+                >
+                  {column.sortable !== false ? (
+                    <TableSortLabel
+                      active={orderBy === column.id}
+                      direction={
+                        orderBy === column.id
+                          ? orderByDescending
+                            ? "desc"
+                            : "asc"
+                          : "asc"
+                      }
+                      onClick={createSortHandler(column.id)}
+                    >
+                      {column.label}
+                    </TableSortLabel>
+                  ) : (
+                    column.label
+                  )}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
