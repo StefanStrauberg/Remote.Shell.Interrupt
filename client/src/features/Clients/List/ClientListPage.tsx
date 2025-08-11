@@ -9,6 +9,9 @@ type Props = {
   pageNumber: number;
   pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
+  orderBy: string;
+  orderByDescending: boolean;
+  onSort: (property: string) => void;
 };
 
 export default function ClientListPage({
@@ -17,6 +20,9 @@ export default function ClientListPage({
   pageNumber,
   pagination,
   setPageNumber,
+  orderBy,
+  orderByDescending,
+  onSort,
 }: Props) {
   // Loading state
   if (!clients || isPending) return <Typography>Loading ...</Typography>;
@@ -27,6 +33,10 @@ export default function ClientListPage({
     value: number
   ) => {
     setPageNumber(value); // Update the page number
+  };
+
+  const createSortHandler = (property: string) => () => {
+    onSort(property);
   };
 
   return (

@@ -12,10 +12,14 @@ export default function ClientsDashboard() {
     DEFAULT_FILTERS_Clients
   );
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [orderBy, setOrderBy] = useState<string>("name");
+  const [orderByDescending, setOrderByDescending] = useState<boolean>(false);
+
   const pageSize = 10;
   const { clients, pagination, isLoadingClients } = useClients(
     { pageNumber, pageSize },
-    filters
+    filters,
+    { property: orderBy, descending: orderByDescending }
   );
 
   const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
@@ -26,6 +30,18 @@ export default function ClientsDashboard() {
   const handleResetFilters = () => {
     setFilters(DEFAULT_FILTERS_Clients);
     setPageNumber(1);
+  };
+
+  const handleSort = (property: string) => {
+    if (orderBy === property) {
+      // Toggle direction if same property is clicked
+      setOrderByDescending(!orderByDescending);
+    } else {
+      // New property, default to ascending
+      setOrderBy(property);
+      setOrderByDescending(false);
+    }
+    setPageNumber(1); // Reset to first page when sorting changes
   };
 
   return (
@@ -52,6 +68,9 @@ export default function ClientsDashboard() {
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}
+              orderBy={orderBy}
+              orderByDescending={orderByDescending}
+              onSort={handleSort}
             />
           </Grid2>
           <Grid2 size={3}>

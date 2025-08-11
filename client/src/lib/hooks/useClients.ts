@@ -16,10 +16,12 @@ import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
 import { ClientsResponse } from "../api/Clients/ClientsResponse";
+import { OrderByParams } from "../api/common/orderByParams";
 
 export const useClients = (
   pagination: PaginationParams,
   filters: FilterDescriptor[] = [],
+  orderBy: OrderByParams,
   id?: string | number
 ): {
   clients: ClientShort[];
@@ -35,14 +37,20 @@ export const useClients = (
   const isGuid =
     typeof id === "string" && /^[0-9a-fA-F-]{36}$/.test(id.toString());
   const { pageNumber, pageSize } = pagination;
-  const queryKey = ["clients", pageNumber, pageSize, JSON.stringify(filters)];
+  const queryKey = [
+    "clients",
+    pageNumber,
+    pageSize,
+    JSON.stringify(filters),
+    orderBy.property,
+    orderBy.descending,
+  ];
 
   const { data: clientsResponse, isLoading: isLoadingClients } =
     useQuery<ClientsResponse>({
       queryKey,
       queryFn: async () => {
-        const params = buildRequestParams(pagination, filters);
-
+        const params = buildRequestParams(pagination, orderBy, filters);
         const response = await agent.get<ClientShort[]>(
           "/api/Clients/GetClientsByFilter",
           {
