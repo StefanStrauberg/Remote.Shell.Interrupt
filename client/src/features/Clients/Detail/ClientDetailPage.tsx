@@ -24,6 +24,7 @@ export default function ClientDetailPage() {
   const { clientById, isLoadingById } = useClients(
     DEFAULT_PAGINATION_PARAMS,
     [],
+    { property: "", descending: false },
     id
   );
 
