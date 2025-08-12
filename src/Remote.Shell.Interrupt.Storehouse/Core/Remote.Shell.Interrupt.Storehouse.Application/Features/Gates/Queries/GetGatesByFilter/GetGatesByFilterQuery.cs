@@ -24,20 +24,20 @@ internal class GetGatesByFilterQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// <summary>
   /// Asynchronously retrieves gate entities matching the given specification.
   /// </summary>
-  /// <param name="spec">Filtering specification used for gate retrieval.</param>
+  /// <param name="specification">Filtering specification used for gate retrieval.</param>
   /// <param name="cancellationToken">Token used to signal cancellation of the operation.</param>
   /// <returns>A collection of <see cref="Gate"/> entities that match the filtering conditions.</returns>
-  protected override async Task<IEnumerable<Gate>> FetchEntitiesAsync(ISpecification<Gate> spec,
+  protected override async Task<IEnumerable<Gate>> FetchEntitiesAsync(ISpecification<Gate> specification,
                                                                       CancellationToken cancellationToken)
-    => await gateUnitOfWork.Gates.GetManyShortAsync(spec, cancellationToken);
+    => await gateUnitOfWork.Gates.GetManyShortAsync(specification, cancellationToken);
 
   /// <summary>
   /// Asynchronously counts the total number of gate entities that match the provided specification.
   /// </summary>
-  /// <param name="spec">Specification defining the filter logic for the count operation.</param>
+  /// <param name="specification">Specification defining the filter logic for the count operation.</param>
   /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
   /// <returns>The number of <see cref="Gate"/> entities matching the filter.</returns>
-  protected override async Task<int> CountResultsAsync(ISpecification<Gate> spec,
+  protected override async Task<int> CountResultsAsync(ISpecification<Gate> specification,
                                                        CancellationToken cancellationToken)
-    => await gateUnitOfWork.Gates.GetCountAsync(spec, cancellationToken);
+    => await gateUnitOfWork.Gates.GetCountAsync(specification, cancellationToken);
 }

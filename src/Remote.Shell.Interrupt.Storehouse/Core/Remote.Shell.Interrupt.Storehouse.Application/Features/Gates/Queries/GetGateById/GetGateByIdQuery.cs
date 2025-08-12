@@ -39,10 +39,10 @@ internal class GetGateByIdQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// <summary>
   /// Retrieves the gate entity that matches the provided filter specification.
   /// </summary>
-  /// <param name="spec">The specification used to locate the gate.</param>
+  /// <param name="specification">The specification used to locate the gate.</param>
   /// <param name="cancellationToken">Token used to monitor for cancellation.</param>
   /// <returns>The matching <see cref="Gate"/> entity.</returns>
-  protected override async Task<Gate> FetchEntityAsync(ISpecification<Gate> spec,
+  protected override async Task<Gate> FetchEntityAsync(ISpecification<Gate> specification,
                                                        CancellationToken cancellationToken)
-    => await gateUnitOfWork.Gates.GetOneShortAsync(spec, cancellationToken);
+    => await gateUnitOfWork.Gates.GetOneShortAsync(specification, cancellationToken);
 }

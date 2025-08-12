@@ -1,6 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
-internal class GateUnitOfWork(IExistenceQueryRepository<Gate> existenceQueryRepository,
+internal class GateUnitOfWork(ApplicationDbContext applicationContext,
+                              IExistenceQueryRepository<Gate> existenceQueryRepository,
                               ICountRepository<Gate> countRepository,
                               IManyQueryRepository<Gate> manyQueryRepository,
                               IOneQueryRepository<Gate> oneQueryRepository,
@@ -22,7 +23,7 @@ internal class GateUnitOfWork(IExistenceQueryRepository<Gate> existenceQueryRepo
 
   void IUnitOfWork.Complete()
   {
-    // TODO CompleteTransaction
+    applicationContext.SaveChanges();
   }
 
   void IDisposable.Dispose()
@@ -37,7 +38,7 @@ internal class GateUnitOfWork(IExistenceQueryRepository<Gate> existenceQueryRepo
     {
       if (disposing)
       {
-        // TODO CompleteTransaction
+        applicationContext.Dispose();
       }
 
       disposed = true;
