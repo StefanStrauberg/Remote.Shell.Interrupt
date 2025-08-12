@@ -12,7 +12,7 @@ export default function SPRVlansDashboard() {
     DEFAULT_FILTERS_SPRVlans
   );
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [orderBy, setOrderBy] = useState<string>("idClient");
+  const [orderBy, setOrderBy] = useState<string>("idVlan");
   const [orderByDescending, setOrderByDescending] = useState<boolean>(false);
 
   const pageSize = 15;

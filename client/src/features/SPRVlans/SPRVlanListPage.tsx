@@ -1,20 +1,24 @@
 import {
   Box,
   Button,
+  Menu,
+  MenuItem,
   Pagination,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
   Typography,
 } from "@mui/material";
 import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
 import { SprVlan } from "../../lib/types/SPRVlans/SprVlan";
 import { Link } from "react-router";
+import { ArrowDownward, ArrowUpward, Sort } from "@mui/icons-material";
+import { useState } from "react";
 
 type Props = {
   sprVlans: SprVlan[] | undefined;
@@ -27,6 +31,12 @@ type Props = {
   onSort: (property: string) => void;
 };
 
+const SORTABLE_FIELDS = [
+  { id: "idVlan", label: "VLAN клиента" },
+  { id: "idClient", label: "Id клиента" },
+  // Add more fields as needed
+];
+
 export default function SPRVlanListPage({
   sprVlans,
   isPending,
@@ -37,6 +47,9 @@ export default function SPRVlanListPage({
   orderByDescending,
   onSort,
 }: Props) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
   if (!sprVlans || isPending) return <Typography>Загрузка ...</Typography>;
 
   const handlePageChange = (
@@ -46,53 +59,71 @@ export default function SPRVlanListPage({
     setPageNumber(value);
   };
 
-  const createSortHandler = (property: string) => () => {
+  const handleSortMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleSortMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSortSelection = (property: string) => {
     onSort(property);
+    handleSortMenuClose();
   };
 
   const columns = [
-    { id: "idVlan", label: "ID VLAN" },
-    { id: "idClient", label: "ID Client" },
-    { id: "useClient", label: "Use Client" },
-    { id: "useCOD", label: "Use COD" },
-    { id: "actions", label: "Actions", sortable: false },
+    { id: "idVlan", label: "VLAN клиента" },
+    { id: "idClient", label: "Id клиента" },
+    { id: "useClient", label: "Использ. клиентом" },
+    { id: "useCOD", label: "Использ. ЦОД" },
+    { id: "actions", label: "", sortable: false },
   ];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {/* Sort controls */}
+      <Stack
+        direction="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        spacing={2}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<Sort />}
+          endIcon={orderByDescending ? <ArrowDownward /> : <ArrowUpward />}
+          onClick={handleSortMenuClick}
+        >
+          Sort by:{" "}
+          {SORTABLE_FIELDS.find((f) => f.id === orderBy)?.label || "Default"}
+        </Button>
+
+        <Menu anchorEl={anchorEl} open={open} onClose={handleSortMenuClose}>
+          {SORTABLE_FIELDS.map((field) => (
+            <MenuItem
+              key={field.id}
+              onClick={() => handleSortSelection(field.id)}
+              selected={orderBy === field.id}
+            >
+              {field.label}
+              {orderBy === field.id &&
+                (orderByDescending ? (
+                  <ArrowDownward fontSize="small" />
+                ) : (
+                  <ArrowUpward fontSize="small" />
+                ))}
+            </MenuItem>
+          ))}
+        </Menu>
+      </Stack>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  sortDirection={
-                    orderBy === column.id
-                      ? orderByDescending
-                        ? "desc"
-                        : "asc"
-                      : false
-                  }
-                >
-                  {column.sortable !== false ? (
-                    <TableSortLabel
-                      active={orderBy === column.id}
-                      direction={
-                        orderBy === column.id
-                          ? orderByDescending
-                            ? "desc"
-                            : "asc"
-                          : "asc"
-                      }
-                      onClick={createSortHandler(column.id)}
-                    >
-                      {column.label}
-                    </TableSortLabel>
-                  ) : (
-                    column.label
-                  )}
-                </TableCell>
+                <TableCell>{column.label}</TableCell>
               ))}
             </TableRow>
           </TableHead>
@@ -122,6 +153,7 @@ export default function SPRVlanListPage({
           </TableBody>
         </Table>
       </TableContainer>
+
       {/* Pagination Component */}
       <Pagination
         count={pagination.TotalPages || 1} // Total pages based on pagination metadata
