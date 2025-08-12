@@ -9,4 +9,11 @@ public interface IUnitOfWork
   /// Commits the current unit of work, persisting changes.
   /// </summary>
   void Complete();
+
+  Task CompleteAsync(CancellationToken cancellationToken);
+  
+  void StartTransaction();
+
+  Task StartTransactionAsync(CancellationToken cancellationToken);
+
 }

@@ -56,6 +56,7 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
   /// <param name="gate">The gate entity to insert.</param>
   protected override void PersistNewEntity(Gate gate)
   {
+    gateUnitOfWork.StartTransaction();
     gateUnitOfWork.Gates.InsertOne(gate);
     gateUnitOfWork.Complete();
   }
