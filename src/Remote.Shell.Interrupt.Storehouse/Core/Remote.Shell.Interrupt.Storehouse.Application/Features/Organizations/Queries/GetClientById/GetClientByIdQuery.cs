@@ -22,7 +22,7 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                          IMapper mapper)
   : FindEntityByIdQueryHandler<Client, DetailClientDTO, GetClientByIdQuery>(specification, queryFilterParser, mapper)
 {
-  private readonly IQueryFilterParser _queryFilterParser = queryFilterParser;
+  readonly IQueryFilterParser _queryFilterParser = queryFilterParser;
 
   /// <summary>
   /// Constructs a specification to retrieve the client entity and its related data.
@@ -32,7 +32,6 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
   protected override ISpecification<Client> BuildSpecification(Guid clientId)
   {
     var filterExpr = _queryFilterParser.ParseFilters<Client>(RequestParameters.ForId(clientId).Filters);
-
     var spec = specification.AddInclude(c => c.COD)
                             .AddInclude(c => c.TfPlan!)
                             .AddInclude(c => c.SPRVlans)

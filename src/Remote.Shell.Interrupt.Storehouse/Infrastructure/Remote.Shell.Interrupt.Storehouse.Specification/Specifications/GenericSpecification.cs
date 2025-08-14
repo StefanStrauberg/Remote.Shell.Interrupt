@@ -105,8 +105,8 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> ConfigurePagination(PaginationContext paginationContext)
   {
-    int pageNumber = paginationContext.PageNumber < 1 ? pageNumber = 1 : paginationContext.PageNumber;
-    int pageSize = paginationContext.PageSize < 1 ? pageSize = 10 : paginationContext.PageSize;
+    int pageNumber = paginationContext.PageNumber < 1 ? 1 : paginationContext.PageNumber;
+    int pageSize = paginationContext.PageSize < 1 ? 10 : paginationContext.PageSize;
 
     Skip = (pageNumber - 1) * pageSize;
     Take = pageSize;
