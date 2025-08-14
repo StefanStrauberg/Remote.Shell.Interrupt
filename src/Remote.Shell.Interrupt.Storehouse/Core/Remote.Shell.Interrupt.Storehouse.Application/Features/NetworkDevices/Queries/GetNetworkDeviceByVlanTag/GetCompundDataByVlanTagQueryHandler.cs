@@ -1,41 +1,17 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceByVlanTag;
 
-/// <summary>
-/// Represents a query to retrieve a network devices by a VLAN tag.
-/// </summary>
-/// <param name="VlanTag">The VLAN tag used to filter network devices.</param>
-public record GetNetworkDeviceByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
+public record GetCompundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
-/// <summary>
-/// Handles the GetNetworkDeviceByVlanTagQuery and retrieves network devices associated with the specified VLAN tag.
-/// </summary>
-/// <remarks>
-/// This handler checks the validity of the VLAN tag, retrieves related clients and network devices, 
-/// processes port aggregation, and returns the mapped results.
-/// </remarks>
-/// <param name="netDevUnitOfWork">Unit of work for network device-related database operations.</param>
-/// <param name="locBillUnitOfWork">Unit of work for local billing-related database operations.</param>
-/// <param name="networkDeviceSpecification">Specification used for filtering network devices.</param>
-/// <param name="sPRVlanSpecification">Specification used for filtering VLAN entities.</param>
-/// <param name="clientSpecification">Specification used for filtering client entities.</param>
-/// <param name="queryFilterParser">Parser for processing filter expressions.</param>
-/// <param name="mapper">Object mapper for DTO transformation.</param>
-internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
-                                                     ILocBillUnitOfWork locBillUnitOfWork,
-                                                     INetworkDeviceSpecification networkDeviceSpecification,
-                                                     ISPRVlanSpecification sPRVlanSpecification,
-                                                     IClientSpecification clientSpecification,
-                                                     IQueryFilterParser queryFilterParser,
-                                                     IMapper mapper)
-  : IQueryHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>
+internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
+                                                   ILocBillUnitOfWork locBillUnitOfWork,
+                                                   INetworkDeviceSpecification networkDeviceSpecification,
+                                                   ISPRVlanSpecification sPRVlanSpecification,
+                                                   IClientSpecification clientSpecification,
+                                                   IQueryFilterParser queryFilterParser,
+                                                   IMapper mapper)
+  : IQueryHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>
 {
-  /// <summary>
-  /// Handles the request to retrieve network devices associated with a VLAN tag.
-  /// </summary>
-  /// <param name="request">The query containing the VLAN tag.</param>
-  /// <param name="cancellationToken">Token to handle request cancellation.</param>
-  /// <returns>A compound object DTO containing network devices and associated clients.</returns>
-  async Task<CompoundObjectDTO> IRequestHandler<GetNetworkDeviceByVlanTagQuery, CompoundObjectDTO>.Handle(GetNetworkDeviceByVlanTagQuery request,
+  async Task<CompoundObjectDTO> IRequestHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompundDataByVlanTagQuery request,
                                                                                                           CancellationToken cancellationToken)
   {
     // Validate VLAN tag
@@ -130,12 +106,6 @@ internal class GetNetworkDeviceByVlanTagQueryHandler(INetDevUnitOfWork netDevUni
     return result;
   }
 
-  /// <summary>
-  /// Builds the specification by applying filtering and includes related entities.
-  /// </summary>
-  /// <param name="baseSpec">The base network device specification.</param>
-  /// <param name="filterExpr">The filter expression to apply.</param>
-  /// <returns>An updated specification with filtering applied.</returns>
   static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
                                                         Expression<Func<NetworkDevice, bool>>? filterExpr)
   {

@@ -31,7 +31,7 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   /// <param name="request">The incoming query instance.</param>
   /// <param name="cancellationToken">Used to propagate cancellation signals.</param>
   /// <returns>A paginated list of mapped DTOs matching the query criteria.</returns>
-  async Task<PagedList<TDto>> IRequestHandler<TQuery, PagedList<TDto>>.Handle(TQuery request, CancellationToken cancellationToken)
+  public virtual async Task<PagedList<TDto>> Handle(TQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Parameters);
     var pagination = BuildPagination(request.Parameters);

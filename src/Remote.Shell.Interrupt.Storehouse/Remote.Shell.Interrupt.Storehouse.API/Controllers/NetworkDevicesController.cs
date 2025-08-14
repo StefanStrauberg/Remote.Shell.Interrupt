@@ -59,7 +59,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDevicesByVlanTag(int VLANTag, CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetNetworkDeviceByVlanTagQuery(VLANTag), cancellationToken));
+    => Ok(await Sender.Send(new GetCompundDataByVlanTagQuery(VLANTag), cancellationToken));
 
   /// <summary>
   /// Creates a new network device record.
