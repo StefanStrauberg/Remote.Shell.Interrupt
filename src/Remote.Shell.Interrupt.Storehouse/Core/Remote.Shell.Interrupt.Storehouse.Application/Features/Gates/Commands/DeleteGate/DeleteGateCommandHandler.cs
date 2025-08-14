@@ -41,7 +41,8 @@ internal class DeleteGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
   /// <param name="specification">Specification used to locate the gate.</param>
   /// <param name="cancellationToken">Token for cancelling the operation.</param>
   /// <returns>The gate entity to delete.</returns>
-  protected override async Task<Gate> FetchEntityAsync(ISpecification<Gate> specification, CancellationToken cancellationToken)
+  protected override async Task<Gate> FetchEntityAsync(ISpecification<Gate> specification,
+                                                       CancellationToken cancellationToken)
     => await gateUnitOfWork.Gates.GetOneShortAsync(specification, cancellationToken);
 
   /// <summary>
