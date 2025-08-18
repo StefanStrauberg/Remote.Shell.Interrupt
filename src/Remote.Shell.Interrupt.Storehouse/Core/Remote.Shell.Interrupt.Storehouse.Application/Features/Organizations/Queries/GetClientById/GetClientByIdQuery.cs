@@ -31,7 +31,7 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
   /// <returns>A specification that includes related entities and filters by ID.</returns>
   protected override ISpecification<Client> BuildSpecification(Guid clientId)
   {
-    var filterExpr = _queryFilterParser.ParseFilters<Client>(RequestParameters.ForId(clientId).Filters);
+    var filterExpr = _queryFilterParser.ParseFilters<Client>(RequestParametersFactory.ForId(clientId).Filters);
     var spec = specification.AddInclude(c => c.COD)
                             .AddInclude(c => c.TfPlan!)
                             .AddInclude(c => c.SPRVlans)

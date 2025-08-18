@@ -52,12 +52,12 @@ internal abstract class DeleteEntityCommandHandler<TEntity, TCommand>(ISpecifica
   /// <param name="entityId">The unique identifier of the entity.</param>
   /// <returns>A specification with ID-based filtering applied.</returns>
   /// <remarks>
-  /// Clones the base specification and injects a filter parsed from <see cref="RequestParameters.ForId"/>.
+  /// Clones the base specification and injects a filter parsed from <see cref="RequestParametersFactory.ForId"/>.
   /// This allows for flexible query composition while preserving immutability.
   /// </remarks>
   protected virtual ISpecification<TEntity> BuildSpecification(Guid entityId)
   {
-    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParameters.ForId(entityId).Filters);
+    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParametersFactory.ForId(entityId).Filters);
     var spec = specification.Clone();
 
     if (filterExpr is not null)

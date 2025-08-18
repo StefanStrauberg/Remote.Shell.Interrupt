@@ -58,7 +58,7 @@ internal abstract class FindEntityByIdQueryHandler<TEntity, TDto, TQuery>(ISpeci
   /// <returns>A specification configured to locate the requested entity.</returns>
   protected virtual ISpecification<TEntity> BuildSpecification(Guid entityId)
   {
-    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParameters.ForId(entityId).Filters);
+    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParametersFactory.ForId(entityId).Filters);
     var spec = specification.Clone();
 
     if (filterExpr is not null)

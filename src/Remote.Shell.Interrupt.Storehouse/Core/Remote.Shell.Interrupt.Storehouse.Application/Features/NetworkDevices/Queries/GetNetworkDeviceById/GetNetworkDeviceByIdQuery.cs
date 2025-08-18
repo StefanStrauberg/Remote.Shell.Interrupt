@@ -4,7 +4,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 /// Query for retrieving a <see cref="NetworkDeviceDTO"/> by its unique identifier.
 /// </summary>
 public record GetNetworkDeviceByIdQuery(Guid Id)
-  : FindEntityByFilterQuery<NetworkDeviceDTO>(RequestParameters.ForId(Id));
+  : FindEntityByFilterQuery<NetworkDeviceDTO>(RequestParametersFactory.ForId(Id));
 
 /// <summary>
 /// Handler for processing <see cref="GetNetworkDeviceByIdQuery"/> requests.

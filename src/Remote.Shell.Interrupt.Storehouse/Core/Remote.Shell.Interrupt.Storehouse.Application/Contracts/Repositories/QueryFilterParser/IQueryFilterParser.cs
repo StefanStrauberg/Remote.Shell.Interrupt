@@ -16,7 +16,7 @@ public interface IQueryFilterParser
   /// </returns>
   Expression<Func<T, bool>>? ParseFilters<T>(List<FilterDescriptor>? filters);
 
-/// <summary>
+  /// <summary>
   /// Parses a property name into a LINQ expression for sorting entities.
   /// </summary>
   /// <typeparam name="T">The type of entity to sort.</typeparam>

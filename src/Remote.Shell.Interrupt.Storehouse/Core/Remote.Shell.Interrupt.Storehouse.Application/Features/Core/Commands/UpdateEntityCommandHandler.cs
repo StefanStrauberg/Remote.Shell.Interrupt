@@ -28,7 +28,7 @@ abstract class UpdateEntityCommandHandler<TEntity, TDto, TCommand>(ISpecificatio
 
   protected virtual ISpecification<TEntity> BuildSpecification(Guid entityId)
   {
-    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParameters.ForId(entityId).Filters);
+    var filterExpr = queryFilterParser.ParseFilters<TEntity>(RequestParametersFactory.ForId(entityId).Filters);
     var spec = specification.Clone();
 
     if (filterExpr is not null)

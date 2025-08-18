@@ -78,24 +78,6 @@ public class RequestParameters
     => _pageNumber.HasValue && _pageSize.HasValue;
 
   /// <summary>
-  /// Creates a predefined filter to query an entity by its <c>Id</c> value.
-  /// </summary>
-  /// <param name="id">The unique identifier to filter by.</param>
-  /// <returns>A <see cref="RequestParameters"/> with ID-based filtering applied.</returns>
-  public static RequestParameters ForId(Guid id)
-    => new()
-    {
-      Filters = [
-        new ()
-        {
-          PropertyPath = "Id",
-          Operator = FilterOperator.Equals,
-          Value = id.ToString()
-        }
-      ]
-    };
-
-  /// <summary>
   /// Validates and normalizes the page number.
   /// </summary>
   /// <param name="value">The page number to validate.</param>
