@@ -3,107 +3,54 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 public record GetCompundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
 internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
-                                                   ILocBillUnitOfWork locBillUnitOfWork,
-                                                   INetworkDeviceSpecification networkDeviceSpecification,
-                                                   ISPRVlanSpecification sPRVlanSpecification,
-                                                   IClientSpecification clientSpecification,
-                                                   IQueryFilterParser queryFilterParser,
-                                                   IMapper mapper)
+                                                   INetworkDeviceSpecification networkDeviceSpec,
+                                                   IQueryFilterParser filterParser,
+                                                   IMapper mapper,
+                                                   IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> clientsHandler)
   : IQueryHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>
 {
   async Task<CompoundObjectDTO> IRequestHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompundDataByVlanTagQuery request,
-                                                                                                          CancellationToken cancellationToken)
+                                                                                                        CancellationToken cancellationToken)
   {
-    // Validate VLAN tag
-    if (request.VlanTag == 0)
+    ValidateRequest(request);
+
+    var clients = await FetchClients(request.VlanTag, cancellationToken);
+    var vlanTags = ExtractVlanTags(clients);
+
+    var networkDevices = await FetchNetworkDevices(vlanTags, cancellationToken);
+    await AggregatePorts(networkDevices, cancellationToken);
+
+    PrepareAndCleanAggregationPorts(networkDevices);
+
+    return BuildResult(clients, networkDevices);
+  }
+
+  static void ValidateRequest(GetCompundDataByVlanTagQuery request)
+  {
+    if (request.VlanTag <= 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
+  }
 
-    // Create a query for retrieving clients associated with the VLAN tag
-    var getClientsByVlanTagQuery = new GetClientsByVlanTagQuery(request.VlanTag);
+  async Task<IEnumerable<DetailClientDTO>> FetchClients(int vlanTag, CancellationToken cancellationToken)
+  {
+    var query = new GetClientsByVlanTagQuery(vlanTag);
+    var result = await clientsHandler.Handle(query, cancellationToken);
 
-    // Initialize the handler for retrieving clients
-    var getClientsByVlanTagQueryHandler = new GetClientsByVlanTagQueryHandler(locBillUnitOfWork,
-                                                                              sPRVlanSpecification,
-                                                                              clientSpecification,
-                                                                              queryFilterParser,
-                                                                              mapper);
-
-    // Retrieve the list of clients associated with the VLAN tag
-    var clients = await ((IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)getClientsByVlanTagQueryHandler).Handle(getClientsByVlanTagQuery,
-                                                                                                                                          cancellationToken);
-  
-
-    // Extract distinct VLAN tags from the clients' associated VLANs
-    var vlanTags = clients.SelectMany(x => x.SPRVlans)
-                          .Select(x => x.IdVlan)
-                          .Distinct();
-
-    // Create filtering parameters to retrieve network devices by VLAN tag
-    var requestParameters = new RequestParameters
-    {
-      Filters = [
-        new ()
-        {
-          PropertyPath = $"{nameof(NetworkDevice.PortsOfNetworkDevice)}.{nameof(Port.VLANs)}.{nameof(VLAN.VLANTag)}",
-          Operator = FilterOperator.In,
-          Value = Converter.ArrayToString<int>(vlanTags),
-        }
-      ]
-    };
-
-    // Parse the filter expression
-    var filterExpr = queryFilterParser.ParseFilters<NetworkDevice>(requestParameters.Filters);
-
-    // Build the base specification with filtering applied
-    var baseSpec = BuildSpecification(networkDeviceSpecification,
-                                      filterExpr);
-
-    // Retrieve devices associated with VLAN tags
-    var networkDevices = await netDevUnitOfWork.NetworkDevices
-                                               .GetManyWithChildrenAsync(baseSpec,
-                                                                         cancellationToken);
-
-    // Process aggregated ports for network devices
-    foreach (var networkDevice in networkDevices)
-    {
-      var parentPorts = networkDevice.PortsOfNetworkDevice
-                                     .Where(port => port.ParentId is null);
-
-      // Skip devices without parent ports
-      if (!parentPorts.Any())
-          continue;
-
-      var parentPortsIds = parentPorts.Select(port => port.Id);
-
-      // Retrieve all aggregated child ports for parent ports
-      var children = await netDevUnitOfWork.Ports
-                                           .GetAllAggregatedPortsByListAsync(parentPortsIds,
-                                                                             cancellationToken);
-
-      // Group child ports by their parent port ID
-      var childrenByParent = children.Where(child => child.ParentId.HasValue)
-                                     .GroupBy(child => child.ParentId!.Value)
-                                     .ToDictionary(group => group.Key, 
-                                                   group => group.ToList());
-
-      // Assign aggregated child ports to their respective parent ports
-      foreach (var port in parentPorts)
-          port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated) ? aggregated
-                                                                                           : [];
-    }
-
-    // Clean and prepare aggregated ports for processing
-    PrepareAndCleanAggregationPorts.Handle(networkDevices);
-
-    // Construct the final result DTO
-    var result = new CompoundObjectDTO()
-    {
-      NetworkDevices = mapper.Map<IEnumerable<NetworkDeviceDTO>>(networkDevices),
-      Clients = clients
-    };
-
-    // Return the result
     return result;
+  }
+
+  static IEnumerable<int> ExtractVlanTags(IEnumerable<DetailClientDTO> clients)
+    => clients.SelectMany(c => c.SPRVlans)
+              .Select(v => v.IdVlan)
+              .Distinct();
+
+  async Task<IEnumerable<NetworkDevice>> FetchNetworkDevices(IEnumerable<int> vlanTags, CancellationToken cancellationToken)
+  {
+    var parameters = RequestParametersFactory.ForNetworkDevicesByVlans(vlanTags);
+    var filterExpr = filterParser.ParseFilters<NetworkDevice>(parameters.Filters);
+    var spec = BuildSpecification(networkDeviceSpec, filterExpr);
+
+    return await netDevUnitOfWork.NetworkDevices.GetManyWithChildrenAsync(spec, cancellationToken);
   }
 
   static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
@@ -117,4 +64,68 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitO
 
     return (INetworkDeviceSpecification)spec;
   }
+
+  async Task AggregatePorts(IEnumerable<NetworkDevice> networkDevices, CancellationToken cancellationToken)
+  {
+    foreach (var device in networkDevices)
+    {
+      var parentPorts = device.PortsOfNetworkDevice.Where(p => p.ParentId is null);
+
+      if (!parentPorts.Any())
+        continue;
+
+      var parentIds = parentPorts.Select(port => port.Id);
+      var children = await netDevUnitOfWork.Ports
+                                           .GetAllAggregatedPortsByListAsync(parentIds, cancellationToken);
+      var childrenByParent = children.Where(child => child.ParentId.HasValue)
+                                     .GroupBy(child => child.ParentId!.Value)
+                                     .ToDictionary(group => group.Key,
+                                                   group => group.ToList());
+
+      foreach (var port in parentPorts)
+        port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated)
+                               ? aggregated : [];
+    }
+  }
+
+  static void PrepareAndCleanAggregationPorts(IEnumerable<NetworkDevice> networkDevices)
+  {
+    foreach (var device in networkDevices)
+    {
+        var portLookup = BuildPortLookup(device);
+        var aggregatedPortIds = AttachAggregatedPorts(device, portLookup);
+        device.PortsOfNetworkDevice = CleanAndSortPorts(device, aggregatedPortIds);
+    }
+  }
+
+  static Dictionary<Guid, Port> BuildPortLookup(NetworkDevice device)
+    => device.PortsOfNetworkDevice.ToDictionary(port => port.Id);
+
+  static HashSet<Guid> AttachAggregatedPorts(NetworkDevice device, Dictionary<Guid, Port> portLookup)
+  {
+    var aggregatedPortIds = new HashSet<Guid>();
+
+    foreach (var port in device.PortsOfNetworkDevice.Where(port => port.ParentId.HasValue))
+    {
+      if (port.ParentId is Guid parentId && portLookup.TryGetValue(parentId, out var parent))
+      {
+        parent.AggregatedPorts.Add(port);
+        aggregatedPortIds.Add(port.Id);
+      }
+    }
+
+    return aggregatedPortIds;
+  }
+
+  static List<Port> CleanAndSortPorts(NetworkDevice device, HashSet<Guid> aggregatedPortIds)
+    => [.. device.PortsOfNetworkDevice
+                 .Where(port => !aggregatedPortIds.Contains(port.Id))
+                 .OrderBy(port => port.InterfaceName)];
+
+  CompoundObjectDTO BuildResult(IEnumerable<DetailClientDTO> clients, IEnumerable<NetworkDevice> devices)
+    => new()
+       {
+         Clients = clients,
+         NetworkDevices = mapper.Map<IEnumerable<NetworkDeviceDTO>>(devices)
+       };
 }

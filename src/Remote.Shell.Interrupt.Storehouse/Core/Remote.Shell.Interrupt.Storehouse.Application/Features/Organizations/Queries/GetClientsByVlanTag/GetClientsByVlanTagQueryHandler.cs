@@ -1,26 +1,23 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByVlanTag;
 
-public record GetClientsByVlanTagQuery(int VlanTag) 
-  : FindEntitiesByFilterQuery<DetailClientDTO>(RequestParametersFactory.ForVlanTag(VlanTag));
+public record GetClientsByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<DetailClientDTO>>;
 
 internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
                                                IClientSpecification clientSpec,
                                                IQueryFilterParser filterParser,
                                                IMapper mapper,
                                                IQueryHandler<GetSPRVlansByFilterQuery, PagedList<SPRVlanDTO>> vlanHandler)
-  : FindEntitiesByFilterQueryHandler<Client, DetailClientDTO, GetClientsByVlanTagQuery>(clientSpec, filterParser, mapper)
+  : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
-  readonly IQueryFilterParser _filterParser = filterParser;
-  readonly IMapper _mapper = mapper;
-
-  public override async Task<PagedList<DetailClientDTO>> Handle(GetClientsByVlanTagQuery request, CancellationToken cancellationToken)
+  async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
+                                                                                                                          CancellationToken cancellationToken)
   {
     ValidateRequest(request);
 
     var vlans = await FetchVlans(request, cancellationToken);
     var clients = await FetchClients(vlans, cancellationToken);
 
-    return MapToPagedList(clients);
+    return MapToDTOList(clients);
   }
 
   static void ValidateRequest(GetClientsByVlanTagQuery request)
@@ -34,7 +31,7 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
   {
     var query = new GetSPRVlansByFilterQuery(RequestParametersFactory.ForVlanTag(request.VlanTag));
     var result = await vlanHandler.Handle(query, cancellationToken);
-    
+
     return result;
   }
 
@@ -46,7 +43,7 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
     foreach (var vlan in vlans)
     {
       var parameters = RequestParametersFactory.ForClientId(vlan.IdClient);
-      var filter = _filterParser.ParseFilters<Client>(parameters.Filters);
+      var filter = filterParser.ParseFilters<Client>(parameters.Filters);
       var spec = BuildSpecification(clientSpec, filter);
       var client = await unitOfWork.Clients.GetOneWithChildrenAsync(spec, cancellationToken);
 
@@ -57,12 +54,8 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
     return clients;
   }
 
-  PagedList<DetailClientDTO> MapToPagedList(IEnumerable<Client> clients)
-  {
-    var dtos = _mapper.Map<IEnumerable<DetailClientDTO>>(clients);
-
-    return PagedList<DetailClientDTO>.Create(dtos, dtos.Count(), new PaginationContext(0, 0));
-  }
+  IEnumerable<DetailClientDTO> MapToDTOList(IEnumerable<Client> clients)
+    => mapper.Map<IEnumerable<DetailClientDTO>>(clients);
 
   public static ISpecification<Client> BuildSpecification(IClientSpecification baseSpec,
                                                           Expression<Func<Client, bool>>? filterExpr)
@@ -76,11 +69,4 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
 
     return spec;
   }
-  protected override Task<int> CountResultsAsync(ISpecification<Client> specification,
-                                                 CancellationToken cancellationToken)
-    => throw new NotImplementedException();
-
-  protected override Task<IEnumerable<Client>> FetchEntitiesAsync(ISpecification<Client> specification,
-                                                                  CancellationToken cancellationToken)
-    => throw new NotImplementedException();
 }

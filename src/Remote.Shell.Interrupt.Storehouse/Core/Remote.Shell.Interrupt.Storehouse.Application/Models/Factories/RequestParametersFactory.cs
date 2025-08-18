@@ -46,10 +46,15 @@ internal static class RequestParametersFactory
   };
 
   /// <summary>
-  /// Creates request parameters for querying an entity by its <c>Id</c> value.
+  /// Creates request parameters for filtering entities by their unique identifier.
   /// </summary>
-  /// <param name="id">The unique identifier to filter by.</param>
-  /// <returns>A <see cref="RequestParameters"/> with ID-based filtering applied.</returns>
+  /// <param name="id">The GUID identifier to filter by.</param>
+  /// <returns>
+  /// A <see cref="RequestParameters"/> instance with a filter targeting the <c>Id</c> property.
+  /// </returns>
+  /// <remarks>
+  /// Commonly used for entity retrieval by primary key.
+  /// </remarks>
   public static RequestParameters ForId(Guid id) => new()
   {
     Filters = [new FilterDescriptor
@@ -57,6 +62,27 @@ internal static class RequestParametersFactory
       PropertyPath = "Id",
       Operator = FilterOperator.Equals,
       Value = id.ToString()
+    }]
+  };
+
+  /// <summary>
+  /// Creates request parameters for filtering network devices by associated VLAN tags.
+  /// </summary>
+  /// <param name="vlanTags">A collection of VLAN tags to filter by.</param>
+  /// <returns>
+  /// A <see cref="RequestParameters"/> instance with a nested filter targeting VLANs within ports.
+  /// </returns>
+  /// <remarks>
+  /// Uses the <c>In</c> operator to match any VLAN tag within the provided set.
+  /// The property path traverses <see cref="NetworkDevice.PortsOfNetworkDevice"/> → <see cref="Port.VLANs"/> → <see cref="VLAN.VLANTag"/>.
+  /// </remarks>
+  public static RequestParameters ForNetworkDevicesByVlans(IEnumerable<int> vlanTags) => new()
+  {
+    Filters = [new FilterDescriptor
+    {
+      PropertyPath = $"{nameof(NetworkDevice.PortsOfNetworkDevice)}.{nameof(Port.VLANs)}.{nameof(VLAN.VLANTag)}",
+      Operator = FilterOperator.In,
+      Value = Converter.ArrayToString(vlanTags)
     }]
   };
 }
