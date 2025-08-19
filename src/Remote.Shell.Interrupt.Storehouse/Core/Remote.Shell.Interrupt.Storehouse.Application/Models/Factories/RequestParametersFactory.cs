@@ -85,4 +85,8 @@ internal static class RequestParametersFactory
       Value = Converter.ArrayToString(vlanTags)
     }]
   };
+
+  public static RequestParameters Empty() => new()
+  {
+  };
 }

@@ -21,6 +21,9 @@ public static class ApplicationServicesRegistration
       config.AddOpenBehavior(typeof(LoggingBehavior<,>));
     });
 
+    services.AddTransient<FindEntitiesByFilterQueryHandler<SPRVlan, SPRVlanDTO, GetSPRVlansByFilterQuery>, GetSPRVlansByFilterQueryHandler>();
+    services.AddTransient<IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>, GetClientsByVlanTagQueryHandler>();
+
     // AutoMapper injection
     services.AddAutoMapper(cfg =>
     {

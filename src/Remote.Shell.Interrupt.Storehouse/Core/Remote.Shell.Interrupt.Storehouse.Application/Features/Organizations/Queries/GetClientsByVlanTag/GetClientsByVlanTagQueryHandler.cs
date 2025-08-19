@@ -6,7 +6,7 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
                                                IClientSpecification clientSpec,
                                                IQueryFilterParser filterParser,
                                                IMapper mapper,
-                                               IQueryHandler<GetSPRVlansByFilterQuery, PagedList<SPRVlanDTO>> vlanHandler)
+                                               FindEntitiesByFilterQueryHandler<SPRVlan, SPRVlanDTO, GetSPRVlansByFilterQuery> vlanHandler)
   : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
   async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
@@ -29,7 +29,8 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
   async Task<IEnumerable<SPRVlanDTO>> FetchVlans(GetClientsByVlanTagQuery request, 
                                                  CancellationToken cancellationToken)
   {
-    var query = new GetSPRVlansByFilterQuery(RequestParametersFactory.ForVlanTag(request.VlanTag));
+    var parameters = RequestParametersFactory.ForVlanTag(request.VlanTag);
+    var query = new GetSPRVlansByFilterQuery(parameters);
     var result = await vlanHandler.Handle(query, cancellationToken);
 
     return result;

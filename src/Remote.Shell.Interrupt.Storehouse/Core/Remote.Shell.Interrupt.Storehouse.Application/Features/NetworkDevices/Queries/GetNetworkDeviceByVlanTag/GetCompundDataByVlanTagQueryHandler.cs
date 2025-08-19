@@ -2,9 +2,9 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 
 public record GetCompundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
-internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitOfWork,
-                                                   INetworkDeviceSpecification networkDeviceSpec,
-                                                   IQueryFilterParser filterParser,
+internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
+                                                   INetworkDeviceSpecification netDevSpec,
+                                                   IQueryFilterParser parser,
                                                    IMapper mapper,
                                                    IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> clientsHandler)
   : IQueryHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>
@@ -18,9 +18,9 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitO
     var vlanTags = ExtractVlanTags(clients);
 
     var networkDevices = await FetchNetworkDevices(vlanTags, cancellationToken);
-    await AggregatePorts(networkDevices, cancellationToken);
+    //await AggregatePorts(networkDevices, cancellationToken);
 
-    PrepareAndCleanAggregationPorts(networkDevices);
+    //PrepareAndCleanAggregationPorts(networkDevices);
 
     return BuildResult(clients, networkDevices);
   }
@@ -46,23 +46,36 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitO
 
   async Task<IEnumerable<NetworkDevice>> FetchNetworkDevices(IEnumerable<int> vlanTags, CancellationToken cancellationToken)
   {
-    var parameters = RequestParametersFactory.ForNetworkDevicesByVlans(vlanTags);
-    var filterExpr = filterParser.ParseFilters<NetworkDevice>(parameters.Filters);
-    var spec = BuildSpecification(networkDeviceSpec, filterExpr);
+    var parameters = RequestParametersFactory.Empty();
+    var filterExpr = parser.ParseFilters<NetworkDevice>(parameters.Filters);
+    var spec = BuildSpecification(netDevSpec, filterExpr, vlanTags);
 
-    return await netDevUnitOfWork.NetworkDevices.GetManyWithChildrenAsync(spec, cancellationToken);
+    return await unitOfWork.NetworkDevices.GetManyWithChildrenAsync(spec, cancellationToken);
   }
 
-  static INetworkDeviceSpecification BuildSpecification(INetworkDeviceSpecification baseSpec,
-                                                        Expression<Func<NetworkDevice, bool>>? filterExpr)
+  static ISpecification<NetworkDevice> BuildSpecification(INetworkDeviceSpecification baseSpec,
+                                                          Expression<Func<NetworkDevice, bool>>? filterExpr,
+                                                          IEnumerable<int>? vlanTags = null)
   {
-    var spec = baseSpec.AddInclude(x => x.PortsOfNetworkDevice)
-                       .AddThenInclude<Port, IEnumerable<VLAN>>(p => p.VLANs);
+    var spec = baseSpec;
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
 
-    return (INetworkDeviceSpecification)spec;
+    // spec.AddInclude(x => x.PortsOfNetworkDevice);
+
+    if (vlanTags is not null && vlanTags.Any())
+    {
+      spec.AddInclude(nd => nd.PortsOfNetworkDevice.Where(p => p.VLANs.Any(vlan => vlanTags.Contains(vlan.VLANTag))));
+      spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs.Where(vlan => vlanTags.Contains(vlan.VLANTag)));
+    }
+    else
+    {
+      spec.AddInclude(nd => nd.PortsOfNetworkDevice);
+      spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs);
+    }
+
+    return spec;
   }
 
   async Task AggregatePorts(IEnumerable<NetworkDevice> networkDevices, CancellationToken cancellationToken)
@@ -75,16 +88,13 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitO
         continue;
 
       var parentIds = parentPorts.Select(port => port.Id);
-      var children = await netDevUnitOfWork.Ports
-                                           .GetAllAggregatedPortsByListAsync(parentIds, cancellationToken);
+      var children = await unitOfWork.Ports.GetAllAggregatedPortsByListAsync(parentIds, cancellationToken);
       var childrenByParent = children.Where(child => child.ParentId.HasValue)
                                      .GroupBy(child => child.ParentId!.Value)
-                                     .ToDictionary(group => group.Key,
-                                                   group => group.ToList());
+                                     .ToDictionary(group => group.Key, group => group.ToList());
 
       foreach (var port in parentPorts)
-        port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated)
-                               ? aggregated : [];
+        port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated) ? aggregated : [];
     }
   }
 
@@ -92,9 +102,9 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork netDevUnitO
   {
     foreach (var device in networkDevices)
     {
-        var portLookup = BuildPortLookup(device);
-        var aggregatedPortIds = AttachAggregatedPorts(device, portLookup);
-        device.PortsOfNetworkDevice = CleanAndSortPorts(device, aggregatedPortIds);
+      var portLookup = BuildPortLookup(device);
+      var aggregatedPortIds = AttachAggregatedPorts(device, portLookup);
+      device.PortsOfNetworkDevice = CleanAndSortPorts(device, aggregatedPortIds);
     }
   }
 

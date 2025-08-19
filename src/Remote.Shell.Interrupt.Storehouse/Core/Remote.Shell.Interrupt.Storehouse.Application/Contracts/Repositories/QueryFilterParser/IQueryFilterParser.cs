@@ -25,5 +25,5 @@ public interface IQueryFilterParser
   /// A LINQ expression representing the property accessor for sorting,
   /// or <c>null</c> if the property name is null or invalid.
   /// </returns>
-  Expression<Func<T, Object>>? ParseOrderBy<T>(string? propertyName);
+  Expression<Func<T, object>>? ParseOrderBy<T>(string? propertyName);
 }

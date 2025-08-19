@@ -8,6 +8,11 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
   // Filters
   protected Expression<Func<TBase, bool>>? _criteria;
 
+  // Filtered Includes
+  protected readonly List<LambdaExpression> _filteredIncludeChains = [];
+
+  public IReadOnlyList<LambdaExpression> FilteredIncludeChains => _filteredIncludeChains.AsReadOnly();
+
   // OrderBy
   protected Expression<Func<TBase, object>>? _orderBy;
   protected Expression<Func<TBase, object>>? _orderByDescending;
@@ -84,7 +89,6 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
       => node == _oldParam ? _newParam : node;
   }
 
-
   public virtual ISpecification<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
     var chain = new IncludeChain<TBase>();
@@ -127,19 +131,32 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     foreach (var chain in this._includeChains)
     {
       var newChain = new IncludeChain<TBase>();
-        
+
       foreach (var include in chain.Includes)
       {
         var method = typeof(IncludeChain<TBase>).GetMethod(nameof(IncludeChain<TBase>.AddTypedInclude))!
                                                 .MakeGenericMethod(include.EntityType,
                                                                    include.PropertyType);
-            
+
         method.Invoke(newChain, [include.Expression]);
       }
-        
+
       clone._includeChains.Add(newChain);
     }
 
     return clone;
+  }
+  
+  public virtual ISpecification<TBase> AddFilteredInclude<TProperty>(Expression<Func<TBase, IEnumerable<TProperty>>> includeExpression)
+  {
+    // Convert the expression to the appropriate format for filtered includes
+    var parameter = includeExpression.Parameters[0];
+    var body = includeExpression.Body;
+      
+    // Create a new expression that can be handled by your existing infrastructure
+    var newExpression = Expression.Lambda(body, parameter);
+    _filteredIncludeChains.Add(newExpression);
+      
+    return this;
   }
 }

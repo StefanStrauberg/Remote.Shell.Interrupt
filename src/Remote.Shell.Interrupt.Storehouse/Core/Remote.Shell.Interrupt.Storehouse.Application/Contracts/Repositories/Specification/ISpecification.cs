@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.S
 /// </summary>
 /// <typeparam name="TBase">The type of entity that this specification applies to.</typeparam>
 public interface ISpecification<TBase> where TBase : BaseEntity
-{ 
+{
   /// <summary>
   /// Gets the criteria expression used for filtering entities.
   /// </summary>
@@ -31,6 +31,8 @@ public interface ISpecification<TBase> where TBase : BaseEntity
   /// These expressions specify navigation properties to include in the query.
   /// </remarks>
   IReadOnlyList<IIncludeChain<TBase>> IncludeChains { get; }
+
+  IReadOnlyList<LambdaExpression> FilteredIncludeChains { get; }
 
   /// <summary>
   /// Gets the maximum number of entities to retrieve.

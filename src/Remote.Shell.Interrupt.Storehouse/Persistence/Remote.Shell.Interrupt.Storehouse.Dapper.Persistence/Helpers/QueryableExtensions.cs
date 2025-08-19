@@ -13,8 +13,7 @@ internal static class QueryableExtensions
   /// Uses reflection to dynamically invoke <c>Include</c> and <c>ThenInclude</c> methods from EF Core.
   /// Supports nested includes via <see cref="IIncludeChain{T}"/>.
   /// </remarks>
-  public static IQueryable<T> ApplyIncludes<T>(this IQueryable<T> query,
-                                               IEnumerable<IIncludeChain<T>> includeChains)
+  public static IQueryable<T> ApplyIncludes<T>(this IQueryable<T> query, IEnumerable<IIncludeChain<T>> includeChains)
     where T : BaseEntity
   {
     foreach (var chain in includeChains)

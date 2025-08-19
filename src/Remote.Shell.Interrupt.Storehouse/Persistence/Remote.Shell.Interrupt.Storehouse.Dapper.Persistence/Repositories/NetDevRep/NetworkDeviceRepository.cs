@@ -16,14 +16,6 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
   async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,
                                                                                                     CancellationToken cancellationToken)
   {
-    var query = context.Set<NetworkDevice>()
-                       .AsNoTracking()
-                       .ApplyIncludes(specification.IncludeChains)
-                       .ApplyWhere(specification.Criterias)
-                       .ToQueryString();
-    
-    Console.WriteLine(query);
-
     var result = await context.Set<NetworkDevice>()
                               .AsNoTracking()
                               .ApplyIncludes(specification.IncludeChains)
