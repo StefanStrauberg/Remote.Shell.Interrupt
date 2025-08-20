@@ -123,12 +123,12 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     {
       Take = Take,
       Skip = Skip,
-      _criteria = this._criteria,
-      _orderBy = this._orderBy,
-      _orderByDescending = this._orderByDescending
+      _criteria = _criteria,
+      _orderBy = _orderBy,
+      _orderByDescending = _orderByDescending
     };
 
-    foreach (var chain in this._includeChains)
+    foreach (var chain in _includeChains)
     {
       var newChain = new IncludeChain<TBase>();
 

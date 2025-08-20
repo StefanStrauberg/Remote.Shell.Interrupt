@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.QueryFilterParser\Remote.Shell.Interrupt.Storehouse.QueryFilterParser.csproj" />
+    <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.Specification\Remote.Shell.Interrupt.Storehouse.Specification.csproj" />
   </ItemGroup>
 
 </Project>
