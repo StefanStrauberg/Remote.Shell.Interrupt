@@ -9,12 +9,12 @@ public enum FilterOperator
   /// Checks if the values are equal.
   /// </summary>
   Equals,
-  
+
   /// <summary>
   /// Checks if the values are not equal.
   /// </summary>
   NotEquals,
-  
+
   /// <summary>
   /// Checks if the value is greater than the comparison value.
   /// </summary>

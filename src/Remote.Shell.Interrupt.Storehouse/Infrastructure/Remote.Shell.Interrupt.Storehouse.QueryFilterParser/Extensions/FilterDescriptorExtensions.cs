@@ -7,67 +7,28 @@ internal static class FilterDescriptorExtensions
     ArgumentNullException.ThrowIfNull(filter);
 
     var parameter = Expression.Parameter(typeof(T), "entity");
-    var propertyPathSegments = filter.PropertyPath.Split('.');
+    var segments = filter.PropertyPath.Split('.');
 
-    var body = BuildPropertyAccessChain(parameter,
-                                        propertyPathSegments,
-                                        0,
-                                        filter.Operator,
-                                        filter.Value);
+    var body = BuildPropertyAccessChain(parameter, segments, 0, filter.Operator, filter.Value);
 
     return Expression.Lambda<Func<T, bool>>(body, parameter);
   }
 
-  static Expression BuildPropertyAccessChain(Expression currentExpression,
-                                             string[] propertyPathSegments,
-                                             int currentIndex,
-                                             FilterOperator filterOperator,
-                                             string filterValue)
+  static Expression BuildPropertyAccessChain(Expression current,
+                                             string[] segments,
+                                             int index,
+                                             FilterOperator op,
+                                             string value)
   {
-    var property = Expression.PropertyOrField(currentExpression,
-                                              propertyPathSegments[currentIndex]);
+    var property = Expression.PropertyOrField(current, segments[index]);
         
-    if (IsFinalPropertySegment(propertyPathSegments, currentIndex))
-      return BuildFinalComparison(property,
-                                  filterOperator,
-                                  filterValue);
+    if (IsFinalPropertySegment(segments, index))
+      return BuildFinalComparison(property, op, value);
 
     if (IsCollectionProperty(property.Type))
-      return BuildCollectionFilterExpression(property,
-                                             propertyPathSegments,
-                                             currentIndex,
-                                             filterOperator,
-                                             filterValue);
+      return BuildCollectionFilterExpression(property, segments, index, op, value);
 
-    return BuildPropertyAccessChain(property,
-                                    propertyPathSegments,
-                                    currentIndex + 1,
-                                    filterOperator,
-                                    filterValue);
-  }
-
-  static Expression BuildNextExpressionSegment(Expression currentExpression,
-                                               string[] propertyPathSegments,
-                                               int currentIndex,
-                                               FilterOperator filterOperator,
-                                               string filterValue)
-  {
-    var property = Expression.PropertyOrField(currentExpression,
-                                              propertyPathSegments[currentIndex]);
-
-    if (IsFinalPropertySegment(propertyPathSegments, currentIndex))
-      return BuildFinalComparison(property,
-                                  filterOperator,
-                                  filterValue);
-
-    if (IsCollectionProperty(property.Type))
-      return BuildCollectionFilterExpression(property,
-                                             propertyPathSegments,
-                                             currentIndex,
-                                             filterOperator,
-                                             filterValue);
-
-    return property;
+    return BuildPropertyAccessChain(property, segments, index + 1, op, value);
   }
 
   static bool IsFinalPropertySegment(string[] segments, int index)
@@ -76,87 +37,66 @@ internal static class FilterDescriptorExtensions
   static bool IsCollectionProperty(Type type)
     => typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string);
 
-  static Expression BuildFinalComparison(Expression propertyExpression,
-                                         FilterOperator filterOperator,
-                                         string filterValue)
-  {
-    return filterOperator switch
+  static Expression BuildFinalComparison(Expression property, FilterOperator op, string value)
+    => op switch
     {
-      FilterOperator.In => BuildInExpression(propertyExpression, filterValue),
-      _ => BuildSimpleComparison(propertyExpression, filterOperator, filterValue)
+      FilterOperator.In => BuildInExpression(property, value),
+      _ => BuildSimpleComparison(property, op, value)
+    };
+
+  static MethodCallExpression BuildInExpression(Expression property,
+                                                string value)
+  {
+    var values = value.Split(',')
+                      .Select(v => ConvertFilterValue(v, property.Type))
+                      .ToList();
+
+    var listType = typeof(List<>).MakeGenericType(property.Type);
+    var list = (IList)Activator.CreateInstance(listType)!;
+
+    foreach (var v in values)
+      list.Add(v);
+
+    var constant = Expression.Constant(list, listType);
+    return Expression.Call(constant, GetContainsMethod(property.Type), property);
+  }
+
+  static Expression BuildSimpleComparison(Expression property, FilterOperator op, string value)
+  {
+    var converted = ConvertFilterValue(value, property.Type);
+    var constant = Expression.Constant(converted, property.Type);
+
+    return op switch
+    {
+      FilterOperator.Equals => Expression.Equal(property, constant),
+      FilterOperator.NotEquals => Expression.NotEqual(property, constant),
+      FilterOperator.GraterThan => Expression.GreaterThan(property, constant),
+      FilterOperator.LessThan => Expression.LessThan(property, constant),
+      FilterOperator.Contains => Expression.Call(property, GetStringContainsMethod(), constant),
+      _ => throw new NotImplementedException($"Operator {op} is not supported.")
     };
   }
 
-  static Expression BuildInExpression(Expression propertyExpression,
-                                      string filterValue)
+  static MethodCallExpression BuildCollectionFilterExpression(Expression collection, string[] segments, int index, FilterOperator op, string value)
   {
-    var values = filterValue.Split(',')
-                            .Select(value => ConvertFilterValue(value, propertyExpression.Type))
-                            .ToList();
-
-    var listType = typeof(List<>).MakeGenericType(propertyExpression.Type);
-    var listInstance = (IList)Activator.CreateInstance(listType)!;
-
-    foreach (var value in values)
-      listInstance.Add(value);
-
-    var constant = Expression.Constant(listInstance, listType);
-    return Expression.Call(constant,
-                           GetContainsMethod(propertyExpression.Type),
-                           propertyExpression);
-  }
-
-  static Expression BuildSimpleComparison(Expression propertyExpression,
-                                          FilterOperator filterOperator,
-                                          string filterValue)
-  {
-    var convertedValue = ConvertFilterValue(filterValue, propertyExpression.Type);
-    var constant = Expression.Constant(convertedValue, propertyExpression.Type);
-
-    return filterOperator switch
-    {
-      FilterOperator.Equals => Expression.Equal(propertyExpression, constant),
-      FilterOperator.NotEquals => Expression.NotEqual(propertyExpression, constant),
-      FilterOperator.GraterThan => Expression.GreaterThan(propertyExpression, constant),
-      FilterOperator.LessThan => Expression.LessThan(propertyExpression, constant),
-      FilterOperator.Contains => Expression.Call(propertyExpression,
-                                                 GetStringContainsMethod(),
-                                                 constant),
-      _ => throw new NotImplementedException($"Operator {filterOperator} is not supported.")
-    };
-  }
-
-  static MethodCallExpression BuildCollectionFilterExpression(Expression collectionExpression,
-                                                              string[] propertyPathSegments,
-                                                              int currentIndex,
-                                                              FilterOperator filterOperator,
-                                                              string filterValue)
-  {
-    var elementType = GetCollectionElementType(collectionExpression.Type)
-      ?? throw new InvalidOperationException($"Could not determine element type for collection {collectionExpression}");
+    var elementType = GetCollectionElementType(collection.Type)
+      ?? throw new InvalidOperationException($"Could not determine element type for collection {collection}");
 
     var parameter = Expression.Parameter(elementType, "element");
-    var nestedExpression = BuildPropertyAccessChain(parameter,
-                                                    propertyPathSegments,
-                                                    currentIndex + 1,
-                                                    filterOperator,
-                                                    filterValue);
+    var nested = BuildPropertyAccessChain(parameter, segments, index + 1, op, value);
 
-    var predicate = Expression.Lambda(nestedExpression, parameter);
+    var predicate = Expression.Lambda(nested, parameter);
     var anyMethod = GetEnumerableAnyMethod(elementType);
 
-    return Expression.Call(anyMethod, collectionExpression, predicate);
+    return Expression.Call(anyMethod, collection, predicate);
   }
 
   static object ConvertFilterValue(string value, Type targetType)
   {
     try
     {
-      if (targetType == typeof(Guid))
-        return Guid.Parse(value);
-
-      if (targetType.IsEnum)
-        return Enum.Parse(targetType, value, ignoreCase: true);
+      if (targetType == typeof(Guid)) return Guid.Parse(value);
+      if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
 
       return Convert.ChangeType(value, targetType);
     }
@@ -166,20 +106,17 @@ internal static class FilterDescriptorExtensions
     }
   }
 
-  static Type GetCollectionElementType(Type collectionType)
+  static Type? GetCollectionElementType(Type collectionType)
   {
-    if (collectionType.IsArray)
-      return collectionType.GetElementType()!;
+    if (collectionType.IsArray) return collectionType.GetElementType();
+    if (collectionType.IsGenericType) return collectionType.GetGenericArguments()[0];
 
-    if (collectionType.IsGenericType)
-      return collectionType.GetGenericArguments()[0];
-
-    return null!;
+    return null;
   }
 
   static MethodInfo GetEnumerableAnyMethod(Type elementType)
     => typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                         .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+                         .First(m => m.Name == nameof(Enumerable.Any) && m.GetParameters().Length == 2)
                          .MakeGenericMethod(elementType);
 
   static MethodInfo GetStringContainsMethod()
@@ -187,5 +124,5 @@ internal static class FilterDescriptorExtensions
 
   static MethodInfo GetContainsMethod(Type elementType)
     => typeof(List<>).MakeGenericType(elementType)
-                     .GetMethod("Contains", [elementType])!;
+                     .GetMethod(nameof(List<object>.Contains), [elementType])!;
 }

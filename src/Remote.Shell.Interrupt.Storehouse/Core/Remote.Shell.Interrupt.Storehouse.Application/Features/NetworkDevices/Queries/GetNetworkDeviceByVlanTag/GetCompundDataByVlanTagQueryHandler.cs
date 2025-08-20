@@ -18,9 +18,12 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
     var vlanTags = ExtractVlanTags(clients);
 
     var networkDevices = await FetchNetworkDevices(vlanTags, cancellationToken);
-    //await AggregatePorts(networkDevices, cancellationToken);
 
-    //PrepareAndCleanAggregationPorts(networkDevices);
+    AggregatePorts(networkDevices);
+    CleanAggregatedPorts(networkDevices);
+    FilterPortsByVlanTags(networkDevices, vlanTags);
+    FilterVlansByVlanTags(networkDevices, vlanTags);
+    networkDevices = FilterDevices(networkDevices);
 
     return BuildResult(clients, networkDevices);
   }
@@ -62,75 +65,78 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
 
-    // spec.AddInclude(x => x.PortsOfNetworkDevice);
+    spec.AddInclude(nd => nd.PortsOfNetworkDevice);
+    spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs);
 
     if (vlanTags is not null && vlanTags.Any())
-    {
-      spec.AddInclude(nd => nd.PortsOfNetworkDevice.Where(p => p.VLANs.Any(vlan => vlanTags.Contains(vlan.VLANTag))));
-      spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs.Where(vlan => vlanTags.Contains(vlan.VLANTag)));
-    }
-    else
-    {
-      spec.AddInclude(nd => nd.PortsOfNetworkDevice);
-      spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs);
-    }
+      spec.AddFilter(x => x.PortsOfNetworkDevice.Any(x => x.VLANs.Any(x => vlanTags.Contains(x.VLANTag))));
 
     return spec;
   }
 
-  async Task AggregatePorts(IEnumerable<NetworkDevice> networkDevices, CancellationToken cancellationToken)
+  static void AggregatePorts(IEnumerable<NetworkDevice> networkDevices)
   {
     foreach (var device in networkDevices)
     {
-      var parentPorts = device.PortsOfNetworkDevice.Where(p => p.ParentId is null);
+      var allPorts = device.PortsOfNetworkDevice;
 
-      if (!parentPorts.Any())
+      // Выбираем родительские порты (без ParentId)
+      var parentPorts = allPorts.Where(p => p.ParentId is null)
+                                .ToList();
+
+      if (parentPorts.Count == 0)
         continue;
 
-      var parentIds = parentPorts.Select(port => port.Id);
-      var children = await unitOfWork.Ports.GetAllAggregatedPortsByListAsync(parentIds, cancellationToken);
-      var childrenByParent = children.Where(child => child.ParentId.HasValue)
-                                     .GroupBy(child => child.ParentId!.Value)
-                                     .ToDictionary(group => group.Key, group => group.ToList());
+      // Группируем дочерние порты по ParentId
+      var childrenByParent = allPorts.Where(p => p.ParentId.HasValue)
+                                     .GroupBy(p => p.ParentId!.Value)
+                                     .ToDictionary(g => g.Key, g => g.ToList());
 
-      foreach (var port in parentPorts)
-        port.AggregatedPorts = childrenByParent.TryGetValue(port.Id, out var aggregated) ? aggregated : [];
+      // Назначаем дочерние порты каждому родителю
+      foreach (var parent in parentPorts)
+        parent.AggregatedPorts = childrenByParent.TryGetValue(parent.Id, out var aggregated) ? aggregated : [];
     }
   }
 
-  static void PrepareAndCleanAggregationPorts(IEnumerable<NetworkDevice> networkDevices)
+  static void CleanAggregatedPorts(IEnumerable<NetworkDevice> networkDevices)
   {
     foreach (var device in networkDevices)
     {
-      var portLookup = BuildPortLookup(device);
-      var aggregatedPortIds = AttachAggregatedPorts(device, portLookup);
-      device.PortsOfNetworkDevice = CleanAndSortPorts(device, aggregatedPortIds);
+      // Собираем все Id агрегированных портов
+      var aggregatedIds = device.PortsOfNetworkDevice.Where(p => p.AggregatedPorts is not null &&
+                                                                 p.AggregatedPorts.Count > 0)
+                                                     .SelectMany(p => p.AggregatedPorts)
+                                                     .Select(p => p.Id)
+                                                     .ToHashSet();
+
+      // Очищаем список, исключая агрегированные порты
+      device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice.Where(p => !aggregatedIds.Contains(p.Id))];
     }
   }
 
-  static Dictionary<Guid, Port> BuildPortLookup(NetworkDevice device)
-    => device.PortsOfNetworkDevice.ToDictionary(port => port.Id);
-
-  static HashSet<Guid> AttachAggregatedPorts(NetworkDevice device, Dictionary<Guid, Port> portLookup)
+  static void FilterPortsByVlanTags(IEnumerable<NetworkDevice> networkDevices, IEnumerable<int> vlanTags)
   {
-    var aggregatedPortIds = new HashSet<Guid>();
+    var vlanTagSet = vlanTags as HashSet<int> ?? [.. vlanTags];
 
-    foreach (var port in device.PortsOfNetworkDevice.Where(port => port.ParentId.HasValue))
-    {
-      if (port.ParentId is Guid parentId && portLookup.TryGetValue(parentId, out var parent))
-      {
-        parent.AggregatedPorts.Add(port);
-        aggregatedPortIds.Add(port.Id);
-      }
-    }
-
-    return aggregatedPortIds;
+    foreach (var device in networkDevices)
+      device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice.Where(port => port.VLANs.Any(vl => vlanTagSet.Contains(vl.VLANTag)))
+                                                                   .Where(port => !port.VLANs.Any(vl => vl.VLANTag == 101))
+                                                                   .OrderBy(port => port.InterfaceName)];
   }
 
-  static List<Port> CleanAndSortPorts(NetworkDevice device, HashSet<Guid> aggregatedPortIds)
-    => [.. device.PortsOfNetworkDevice
-                 .Where(port => !aggregatedPortIds.Contains(port.Id))
-                 .OrderBy(port => port.InterfaceName)];
+  static void FilterVlansByVlanTags(IEnumerable<NetworkDevice> networkDevices, IEnumerable<int> vlanTags)
+  {
+    var vlanTagSet = vlanTags as HashSet<int> ?? [.. vlanTags];
+
+    foreach (var device in networkDevices)
+    {
+      foreach (var port in device.PortsOfNetworkDevice)
+        port.VLANs = [.. port.VLANs.Where(vlan => vlanTagSet.Contains(vlan.VLANTag))];
+    }
+  }
+
+  static IEnumerable<NetworkDevice> FilterDevices(IEnumerable<NetworkDevice> networkDevices)
+    => [.. networkDevices.Where(nd => nd.PortsOfNetworkDevice.Count != 0)];
 
   CompoundObjectDTO BuildResult(IEnumerable<DetailClientDTO> clients, IEnumerable<NetworkDevice> devices)
     => new()

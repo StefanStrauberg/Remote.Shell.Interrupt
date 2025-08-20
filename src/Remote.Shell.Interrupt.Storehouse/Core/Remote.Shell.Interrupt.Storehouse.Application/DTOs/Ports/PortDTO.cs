@@ -19,6 +19,8 @@ public class PortDTO : IMapWith<Port>
   public IDictionary<string, string> NetworkTableOfPort { get; set; } = null!;
   public List<VLANDTO> VLANs { get; set; } = null!;
 
+  public Guid? ParentId { get; set; }
+
   void IMapWith<Port>.Mapping(Profile profile)
   {
     profile.CreateMap<Port, PortDTO>()
@@ -54,6 +56,8 @@ public class PortDTO : IMapWith<Port>
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,
                       opt => opt.MapFrom(src => src.NetworkTableOfInterface
-                                                   .Select(x => new { x.NetworkAddress, x.Netmask })));
+                                                   .Select(x => new { x.NetworkAddress, x.Netmask })))
+           .ForMember(dest => dest.ParentId,
+                      opt => opt.MapFrom(src => src.ParentId));
   }
 }

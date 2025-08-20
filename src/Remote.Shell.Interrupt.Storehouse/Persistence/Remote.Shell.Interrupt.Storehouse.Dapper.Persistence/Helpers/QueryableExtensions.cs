@@ -73,7 +73,17 @@ internal static class QueryableExtensions
   /// <param name="criterias">The filtering expression.</param>
   /// <returns>The modified query with the filter applied, or the original if null.</returns>
   public static IQueryable<T> ApplyWhere<T>(this IQueryable<T> query, Expression<Func<T, bool>>? criterias)
-    => criterias is not null ? query.Where(criterias) : query;
+  {
+    if (criterias is null)
+      return query;
+
+    // return criterias is not null ? query.Where(criterias) : query;
+    var visitor = new ILikeExpressionVisitor();
+    var modifiedBody = visitor.Visit(criterias.Body);
+    var modifiedLambda = Expression.Lambda<Func<T, bool>>(modifiedBody!, criterias.Parameters);
+
+    return query.Where(modifiedLambda);
+  }
 
   /// <summary>
   /// Applies sorting to the query based on the provided key selector.
