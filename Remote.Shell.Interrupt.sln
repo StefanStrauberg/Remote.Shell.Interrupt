@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Stor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Shell.Interrupt.Storehouse.QueryFilterParser", "src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.QueryFilterParser\Remote.Shell.Interrupt.Storehouse.QueryFilterParser.csproj", "{49ED3C53-262C-42AA-977C-0644CB465B24}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{88B630FB-B04B-4033-A386-6AF0B34A8F7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,18 @@ Global
 		{49ED3C53-262C-42AA-977C-0644CB465B24}.Release|x64.Build.0 = Release|Any CPU
 		{49ED3C53-262C-42AA-977C-0644CB465B24}.Release|x86.ActiveCfg = Release|Any CPU
 		{49ED3C53-262C-42AA-977C-0644CB465B24}.Release|x86.Build.0 = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|x64.Build.0 = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Debug|x86.Build.0 = Debug|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|x64.ActiveCfg = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|x64.Build.0 = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|x86.ActiveCfg = Release|Any CPU
+		{88B630FB-B04B-4033-A386-6AF0B34A8F7D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

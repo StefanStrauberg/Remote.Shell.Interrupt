@@ -5,6 +5,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Models.Request;
 /// </summary>
 public class FilterDescriptor
 {
+  public FilterDescriptor() { }
+
+  public FilterDescriptor(string propertyPath, FilterOperator filterOperator, string value)
+  {
+    PropertyPath = propertyPath;
+    Operator = filterOperator;
+    Value = value;
+  }
+  
   /// <summary>
   /// Gets or sets the path to the property being filtered.
   /// </summary>

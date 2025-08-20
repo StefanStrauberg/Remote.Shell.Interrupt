@@ -19,7 +19,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   }
 
   /// <inheritdoc />
-  Expression<Func<T, Object>>? IQueryFilterParser.ParseOrderBy<T>(string? propertyName)
+  Expression<Func<T, object>>? IQueryFilterParser.ParseOrderBy<T>(string? propertyName)
   {
     if (ShouldSkipProcessing(propertyName))
       return null;
@@ -63,7 +63,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
     return finalExpression;
   }
 
-  static Expression<Func<T, Object>>? BuildOrderByExpression<T>(string propertyName)
+  static Expression<Func<T, object>>? BuildOrderByExpression<T>(string propertyName)
   {
     var parameter = Expression.Parameter(typeof(T), "entity");
     Expression propertyExpression = parameter;
@@ -73,7 +73,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
 
     var converted = Expression.Convert(propertyExpression, typeof(object));
 
-    return Expression.Lambda<Func<T, Object>>(converted, parameter);
+    return Expression.Lambda<Func<T, object>>(converted, parameter);
   }
 
   /// <summary>
