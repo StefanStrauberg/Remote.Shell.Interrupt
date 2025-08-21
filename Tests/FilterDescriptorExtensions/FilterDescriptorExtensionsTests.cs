@@ -7,15 +7,15 @@ public class FilterDescriptorExtensionsTests
   {
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Name),
+      PropertyPath = nameof(TestEntity.Name),
       Operator = FilterOperator.Equals,
       Value = "John"
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Name = "John" });
+    var result = func(new TestEntity { Name = "John" });
 
     result.Should().BeTrue();
   }
@@ -25,15 +25,15 @@ public class FilterDescriptorExtensionsTests
   {
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Age),
+      PropertyPath = nameof(TestEntity.Age),
       Operator = FilterOperator.NotEquals,
       Value = 30.ToString()
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Age = 25 });
+    var result = func(new TestEntity { Age = 25 });
 
     result.Should().BeTrue();
   }
@@ -43,15 +43,15 @@ public class FilterDescriptorExtensionsTests
   {
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Age),
+      PropertyPath = nameof(TestEntity.Age),
       Operator = FilterOperator.GraterThan,
       Value = 18.ToString()
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Age = 25 });
+    var result = func(new TestEntity { Age = 25 });
 
     result.Should().BeTrue();
   }
@@ -61,15 +61,15 @@ public class FilterDescriptorExtensionsTests
   {
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Name),
+      PropertyPath = nameof(TestEntity.Name),
       Operator = FilterOperator.Contains,
       Value = "oh"
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Name = "John" });
+    var result = func(new TestEntity { Name = "John" });
 
     result.Should().BeTrue();
   }
@@ -79,15 +79,15 @@ public class FilterDescriptorExtensionsTests
   {
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Age),
+      PropertyPath = nameof(TestEntity.Age),
       Operator = FilterOperator.In,
       Value = "18,25,30"
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Age = 25 });
+    var result = func(new TestEntity { Age = 25 });
 
     result.Should().BeTrue();
   }
@@ -102,15 +102,15 @@ public class FilterDescriptorExtensionsTests
       Value = "Doe"
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var person = new Person
+    var person = new TestEntity
     {
-      NickNames =
+      Children =
       [
-        new() { Nick = "John" },
-        new() { Nick = "Doe" }
+        new() { ChildName = "John" },
+        new() { ChildName = "Doe" }
       ]
     };
 
@@ -125,15 +125,15 @@ public class FilterDescriptorExtensionsTests
     var guid = Guid.NewGuid();
     var filter = new FilterDescriptor
     {
-      PropertyPath = nameof(Person.Id),
+      PropertyPath = nameof(TestEntity.Id),
       Operator = FilterOperator.Equals,
       Value = guid.ToString()
     };
 
-    var expr = filter.ToExpression<Person>();
+    var expr = filter.ToExpression<TestEntity>();
     var func = expr.Compile();
 
-    var result = func(new Person { Id = guid });
+    var result = func(new TestEntity { Id = guid });
 
     result.Should().BeTrue();
   }
