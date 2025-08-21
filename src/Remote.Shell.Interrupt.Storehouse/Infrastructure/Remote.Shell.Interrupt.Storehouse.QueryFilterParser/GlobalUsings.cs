@@ -6,3 +6,4 @@ global using Remote.Shell.Interrupt.Storehouse.QueryFilterParser.QueryFilterPars
 global using System.Reflection;
 global using Remote.Shell.Interrupt.Storehouse.QueryFilterParser.Extensions;
 global using System.Collections;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;

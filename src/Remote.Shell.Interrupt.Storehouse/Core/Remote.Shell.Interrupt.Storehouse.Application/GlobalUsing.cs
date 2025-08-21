@@ -55,3 +55,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Factories;
+global using System.Text.RegularExpressions;

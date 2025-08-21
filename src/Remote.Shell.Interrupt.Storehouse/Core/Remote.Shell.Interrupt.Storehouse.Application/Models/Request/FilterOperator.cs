@@ -31,6 +31,21 @@ public enum FilterOperator
   Contains,
 
   /// <summary>
+  /// Checks if the word is present in a string (typically for strings).
+  /// </summary>
+  Word,
+
+  /// <summary>
+  /// Checks if the string starts with specific word (typically for strings).
+  /// </summary>
+  StartsWith,
+
+  /// <summary>
+  /// Checks if the string ends with specific word (typically for strings).
+  /// </summary>
+  EndsWith,
+
+  /// <summary>
   /// Checks if the value is present within a predefined set.
   /// </summary>
   In

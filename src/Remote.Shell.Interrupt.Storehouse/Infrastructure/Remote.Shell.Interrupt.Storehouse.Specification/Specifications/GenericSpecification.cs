@@ -29,6 +29,8 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public int Skip { get; protected set; }
 
+  internal const int MaxPageSize = 1000;
+
   public virtual ISpecification<TBase> AddFilter(Expression<Func<TBase, bool>> criteria)
   {
     if (criteria is null)
@@ -91,6 +93,9 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
+    if (include is null)
+      throw new ArgumentNullException(nameof(include), "Include expression cannot be null.");
+
     var chain = new IncludeChain<TBase>();
     chain.AddInclude(include);
     _includeChains.Add(chain);
@@ -109,10 +114,16 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> ConfigurePagination(PaginationContext paginationContext)
   {
+    if (paginationContext is null)
+      throw new ArgumentNullException(nameof(paginationContext), "PaginationContext cannot be null.");
+
     int pageNumber = paginationContext.PageNumber < 1 ? 1 : paginationContext.PageNumber;
     int pageSize = paginationContext.PageSize < 1 ? 10 : paginationContext.PageSize;
 
-    Skip = (pageNumber - 1) * pageSize;
+    pageSize = Math.Min(pageSize, MaxPageSize);
+    long skipLong = ((long)pageNumber - 1) * pageSize;
+
+    Skip = skipLong > int.MaxValue ? int.MaxValue : (int)skipLong;
     Take = pageSize;
     return this;
   }

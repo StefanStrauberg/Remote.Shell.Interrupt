@@ -31,3 +31,6 @@ global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.
 global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 global using System.Linq.Expressions;
 global using Microsoft.EntityFrameworkCore.Query;
+global using System.Reflection;
+global using System.Text.RegularExpressions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;

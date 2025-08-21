@@ -21,7 +21,7 @@ internal static class FilterDescriptorExtensions
                                              string value)
   {
     var property = Expression.PropertyOrField(current, segments[index]);
-        
+
     if (IsFinalPropertySegment(segments, index))
       return BuildFinalComparison(property, op, value);
 
@@ -63,6 +63,12 @@ internal static class FilterDescriptorExtensions
 
   static Expression BuildSimpleComparison(Expression property, FilterOperator op, string value)
   {
+    if (property.Type != typeof(string) && (op == FilterOperator.Contains || 
+                                            op == FilterOperator.Word || 
+                                            op == FilterOperator.StartsWith || 
+                                            op == FilterOperator.EndsWith))
+      throw new InvalidOperationException($"Operator {op} can only be used with string properties. Property type: {property.Type.Name}");
+
     var converted = ConvertFilterValue(value, property.Type);
     var constant = Expression.Constant(converted, property.Type);
 
@@ -72,7 +78,10 @@ internal static class FilterDescriptorExtensions
       FilterOperator.NotEquals => Expression.NotEqual(property, constant),
       FilterOperator.GraterThan => Expression.GreaterThan(property, constant),
       FilterOperator.LessThan => Expression.LessThan(property, constant),
-      FilterOperator.Contains => Expression.Call(property, GetStringContainsMethod(), constant),
+      FilterOperator.Contains => Expression.Call(property, GetMethodInfoOfContainsMethod(), constant),
+      FilterOperator.Word => Expression.Call(null, GetMethodInfoOfContainsWholeWordMethod(), property, constant),
+      FilterOperator.StartsWith => Expression.Call(property, GetMethodInfoOfStartsWithMethod(), constant),
+      FilterOperator.EndsWith => Expression.Call(property, GetMethodInfoOfEndsWithMethod(), constant),
       _ => throw new NotImplementedException($"Operator {op} is not supported.")
     };
   }
@@ -119,10 +128,24 @@ internal static class FilterDescriptorExtensions
                          .First(m => m.Name == nameof(Enumerable.Any) && m.GetParameters().Length == 2)
                          .MakeGenericMethod(elementType);
 
-  static MethodInfo GetStringContainsMethod()
+  static MethodInfo GetMethodInfoOfContainsMethod()
     => typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+
+  static MethodInfo GetMethodInfoOfContainsWholeWordMethod()
+    => typeof(StringExtensions).GetMethod(nameof(StringExtensions.ContainsWholeWord),
+                                                 BindingFlags.Static | BindingFlags.Public,
+                                                 null,
+                                                 [typeof(string), typeof(string)],
+                                                 null)
+      ?? throw new InvalidOperationException("ContainsWholeWord method not found");
 
   static MethodInfo GetContainsMethod(Type elementType)
     => typeof(List<>).MakeGenericType(elementType)
                      .GetMethod(nameof(List<object>.Contains), [elementType])!;
+
+  static MethodInfo GetMethodInfoOfStartsWithMethod()
+    => typeof(string).GetMethod(nameof(string.StartsWith), [typeof(string)])!;
+
+  static MethodInfo GetMethodInfoOfEndsWithMethod()
+    => typeof(string).GetMethod(nameof(string.EndsWith), [typeof(string)])!;
 }
