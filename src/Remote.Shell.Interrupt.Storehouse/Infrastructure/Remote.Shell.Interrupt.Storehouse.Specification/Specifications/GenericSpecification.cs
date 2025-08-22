@@ -160,6 +160,9 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
   
   public virtual ISpecification<TBase> AddFilteredInclude<TProperty>(Expression<Func<TBase, IEnumerable<TProperty>>> includeExpression)
   {
+    if (includeExpression is null)
+      throw new ArgumentNullException(nameof(includeExpression), "Filtered include expression cannot be null.");
+      
     // Convert the expression to the appropriate format for filtered includes
     var parameter = includeExpression.Parameters[0];
     var body = includeExpression.Body;

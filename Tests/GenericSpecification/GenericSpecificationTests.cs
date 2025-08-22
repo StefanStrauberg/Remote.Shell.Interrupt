@@ -13,7 +13,7 @@ public class GenericSpecificationTests
 
   class ChildEntity : BaseEntity
   {
-    public string Name { get; set; } = string.Empty;
+    public string ChildName { get; set; } = string.Empty;
     public List<ToyEntity> Toys { get; set; } = [];
   }
 
@@ -21,10 +21,6 @@ public class GenericSpecificationTests
   {
     public string ToyName { get; set; } = string.Empty;
   }
-
-  // Helper for extracting property name from Expression
-  static string GetIncludePropertyName(IIncludeChain<TestEntity> chain)
-    => chain.Includes[0].Expression.ToString().Split('.').Last();
 
   static string GetPropertyNameFromExpression<T>(Expression<Func<T, object>> expression)
   {
@@ -248,7 +244,7 @@ public class GenericSpecificationTests
     var spec = new GenericSpecification<TestEntity>();
 
     // Act
-    Action act = () => spec.AddThenInclude<ChildEntity, string>(c => c.Name);
+    Action act = () => spec.AddThenInclude<ChildEntity, string>(c => c.ChildName);
 
     // Assert
     act.Should().Throw<InvalidOperationException>().WithMessage("No Include found to apply ThenInclude",
@@ -263,7 +259,7 @@ public class GenericSpecificationTests
 
     // Act
     spec.AddInclude(e => e.Children);
-    spec.AddThenInclude<ChildEntity, string>(c => c.Name);
+    spec.AddThenInclude<ChildEntity, string>(c => c.ChildName);
 
     // Assert
     var secondInclude = spec.IncludeChains[0].Includes[1];
@@ -423,7 +419,7 @@ public class GenericSpecificationTests
     original.AddFilter(e => e.Age > 18);
     original.AddThenInclude<ChildEntity, List<ToyEntity>>(c => c.Toys);
     original.AddOrderByDescending(e => e.Age);
-    
+
     // Assert — clone state
     clone.Criterias.Should().NotBeNull("clone should preserve original filter");
     clone.IncludeChains[0].Includes.Should().HaveCount(1, "clone should preserve original includes only");
@@ -437,5 +433,53 @@ public class GenericSpecificationTests
     original.IncludeChains[0].Includes.Should().HaveCount(2, "original should reflect added ThenInclude");
     original.OrderBy.Should().BeNull("original OrderBy should be replaced");
     original.OrderByDescending.Should().NotBeNull("original should reflect new OrderByDescending");
+  }
+
+  [Fact]
+  public void Clone_WithEmptySpecification_WorksCorrectly()
+  {
+    // Arrange
+    var original = new GenericSpecification<TestEntity>();
+
+    // Act
+    var clone = original.Clone();
+
+    // Assert
+    clone.Should().NotBeNull("cloning should produce a valid specification instance");
+    clone.Criterias.Should().BeNull("no filters were added to the original");
+    clone.IncludeChains.Should().BeEmpty("no includes were defined in the original");
+    clone.OrderBy.Should().BeNull("no ascending ordering was specified");
+    clone.OrderByDescending.Should().BeNull("no descending ordering was specified");
+    clone.Skip.Should().Be(0, "pagination was not configured");
+    clone.Take.Should().Be(0, "pagination was not configured");
+  }
+
+  // 6. FilteredInclude tests
+  [Fact]
+  public void AddFilteredInclude_WithNullExpression_ThrowsException()
+  {
+    // Arrange
+    var spec = new GenericSpecification<TestEntity>();
+
+    // Act
+    Action act = () => spec.AddFilteredInclude<ChildEntity>(null!);
+
+    // Assert
+    act.Should().Throw<ArgumentNullException>().WithMessage("Filtered include expression cannot be null. (Parameter 'includeExpression')");
+  }
+  
+  [Fact]
+  public void AddFilteredInclude_AddsToFilteredIncludeChains()
+  {
+    // Arrange
+    var spec = new GenericSpecification<TestEntity>();
+    
+    // Act
+    spec.AddFilteredInclude(e => e.Children.Where(c => c.ChildName == "Test"));
+    
+    // Assert
+    spec.FilteredIncludeChains.Should()
+        .ContainSingle(chain => chain.Body.ToString().Contains("c.ChildName == \"Test\""),
+                       "a valid filtered include expression should be added to the specification's include chain");
   }
 }
