@@ -10,8 +10,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   // <inheritdoc />
   Expression<Func<T, bool>>? IQueryFilterParser.ParseFilters<T>(List<FilterDescriptor>? filters)
   {
-    if (ShouldSkipProcessing(filters))
-      return null;
+    if (ShouldSkipProcessing(filters)) return null;
 
     var filterGroups = GroupFiltersByProperty(filters!);
 
@@ -21,8 +20,7 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   /// <inheritdoc />
   Expression<Func<T, object>>? IQueryFilterParser.ParseOrderBy<T>(string? propertyName)
   {
-    if (ShouldSkipProcessing(propertyName))
-      return null;
+    if (ShouldSkipProcessing(propertyName)) return null;
 
     return BuildOrderByExpression<T>(propertyName!);
   }
@@ -106,11 +104,8 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   static Expression<Func<T, bool>>? CombineWithAnd<T>(Expression<Func<T, bool>>? left,
                                                       Expression<Func<T, bool>>? right)
   {
-    if (left == null)
-      return right;
-
-    if (right == null)
-      return left;
+    if (left == null) return right;
+    if (right == null) return left;
 
     return CombineExpressions(left, right, Expression.AndAlso);
   }
@@ -126,10 +121,8 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   static Expression<Func<T, bool>>? CombineWithOr<T>(Expression<Func<T, bool>>? left,
                                                      Expression<Func<T, bool>>? right)
   {
-    if (left == null)
-      return right;
-    if (right == null)
-      return left;
+    if (left == null) return right;
+    if (right == null) return left;
 
     return CombineExpressions(left, right, Expression.OrElse);
   }
