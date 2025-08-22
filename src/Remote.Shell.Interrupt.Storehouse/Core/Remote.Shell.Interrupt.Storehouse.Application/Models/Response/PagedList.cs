@@ -1,5 +1,3 @@
-
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 
 /// <summary>
@@ -45,9 +43,7 @@ public class PagedList<T> : List<T>
     /// <param name="count">The total number of items.</param>
     /// <param name="pageNumber">The current page number.</param>
     /// <param name="pageSize">The number of items per page.</param>
-    public PagedList(IEnumerable<T> items,
-                     int count,
-                     PaginationContext paginationContext)
+    public PagedList(IEnumerable<T> items, int count, PaginationContext paginationContext)
     {
         TotalCount = count;
         PageSize = paginationContext.PageSize;
@@ -56,9 +52,30 @@ public class PagedList<T> : List<T>
         AddRange(items);
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="PagedList{T}"/> using the provided items and pagination context.
+    /// </summary>
+    /// <param name="items">The items to include on the current page.</param>
+    /// <param name="totalCount">The total number of items across all pages.</param>
+    /// <param name="pagination">The pagination context specifying page number and page size.</param>
+    /// <returns>
+    /// A populated <see cref="PagedList{T}"/> containing the specified items and pagination metadata.
+    /// </returns>
+    /// <remarks>
+    /// This factory method encapsulates pagination logic and ensures consistent instantiation.
+    /// </remarks>
     public static PagedList<T> Create(IEnumerable<T> items, int totalCount, PaginationContext pagination)
         => new(items, totalCount, pagination);
 
+    /// <summary>
+    /// Returns an empty <see cref="PagedList{T}"/> with zero items and default pagination metadata.
+    /// </summary>
+    /// <returns>
+    /// An empty <see cref="PagedList{T}"/> with <c>CurrentPage = 0</c>, <c>PageSize = 0</c>, and <c>TotalCount = 0</c>.
+    /// </returns>
+    /// <remarks>
+    /// Useful as a default or fallback result when no data is available.
+    /// </remarks>
     public static PagedList<T> Empty()
         => new([], 0, new(0, 0));
 }

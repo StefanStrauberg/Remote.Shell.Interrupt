@@ -1,4 +1,4 @@
-namespace Tests.CommonQueryFilterParser;
+namespace Tests;
 
 public class CommonQueryFilterParserTests
 {

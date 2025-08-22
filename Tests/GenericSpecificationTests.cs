@@ -1,6 +1,4 @@
-using System.Reflection;
-
-namespace Tests.GenericSpecification;
+namespace Tests;
 
 public class GenericSpecificationTests
 {
@@ -34,6 +32,7 @@ public class GenericSpecificationTests
   }
 
   // Fitlering tests
+  #region 
   [Fact]
   public void AddFilter_CombinesMultipleCriteriaWithAnd()
   {
@@ -108,8 +107,10 @@ public class GenericSpecificationTests
     spec.Criterias.Should().NotBeNull("filters should be initialized even with trivial criteria");
     compiled(entity).Should().BeTrue("the filter always returns true, regardless of entity content");
   }
+  #endregion
 
   // Ordering tests
+  #region 
   [Fact]
   public void AddOrderBy_SetsOrderByExpression()
   {
@@ -206,8 +207,10 @@ public class GenericSpecificationTests
     GetPropertyNameFromExpression(spec.OrderByDescending).Should().Be(nameof(TestEntity.Age),
                                                                       "the last AddOrderByDescending call should define the active ordering");
   }
+  #endregion
 
   // Including tests
+  #region 
   [Fact]
   public void AddInclude_WithNullExpression_ThrowsException()
   {
@@ -311,9 +314,10 @@ public class GenericSpecificationTests
     includes[1].EntityType.Should().Be<ChildEntity>("second include navigates into ChildEntity");
     includes[1].PropertyType.Should().Be<List<ToyEntity>>("Toys is a collection of ToyEntity");
   }
-
+  #endregion
 
   // Pagination test
+  #region 
   [Fact]
   public void ConfigurePagination_CalculatesSkipAndTake()
   {
@@ -379,8 +383,10 @@ public class GenericSpecificationTests
     spec.Take.Should().BeGreaterThanOrEqualTo(0, "Take should be clamped or defaulted to prevent excessive load");
     spec.Take.Should().BeLessThanOrEqualTo(GenericSpecification<TestEntity>.MaxPageSize, "Take should be clamped to a reasonable max to avoid performance issues");
   }
+  #endregion
 
   // Clone test
+  #region 
   [Fact]
   public void Clone_CopiesAllProperties()
   {
@@ -453,8 +459,10 @@ public class GenericSpecificationTests
     clone.Skip.Should().Be(0, "pagination was not configured");
     clone.Take.Should().Be(0, "pagination was not configured");
   }
+  #endregion
 
   // 6. FilteredInclude tests
+  #region 
   [Fact]
   public void AddFilteredInclude_WithNullExpression_ThrowsException()
   {
@@ -467,19 +475,104 @@ public class GenericSpecificationTests
     // Assert
     act.Should().Throw<ArgumentNullException>().WithMessage("Filtered include expression cannot be null. (Parameter 'includeExpression')");
   }
-  
+
   [Fact]
   public void AddFilteredInclude_AddsToFilteredIncludeChains()
   {
     // Arrange
     var spec = new GenericSpecification<TestEntity>();
-    
+
     // Act
     spec.AddFilteredInclude(e => e.Children.Where(c => c.ChildName == "Test"));
-    
+
     // Assert
     spec.FilteredIncludeChains.Should()
         .ContainSingle(chain => chain.Body.ToString().Contains("c.ChildName == \"Test\""),
                        "a valid filtered include expression should be added to the specification's include chain");
   }
+  #endregion
+
+  // 7. Complex scenarios
+  #region 
+  [Fact]
+  public void ComplexUsage_CombinesAllFeaturesCorrectly()
+  {
+    // Arrange
+    var spec = new GenericSpecification<TestEntity>();
+
+    // Act
+    spec.AddFilter(e => e.Id > Guid.NewGuid());
+    spec.AddFilter(e => e.Name.Contains("test", StringComparison.OrdinalIgnoreCase));
+    spec.AddOrderBy(e => e.Name);
+    spec.AddOrderByDescending(e => e.Age);
+    spec.AddInclude(e => e.Children);
+    spec.AddThenInclude<ChildEntity, List<ToyEntity>>(c => c.Toys);
+    spec.AddFilteredInclude(e => e.Children.Where(c => c.ChildName == "Test"));
+    spec.ConfigurePagination(new PaginationContext(2, 20));
+
+    // Assert — Filters
+    spec.Criterias.Should().NotBeNull("filters should be combined into a single expression");
+
+    // Assert — Ordering
+    spec.OrderBy.Should().BeNull("descending ordering should override ascending ordering");
+    spec.OrderByDescending.Should().NotBeNull("descending ordering was explicitly applied");
+
+    // Assert — Includes
+    spec.IncludeChains.Should().ContainSingle("one include chain should be created");
+    spec.IncludeChains[0].Includes.Should().HaveCount(2, "include chain should contain Include and ThenInclude");
+
+    // Assert — Filtered Includes
+    spec.FilteredIncludeChains.Should().ContainSingle("one filtered include should be registered");
+
+    // Assert — Pagination
+    spec.Skip.Should().Be(20, "page 2 with size 20 should skip first 20 items");
+    spec.Take.Should().Be(20, "page size defines number of items to take");
+  }
+  #endregion
+
+  // 8. Edge cases with expressions
+  #region 
+  [Fact]
+  public void AddFilter_WithComplexExpression_WorksCorrectly()
+  {
+    // Arrange
+    var spec = new GenericSpecification<TestEntity>();
+    var minAge = 18;
+    var maxAge = 65;
+
+    // Act
+    spec.AddFilter(e => e.Age >= minAge &&
+                        e.Age <= maxAge &&
+                        (e.Name.StartsWith("A", StringComparison.OrdinalIgnoreCase) ||
+                         e.Name.EndsWith("K", StringComparison.OrdinalIgnoreCase)));
+
+    var compiled = spec.Criterias!.Compile();
+
+    var entityMatchingStart = new TestEntity { Age = 25, Name = "Alice" };
+    var entityTooYoung = new TestEntity { Age = 17, Name = "Bob" };
+    var entityMatchingEnd = new TestEntity { Age = 30, Name = "Bark" };
+
+    // Assert
+    compiled(entityMatchingStart).Should().BeTrue("Alice is within age range and name starts with 'A'");
+    compiled(entityTooYoung).Should().BeFalse("Bob is underage and name doesn't match");
+    compiled(entityMatchingEnd).Should().BeTrue("Bark is within age range and name ends with 'K'");
+  }
+
+  [Fact]
+  public void AddOrderBy_WithConvertExpression_WorksCorrectly()
+  {
+    // Arrange
+    var spec = new GenericSpecification<TestEntity>();
+    var entity = new TestEntity { Age = 25 };
+
+    // Act
+    spec.AddOrderBy(e => e.Age);
+    var compiled = spec.OrderBy!.Compile();
+
+    // Assert
+    spec.OrderBy.Should().NotBeNull("an OrderBy expression was added");
+    compiled(entity).Should().Be(25, "the compiled expression should return the Age value correctly even after boxing");
+  }
+  #endregion
+
 }
