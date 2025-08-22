@@ -13,7 +13,6 @@ public class FilterDescriptorExtensionsTests
     public bool IsActive { get; set; }
     public TestNestedEntity Nested { get; set; } = new();
     public List<TestNestedEntity> NestedList { get; set; } = [];
-    public TestNestedEntity[] NestedArray { get; set; } = [];
     public Guid UniqueId { get; set; }
     public TestEnum Status { get; set; }
   }
@@ -23,7 +22,6 @@ public class FilterDescriptorExtensionsTests
     public string NestedName { get; set; } = string.Empty;
     public int NestedValue { get; set; }
     public TestDeeplyNestedEntity DeeplyNested { get; set; } = new();
-    public List<TestDeeplyNestedEntity> DeeplyNestedList { get; set; } = [];
   }
 
   class TestDeeplyNestedEntity

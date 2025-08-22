@@ -17,7 +17,6 @@ public class GenericSpecificationTests
 
   class ToyEntity : BaseEntity
   {
-    public string ToyName { get; set; } = string.Empty;
   }
 
   static string GetPropertyNameFromExpression<T>(Expression<Func<T, object>> expression)
