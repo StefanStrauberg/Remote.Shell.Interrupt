@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace Tests;
 
 public class FilterDescriptorExtensionsTests
