@@ -28,7 +28,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     else
       maxRepetitions = configuration.GetValue<int>("Repetitions:Default");
 
-    var huaweiNew = configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
+    //var huaweiNew = configuration.GetValue<bool>($"HuaweiNew:{request.Host}");
 
     // Заполняем основноую информацию устройства
     await FillNetworkDevicesGeneralInformation(networkDevice,
@@ -123,7 +123,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                    request.Host,
                                    request.Community,
                                    maxRepetitions,
-                                   huaweiNew,
+                                   //huaweiNew,
+                                   false,
                                    cancellationToken);
 
       var aggregatedPorts = await LinkAgregationPortsForHuawei(networkDevice,

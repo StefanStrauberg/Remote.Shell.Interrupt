@@ -92,8 +92,8 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
       ClientCodLsToCre.Add(new Client
       {
         IdClient = client.IdClient,
-        Dat1 = client.Dat1,
-        Dat2 = client.Dat2,
+        Dat1 = client.Dat1 is null ? null : DateTime.SpecifyKind(client.Dat1.Value, DateTimeKind.Utc),
+        Dat2 = client.Dat2 is null ? null : DateTime.SpecifyKind(client.Dat2.Value, DateTimeKind.Utc),
         Prim1 = client.Prim1?.TrimEnd(),
         Prim2 = client.Prim2?.TrimEnd(),
         Nik = client.Nik?.TrimEnd(),
