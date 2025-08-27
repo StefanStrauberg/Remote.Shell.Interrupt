@@ -548,15 +548,16 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   async Task LinkAgregationPortsForJuniper(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
     var ifStackTable = await RetrieveIfStackTable(host, community, maxRepetitions, cancellationToken);
+
     if (ifStackTable.Count == 0) return;
 
     var aePorts = FilterPortsByInterfacePrefix(networkDevice.PortsOfNetworkDevice, AeInterfacePrefix);
     var xePorts = FilterPortsByInterfacePrefix(networkDevice.PortsOfNetworkDevice, XeInterfacePrefix);
 
-    var aePortGroups = GroupPorts(aePorts);
-    var xePortGroups = GroupPorts(xePorts);
+    var aePortGroups = GroupPortsByBaseInterface(aePorts);
+    var xePortGroups = GroupPortsByBaseInterface(xePorts);
 
-    var aggregationLinks = ExtractAggregationLinksFromIfStackTable(ifStackTable, aePortGroups);
+    var aggregationLinks = ExtractAggregationLinks(ifStackTable, aePortGroups);
 
     foreach (var link in aggregationLinks)
       EstablishAggregationLink(link, aePortGroups, xePortGroups);
@@ -568,14 +569,16 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   static List<Port> FilterPortsByInterfacePrefix(IEnumerable<Port> ports, string prefix)
     => [.. ports.Where(port => port.InterfaceName.StartsWith(prefix))];
 
-  static HashSet<(int AeNumber, int PortNumber)> ExtractAggregationLinksFromIfStackTable(List<SNMPResponse> ifStackTable, Dictionary<HashSet<int>, List<Port>> aePortGroups)
+  static HashSet<(int AeNumber, int PortNumber)> ExtractAggregationLinks(List<SNMPResponse> ifStackTable, Dictionary<HashSet<int>, List<Port>> aggregationPortGroups)
   {
-    var aeKeys = aePortGroups.SelectMany(group => group.Key).ToHashSet();
+    var aggregationPortNumbers = aggregationPortGroups.SelectMany(group => group.Key).ToHashSet();
 
-    return [.. ifStackTable.Select(response => (AeNumber: OIDGetNumbers.HandleLastButOne(response.OID), PortNumber: OIDGetNumbers.HandleLast(response.OID)))
-                           .Where(link => link.AeNumber != 0 && link.PortNumber != 0)
-                           .Where(link => aeKeys.Contains(link.AeNumber))];
+    return [.. ifStackTable.Select(response => (AggregationPortNumber: OIDGetNumbers.HandleLastButOne(response.OID), MemberPortNumber: OIDGetNumbers.HandleLast(response.OID)))
+                           .Where(link => IsValidAggregationLink(link, aggregationPortNumbers))];
   }
+
+  static bool IsValidAggregationLink((int AggregationPortNumber, int MemberPortNumber) link, HashSet<int> aggregationPortNumbers)
+    => link.AggregationPortNumber != 0 && link.MemberPortNumber != 0 && aggregationPortNumbers.Contains(link.AggregationPortNumber);
 
   static void EstablishAggregationLink((int AeNumber, int PortNumber) link, Dictionary<HashSet<int>, List<Port>> aePortGroups, Dictionary<HashSet<int>, List<Port>> xePortGroups)
   {
@@ -592,7 +595,17 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   }
 
   static Port? FindPortByNumber(Dictionary<HashSet<int>, List<Port>> portGroups, int portNumber)
-    => portGroups.FirstOrDefault(group => group.Key.Contains(portNumber)).Value.FirstOrDefault();
+  {
+    foreach (var group in portGroups.Values)
+    {
+      var port = group.FirstOrDefault(p => p.InterfaceNumber == portNumber);
+
+      if (port != null)
+        return port;
+    }
+
+    return null;
+  }
 
   async Task LinkAggregatedPortsForHuawei(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
@@ -685,39 +698,36 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   static bool IsPortAlreadyAggregated(Port aggregationPort, Port memberPort)
     => aggregationPort.AggregatedPorts.Any(x => x.InterfaceNumber == memberPort.InterfaceNumber);
 
-  static Dictionary<HashSet<int>, List<Port>> GroupPorts(List<Port> ports)
+  static Dictionary<HashSet<int>, List<Port>> GroupPortsByBaseInterface(List<Port> ports)
   {
-    // Создаем словарь для группировки
-    var baseGroups = new Dictionary<HashSet<int>, List<Port>>();
-    var lookingFor = new StringBuilder();
+    var portGroups = new Dictionary<HashSet<int>, List<Port>>();
+    var basePorts = ports.Where(port => !port.InterfaceName.Contains('.')).ToList();
 
-    // Находим все порты без точки и создаем группы
-    var portsWithoutDots = ports.Where(port => !port.InterfaceName.Contains('.')).ToList();
-
-    foreach (var port in portsWithoutDots)
+    foreach (var basePort in basePorts)
     {
-      var group = new List<Port>();
-      var keys = new HashSet<int>(); // Начальный ключ
-
-      lookingFor.Append(port.InterfaceName);
-      lookingFor.Append('.');
-      keys.Add(port.InterfaceNumber);
-      group.Add(port);
-
-      // Находим порты с точкой и добавляем их в группу
-      var lookingGroupWithDot = ports.Where(p => p.InterfaceName.StartsWith(lookingFor.ToString())).ToList();
-      group.AddRange(lookingGroupWithDot);
-
-      foreach (var key in lookingGroupWithDot.Select(p => p.InterfaceNumber))
-        keys.Add(key); // Добавляем ключи 
-
-      // Добавляем группу в словарь
-      baseGroups.Add(keys, group);
-      lookingFor.Clear();
+      var (group, interfaceNumbers) = CreatePortGroupForBaseInterface(basePort, ports);
+      portGroups.Add(interfaceNumbers, group);
     }
 
-    return baseGroups;
+    return portGroups;
   }
+
+  static (List<Port> Group, HashSet<int> InterfaceNumbers) CreatePortGroupForBaseInterface(Port basePort, List<Port> allPorts)
+  {
+    var group = new List<Port> { basePort };
+    var interfaceNumbers = new HashSet<int> { basePort.InterfaceNumber };
+
+    var dotNotationPorts = FindDotNotationPorts(allPorts, basePort.InterfaceName);
+    group.AddRange(dotNotationPorts);
+
+    foreach (var port in dotNotationPorts)
+      interfaceNumbers.Add(port.InterfaceNumber);
+
+    return (group, interfaceNumbers);
+  }
+
+  static List<Port> FindDotNotationPorts(List<Port> ports, string baseInterfaceName)
+    => [.. ports.Where(port => port.InterfaceName.StartsWith(baseInterfaceName + "."))];
 
   async Task FillPortVlansForHuawei(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
