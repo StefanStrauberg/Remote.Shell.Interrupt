@@ -29,7 +29,11 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                VirtualPortToInterfaceOid = "1.3.6.1.2.1.17.1.4.1.2",
                IpAddressInterfaceIndexOid = "1.3.6.1.2.1.4.20.1.2",
                IpAddressOid = "1.3.6.1.2.1.4.20.1.1",
-               SubnetMaskOid = "1.3.6.1.2.1.4.20.1.3";
+               SubnetMaskOid = "1.3.6.1.2.1.4.20.1.3",
+               Dot1dBasePortOid = "1.3.6.1.2.1.17.1.4.1.1",
+               Dot1dBasePortIfIndexOid = "1.3.6.1.2.1.17.1.4.1.2",
+               Dot1qVlanStaticNameOid = "1.3.6.1.2.1.17.7.1.4.3.1.1",
+               Dot1qVlanStaticEgressPortsOid = "1.3.6.1.2.1.17.7.1.4.3.1.2";
   const char MacAddressSeparator = ':',
              DotSeparator = '.';
   const int HuaweiPortThreshold = 48,
@@ -57,7 +61,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
 
     if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Juniper)
     {
-      await FillPortVLANSForJuniper(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
+      await FillPortVlansForJuniper(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
 
       var removingPorts = GetUseLessPorts(networkDevice.PortsOfNetworkDevice);
       networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Where(x => !removingPorts.Contains(x))];
@@ -142,7 +146,13 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var interfaceStatuses = await RetrieveInterfaceStatuses(host, community, maxRepetitions, cancellationToken);
     var interfaceDescriptions = await RetrieveInterfaceDescriptions(host, community, maxRepetitions, cancellationToken);
 
-    return CombineInterfaceData(interfaceNumbers, interfaceNames, interfaceTypes, interfaceSpeeds, interfaceMacAddresses, interfaceStatuses, interfaceDescriptions);
+    return CombineInterfaceData(interfaceNumbers,
+                                interfaceNames,
+                                interfaceTypes,
+                                interfaceSpeeds,
+                                interfaceMacAddresses,
+                                interfaceStatuses,
+                                interfaceDescriptions);
   }
 
   async Task<List<SNMPResponse>> RetrieveInterfaceNumbers(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
@@ -450,56 +460,92 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     return networkTable;
   }
 
-  async Task FillPortVLANSForJuniper(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken token)
+  async Task FillPortVlansForJuniper(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
-    List<SNMPResponse> basePorts = [];
-    List<SNMPResponse> portsIntfsIndexes = [];
-    List<SNMPResponse> vlansNames = [];
-    List<SNMPResponse> vlansToPorts = [];
-    // Выполняем SNMP-запрос для получения Base Port
-    basePorts = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.2.1.17.1.4.1.1", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения Port If Index
-    portsIntfsIndexes = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.2.1.17.1.4.1.2", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения VLAN Static Name
-    vlansNames = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.2.1.17.7.1.4.3.1.1", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения VLAN Egress Ports
-    vlansToPorts = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.2.1.17.7.1.4.3.1.2", token, repetitions: maxRepetitions);
+    var (basePorts, portIfIndexes, vlanNames, vlanEgressPorts) = await RetrieveVlanData(host, community, maxRepetitions, cancellationToken);
 
-    // Проверяем, что хотя бы один из запросов не вернул пустые данные
-    if (basePorts.Count == 0 || vlansNames.Count == 0 || vlansToPorts.Count == 0 || portsIntfsIndexes.Count == 0)
-      throw new InvalidOperationException("One from SNMP requests receive empty result.");
+    ValidateVlanDataConsistency(basePorts, portIfIndexes, vlanNames, vlanEgressPorts);
 
-    // Проверяем, что количество элементов в каждом запросе совпадает
-    if (basePorts.Count != portsIntfsIndexes.Count || vlansNames.Count != vlansToPorts.Count)
-      throw new InvalidOperationException($"SNMP responses count mismatch for data: dot1dBasePortIfIndex({basePorts.Count}) mismatch to dot1dBasePortIfIndex({portsIntfsIndexes.Count}), dot1qVlanStaticName({vlansNames.Count}) mismatch to dot1qVlanStaticEgressPorts({vlansToPorts.Count})");
+    var physicalInterfaceTable = BuildPhysicalInterfaceTable(basePorts, portIfIndexes);
+    var vlanTableEntries = BuildVlanTableEntries(vlanNames, vlanEgressPorts);
 
-    // Объединяем результаты SNMP-запросов
-    var physicIfTable = basePorts.Zip(portsIntfsIndexes, (basePort, ifIndex) => new { BasePort = int.Parse(basePort.Data), PortIfIndex = int.Parse(ifIndex.Data) }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
-    var vlanTableEntries = vlansNames.Zip(vlansToPorts, (vlanName, egressPorts) => new { VlanTag = OIDGetNumbers.HandleLast(vlanName.OID), VlanName = vlanName.Data, EgressPorts = FormatEgressPorts.HandleJuniperData(egressPorts.Data) }).ToList();
-    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
-    var portsDictionary = networkDevice.PortsOfNetworkDevice.ToDictionary(port => port.InterfaceNumber);
+    AssignVlansToPorts(networkDevice.PortsOfNetworkDevice, physicalInterfaceTable, vlanTableEntries);
+  }
+
+  async Task<(List<SNMPResponse> BasePorts, List<SNMPResponse> PortIfIndexes, List<SNMPResponse> VlanNames, List<SNMPResponse> VlanEgressPorts)> RetrieveVlanData(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+  {
+    var basePorts = await RetrieveBasePorts(host, community, maxRepetitions, cancellationToken);
+    var portIfIndexes = await RetrievePortIfIndexes(host, community, maxRepetitions, cancellationToken);
+    var vlanNames = await RetrieveVlanNames(host, community, maxRepetitions, cancellationToken);
+    var vlanEgressPorts = await RetrieveVlanEgressPorts(host, community, maxRepetitions, cancellationToken);
+
+    return (basePorts, portIfIndexes, vlanNames, vlanEgressPorts);
+  }
+
+  async Task<List<SNMPResponse>> RetrieveBasePorts(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, Dot1dBasePortOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrievePortIfIndexes(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, Dot1dBasePortIfIndexOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrieveVlanNames(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, Dot1qVlanStaticNameOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrieveVlanEgressPorts(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, Dot1qVlanStaticEgressPortsOid, cancellationToken, repetitions: maxRepetitions);
+
+  static void ValidateVlanDataConsistency(List<SNMPResponse> basePorts, List<SNMPResponse> portIfIndexes, List<SNMPResponse> vlanNames, List<SNMPResponse> vlanEgressPorts)
+  {
+    if (basePorts.Count == 0 || portIfIndexes.Count == 0 || vlanNames.Count == 0 || vlanEgressPorts.Count == 0)
+      throw new InvalidOperationException("One or more SNMP requests returned empty results for VLAN data.");
+
+    if (basePorts.Count != portIfIndexes.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch: dot1dBasePortIfIndex({basePorts.Count}) != dot1dBasePortIfIndex({portIfIndexes.Count})");
+
+    if (vlanNames.Count != vlanEgressPorts.Count)
+      throw new InvalidOperationException($"SNMP responses count mismatch: dot1qVlanStaticName({vlanNames.Count}) != dot1qVlanStaticEgressPorts({vlanEgressPorts.Count})");
+  }
+
+  static Dictionary<int, int> BuildPhysicalInterfaceTable(List<SNMPResponse> basePorts, List<SNMPResponse> portIfIndexes)
+    => basePorts.Zip(portIfIndexes, (basePort, ifIndex) => new
+    {
+      BasePort = int.Parse(basePort.Data),
+      PortIfIndex = int.Parse(ifIndex.Data)
+    }).ToDictionary(x => x.BasePort, x => x.PortIfIndex);
+
+  static List<VlanTableEntry> BuildVlanTableEntries(List<SNMPResponse> vlanNames, List<SNMPResponse> vlanEgressPorts)
+    => [.. vlanNames.Zip(vlanEgressPorts, (vlanName, egressPorts) => new VlanTableEntry
+                                          {
+                                            VlanTag = OIDGetNumbers.HandleLast(vlanName.OID),
+                                            VlanName = RemoveTrailingPlusDigit.Handle(vlanName.Data),
+                                            EgressPorts = FormatEgressPorts.HandleJuniperData(egressPorts.Data)
+                                          })];
+
+  static void AssignVlansToPorts(IEnumerable<Port> ports, Dictionary<int, int> physicalInterfaceTable, List<VlanTableEntry> vlanTableEntries)
+  {
+    var portsDictionary = ports.ToDictionary(port => port.InterfaceNumber);
     var vlansToAdd = new HashSet<VLAN>();
 
-    // Проходим по результатам vlanTableEntries
     foreach (var vlanEntry in vlanTableEntries)
     {
-      VLAN vlanToCreate = new() { Id = Guid.NewGuid(), VLANTag = vlanEntry.VlanTag, VLANName = RemoveTrailingPlusDigit.Handle(vlanEntry.VlanName) };
-      // Проходим по каждому egress-порту для текущего VLAN
-      foreach (var egressPort in vlanEntry.EgressPorts)
+      var vlan = CreateVlan(vlanEntry);
+      vlansToAdd.Add(vlan);
+
+      AssignVlanToPorts(vlan, vlanEntry.EgressPorts, physicalInterfaceTable, portsDictionary);
+    }
+  }
+
+  static VLAN CreateVlan(VlanTableEntry vlanEntry)
+    => new() { Id = Guid.NewGuid(), VLANTag = vlanEntry.VlanTag, VLANName = vlanEntry.VlanName };
+
+  static void AssignVlanToPorts(VLAN vlan, IEnumerable<int> egressPorts, Dictionary<int, int> physicalInterfaceTable, Dictionary<int, Port> portsDictionary)
+  {
+    foreach (var egressPort in egressPorts)
+    {
+      if (physicalInterfaceTable.TryGetValue(egressPort, out var portIfIndex) && portsDictionary.TryGetValue(portIfIndex, out var port))
       {
-        vlansToAdd.Add(vlanToCreate);
-        // Находим соответствие BasePort с PortIfIndex
-        if (physicIfTable.TryGetValue(egressPort, out int portIfIndex))
-        {
-          // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
-          if (portsDictionary.TryGetValue(portIfIndex, out var matchingPort))
-          {
-            // Если коллекция VLANs не инициализирована, инициализируем её
-            matchingPort.VLANs ??= [];
-            // Добавляем новый VLAN в порт
-            matchingPort.VLANs.Add(vlanToCreate);
-          }
-        }
+        port.VLANs ??= [];
+        port.VLANs.Add(vlan);
       }
     }
   }
@@ -827,5 +873,12 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     public int InterfaceNumber { get; set; }
     public string IpAddress { get; set; } = string.Empty;
     public string SubnetMask { get; set; } = string.Empty;
+  }
+
+  class VlanTableEntry
+  {
+    public int VlanTag { get; set; }
+    public string VlanName { get; set; } = string.Empty;
+    public IEnumerable<int> EgressPorts { get; set; } = [];
   }
 }
