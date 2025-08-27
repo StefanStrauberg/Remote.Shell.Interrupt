@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.CreateNetworkDevice;
 
 public record CreateNetworkDeviceCommand(string Host, string Community, string TypeOfNetworkDevice) : ICommand;
@@ -34,7 +32,11 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                Dot1dBasePortIfIndexOid = "1.3.6.1.2.1.17.1.4.1.2",
                Dot1qVlanStaticNameOid = "1.3.6.1.2.1.17.7.1.4.3.1.1",
                JuniperDot1qVlanStaticEgressPortsOid = "1.3.6.1.2.1.17.7.1.4.3.1.2",
-               HuaweiDot1qVlanStaticEgressPortsOid = "1.3.6.1.2.1.17.7.1.4.2.1.4.0";
+               HuaweiDot1qVlanStaticEgressPortsOid = "1.3.6.1.2.1.17.7.1.4.2.1.4.0",
+               ExtremeVlanNumberOid = "1.3.6.1.4.1.1916.1.2.1.2.1.1",
+               ExtremeVlanNameOid = "1.3.6.1.4.1.1916.1.2.1.2.1.2",
+               ExtremeVlanTagOid = "1.3.6.1.4.1.1916.1.2.1.2.1.10",
+               ExtremePortsToVlansOid = "1.3.6.1.4.1.1916.1.4.17.1.2";
   const char MacAddressSeparator = ':',
              DotSeparator = '.';
   const int HuaweiPortThreshold = 48,
@@ -80,7 +82,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
     {
-      await FillPortVLANSForExtreme(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
+      await FillPortVlansForExtreme(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
 
       var removingPorts = CleanExtreme(networkDevice.PortsOfNetworkDevice);
       networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Where(x => !removingPorts.Contains(x))];
@@ -557,9 +559,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     var aggregationLinks = ExtractAggregationLinksFromIfStackTable(ifStackTable, aePortGroups);
 
     foreach (var link in aggregationLinks)
-    {
       EstablishAggregationLink(link, aePortGroups, xePortGroups);
-    }
   }
 
   async Task<List<SNMPResponse>> RetrieveIfStackTable(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
@@ -731,61 +731,102 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     AssignVlansToPorts(networkDevice.PortsOfNetworkDevice, physicalInterfaceTable, vlanTableEntries);
   }
 
-  async Task FillPortVLANSForExtreme(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken token)
+  async Task FillPortVlansForExtreme(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
-    List<SNMPResponse> portsToVlans = [];
-    List<SNMPResponse> vlansNames = [];
-    List<SNMPResponse> vlansNumbers = [];
-    List<SNMPResponse> vlansTags = [];
-    // Выполняем SNMP-запрос для получения VlanNumber
-    vlansNumbers = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.4.1.1916.1.2.1.2.1.1", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения VlanName
-    vlansNames = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.4.1.1916.1.2.1.2.1.2", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения VlanTag
-    vlansTags = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.4.1.1916.1.2.1.2.1.10", token, repetitions: maxRepetitions);
-    // Выполняем SNMP-запрос для получения Base Port & VLAN Egress Ports
-    portsToVlans = await snmpCommandExecutor.WalkCommand(host, community, "1.3.6.1.4.1.1916.1.4.17.1.2", token, repetitions: maxRepetitions);
+    var (vlanNumbers, vlanNames, vlanTags, portsToVlans) = await RetrieveExtremeVlanData(host, community, maxRepetitions, cancellationToken);
 
-    // Проверяем, что хотя бы запрос не вернул пустые данные
     if (portsToVlans.Count == 0) return;
 
-    // Объединяем результаты SNMP-запросов
-    var vlanTable = vlansNumbers.Zip(vlansNames, (vlanNumber, vlanName) => new { vlanNumber, vlanName })
-                                .Zip(vlansTags, (firstPair, vlanTag) => new { VlanNumber = int.Parse(firstPair.vlanNumber.Data), VlanName = firstPair.vlanName.Data, VlanTag = int.Parse(vlanTag.Data) })
-                                .ToDictionary(x => x.VlanNumber);
+    var vlanTable = BuildVlanTable(vlanNumbers, vlanNames, vlanTags);
+    var egressPorts = ParseEgressPorts(portsToVlans);
 
-    var egressPorts = portsToVlans.Select(response =>
-                                          {
-                                            var oidParts = response.OID.Split('.');
-                                            if (!int.TryParse(oidParts[^1], out int vlanNumber)) throw new FormatException("Unable to parse port index from OID.");
-                                            if (!int.TryParse(oidParts[^2], out int portIfIndex)) throw new FormatException("Unable to parse port index from OID.");
-                                            return new { PortIfIndex = portIfIndex, VlanNumber = vlanNumber };
-                                          })
-                                  .ToList();
+    AssignVlansToPorts(networkDevice.PortsOfNetworkDevice, vlanTable, egressPorts);
+  }
 
-    // Инициализируем словарь для быстрого поиска портов по их InterfaceNumber
-    var portsDictionary = networkDevice.PortsOfNetworkDevice.ToDictionary(port => port.InterfaceNumber);
+  async Task<(List<SNMPResponse> VlanNumbers, List<SNMPResponse> VlanNames, List<SNMPResponse> VlanTags, List<SNMPResponse> PortsToVlans)> RetrieveExtremeVlanData(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+  {
+    var vlanNumbers = await RetrieveVlanNumbers(host, community, maxRepetitions, cancellationToken);
+    var vlanNames = await RetrieveVlanNamesExtreme(host, community, maxRepetitions, cancellationToken);
+    var vlanTags = await RetrieveVlanTags(host, community, maxRepetitions, cancellationToken);
+    var portsToVlans = await RetrievePortsToVlans(host, community, maxRepetitions, cancellationToken);
 
+    return (vlanNumbers, vlanNames, vlanTags, portsToVlans);
+  }
+
+  async Task<List<SNMPResponse>> RetrieveVlanNumbers(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, ExtremeVlanNumberOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrieveVlanNamesExtreme(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, ExtremeVlanNameOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrieveVlanTags(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, ExtremeVlanTagOid, cancellationToken, repetitions: maxRepetitions);
+
+  async Task<List<SNMPResponse>> RetrievePortsToVlans(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
+    => await snmpCommandExecutor.WalkCommand(host, community, ExtremePortsToVlansOid, cancellationToken, repetitions: maxRepetitions);
+
+  static Dictionary<int, VlanInfo> BuildVlanTable(List<SNMPResponse> vlanNumbers, List<SNMPResponse> vlanNames, List<SNMPResponse> vlanTags)
+    => vlanNumbers.Zip(vlanNames, (number, name) => new { Number = number, Name = name })
+                  .Zip(vlanTags, (firstPair, tag) => new VlanInfo { VlanNumber = int.Parse(firstPair.Number.Data), VlanName = firstPair.Name.Data, VlanTag = int.Parse(tag.Data) })
+                  .ToDictionary(vlan => vlan.VlanNumber);
+
+  static List<EgressPortInfo> ParseEgressPorts(List<SNMPResponse> portsToVlans)
+  {
+    var egressPorts = new List<EgressPortInfo>();
+
+    foreach (var response in portsToVlans)
+    {
+      var egressPort = ParseEgressPortFromOid(response.OID);
+      egressPorts.Add(egressPort);
+    }
+
+    return egressPorts;
+  }
+
+  static EgressPortInfo ParseEgressPortFromOid(string oid)
+  {
+    var oidParts = oid.Split('.');
+
+    if (oidParts.Length < 2)
+      throw new FormatException($"Invalid OID format: {oid}");
+
+    if (!int.TryParse(oidParts[^1], out int vlanNumber))
+      throw new FormatException($"Unable to parse VLAN number from OID: {oid}");
+
+    if (!int.TryParse(oidParts[^2], out int portIfIndex))
+      throw new FormatException($"Unable to parse port index from OID: {oid}");
+
+    return new EgressPortInfo { PortIfIndex = portIfIndex, VlanNumber = vlanNumber };
+  }
+
+  static void AssignVlansToPorts(IEnumerable<Port> ports, Dictionary<int, VlanInfo> vlanTable, List<EgressPortInfo> egressPorts)
+  {
+    var portsDictionary = ports.ToDictionary(port => port.InterfaceNumber);
     var vlansToAdd = new HashSet<VLAN>();
 
-    // Проходим по результатам vlanEntries
     foreach (var egressPort in egressPorts)
     {
-      if (vlanTable.TryGetValue(egressPort.VlanNumber, out var vlan))
+      if (vlanTable.TryGetValue(egressPort.VlanNumber, out var vlanInfo))
       {
-        VLAN vlanToCreate = new() { Id = Guid.NewGuid(), VLANTag = vlan.VlanTag, VLANName = vlan.VlanName };
-        // Ищем порт в коллекции PortsOfNetworkDevice по InterfaceNumber
-        if (portsDictionary.TryGetValue(egressPort.PortIfIndex, out var matchingPort))
+        var vlan = CreateVlan(vlanInfo);
+        vlansToAdd.Add(vlan);
+
+        if (portsDictionary.TryGetValue(egressPort.PortIfIndex, out var port))
         {
-          vlansToAdd.Add(vlanToCreate);
-          // Если коллекция VLANs не инициализирована, инициализируем её
-          matchingPort.VLANs ??= [];
-          // Добавляем новый VLAN в порт
-          matchingPort.VLANs.Add(vlanToCreate);
+          port.VLANs ??= [];
+          port.VLANs.Add(vlan);
         }
       }
     }
   }
+
+  static VLAN CreateVlan(VlanInfo vlanInfo)
+    => new()
+    {
+      Id = Guid.NewGuid(),
+      VLANTag = vlanInfo.VlanTag,
+      VLANName = vlanInfo.VlanName
+    };
 
   class InterfaceData
   {
@@ -817,5 +858,18 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     public int VlanTag { get; set; }
     public string VlanName { get; set; } = string.Empty;
     public IEnumerable<int> EgressPorts { get; set; } = [];
+  }
+
+  class VlanInfo
+  {
+    public int VlanNumber { get; set; }
+    public string VlanName { get; set; } = string.Empty;
+    public int VlanTag { get; set; }
+  }
+
+  class EgressPortInfo
+  {
+    public int PortIfIndex { get; set; }
+    public int VlanNumber { get; set; }
   }
 }
