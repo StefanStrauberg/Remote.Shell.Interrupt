@@ -36,7 +36,14 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                ExtremeVlanNumberOid = "1.3.6.1.4.1.1916.1.2.1.2.1.1",
                ExtremeVlanNameOid = "1.3.6.1.4.1.1916.1.2.1.2.1.2",
                ExtremeVlanTagOid = "1.3.6.1.4.1.1916.1.2.1.2.1.10",
-               ExtremePortsToVlansOid = "1.3.6.1.4.1.1916.1.4.17.1.2";
+               ExtremePortsToVlansOid = "1.3.6.1.4.1.1916.1.4.17.1.2",
+               InLoopbackInterfacePrefix = "InLoop",
+               MethInterfacePrefix = "MEth",
+               NullInterfacePrefix = "NULL0",
+               IrbInterfacePrefix = "irb",
+               ManagementInterfacePrefix = "Management",
+               VirtualInterfacePrefix = "Virtual",
+               VlanInterfacePrefix = "VLAN";
   const char MacAddressSeparator = ':',
              DotSeparator = '.';
   const int HuaweiPortThreshold = 48,
@@ -66,8 +73,8 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     {
       await FillPortVlansForJuniper(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
 
-      var removingPorts = GetUseLessPorts(networkDevice.PortsOfNetworkDevice);
-      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Where(x => !removingPorts.Contains(x))];
+      var portsToRemove = GetJuniperPortsToRemove(networkDevice.PortsOfNetworkDevice);
+      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Except(portsToRemove)];
 
       await LinkAgregationPortsForJuniper(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
       RemoveDotNotationPorts(networkDevice.PortsOfNetworkDevice);
@@ -77,15 +84,15 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       await FillPortVlansForHuawei(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
       await LinkAggregatedPortsForHuawei(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
 
-      var removingPorts = CleanHuawei(networkDevice.PortsOfNetworkDevice);
-      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Where(x => !removingPorts.Contains(x))];
+      var portsToRemove = GetHuaweiPortsToRemove(networkDevice.PortsOfNetworkDevice);
+      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Except(portsToRemove)];
     }
     else if (networkDevice.TypeOfNetworkDevice == TypeOfNetworkDevice.Extreme)
     {
       await FillPortVlansForExtreme(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
 
-      var removingPorts = CleanExtreme(networkDevice.PortsOfNetworkDevice);
-      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Where(x => !removingPorts.Contains(x))];
+      var portsToRemove = GetExtremePortsToRemove(networkDevice.PortsOfNetworkDevice);
+      networkDevice.PortsOfNetworkDevice = [.. networkDevice.PortsOfNetworkDevice.Except(portsToRemove)];
 
       await LinkAggregatedPortsForExtreme(networkDevice, request.Host, request.Community, maxRepetitions, cancellationToken);
     }
@@ -258,8 +265,11 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       port.MACTable.Add(new MACEntity { Id = Guid.NewGuid(), MACAddress = macAddress, PortId = port.Id });
   }
 
-  static List<Port> GetUseLessPorts(List<Port> portsOfNetworkDevice)
-    => [.. portsOfNetworkDevice.Where(port => !(port.InterfaceName.StartsWith("xe") || port.InterfaceName.StartsWith("irb") || port.InterfaceName.StartsWith("ae")))];
+  static List<Port> GetJuniperPortsToRemove(List<Port> ports)
+    => [.. ports.Where(port => !IsJuniperInterfaceToKeep(port.InterfaceName))];
+
+  static bool IsJuniperInterfaceToKeep(string interfaceName)
+    => interfaceName.StartsWith(XeInterfacePrefix) || interfaceName.StartsWith(IrbInterfacePrefix) || interfaceName.StartsWith(AeInterfacePrefix);
 
   static void RemoveDotNotationPorts(List<Port> ports)
   {
@@ -297,11 +307,17 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       ports.Remove(portToRemove);
   }
 
-  static IEnumerable<Port> CleanHuawei(List<Port> portsOfNetworkDevice)
-    => portsOfNetworkDevice.Where(port => port.InterfaceName.StartsWith("InLoop") || port.InterfaceName.StartsWith("MEth") || port.InterfaceName.StartsWith("NULL0"));
+  static IEnumerable<Port> GetHuaweiPortsToRemove(List<Port> ports)
+    => ports.Where(port => IsHuaweiInterfaceToRemove(port.InterfaceName));
 
-  static IEnumerable<Port> CleanExtreme(List<Port> portsOfNetworkDevice)
-    => portsOfNetworkDevice.Where(port => port.InterfaceName.StartsWith("Management") || port.InterfaceName.StartsWith("Virtual") || port.InterfaceName.StartsWith("VLAN"));
+  static bool IsHuaweiInterfaceToRemove(string interfaceName)
+    => interfaceName.StartsWith(InLoopbackInterfacePrefix) || interfaceName.StartsWith(MethInterfacePrefix) || interfaceName.StartsWith(NullInterfacePrefix);
+
+  static IEnumerable<Port> GetExtremePortsToRemove(List<Port> ports)
+    => ports.Where(port => IsExtremeInterfaceToRemove(port.InterfaceName));
+
+  static bool IsExtremeInterfaceToRemove(string interfaceName)
+    => interfaceName.StartsWith(ManagementInterfacePrefix) || interfaceName.StartsWith(VirtualInterfacePrefix) || interfaceName.StartsWith(VlanInterfacePrefix);
 
   async Task FillArpTableForPorts(NetworkDevice networkDevice, string host, string community, int maxRepetitions, CancellationToken cancellationToken)
   {
@@ -511,7 +527,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
                                             EgressPorts = typeOfNetworkDevice switch
                                             {
                                               TypeOfNetworkDevice.Juniper => FormatEgressPorts.HandleJuniperData(egressPorts.Data),
-                                              TypeOfNetworkDevice.Huawei => FormatEgressPorts.HandleHuaweiHexStringOld(egressPorts.Data),
+                                              TypeOfNetworkDevice.Huawei => FormatEgressPorts.HandleHuaweiHexString(egressPorts.Data),
                                               _ => throw new InvalidOperationException("")
                                             }
                                           })];
@@ -625,22 +641,25 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     EstablishAggregationLinks(networkDevice.PortsOfNetworkDevice, aggregationLinks);
   }
 
-  static List<(int AeNumber, int[] PortNumbers)> ExtractHuaweiAggregationLinks(List<SNMPResponse> huaweiIfStackTable)
-    => [.. huaweiIfStackTable.Select(response => (AeNumber: OIDGetNumbers.HandleLast(response.OID), PortNumbers: FormatEgressPorts.HandleHuaweiHexStringOld(response.Data)))
-                             .Where(link => link.PortNumbers.Length > 0)];
+  static List<(int aggregationPortNumber, int[] MemberPortNumbers)> ExtractHuaweiAggregationLinks(List<SNMPResponse> huaweiIfStackTable)
+    => [.. huaweiIfStackTable.Select(response => (
+                                                   aggregationPortNumber: OIDGetNumbers.HandleLast(response.OID),
+                                                   MemberPortNumbers: FormatEgressPorts.HandleHuaweiHexString(response.Data)
+                                                 ))
+                             .Where(link => link.MemberPortNumbers.Length > 0)];
 
   async Task<List<SNMPResponse>> RetrieveHuaweiIfStackTable(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
     => await snmpCommandExecutor.WalkCommand(host, community, HuaweiIfStackTableOid, cancellationToken, toHex: true, repetitions: maxRepetitions);
 
-  static void EstablishAggregationLinks(IEnumerable<Port> ports, List<(int AeNumber, int[] PortNumbers)> aggregationLinks)
+  static void EstablishAggregationLinks(IEnumerable<Port> ports, List<(int aggregationPortNumber, int[] MemberPortNumbers)> aggregationLinks)
   {
     var portsDictionary = ports.ToDictionary(p => p.InterfaceNumber);
 
-    foreach (var (aeNumber, portNumbers) in aggregationLinks)
+    foreach (var (aggregationPortNumber, memberPortNumbers) in aggregationLinks)
     {
-      if (portsDictionary.TryGetValue(aeNumber, out var aggregationPort))
+      if (portsDictionary.TryGetValue(aggregationPortNumber, out var aggregationPort))
       {
-        foreach (var portNumber in portNumbers)
+        foreach (var portNumber in memberPortNumbers)
         {
           var actualPortNumber = CalculateActualPortNumber(portNumber);
 
@@ -679,20 +698,20 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     => await snmpCommandExecutor.WalkCommand(host, community, ExtremeIfStackTableOid, cancellationToken, repetitions: maxRepetitions);
 
   static HashSet<(int AggregationPortNumber, int MemberPortNumber)> ExtractExtremeAggregationLinks(List<SNMPResponse> ifStackTable)
-    => [.. ifStackTable.Select(response => (AggregationPortNumber: OIDGetNumbers.HandleLastButOne(response.OID), MemberPortNumber: OIDGetNumbers.HandleLast(response.OID)))
-                       .Where(link => link.AggregationPortNumber != 0 && link.MemberPortNumber != 0 && link.AggregationPortNumber != link.MemberPortNumber)];
+    => [.. ifStackTable.Select(response => (
+                                             AggregationPortNumber: OIDGetNumbers.HandleLastButOne(response.OID),
+                                             MemberPortNumber: OIDGetNumbers.HandleLast(response.OID)))
+                       .Where(link => IsValidAggregationLink(link.AggregationPortNumber, link.MemberPortNumber))];
+
+  static bool IsValidAggregationLink(int aggregationPortNumber, int memberPortNumber)
+    => aggregationPortNumber != 0 && memberPortNumber != 0 && aggregationPortNumber != memberPortNumber;
 
   static void EstablishAggregationLinks(Dictionary<int, Port> portsDictionary, HashSet<(int AggregationPortNumber, int MemberPortNumber)> aggregationLinks)
   {
     foreach (var (aggregationPortNumber, memberPortNumber) in aggregationLinks)
-    {
-      if (portsDictionary.TryGetValue(aggregationPortNumber, out var aggregationPort) &&
-          portsDictionary.TryGetValue(memberPortNumber, out var memberPort))
-      {
+      if (portsDictionary.TryGetValue(aggregationPortNumber, out var aggregationPort) && portsDictionary.TryGetValue(memberPortNumber, out var memberPort))
         if (!IsPortAlreadyAggregated(aggregationPort, memberPort))
           LinkPortToAggregation(memberPort, aggregationPort);
-      }
-    }
   }
 
   static bool IsPortAlreadyAggregated(Port aggregationPort, Port memberPort)
