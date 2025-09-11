@@ -91,21 +91,20 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   protected override ISpecification<NetworkDevice> BuildSpecification(RequestParameters requestParameters)
   {
     var filterExpr = _queryFilterParser.ParseFilters<NetworkDevice>(requestParameters.Filters);
-    var spec = specification.AddInclude(x => x.PortsOfNetworkDevice);
-
-    spec = AddPortIncludes(spec);
+    var spec = specification.AddInclude(x => x.PortsOfNetworkDevice)
+                            .AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface);
+    spec.AddInclude(x => x.PortsOfNetworkDevice)
+        .AddThenInclude<Port, IEnumerable<MACEntity>>(x => x.MACTable);
+    spec.AddInclude(x => x.PortsOfNetworkDevice)
+        .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface);
+    spec.AddInclude(x => x.PortsOfNetworkDevice)
+        .AddThenInclude<Port, IEnumerable<VLAN>>(x => x.VLANs);
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
 
     return spec;
   }
-
-  static ISpecification<NetworkDevice> AddPortIncludes(ISpecification<NetworkDevice> spec)
-    => spec.AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface)
-           .AddThenInclude<Port, IEnumerable<VLAN>>(x => x.VLANs)
-           .AddThenInclude<Port, IEnumerable<MACEntity>>(x => x.MACTable)
-           .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface);
 
   /// <summary>
   /// Validates that the network device exists based on the specification.
