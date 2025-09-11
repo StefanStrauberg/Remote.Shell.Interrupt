@@ -498,7 +498,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     => await snmpCommandExecutor.WalkCommand(host, community, JuniperDot1qVlanStaticEgressPortsOid, cancellationToken, repetitions: maxRepetitions);
 
   async Task<List<SNMPResponse>> RetrieveVlanEgressPortsHuawei(string host, string community, int maxRepetitions, CancellationToken cancellationToken)
-    => await snmpCommandExecutor.WalkCommand(host, community, HuaweiDot1qVlanStaticEgressPortsOid, cancellationToken, repetitions: maxRepetitions);
+    => await snmpCommandExecutor.WalkCommand(host, community, HuaweiDot1qVlanStaticEgressPortsOid, cancellationToken, repetitions: maxRepetitions, toHex: true);
 
   static void ValidateVlanDataConsistency(List<SNMPResponse> basePorts, List<SNMPResponse> portIfIndexes, List<SNMPResponse> vlanNames, List<SNMPResponse> vlanEgressPorts)
   {

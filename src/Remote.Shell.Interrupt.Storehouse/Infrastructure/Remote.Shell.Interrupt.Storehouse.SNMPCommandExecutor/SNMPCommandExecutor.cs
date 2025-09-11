@@ -12,14 +12,12 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
         try
         {
-            var response = await Messenger.GetAsync(version,
-                                                    target,
-                                                    communityString,
-                                                    [new(currentOid)],
-                                                    cancellationToken);
+            var response = await Messenger.GetAsync(version, target, communityString, [new(currentOid)], cancellationToken);
+
             if (response.Count > 0)
             {
                 var item = response.FirstOrDefault();
+
                 if (item is not null)
                 {
                     result.OID = item.Id.ToString();
@@ -52,42 +50,36 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         {
             while (true)
             {
-                var message = new GetBulkRequestMessage(0,
-                                                        version,
-                                                        communityString,
-                                                        0,
-                                                        maxRepetitions,
-                                                        [new Variable(currentOid)]);
-
+                var message = new GetBulkRequestMessage(0, version, communityString, 0, maxRepetitions, [new Variable(currentOid)]);
                 var response = await message.GetResponseAsync(target, registry: userRegistry, cancellationToken);
 
-                // Проверка на ошибки в ответе
-                if (response.Pdu().ErrorStatus.ToInt32() != 0)
-                {
+                if (response.Pdu().ErrorStatus.ToInt32() is not 0)
                     throw new Exception($"Error in response: {response.Pdu().ErrorStatus} (OID: {currentOid})");
-                }
+
+                if (response.Pdu().Variables.Any(v => v.Data is null))
+                    throw new SNMPBadRequestException("Received SNMP variable with null data.");
 
                 var responseVariables = response.Pdu().Variables;
-                if (responseVariables.Count == 0)
-                {
-                    break; // Нет больше данных
-                }
 
-                bool foundBaseOid = false; // Флаг для проверки наличия базового OID
+                if (responseVariables.Count is 0)
+                    break;
+
+                bool foundBaseOid = false;
 
                 foreach (var item in response.Pdu().Variables)
                 {
                     var itemOid = item.Id.ToString();
+                    var data = item.Data;
 
                     if (itemOid.StartsWith(oid))
                     {
-                        result.Add(new SNMPResponse()
+                        result.Add(new()
                         {
                             OID = item.Id.ToString(),
-                            Data = toHex ? ConvertSnmpDataToHex(item.Data) : item.Data.ToString()
+                            Data = toHex ? ConvertSnmpDataToHex(data) : data.ToString()
                         });
 
-                        foundBaseOid = true; // Базовый OID найден
+                        foundBaseOid = true;
                     }
                     else
                     {
@@ -96,15 +88,10 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                     }
                 }
 
-                // Если базовый OID не найден, выходим из цикла
                 if (!foundBaseOid)
-                {
-                    break; // Нет больше данных для получения
-                }
+                    break;
 
-                // Обновляем текущий OID для следующего запроса
-                // Используем последний полученный OID для следующего запроса
-                currentOid = responseVariables.Last().Id; // Для следующего запроса
+                currentOid = responseVariables.Last().Id;
             }
         }
         catch (OperationCanceledException)

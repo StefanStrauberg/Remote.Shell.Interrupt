@@ -93,9 +93,6 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
   public virtual ISpecification<TBase> AddInclude<TProperty>(Expression<Func<TBase, TProperty>> include)
   {
-    if (include is null)
-      throw new ArgumentNullException(nameof(include), "Include expression cannot be null.");
-
     var chain = new IncludeChain<TBase>();
     chain.AddInclude(include);
     _includeChains.Add(chain);
@@ -157,20 +154,20 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
 
     return clone;
   }
-  
+
   public virtual ISpecification<TBase> AddFilteredInclude<TProperty>(Expression<Func<TBase, IEnumerable<TProperty>>> includeExpression)
   {
     if (includeExpression is null)
       throw new ArgumentNullException(nameof(includeExpression), "Filtered include expression cannot be null.");
-      
+
     // Convert the expression to the appropriate format for filtered includes
     var parameter = includeExpression.Parameters[0];
     var body = includeExpression.Body;
-      
+
     // Create a new expression that can be handled by your existing infrastructure
     var newExpression = Expression.Lambda(body, parameter);
     _filteredIncludeChains.Add(newExpression);
-      
+
     return this;
   }
 }

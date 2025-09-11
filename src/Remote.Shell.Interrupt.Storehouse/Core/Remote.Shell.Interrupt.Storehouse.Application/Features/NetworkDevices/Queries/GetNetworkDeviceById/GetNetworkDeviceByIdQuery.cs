@@ -3,8 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 /// <summary>
 /// Query for retrieving a <see cref="NetworkDeviceDTO"/> by its unique identifier.
 /// </summary>
-public record GetNetworkDeviceByIdQuery(Guid Id)
-  : FindEntityByFilterQuery<NetworkDeviceDTO>(RequestParametersFactory.ForId(Id));
+public record GetNetworkDeviceByIdQuery(Guid Id) : FindEntityByFilterQuery<NetworkDeviceDTO>(RequestParametersFactory.ForId(Id));
 
 /// <summary>
 /// Handler for processing <see cref="GetNetworkDeviceByIdQuery"/> requests.
@@ -94,11 +93,19 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
     var filterExpr = _queryFilterParser.ParseFilters<NetworkDevice>(requestParameters.Filters);
     var spec = specification.AddInclude(x => x.PortsOfNetworkDevice);
 
+    spec = AddPortIncludes(spec);
+
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
 
     return spec;
   }
+
+  static ISpecification<NetworkDevice> AddPortIncludes(ISpecification<NetworkDevice> spec)
+    => spec.AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface)
+           .AddThenInclude<Port, IEnumerable<VLAN>>(x => x.VLANs)
+           .AddThenInclude<Port, IEnumerable<MACEntity>>(x => x.MACTable)
+           .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface);
 
   /// <summary>
   /// Validates that the network device exists based on the specification.

@@ -17,7 +17,7 @@ internal class IncludeChain<TBase> : IIncludeChain<TBase> where TBase : BaseEnti
   {
     if (_includes.Count == 0)
       throw new InvalidOperationException("Cannot add ThenInclude without Include");
-          
+
     _includes.Add(new IncludeChainItem(typeof(TPrevious), typeof(TProperty), thenInclude));
     return this;
   }
@@ -29,7 +29,7 @@ internal class IncludeChain<TBase> : IIncludeChain<TBase> where TBase : BaseEnti
   {
     var clone = new IncludeChain<TBase>();
 
-    foreach (var item in this._includes)
+    foreach (var item in _includes)
       clone._includes.Add(new IncludeChainItem(item.EntityType, item.PropertyType, item.Expression));
 
     return clone;

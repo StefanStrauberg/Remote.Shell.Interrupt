@@ -13,34 +13,35 @@ internal static class QueryableExtensions
   /// Uses reflection to dynamically invoke <c>Include</c> and <c>ThenInclude</c> methods from EF Core.
   /// Supports nested includes via <see cref="IIncludeChain{T}"/>.
   /// </remarks>
-  public static IQueryable<T> ApplyIncludes<T>(this IQueryable<T> query, IEnumerable<IIncludeChain<T>> includeChains)
-    where T : BaseEntity
+  public static IQueryable<TBase> ApplyIncludes<TBase>(this IQueryable<TBase> query, IEnumerable<IIncludeChain<TBase>> includeChains)
+    where TBase : BaseEntity
   {
     foreach (var chain in includeChains)
     {
-      foreach (var includeInfo in chain.Includes)
+      object current = query;
+      bool first = true;
+      foreach (var (entityType, propertyType, expression) in chain.Includes)
       {
-        var (entityType, propertyType, expression) = includeInfo;
-
-        if (entityType == typeof(T))
+        if (first)
         {
           var includeMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
-                                                                        .First(x => x.Name == nameof(EntityFrameworkQueryableExtensions.Include) &&
-                                                                               x.GetParameters().Length == 2)
-                                                                        .MakeGenericMethod(typeof(T), propertyType);
-          query = (IQueryable<T>)includeMethod.Invoke(null, [query, expression])!;
+                                                                        .First(m => m.Name == nameof(EntityFrameworkQueryableExtensions.Include) &&
+                                                                                    m.GetParameters().Length == 2)
+                                                                        .MakeGenericMethod(typeof(TBase), propertyType);
+          current = includeMethod.Invoke(null, [current, expression])!;
+          first = false;
         }
         else
         {
-          var genericMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
-                                                                        .First(m => m.Name == nameof(EntityFrameworkQueryableExtensions.ThenInclude) &&
-                                                                               m.GetParameters().Length == 2 &&
-                                                                               m.GetParameters()[0].ParameterType.IsGenericType &&
-                                                                               m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>))
-                                                                        .MakeGenericMethod(typeof(T), entityType, propertyType);
-          query = (IQueryable<T>)genericMethod.Invoke(null, [query, expression])!;
+          var thenIncludeMethod = typeof(EntityFrameworkQueryableExtensions).GetMethods()
+                                                                            .First(m => m.Name == nameof(EntityFrameworkQueryableExtensions.ThenInclude) &&
+                                                                                        m.GetParameters().Length == 2 &&
+                                                                                        m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IIncludableQueryable<,>))
+                                                                            .MakeGenericMethod(typeof(TBase), entityType, propertyType);
+          current = thenIncludeMethod.Invoke(null, [current, expression])!;
         }
       }
+      query = (IQueryable<TBase>)current;
     }
     return query;
   }
@@ -77,7 +78,6 @@ internal static class QueryableExtensions
     if (criterias is null)
       return query;
 
-    // return criterias is not null ? query.Where(criterias) : query;
     var visitor = new ILikeExpressionVisitor();
     var modifiedBody = visitor.Visit(criterias.Body);
     var modifiedLambda = Expression.Lambda<Func<T, bool>>(modifiedBody!, criterias.Parameters);
@@ -94,9 +94,7 @@ internal static class QueryableExtensions
   /// <param name="keySelector">The expression specifying the sort key.</param>
   /// <param name="descending">Whether to sort in descending order.</param>
   /// <returns>The modified query with sorting applied, or the original if selector is null.</returns>
-  public static IQueryable<T> ApplyOrderBy<T, TKey>(this IQueryable<T> query,
-                                                    Expression<Func<T, TKey>>? keySelector,
-                                                    bool descending = false)
+  public static IQueryable<T> ApplyOrderBy<T, TKey>(this IQueryable<T> query, Expression<Func<T, TKey>>? keySelector, bool descending = false)
   {
     if (keySelector is null)
       return query;
