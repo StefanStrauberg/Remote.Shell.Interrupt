@@ -91,20 +91,24 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   protected override ISpecification<NetworkDevice> BuildSpecification(RequestParameters requestParameters)
   {
     var filterExpr = _queryFilterParser.ParseFilters<NetworkDevice>(requestParameters.Filters);
-    var spec = specification.AddInclude(x => x.PortsOfNetworkDevice)
-                            .AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface);
-    spec.AddInclude(x => x.PortsOfNetworkDevice)
-        .AddThenInclude<Port, IEnumerable<MACEntity>>(x => x.MACTable);
-    spec.AddInclude(x => x.PortsOfNetworkDevice)
-        .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface);
-    spec.AddInclude(x => x.PortsOfNetworkDevice)
-        .AddThenInclude<Port, IEnumerable<VLAN>>(x => x.VLANs);
+
+    var spec = BuildBaseSpecification();
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
 
     return spec;
   }
+
+  ISpecification<NetworkDevice> BuildBaseSpecification()
+    => specification.AddInclude(x => x.PortsOfNetworkDevice)
+                    .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface)
+                    .AddInclude(x => x.PortsOfNetworkDevice)
+                    .AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface)
+                    .AddInclude(x => x.PortsOfNetworkDevice)
+                    .AddThenInclude<Port, IEnumerable<MACEntity>>(x => x.MACTable)
+                    .AddInclude(x => x.PortsOfNetworkDevice)
+                    .AddThenInclude<Port, IEnumerable<VLAN>>(x => x.VLANs);
 
   /// <summary>
   /// Validates that the network device exists based on the specification.
@@ -113,7 +117,12 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   /// <param name="cancellationToken">Token for cancelling the operation.</param>
   protected override async Task EnsureEntityExistAsync(ISpecification<NetworkDevice> specification,
                                                        CancellationToken cancellationToken)
-    => await netDevUnitOfWork.NetworkDevices.AnyByQueryAsync(specification, cancellationToken);
+  {
+    var exists = await netDevUnitOfWork.NetworkDevices.AnyByQueryAsync(specification, cancellationToken);
+
+    if (!exists)
+      throw new EntityNotFoundException(typeof(NetworkDevice), specification.ToString() ?? string.Empty);
+  }
 
   /// <summary>
   /// Fetches the network device along with its child entities.

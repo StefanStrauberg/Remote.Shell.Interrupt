@@ -3,7 +3,6 @@ import EmptyPage from "../../app/shared/components/EmptyPage";
 import NetworkDeviceListPage from "./NetworkDeviceListPage";
 import { useNetworkDevices } from "../../lib/hooks/useNetworkDevices";
 import { useState } from "react";
-import { NetworkDeviceFilter } from "../../lib/types/NetworkDevices/NetworkDeviceFilter";
 import NetworkDeviceListFilter from "./NetworkDeviceListFilter";
 
 export default function NetworkDeviceDashboard() {

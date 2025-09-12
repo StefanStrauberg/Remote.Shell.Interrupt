@@ -2,13 +2,26 @@ import { Box, Button, Divider, Typography, Grid2 } from "@mui/material";
 import { Link, NavLink } from "react-router";
 import { useGates } from "../../lib/hooks/useGates";
 import { useClients } from "../../lib/hooks/useClients";
+import { useState } from "react";
+import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
+import { DEFAULT_FILTERS_Gates } from "../../lib/api/gates/DefaultFiltersGates";
+import { DEFAULT_FILTERS_Clients } from "../../lib/api/Clients/DefaultFiltersClients";
 
 export default function AdminComponent() {
   const pageNumber = 1;
   const pageSize = 100;
+  const [gateDilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Gates);
+  const [clientFilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Clients);
+  const [orderBy] = useState<string>("name");
+  const [orderByDescending] = useState<boolean>(false);
 
-  const { gates, deleteGate } = useGates(pageNumber, pageSize, {});
-  const { deleteClients, updateClients } = useClients();
+  const { gates, deleteGate } = useGates({ pageNumber, pageSize }, gateDilters);
+
+  const { deleteClients, updateClients } = useClients(
+    { pageNumber, pageSize },
+    clientFilters,
+    { property: orderBy, descending: orderByDescending }
+  );
 
   const updateClientsHandle = () => {
     if (window.confirm(`Подумай дважды!!!`)) {

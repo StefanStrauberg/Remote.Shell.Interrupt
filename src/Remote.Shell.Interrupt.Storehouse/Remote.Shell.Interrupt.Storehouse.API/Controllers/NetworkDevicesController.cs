@@ -44,7 +44,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   [HttpGet("{id}")]
   [ProducesResponseType(typeof(IEnumerable<NetworkDeviceDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetNetworkDevicesById(Guid id, CancellationToken cancellationToken)
+  public async Task<IActionResult> GetNetworkDeviceById(Guid id, CancellationToken cancellationToken)
     => Ok(await Sender.Send(new GetNetworkDeviceByIdQuery(id), cancellationToken));
 
   /// <summary>

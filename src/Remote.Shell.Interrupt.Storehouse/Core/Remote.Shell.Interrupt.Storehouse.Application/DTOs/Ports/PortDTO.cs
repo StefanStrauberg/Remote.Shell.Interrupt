@@ -3,11 +3,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;
 public class PortDTO : IMapWith<Port>
 {
   public Guid Id { get; set; }
-  public int InterfaceNumber { get; set; } // 1
-  public string InterfaceName { get; set; } = string.Empty; // "GigabitEthernet0/1"
-  public string InterfaceType { get; set; } = string.Empty; // "Ethernet"
-  public string InterfaceStatus { get; set; } = string.Empty; // "Up"
-  public long InterfaceSpeed { get; set; } // "1 Gbps"
+  public int InterfaceNumber { get; set; }
+  public string InterfaceName { get; set; } = string.Empty;
+  public string InterfaceType { get; set; } = string.Empty;
+  public string InterfaceStatus { get; set; } = string.Empty;
+  public long InterfaceSpeed { get; set; }
   public bool IsAggregated { get; set; }
   public string MACAddress { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
@@ -55,8 +55,8 @@ public class PortDTO : IMapWith<Port>
                                                                  grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,
-                      opt => opt.MapFrom(src => src.NetworkTableOfInterface
-                                                   .Select(x => new { x.NetworkAddress, x.Netmask })))
+                      opt => opt.MapFrom(src => src.NetworkTableOfInterface.ToDictionary(net => ConvertToIPAddress.Handle(net.NetworkAddress),
+                                                                                         net => ConvertToIPAddress.Handle(net.Netmask))))
            .ForMember(dest => dest.ParentId,
                       opt => opt.MapFrom(src => src.ParentId));
   }

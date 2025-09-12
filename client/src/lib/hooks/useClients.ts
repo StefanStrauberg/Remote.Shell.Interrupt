@@ -80,7 +80,7 @@ export const useClients = (
 
   const updateClients = useMutation({
     mutationFn: async () => {
-      await agent.put("/api/Clients/UpdateClients");
+      await agent.put("/api/Clients/UpdateClientsLocalDb");
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -91,7 +91,7 @@ export const useClients = (
 
   const deleteClients = useMutation({
     mutationFn: async () => {
-      await agent.delete("/api/Clients/DeleteClients");
+      await agent.delete("/api/Clients/DeleteClientsLocalDb");
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
