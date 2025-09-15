@@ -2,35 +2,35 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration.Mod
 
 public class NetworkDeviceConfiguration : IEntityTypeConfiguration<NetworkDevice>
 {
-  public void Configure(EntityTypeBuilder<NetworkDevice> builder)
-  {
-    builder.ToTable("NetworkDevices");
+       public void Configure(EntityTypeBuilder<NetworkDevice> builder)
+       {
+              builder.ToTable("NetworkDevices");
 
-    builder.HasKey(x => x.Id);
+              builder.HasKey(x => x.Id);
 
-    builder.Property(x => x.Id)
-           .HasColumnName("Id")
-           .HasColumnType("uuid")
-           .HasDefaultValueSql("gen_random_uuid()");
-    builder.Property(x => x.CreatedAt)
-           .HasColumnName("CreatedAt")
-           .HasColumnType("timestamptz")
-           .HasDefaultValueSql("CURRENT_TIMESTAMP");
-    builder.Property(x => x.UpdatedAt)
-           .HasColumnName("UpdatedAt")
-           .HasColumnType("timestamptz");
-    builder.Property(x => x.Host)
-           .HasColumnName("Host")
-           .HasColumnType("text");
-    builder.Property(x => x.TypeOfNetworkDevice)
-           .HasColumnName("TypeOfNetworkDevice")
-           .HasColumnType("integer");
-    builder.Property(x => x.GeneralInformation)
-           .HasColumnName("GeneralInformation")
-           .HasColumnType("text");
+              builder.Property(x => x.Id)
+                     .HasColumnName("Id")
+                     .HasColumnType("uuid")
+                     .HasDefaultValueSql("gen_random_uuid()");
+              builder.Property(x => x.CreatedAt)
+                     .HasColumnName("CreatedAt")
+                     .HasColumnType("timestamptz")
+                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
+              builder.Property(x => x.UpdatedAt)
+                     .HasColumnName("UpdatedAt")
+                     .HasColumnType("timestamptz");
+              builder.Property(x => x.Host)
+                     .HasColumnName("Host")
+                     .HasColumnType("bigint");
+              builder.Property(x => x.TypeOfNetworkDevice)
+                     .HasColumnName("TypeOfNetworkDevice")
+                     .HasColumnType("integer");
+              builder.Property(x => x.GeneralInformation)
+                     .HasColumnName("GeneralInformation")
+                     .HasColumnType("text");
 
-    builder.HasMany(x => x.PortsOfNetworkDevice)
-           .WithOne()
-           .HasForeignKey(x => x.NetworkDeviceId);
-  }
+              builder.HasMany(x => x.PortsOfNetworkDevice)
+                     .WithOne()
+                     .HasForeignKey(x => x.NetworkDeviceId);
+       }
 }

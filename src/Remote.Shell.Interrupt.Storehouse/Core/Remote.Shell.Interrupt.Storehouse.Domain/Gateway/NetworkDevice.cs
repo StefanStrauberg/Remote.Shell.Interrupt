@@ -8,7 +8,7 @@ public class NetworkDevice : BaseEntity
   /// <summary>
   /// Gets or sets the host address of the network device.
   /// </summary>
-  public required string Host { get; set; }
+  public long Host { get; set; }
 
   /// <summary>
   /// Gets or sets the type of the network device.

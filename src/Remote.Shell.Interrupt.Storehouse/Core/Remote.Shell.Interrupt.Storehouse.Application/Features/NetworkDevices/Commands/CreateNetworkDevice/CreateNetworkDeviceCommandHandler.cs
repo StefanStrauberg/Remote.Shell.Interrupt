@@ -57,7 +57,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
     {
       Id = Guid.NewGuid(),
       TypeOfNetworkDevice = Enum.Parse<TypeOfNetworkDevice>(request.TypeOfNetworkDevice),
-      Host = request.Host
+      Host = ConvertStringIPAddressToLong.Handle(request.Host)
     };
 
     int maxRepetitions = GetRepetitionConfigurationKey(networkDevice.TypeOfNetworkDevice);

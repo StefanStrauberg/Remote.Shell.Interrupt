@@ -3,7 +3,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;
 public class NetworkDeviceDTO : IMapWith<NetworkDevice>
 {
   public Guid Id { get; set; }
-  public required string Host { get; set; }
+  public string Host { get; set; } = null!;
   public string TypeOfNetworkDevice { get; set; } = string.Empty;
   public string NetworkDeviceName { get; set; } = string.Empty;
   public string GeneralInformation { get; set; } = string.Empty;
@@ -17,7 +17,7 @@ public class NetworkDeviceDTO : IMapWith<NetworkDevice>
            .ForMember(dest => dest.NetworkDeviceName,
                       opt => opt.MapFrom(src => src.NetworkDeviceName))
            .ForMember(dest => dest.Host,
-                      opt => opt.MapFrom(src => src.Host))
+                      opt => opt.MapFrom(src => ConvertLongIPAddressToString.Handle(src.Host)))
            .ForMember(dest => dest.TypeOfNetworkDevice,
                       opt => opt.MapFrom(src => src.TypeOfNetworkDevice.ToString()))
            .ForMember(dest => dest.GeneralInformation,
