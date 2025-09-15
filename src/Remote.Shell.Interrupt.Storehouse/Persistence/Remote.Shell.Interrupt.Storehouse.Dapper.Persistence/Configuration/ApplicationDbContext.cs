@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 
-internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
+internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
   : DbContext(options)
 {
   public DbSet<Client> Clients { get; set; }

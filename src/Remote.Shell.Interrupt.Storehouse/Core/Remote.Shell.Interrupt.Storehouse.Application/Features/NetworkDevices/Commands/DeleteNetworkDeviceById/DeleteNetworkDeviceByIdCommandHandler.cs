@@ -22,7 +22,10 @@ internal class DeleteNetworkDeviceByIdCommandHandler(INetDevUnitOfWork netDevUni
   /// </summary>
   /// <param name="entity">The network device to delete.</param>
   protected override void DeleteEntity(NetworkDevice entity)
-    => netDevUnitOfWork.NetworkDevices.DeleteOneWithChilren(entity);
+  {
+    netDevUnitOfWork.NetworkDevices.DeleteOneWithChilren(entity);
+    netDevUnitOfWork.Complete();
+  }
 
   /// <summary>
   /// Validates that the network device exists based on the specification.

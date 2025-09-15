@@ -47,6 +47,10 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
                      .HasColumnName("NetworkDeviceId")
                      .HasColumnType("uuid");
 
+              builder.HasMany(x => x.VLANs)
+                     .WithMany(x => x.Ports)
+                     .UsingEntity(j => j.ToTable("PortVLAN"));
+
               builder.HasMany(x => x.ARPTableOfInterface)
                      .WithOne()
                      .HasForeignKey(x => x.PortId);

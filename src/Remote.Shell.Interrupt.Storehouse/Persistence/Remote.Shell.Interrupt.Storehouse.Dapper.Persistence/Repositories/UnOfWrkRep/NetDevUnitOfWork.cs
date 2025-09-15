@@ -10,34 +10,34 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
                                 IExistenceQueryRepository<Port> portExistenceQueryRepository,
                                 IOneQueryRepository<Port> portOneQueryRepository,
                                 IBulkInsertRepository<Port> portBulkInsertRepository,
-                                IBulkDeleteRepository<Port> portBulkDeleteRepository, 
+                                IBulkDeleteRepository<Port> portBulkDeleteRepository,
                                 IBulkReplaceRepository<Port> portBulkReplaceRepository,
                                 IBulkInsertRepository<ARPEntity> arpEntityBulkInsertRepository,
                                 IBulkInsertRepository<MACEntity> macEntityBulkInsertRepository,
-                                IBulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository) 
+                                IBulkInsertRepository<TerminatedNetworkEntity> terminatedNetworkEntityBulkInsertRepository)
   : INetDevUnitOfWork, IDisposable
 {
-  public INetworkDeviceRepository NetworkDevices 
+  public INetworkDeviceRepository NetworkDevices
     => new NetworkDeviceRepository(applicationContext,
                                    networkDeviceManyQueryRepository,
                                    networkDeviceExistenceQueryRepository,
                                    networkDeviceCountRepository,
                                    networkDeviceInsertRepository,
                                    networkDeviceReadRepository);
-  public IVLANRepository VLANs 
+  public IVLANRepository VLANs
     => new VLANRepository(vlanBulkInsertRepository);
-  public IPortRepository Ports 
+  public IPortRepository Ports
     => new PortRepository(applicationContext,
                           portExistenceQueryRepository,
                           portOneQueryRepository,
                           portBulkInsertRepository,
                           portBulkDeleteRepository,
                           portBulkReplaceRepository);
-  public IARPEntityRepository ARPEntities 
+  public IARPEntityRepository ARPEntities
     => new ARPEntityRepository(arpEntityBulkInsertRepository);
-  public IMACEntityRepository MACEntities 
+  public IMACEntityRepository MACEntities
     => new MACEntityRepository(macEntityBulkInsertRepository);
-  public ITerminatedNetworkEntityRepository TerminatedNetworkEntities 
+  public ITerminatedNetworkEntityRepository TerminatedNetworkEntities
     => new TerminatedNetworkEntityRepository(terminatedNetworkEntityBulkInsertRepository);
 
   bool disposed = false;
@@ -61,14 +61,10 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
   }
 
   void IUnitOfWork.StartTransaction()
-  {
-    _transaction = applicationContext.Database.BeginTransaction();
-  }
+    => _transaction = applicationContext.Database.BeginTransaction();
 
   async Task IUnitOfWork.StartTransactionAsync(CancellationToken cancellationToken)
-  {
-    _transaction = await applicationContext.Database.BeginTransactionAsync(cancellationToken);
-  }
+    => _transaction = await applicationContext.Database.BeginTransactionAsync(cancellationToken);
 
   void IDisposable.Dispose()
   {
@@ -81,16 +77,12 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
     if (!disposed)
     {
       if (disposing)
-      {
         applicationContext.Dispose();
-      }
 
       disposed = true;
     }
   }
 
   ~NetDevUnitOfWork()
-  {
-    Dispose(false);
-  }
+    => Dispose(false);
 }

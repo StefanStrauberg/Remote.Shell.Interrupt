@@ -8,7 +8,7 @@ public class VLAN : BaseEntity
   /// <summary>
   /// Gets or sets the VLAN tag identifier.
   /// </summary>
-  public int VLANTag { get; set; } 
+  public int VLANTag { get; set; }
 
   /// <summary>
   /// Gets or sets the VLAN name.

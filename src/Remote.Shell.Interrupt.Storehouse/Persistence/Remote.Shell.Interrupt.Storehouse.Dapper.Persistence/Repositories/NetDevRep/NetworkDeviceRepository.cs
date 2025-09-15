@@ -5,12 +5,49 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                                        IExistenceQueryRepository<NetworkDevice> existenceQueryRepository,
                                        ICountRepository<NetworkDevice> countRepository,
                                        IInsertRepository<NetworkDevice> insertRepository,
-                                       IReadRepository<NetworkDevice> readRepository) 
+                                       IReadRepository<NetworkDevice> readRepository)
   : INetworkDeviceRepository
 {
   void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
   {
-    // TODO
+    // Load Ports with children
+    var ports = context.Ports.Include(p => p.ARPTableOfInterface)
+                             .Include(p => p.MACTable)
+                             .Include(p => p.NetworkTableOfInterface)
+                             .Include(p => p.AggregatedPorts)
+                             .Include(p => p.VLANs)
+                             .Where(p => p.NetworkDeviceId == networkDeviceToDelete.Id)
+                             .ToList();
+
+    foreach (var port in ports)
+    {
+      // Delete ARP entities
+      if (port.ARPTableOfInterface.Count > 0)
+        context.ARPEntities.RemoveRange(port.ARPTableOfInterface);
+
+      // Delete MAC entities
+      if (port.MACTable.Count > 0)
+        context.MACEntities.RemoveRange(port.MACTable);
+
+      // Delete terminated networks
+      if (port.NetworkTableOfInterface.Count > 0)
+        context.TerminatedNetworkEntities.RemoveRange(port.NetworkTableOfInterface);
+
+      // Delete VLANs (not just detach, since they belong only here)
+      if (port.VLANs.Count > 0)
+        context.VLANs.RemoveRange(port.VLANs);
+
+      // Delete aggregated ports (self-referencing children)
+      if (port.AggregatedPorts.Count > 0)
+        context.Ports.RemoveRange(port.AggregatedPorts);
+    }
+
+    // Delete Ports themselves
+    if (ports.Count > 0)
+      context.Ports.RemoveRange(ports);
+
+    // Finally delete the device
+    context.NetworkDevices.Remove(networkDeviceToDelete);
   }
 
   async Task<NetworkDevice> IOneQueryWithRelationsRepository<NetworkDevice>.GetOneWithChildrenAsync(ISpecification<NetworkDevice> specification,

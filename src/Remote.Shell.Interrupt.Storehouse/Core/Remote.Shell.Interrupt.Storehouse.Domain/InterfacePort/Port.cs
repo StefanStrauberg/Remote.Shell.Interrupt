@@ -23,12 +23,12 @@ public class Port : BaseEntity
   /// <summary>
   /// Gets or sets the status of the interface.
   /// </summary>
-  public PortStatus InterfaceStatus { get; set; } 
+  public PortStatus InterfaceStatus { get; set; }
 
   /// <summary>
   /// Gets or sets the speed of the interface.
   /// </summary>
-  public long InterfaceSpeed { get; set; } 
+  public long InterfaceSpeed { get; set; }
 
   /// <summary>
   /// Gets or sets the MAC address of the port.

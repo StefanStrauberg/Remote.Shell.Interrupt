@@ -37,7 +37,5 @@ public class TerminatedNetworkEntity : BaseEntity
   /// <param name="ip">The IP address to convert.</param>
   /// <returns>The long integer representation of the IP address.</returns>
   static long ConvertToLong(IPAddress ip)
-  {
-    return BitConverter.ToUInt32(ip.GetAddressBytes().Reverse().ToArray(), 0);
-  }
+    => BitConverter.ToUInt32([.. ip.GetAddressBytes().Reverse()], 0);
 }
