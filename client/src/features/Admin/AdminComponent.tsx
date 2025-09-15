@@ -4,8 +4,8 @@ import { useGates } from "../../lib/hooks/useGates";
 import { useClients } from "../../lib/hooks/useClients";
 import { useState } from "react";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
-import { DEFAULT_FILTERS_Gates } from "../../lib/api/gates/DefaultFiltersGates";
-import { DEFAULT_FILTERS_Clients } from "../../lib/api/Clients/DefaultFiltersClients";
+import { DEFAULT_FILTERS_Gates } from "../../lib/api/gates/DEFAULT_FILTERS_Gates";
+import { DEFAULT_FILTERS_Clients } from "../../lib/api/Clients/DEFAULT_FILTERS_Clients";
 
 export default function AdminComponent() {
   const pageNumber = 1;

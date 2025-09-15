@@ -15,7 +15,7 @@ import {
 import { useState } from "react";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
-import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DefaultFiltersClients";
+import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DEFAULT_FILTERS_Clients";
 
 type ClientListFilterProps = {
   onApplyFilters: (filters: FilterDescriptor[]) => void;

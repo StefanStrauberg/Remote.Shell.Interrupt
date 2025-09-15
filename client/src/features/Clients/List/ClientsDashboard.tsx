@@ -4,7 +4,7 @@ import ClientListFilter from "./ClientListFilter";
 import { useState } from "react";
 import { useClients } from "../../../lib/hooks/useClients";
 import EmptyPage from "../../../app/shared/components/EmptyPage";
-import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DefaultFiltersClients";
+import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DEFAULT_FILTERS_Clients";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 
 export default function ClientsDashboard() {

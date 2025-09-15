@@ -15,7 +15,7 @@ import { useState } from "react";
 import { FilterList } from "@mui/icons-material";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../lib/types/Common/FilterOperator";
-import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DefaultFiltersSPRVlans";
+import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DEFAULT_FILTERS_SPRVlans";
 
 type SPRVlanListFilterProps = {
   onApplyFilters: (filters: FilterDescriptor[]) => void;

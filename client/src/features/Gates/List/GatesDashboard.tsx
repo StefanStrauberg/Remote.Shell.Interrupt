@@ -5,7 +5,7 @@ import { useGates } from "../../../lib/hooks/useGates";
 import { useState } from "react";
 import EmptyPage from "../../../app/shared/components/EmptyPage";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
-import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DefaultFiltersGates";
+import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DEFAULT_FILTERS_Gates";
 
 export default function GatesDashboard() {
   const [filters, setFilters] = useState<FilterDescriptor[]>(
@@ -13,9 +13,12 @@ export default function GatesDashboard() {
   );
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 10;
+  const [orderBy] = useState<string>("ipAddress");
+  const [orderByDescending] = useState<boolean>(false);
   const { gates, pagination, isPending } = useGates(
     { pageNumber, pageSize },
-    filters
+    filters,
+    { property: orderBy, descending: orderByDescending }
   );
 
   const handleApplyFilters = (newFilters: FilterDescriptor[]) => {

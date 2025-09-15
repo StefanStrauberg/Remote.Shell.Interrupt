@@ -21,7 +21,7 @@ import { useState } from "react";
 import { typeOfNetworkDeviceOptions } from "../../../lib/types/Gates/typeOfNetworkDeviceOptions";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
-import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DefaultFiltersGates";
+import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DEFAULT_FILTERS_Gates";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;

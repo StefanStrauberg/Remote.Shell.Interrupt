@@ -55,8 +55,8 @@ public class PortDTO : IMapWith<Port>
                                                                  grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,
-                      opt => opt.MapFrom(src => src.NetworkTableOfInterface.ToDictionary(net => ConvertToIPAddress.Handle(net.NetworkAddress),
-                                                                                         net => ConvertToIPAddress.Handle(net.Netmask))))
+                      opt => opt.MapFrom(src => src.NetworkTableOfInterface.ToDictionary(net => ConvertLongIPAddressToString.Handle(net.NetworkAddress),
+                                                                                         net => ConvertLongIPAddressToString.Handle(net.Netmask))))
            .ForMember(dest => dest.ParentId,
                       opt => opt.MapFrom(src => src.ParentId));
   }

@@ -9,15 +9,8 @@ public class TerminatedNetworkEntityDTO : IMapWith<TerminatedNetworkEntity>
   {
     profile.CreateMap<TerminatedNetworkEntity, TerminatedNetworkEntityDTO>()
            .ForMember(dest => dest.NetworkAddress,
-                      opt => opt.MapFrom(src => ConvertToString(src.NetworkAddress)))
+                      opt => opt.MapFrom(src => ConvertLongIPAddressToString.Handle(src.NetworkAddress)))
            .ForMember(dest => dest.Netmask,
-                      opt => opt.MapFrom(src => ConvertToString(src.Netmask)));
-  }
-
-  static string ConvertToString(long address)
-  {
-    var bytes = BitConverter.GetBytes(address);
-    Array.Reverse(bytes); // Изменяем порядок байтов
-    return new IPAddress(bytes).ToString();
+                      opt => opt.MapFrom(src => ConvertLongIPAddressToString.Handle(src.Netmask)));
   }
 }

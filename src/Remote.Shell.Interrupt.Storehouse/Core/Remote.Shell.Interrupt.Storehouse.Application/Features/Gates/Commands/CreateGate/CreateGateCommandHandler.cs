@@ -28,9 +28,9 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
         [
           new()
           {
-              PropertyPath = "IPAddress",
-              Operator = FilterOperator.Equals,
-              Value = createDto.IPAddress
+            PropertyPath = nameof(Gate.IPAddress),
+            Operator = FilterOperator.Equals,
+            Value = createDto.IPAddress
           }
         ]
     }.Filters);

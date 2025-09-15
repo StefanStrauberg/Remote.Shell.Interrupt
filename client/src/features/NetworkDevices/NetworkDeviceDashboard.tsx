@@ -4,20 +4,24 @@ import NetworkDeviceListPage from "./NetworkDeviceListPage";
 import { useNetworkDevices } from "../../lib/hooks/useNetworkDevices";
 import { useState } from "react";
 import NetworkDeviceListFilter from "./NetworkDeviceListFilter";
+import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
+import { DEFAULT_FILTERS_NetworkDevices } from "../../lib/api/networkDevices/DEFAULT_FILTERS_NetworkDevices";
 
 export default function NetworkDeviceDashboard() {
-  const [filters, setFilters] = useState<NetworkDeviceFilter>({});
-  // Manage local state for pagination
+  const [filters, setFilters] = useState<FilterDescriptor[]>(
+    DEFAULT_FILTERS_NetworkDevices
+  );
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const pageSize = 10;
 
-  const [pageNumber, setPageNumber] = useState<number>(1); // TablePagination uses zero-based index
-  const pageSize = 10; // Default page size
+  const { networkDevices, pagination, isPending } = useNetworkDevices(
+    { pageNumber, pageSize },
+    filters
+  );
 
-  const { networkDevices, isLoadingNetworkDevices, pagination } =
-    useNetworkDevices(pageNumber, pageSize, filters);
-
-  const handleApplyFilters = (newFilters: NetworkDeviceFilter) => {
+  const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
-    setPageNumber(1); // сбросить страницу
+    setPageNumber(1);
   };
 
   return (
@@ -36,7 +40,7 @@ export default function NetworkDeviceDashboard() {
           <Grid2 size={9}>
             <NetworkDeviceListPage
               networkDevices={networkDevices}
-              isLoadingNetworkDevices={isLoadingNetworkDevices}
+              isPending={isPending}
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}

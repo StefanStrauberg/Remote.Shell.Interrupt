@@ -13,7 +13,7 @@ public class Gate : BaseEntity
   /// <summary>
   /// Gets or sets the IP address of the gateway.
   /// </summary>
-  public string IPAddress { get; set; } = string.Empty;
+  public long IPAddress { get; set; }
 
   /// <summary>
   /// Gets or sets the SNMP community string used for authentication.

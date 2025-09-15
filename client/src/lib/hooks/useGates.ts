@@ -6,10 +6,12 @@ import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
 import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
+import { OrderByParams } from "../api/common/orderByParams";
 
 export const useGates = (
   pagination: PaginationParams,
   filters: FilterDescriptor[] = [],
+  orderBy: OrderByParams,
   id?: string
 ) => {
   const queryClient = useQueryClient();
@@ -20,7 +22,7 @@ export const useGates = (
   const { data: gatesResponse, isPending } = useQuery({
     queryKey,
     queryFn: async () => {
-      const params = buildRequestParams(pagination, filters);
+      const params = buildRequestParams(pagination, orderBy, filters);
 
       const response = await agent.get<Gate[]>("/api/Gates/GetGatesByFilter", {
         params,

@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
+
 namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.Extensions;
 
 internal static class FilterDescriptorExtensions
@@ -204,6 +206,7 @@ internal static class FilterDescriptorExtensions
     {
       if (targetType == typeof(Guid)) return Guid.Parse(value);
       if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
+      if (targetType == typeof(long)) return ConvertStringIPAddressToLong.Handle(value);
 
       return Convert.ChangeType(value, targetType);
     }

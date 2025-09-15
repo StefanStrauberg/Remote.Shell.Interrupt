@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 
-static public class ConvertToIPAddress
+static public class ConvertLongIPAddressToString
 {
   public static string Handle(long address)
   {

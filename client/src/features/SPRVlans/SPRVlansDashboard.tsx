@@ -5,7 +5,7 @@ import { useSPRVlans } from "../../lib/hooks/useSPRVlans";
 import EmptyPage from "../../app/shared/components/EmptyPage";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import SPRVlanListFilter from "./SPRVlanListFilter";
-import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DefaultFiltersSPRVlans";
+import { DEFAULT_FILTERS_SPRVlans } from "../../lib/api/sprVlans/DEFAULT_FILTERS_SPRVlans";
 
 export default function SPRVlansDashboard() {
   const [filters, setFilters] = useState<FilterDescriptor[]>(
