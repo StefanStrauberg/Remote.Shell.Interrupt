@@ -74,7 +74,7 @@ export default function GateListFilter({
         ? [createFilter("Name", FilterOperator.Contains, name)]
         : []),
       ...(ipAddress !== ""
-        ? [createFilter("IpAddress", FilterOperator.Contains, ipAddress)]
+        ? [createFilter("IpAddress", FilterOperator.Equals, ipAddress)]
         : []),
       ...(typeOfNetworkDevice !== ""
         ? [

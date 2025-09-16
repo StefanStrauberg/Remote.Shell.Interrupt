@@ -11,8 +11,7 @@ public static class FormatEgressPorts
       return [];
 
     // Разделяем строку по запятой и пробелам, убираем лишние пробелы и конвертируем в массив целых чисел
-    return [.. input.Split(separator, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)];
+    return [.. input.Split(separator, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)];
   }
 
   public static int[] HandleHuaweiHexString(string input)
@@ -31,8 +30,8 @@ public static class FormatEgressPorts
     {
       // Преобразуем каждый байт из Hex в двоичный формат
       byte byteValue = Convert.ToByte(hexValue, 16);
-      string binaryString = Convert.ToString(byteValue, 2)
-                                   .PadLeft(8, '0'); // Преобразуем в строку с 8 битами
+      // Преобразуем в строку с 8 битами
+      string binaryString = Convert.ToString(byteValue, 2).PadLeft(8, '0');
 
       // Проходим по каждому биту в двоичном представлении
       foreach (char bit in binaryString)

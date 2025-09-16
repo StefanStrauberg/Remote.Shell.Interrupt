@@ -16,10 +16,12 @@ import {
   SelectChangeEvent,
   TextField,
 } from "@mui/material";
-import { NetworkDeviceFilter } from "../../lib/types/NetworkDevices/NetworkDeviceFilter";
 import { FilterList } from "@mui/icons-material";
 import { useState } from "react";
 import { typeOfNetworkDeviceOptions } from "../../lib/types/Gates/typeOfNetworkDeviceOptions";
+import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
+import { FilterOperator } from "../../lib/types/Common/FilterOperator";
+import { DEFAULT_FILTERS_NetworkDevices } from "../../lib/api/networkDevices/DEFAULT_FILTERS_NetworkDevices";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -32,24 +34,74 @@ const MenuProps = {
   },
 };
 
-type Props = {
-  onApplyFilters: (newFilters: NetworkDeviceFilter) => void;
+type NetworkDeviceListFilterProps = {
+  onApplyFilters: (filters: FilterDescriptor[]) => void;
+  initialFilters?: FilterDescriptor[];
+  onResetFilters?: () => void;
 };
 
-export default function NetworkDeviceListFilter({ onApplyFilters }: Props) {
-  const [host, setHost] = useState<string>("");
-  const [networkDeviceName, setNetworkDeviceName] = useState<string>("");
+export default function NetworkDeviceListFilter({
+  onApplyFilters,
+  initialFilters = [],
+  onResetFilters,
+}: NetworkDeviceListFilterProps) {
+  const getInitialString = (property: string, defaultValue: string): string => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? filter.Value : defaultValue;
+  };
 
-  const [typeOfNetworkDevice, setTypeOfNetworkDevice] = useState<string>("");
+  const [NetworkDeviceName, setNetworkDeviceName] = useState<string>(
+    getInitialString("NetworkDeviceName", "")
+  );
+  const [Host, setHost] = useState<string>(getInitialString("Host", ""));
+  const [typeOfNetworkDevice, setTypeOfNetworkDevice] = useState<string>(
+    getInitialString("TypeOfNetworkDevice", "")
+  );
 
-  const handleApplyClick = () => {
-    const filters: NetworkDeviceFilter = {};
-    if (host) filters.host = { op: "~=", value: host };
-    if (networkDeviceName)
-      filters.networkDeviceName = { op: "~=", value: networkDeviceName };
-    if (typeOfNetworkDevice)
-      filters.typeOfNetworkDevice = { op: "==", value: typeOfNetworkDevice };
+  const createFilter = (
+    property: string,
+    operator: FilterOperator,
+    value: string | boolean
+  ): FilterDescriptor => ({
+    PropertyPath: property,
+    Operator: operator,
+    Value: String(value),
+  });
+
+  const handleApply = () => {
+    const filters: FilterDescriptor[] = [
+      ...(NetworkDeviceName !== ""
+        ? [
+            createFilter(
+              "NetworkDeviceName",
+              FilterOperator.Contains,
+              NetworkDeviceName
+            ),
+          ]
+        : []),
+      ...(Host !== ""
+        ? [createFilter("Host", FilterOperator.Equals, Host)]
+        : []),
+      ...(typeOfNetworkDevice !== ""
+        ? [
+            createFilter(
+              "TypeOfNetworkDevice",
+              FilterOperator.Equals,
+              typeOfNetworkDevice
+            ),
+          ]
+        : []),
+    ];
     onApplyFilters(filters);
+  };
+
+  const handleReset = () => {
+    setNetworkDeviceName("");
+    setHost("");
+    setTypeOfNetworkDevice("");
+
+    onApplyFilters(DEFAULT_FILTERS_NetworkDevices);
+    onResetFilters?.();
   };
 
   const handleChange = (event: SelectChangeEvent<string>) => {
@@ -75,14 +127,14 @@ export default function NetworkDeviceListFilter({ onApplyFilters }: Props) {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="Название маршрутизатора"
-            value={networkDeviceName}
+            value={NetworkDeviceName}
             onChange={(e) => setNetworkDeviceName(e.target.value)}
             variant="outlined"
             fullWidth
           />
           <TextField
             label="IP адрес"
-            value={host}
+            value={Host}
             onChange={(e) => setHost(e.target.value)}
             variant="outlined"
             fullWidth
@@ -93,7 +145,7 @@ export default function NetworkDeviceListFilter({ onApplyFilters }: Props) {
               value={typeOfNetworkDevice}
               onChange={handleChange}
               input={<OutlinedInput label="Тип маршрутизатора" />}
-              renderValue={(selected) => selected}
+              renderValue={(selected) => selected || "Не выбрано"}
               MenuProps={MenuProps}
               fullWidth
             >
@@ -109,22 +161,10 @@ export default function NetworkDeviceListFilter({ onApplyFilters }: Props) {
           </FormControl>
           <Divider />
           <ButtonGroup>
-            <Button
-              variant="contained"
-              color="info"
-              onClick={() => {
-                setTypeOfNetworkDevice("");
-                setHost("");
-                setNetworkDeviceName("");
-              }}
-            >
+            <Button variant="contained" color="info" onClick={handleReset}>
               Сбросить
             </Button>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleApplyClick}
-            >
+            <Button variant="contained" color="success" onClick={handleApply}>
               Применить
             </Button>
           </ButtonGroup>

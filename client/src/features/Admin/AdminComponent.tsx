@@ -6,21 +6,39 @@ import { useState } from "react";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import { DEFAULT_FILTERS_Gates } from "../../lib/api/gates/DEFAULT_FILTERS_Gates";
 import { DEFAULT_FILTERS_Clients } from "../../lib/api/Clients/DEFAULT_FILTERS_Clients";
+import { useNetworkDevices } from "../../lib/hooks/useNetworkDevices";
 
 export default function AdminComponent() {
   const pageNumber = 1;
   const pageSize = 100;
-  const [gateDilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Gates);
+  const [gateFilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Gates);
   const [clientFilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Clients);
-  const [orderBy] = useState<string>("name");
+  const [orderByForGates] = useState<string>("ipAddress");
+  const [orderByForClients] = useState<string>("name");
   const [orderByDescending] = useState<boolean>(false);
 
-  const { gates, deleteGate } = useGates({ pageNumber, pageSize }, gateDilters);
+  const { gates, deleteGate } = useGates(
+    { pageNumber, pageSize },
+    gateFilters,
+    {
+      property: orderByForGates,
+      descending: orderByDescending,
+    }
+  );
 
   const { deleteClients, updateClients } = useClients(
     { pageNumber, pageSize },
     clientFilters,
-    { property: orderBy, descending: orderByDescending }
+    { property: orderByForClients, descending: orderByDescending }
+  );
+
+  const { deleteNetworkDevices } = useNetworkDevices(
+    {
+      pageNumber,
+      pageSize,
+    },
+    [],
+    { property: "", descending: false }
   );
 
   const updateClientsHandle = () => {
@@ -60,6 +78,19 @@ export default function AdminComponent() {
         },
         onError: (error) => {
           console.error("Failed to delete clients:", error);
+        },
+      });
+    }
+  };
+
+  const deleteAllNetworkDevices = () => {
+    if (window.confirm(`Подумай дважды!!!`)) {
+      deleteNetworkDevices.mutate(null!, {
+        onSuccess: () => {
+          console.log(`All Network Devices were deleted successfully`);
+        },
+        onError: (error) => {
+          console.error("Failed to delete All Network Devices:", error);
         },
       });
     }
@@ -192,7 +223,12 @@ export default function AdminComponent() {
       {/* Удаление шлюзов */}
       <Grid2 container spacing={2} alignItems="center">
         <Grid2>
-          <Button variant="contained" color="error" sx={{ boxShadow: 3 }}>
+          <Button
+            variant="contained"
+            color="error"
+            sx={{ boxShadow: 3 }}
+            onClick={deleteAllNetworkDevices}
+          >
             Удалить всех шлюзов
           </Button>
         </Grid2>

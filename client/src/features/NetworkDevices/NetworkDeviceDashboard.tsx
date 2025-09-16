@@ -12,15 +12,22 @@ export default function NetworkDeviceDashboard() {
     DEFAULT_FILTERS_NetworkDevices
   );
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [orderBy] = useState<string>("host");
+  const [orderByDescending] = useState<boolean>(false);
   const pageSize = 10;
-
   const { networkDevices, pagination, isPending } = useNetworkDevices(
     { pageNumber, pageSize },
-    filters
+    filters,
+    { property: orderBy, descending: orderByDescending }
   );
 
   const handleApplyFilters = (newFilters: FilterDescriptor[]) => {
     setFilters(newFilters);
+    setPageNumber(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS_NetworkDevices);
     setPageNumber(1);
   };
 
@@ -32,7 +39,11 @@ export default function NetworkDeviceDashboard() {
             <EmptyPage input="Шлюзы не найдены" />
           </Grid2>
           <Grid2 size={3}>
-            <NetworkDeviceListFilter onApplyFilters={handleApplyFilters} />
+            <NetworkDeviceListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_NetworkDevices}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       ) : (
@@ -40,14 +51,18 @@ export default function NetworkDeviceDashboard() {
           <Grid2 size={9}>
             <NetworkDeviceListPage
               networkDevices={networkDevices}
-              isPending={isPending}
+              isLoadingNetworkDevices={isPending}
               pageNumber={pageNumber}
               pagination={pagination}
               setPageNumber={setPageNumber}
             />
           </Grid2>
           <Grid2 size={3}>
-            <NetworkDeviceListFilter onApplyFilters={handleApplyFilters} />
+            <NetworkDeviceListFilter
+              onApplyFilters={handleApplyFilters}
+              initialFilters={DEFAULT_FILTERS_NetworkDevices}
+              onResetFilters={handleResetFilters}
+            />
           </Grid2>
         </Grid2>
       )}

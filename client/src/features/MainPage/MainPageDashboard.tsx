@@ -2,8 +2,8 @@ import { Grid2 } from "@mui/material";
 import MainPageListFilter from "./MainPageListFilter";
 import MainPageList from "./MainPageList";
 import { useState } from "react";
-import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
 import { useRouters } from "../../lib/hooks/useRouters";
+import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
 
 export default function MainPageDashboard() {
   const [filters, setFilters] = useState<RouterFilter>({});

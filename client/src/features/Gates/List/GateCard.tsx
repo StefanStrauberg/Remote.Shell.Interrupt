@@ -13,14 +13,17 @@ import { Checklist, LocalLibrary, LocationOn } from "@mui/icons-material";
 import { Gate } from "../../../lib/types/Gates/Gate";
 import { Link } from "react-router";
 import { useGates } from "../../../lib/hooks/useGates";
-import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/PaginationParams";
+import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/DEFAULT_PAGINATION_PARAMS";
 
 type GateCardProps = {
   gate: Gate;
 };
 
 export default function GateCard({ gate }: GateCardProps) {
-  const { deleteGate } = useGates(DEFAULT_PAGINATION_PARAMS, []);
+  const { deleteGate } = useGates(DEFAULT_PAGINATION_PARAMS, [], {
+    property: "",
+    descending: false,
+  });
 
   const handleDelete = () => {
     if (window.confirm(`Вы уверены что хотите удалить "${gate.name}"?`)) {

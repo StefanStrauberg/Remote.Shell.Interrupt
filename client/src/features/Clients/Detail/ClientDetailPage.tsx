@@ -17,7 +17,7 @@ import ClientDetailTechnicalContact from "./ClientDetailTechnicalContact";
 import ClientDetailHistory from "./ClientDetailHistory";
 import ClientDetailCOD from "./ClientDetailCOD";
 import ClientDetailSPRVlans from "./ClientDetailSPRVlans";
-import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/PaginationParams";
+import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/DEFAULT_PAGINATION_PARAMS";
 
 export default function ClientDetailPage() {
   const { id } = useParams();
