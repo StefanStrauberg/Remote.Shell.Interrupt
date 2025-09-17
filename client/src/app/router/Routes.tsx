@@ -11,8 +11,9 @@ import ClientDetailPage from "../../features/Clients/Detail/ClientDetailPage";
 import GatesDashboard from "../../features/Gates/List/GatesDashboard";
 import GateForm from "../../features/Gates/CreateUpdate/GateForm";
 import AdminComponent from "../../features/Admin/AdminComponent";
-import NetworkDeviceDashboard from "../../features/NetworkDevices/NetworkDeviceDashboard";
+import NetworkDeviceDashboard from "../../features/NetworkDevices/List/NetworkDeviceDashboard";
 import MainPageDashboard from "../../features/MainPage/MainPageDashboard";
+import NetworkDeviceDetailPage from "../../features/NetworkDevices/Detail/NetworkDeviceDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "mainPage", element: <MainPageDashboard /> },
       { path: "mainPage/:id", element: <MainPageDashboard /> },
       { path: "networkDevices", element: <NetworkDeviceDashboard /> },
+      { path: "networkDevices/:id", element: <NetworkDeviceDetailPage /> },
       { path: "gates", element: <GatesDashboard /> },
       { path: "gates/:id", element: <GateForm /> },
       { path: "createGate", element: <GateForm /> },

@@ -6,6 +6,9 @@ import {
   CardHeader,
   Divider,
   Typography,
+  Chip,
+  Stack,
+  Tooltip,
 } from "@mui/material";
 import {
   AlternateEmail,
@@ -14,116 +17,171 @@ import {
   ContactPhone,
   Fingerprint,
   Gavel,
+  Visibility,
 } from "@mui/icons-material";
 import { Link } from "react-router";
 import { ClientShort } from "../../../lib/types/Clients/ClientShort";
 
 type Props = {
   client: ClientShort;
+  viewMode?: "grid" | "list";
 };
 
-export default function ClientCard({ client }: Props) {
+export default function ClientCard({ client, viewMode = "grid" }: Props) {
   return (
     <Card
       variant="outlined"
-      elevation={5}
-      sx={
-        client.working
-          ? {
-              borderRadius: 4,
-              boxShadow: 3,
-              fontSize: 18,
-            }
-          : {
-              borderRadius: 4,
-              boxShadow: 3,
-              fontSize: 18,
-              color: "gray",
-            }
-      }
+      sx={{
+        borderRadius: 2,
+        height: viewMode === "list" ? "auto" : "100%",
+        display: "flex",
+        flexDirection: "column",
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: 3,
+          transform: "translateY(-2px)",
+        },
+        opacity: client.working ? 1 : 0.7,
+      }}
     >
       <CardHeader
         title={
-          <Typography sx={{ fontWeight: "bold" }}>{client.name}</Typography>
+          <Tooltip title={client.name} arrow placement="top">
+            <Typography
+              variant="h6"
+              component="h3"
+              noWrap
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: "100%",
+              }}
+            >
+              {client.name}
+            </Typography>
+          </Tooltip>
         }
-      />
-      <Divider />
-      <CardContent sx={{ p: 0 }}>
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Fingerprint sx={{ mr: 1 }} />
-          <Typography variant="body1">ID Клиента: {client.idClient}</Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Gavel sx={{ mr: 1 }} />
-          <Typography variant="body1">
-            Номер договора: {client.nrDogovor}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <ContactPage sx={{ mr: 1 }} />
-          <Typography variant="body1">
-            Контакт технический: {client.contactT}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <ContactPhone sx={{ mr: 1 }} />
-          <Typography variant="body1">
-            Телефон технический: {client.telephoneT}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <AlternateEmail sx={{ mr: 1 }} />
-          <Typography variant="body1">
-            Email технический: {client.emailT}
-          </Typography>
-        </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <CheckBox
-            sx={{
-              mr: 1,
-              color: client.working ? "green" : "gray",
-            }}
-          />
-          <Typography variant="body1">
-            Работает: {client.working ? "Да" : "Нет"}
-          </Typography>
-        </Box>
-        <Divider />
-      </CardContent>
-      <CardContent>
-        <Box display="flex" justifyContent="space-between">
-          <Box display="flex" alignItems="center">
-            <CheckBox
-              sx={
-                client.working
-                  ? {
-                      mr: 1,
-                      color: client.antiDDOS ? "green" : "red",
-                    }
-                  : {
-                      mr: 1,
-                      color: client.antiDDOS ? "green" : "gray",
-                    }
-              }
+        subheader={
+          <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+            <Chip
+              icon={<CheckBox />}
+              label={client.working ? "Active" : "Inactive"}
+              size="small"
+              color={client.working ? "success" : "default"}
+              variant="outlined"
             />
-            <Typography variant="body1">
-              AntiDDOS: {client.antiDDOS ? "Да" : "Нет"}
+            <Chip
+              icon={<CheckBox />}
+              label={client.antiDDOS ? "AntiDDOS" : "No AntiDDOS"}
+              size="small"
+              color={client.antiDDOS ? "primary" : "default"}
+              variant="outlined"
+            />
+          </Stack>
+        }
+        sx={{
+          pb: 1,
+          // Prevent header from growing too much
+          "& .MuiCardHeader-content": {
+            minWidth: 0, // Allow text overflow
+            overflow: "hidden",
+          },
+        }}
+      />
+
+      <Divider />
+
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Stack spacing={1.5}>
+          <Box display="flex" alignItems="center">
+            <Fingerprint
+              sx={{
+                mr: 1,
+                color: "text.secondary",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            />
+            <Typography variant="body2" noWrap>
+              <strong>ID:</strong> {client.idClient}
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            color={client.working ? "primary" : "inherit"}
-            component={Link}
-            to={`/clients/${client.id}`}
-          >
-            Обзор
-          </Button>
-        </Box>
+
+          <Box display="flex" alignItems="center">
+            <Gavel
+              sx={{
+                mr: 1,
+                color: "text.secondary",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            />
+            <Typography variant="body2" noWrap>
+              <strong>Contract:</strong> {client.nrDogovor}
+            </Typography>
+          </Box>
+
+          <Box display="flex" alignItems="center">
+            <ContactPage
+              sx={{
+                mr: 1,
+                color: "text.secondary",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            />
+            <Tooltip title={client.contactT} arrow>
+              <Typography variant="body2" noWrap>
+                <strong>Tech Contact:</strong> {client.contactT}
+              </Typography>
+            </Tooltip>
+          </Box>
+
+          <Box display="flex" alignItems="center">
+            <ContactPhone
+              sx={{
+                mr: 1,
+                color: "text.secondary",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            />
+            <Typography variant="body2" noWrap>
+              <strong>Tech Phone:</strong> {client.telephoneT}
+            </Typography>
+          </Box>
+
+          <Box display="flex" alignItems="center">
+            <AlternateEmail
+              sx={{
+                mr: 1,
+                color: "text.secondary",
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            />
+            <Tooltip title={client.emailT} arrow>
+              <Typography variant="body2" noWrap>
+                <strong>Tech Email:</strong> {client.emailT}
+              </Typography>
+            </Tooltip>
+          </Box>
+        </Stack>
+      </CardContent>
+
+      <Divider />
+
+      <CardContent sx={{ p: 2 }}>
+        <Button
+          variant="outlined"
+          fullWidth
+          startIcon={<Visibility />}
+          component={Link}
+          to={`/clients/${client.id}`}
+          size="small"
+        >
+          View Details
+        </Button>
       </CardContent>
     </Card>
   );

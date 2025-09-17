@@ -5,25 +5,26 @@ import {
   CircularProgress,
   Grid2,
 } from "@mui/material";
-import TfPlanCard from "./TfPlanCard";
-import { TfPlan } from "../../lib/types/TfPlans/TfPlan";
-import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
+import { NetworkDevice } from "../../../lib/types/NetworkDevices/NetworkDevice";
+import { PaginationMetadata } from "../../../lib/types/Common/PaginationMetadata";
+import NetworkDeviceCard from "./NetworkDeviceCard";
 
 type Props = {
-  tfPlans: TfPlan[];
-  isLoading: boolean;
+  networkDevices: NetworkDevice[];
+  isLoadingNetworkDevices: boolean;
   pageNumber: number;
   pagination: PaginationMetadata;
   setPageNumber: (value: React.SetStateAction<number>) => void;
 };
 
-export default function TfPlanListPage({
-  tfPlans,
-  isLoading,
+export default function NetworkDeviceListPage({
+  networkDevices,
+  isLoadingNetworkDevices,
   pageNumber,
   pagination,
   setPageNumber,
 }: Props) {
+  // Handle page change
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
     value: number
@@ -32,7 +33,7 @@ export default function TfPlanListPage({
   };
 
   // Show loading state
-  if (isLoading) {
+  if (isLoadingNetworkDevices) {
     return (
       <Box
         display="flex"
@@ -48,17 +49,18 @@ export default function TfPlanListPage({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Typography variant="h6" component="h2" gutterBottom>
-        {pagination.TotalCount || 0} tariff plans found
+        {pagination.TotalCount || 0} network devices found
       </Typography>
 
       <Grid2 container spacing={2}>
-        {tfPlans.map((tfPlan) => (
-          <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={tfPlan.id}>
-            <TfPlanCard tfPlan={tfPlan} />
+        {networkDevices.map((networkDevice) => (
+          <Grid2 size={{ xs: 12, sm: 6, lg: 4 }} key={networkDevice.id}>
+            <NetworkDeviceCard networkDevice={networkDevice} />
           </Grid2>
         ))}
       </Grid2>
 
+      {/* Pagination Component */}
       {pagination.TotalPages > 1 && (
         <Box display="flex" justifyContent="center" mt={3}>
           <Pagination

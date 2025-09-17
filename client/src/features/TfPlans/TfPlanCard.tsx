@@ -6,8 +6,9 @@ import {
   CardHeader,
   Divider,
   Typography,
+  Chip,
+  Tooltip,
 } from "@mui/material";
-
 import { TfPlan } from "../../lib/types/TfPlans/TfPlan";
 
 type Props = {
@@ -18,34 +19,62 @@ export default function TfPlanCard({ tfPlan }: Props) {
   return (
     <Card
       variant="outlined"
-      elevation={5}
-      sx={{ borderRadius: 4, boxShadow: 3, fontSize: 18 }}
+      sx={{
+        borderRadius: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: 3,
+          transform: "translateY(-2px)",
+        },
+      }}
     >
       <CardHeader
         title={
-          <Typography sx={{ fontWeight: "bold" }}>
-            {tfPlan.nameTfPlan}
-          </Typography>
+          <Tooltip title={tfPlan.nameTfPlan} arrow>
+            <Typography
+              variant="h6"
+              component="h3"
+              noWrap
+              sx={{ fontWeight: "bold" }}
+            >
+              {tfPlan.nameTfPlan}
+            </Typography>
+          </Tooltip>
+        }
+        subheader={
+          <Chip
+            label={`ID: ${tfPlan.idTfPlan}`}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
         }
       />
+
       <Divider />
-      <CardContent sx={{ p: 0 }}>
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <Fingerprint sx={{ mr: 1 }} />
-          <Typography variant="body1">
-            ID Тарифного плана: {tfPlan.idTfPlan}
+
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Box display="flex" alignItems="flex-start" mb={2}>
+          <Fingerprint sx={{ mr: 1, color: "text.secondary", mt: 0.25 }} />
+          <Typography variant="body2">
+            <strong>Plan ID:</strong> {tfPlan.idTfPlan}
           </Typography>
         </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} px={2}>
-          <Feed sx={{ mr: 1, color: tfPlan.descTfPlan ? "inherit" : "gray" }} />
+
+        <Box display="flex" alignItems="flex-start">
+          <Feed sx={{ mr: 1, color: "text.secondary", mt: 0.25 }} />
           <Typography
-            variant="body1"
+            variant="body2"
             sx={{
-              color: tfPlan.descTfPlan ? "inherit" : "gray", // Conditionally apply gray color
+              color: tfPlan.descTfPlan ? "inherit" : "text.secondary",
+              wordBreak: "break-word",
             }}
           >
-            Описание: {tfPlan.descTfPlan || "Нет информации"}
+            <strong>Description:</strong>{" "}
+            {tfPlan.descTfPlan || "No description available"}
           </Typography>
         </Box>
       </CardContent>

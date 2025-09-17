@@ -1,35 +1,31 @@
 import {
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Divider,
   FormControl,
   InputLabel,
-  ListItemText,
   MenuItem,
   OutlinedInput,
-  Radio,
+  TextField,
+  Chip,
   Select,
   SelectChangeEvent,
-  TextField,
 } from "@mui/material";
 import { FilterList } from "@mui/icons-material";
 import { useState } from "react";
-import { typeOfNetworkDeviceOptions } from "../../lib/types/Gates/typeOfNetworkDeviceOptions";
-import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
-import { FilterOperator } from "../../lib/types/Common/FilterOperator";
-import { DEFAULT_FILTERS_NetworkDevices } from "../../lib/api/networkDevices/DEFAULT_FILTERS_NetworkDevices";
+import { typeOfNetworkDeviceOptions } from "../../../lib/types/Common/typeOfNetworkDeviceOptions";
+import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
+import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
+import { DEFAULT_FILTERS_NetworkDevices } from "../../../lib/api/networkDevices/DEFAULT_FILTERS_NetworkDevices";
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
 const MenuProps = {
   PaperProps: {
     style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 350,
+      maxHeight: 250,
+      width: 250,
     },
   },
 };
@@ -99,75 +95,104 @@ export default function NetworkDeviceListFilter({
     setNetworkDeviceName("");
     setHost("");
     setTypeOfNetworkDevice("");
-
     onApplyFilters(DEFAULT_FILTERS_NetworkDevices);
     onResetFilters?.();
   };
 
   const handleChange = (event: SelectChangeEvent<string>) => {
-    setTypeOfNetworkDevice(event.target.value);
+    setTypeOfNetworkDevice(event.target.value as string);
   };
+
+  const hasActiveFilters =
+    NetworkDeviceName !== "" || Host !== "" || typeOfNetworkDevice !== "";
 
   return (
     <Card
       sx={{
-        borderRadius: 4,
-        boxShadow: 3,
-        bgcolor: "background.default",
-        fontSize: 18,
+        borderRadius: 2,
         overflow: "hidden",
+        position: "sticky",
+        top: 20,
       }}
     >
       <CardHeader
-        title="Фильтры"
-        avatar={<FilterList color="primary" />}
-        sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
+        title={
+          <Box display="flex" alignItems="center">
+            <FilterList color="primary" sx={{ mr: 1 }} />
+            <span>Filters</span>
+            {hasActiveFilters && (
+              <Chip
+                label="Active"
+                size="small"
+                color="primary"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+        }
+        sx={{
+          bgcolor: "grey.50",
+          borderBottom: 1,
+          borderColor: "divider",
+          py: 1.5,
+        }}
       />
-      <CardContent>
+
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Название маршрутизатора"
+            label="Device Name"
             value={NetworkDeviceName}
             onChange={(e) => setNetworkDeviceName(e.target.value)}
             variant="outlined"
             fullWidth
+            size="small"
           />
+
           <TextField
-            label="IP адрес"
+            label="IP Address"
             value={Host}
             onChange={(e) => setHost(e.target.value)}
             variant="outlined"
             fullWidth
+            size="small"
           />
-          <FormControl fullWidth>
-            <InputLabel>Тип маршрутизатора</InputLabel>
+
+          <FormControl fullWidth size="small">
+            <InputLabel>Device Type</InputLabel>
             <Select
               value={typeOfNetworkDevice}
               onChange={handleChange}
-              input={<OutlinedInput label="Тип маршрутизатора" />}
-              renderValue={(selected) => selected || "Не выбрано"}
+              input={<OutlinedInput label="Device Type" />}
               MenuProps={MenuProps}
-              fullWidth
             >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
               {typeOfNetworkDeviceOptions.map((typeOfND) => (
                 <MenuItem key={typeOfND.value} value={typeOfND.value}>
-                  <Radio
-                    checked={typeOfNetworkDevice === typeOfND.value} // Радиобокс
-                  />
-                  <ListItemText primary={typeOfND.value} />
+                  {typeOfND.value}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <Divider />
-          <ButtonGroup>
-            <Button variant="contained" color="info" onClick={handleReset}>
-              Сбросить
+
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              onClick={handleReset}
+              fullWidth
+              disabled={!hasActiveFilters}
+            >
+              Reset
             </Button>
-            <Button variant="contained" color="success" onClick={handleApply}>
-              Применить
+
+            <Button variant="contained" onClick={handleApply} fullWidth>
+              Apply
             </Button>
-          </ButtonGroup>
+          </Box>
         </Box>
       </CardContent>
     </Card>

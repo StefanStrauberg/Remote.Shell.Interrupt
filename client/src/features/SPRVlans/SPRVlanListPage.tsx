@@ -13,6 +13,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  CircularProgress,
+  Chip,
 } from "@mui/material";
 import { PaginationMetadata } from "../../lib/types/Common/PaginationMetadata";
 import { SprVlan } from "../../lib/types/SPRVlans/SprVlan";
@@ -21,7 +23,7 @@ import { ArrowDownward, ArrowUpward, Sort } from "@mui/icons-material";
 import { useState } from "react";
 
 type Props = {
-  sprVlans: SprVlan[] | undefined;
+  sprVlans: SprVlan[];
   isPending: boolean;
   pageNumber: number;
   pagination: PaginationMetadata;
@@ -32,9 +34,8 @@ type Props = {
 };
 
 const SORTABLE_FIELDS = [
-  { id: "idVlan", label: "VLAN клиента" },
-  { id: "idClient", label: "Id клиента" },
-  // Add more fields as needed
+  { id: "idVlan", label: "VLAN ID" },
+  { id: "idClient", label: "Client ID" },
 ];
 
 export default function SPRVlanListPage({
@@ -49,8 +50,6 @@ export default function SPRVlanListPage({
 }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
-  if (!sprVlans || isPending) return <Typography>Загрузка ...</Typography>;
 
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
@@ -73,79 +72,120 @@ export default function SPRVlanListPage({
   };
 
   const columns = [
-    { id: "idVlan", label: "VLAN клиента" },
-    { id: "idClient", label: "Id клиента" },
-    { id: "useClient", label: "Использ. клиентом" },
-    { id: "useCOD", label: "Использ. ЦОД" },
-    { id: "actions", label: "", sortable: false },
+    { id: "idVlan", label: "VLAN ID" },
+    { id: "idClient", label: "Client ID" },
+    { id: "useClient", label: "Used by Client" },
+    { id: "useCOD", label: "Used by COD" },
+    { id: "actions", label: "Actions", sortable: false },
   ];
+
+  // Show loading state
+  if (isPending) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Sort controls */}
-      <Stack
-        direction="row"
-        justifyContent="flex-end"
+      <Box
+        display="flex"
+        justifyContent="space-between"
         alignItems="center"
-        spacing={2}
+        flexWrap="wrap"
+        gap={2}
       >
-        <Button
-          variant="outlined"
-          startIcon={<Sort />}
-          endIcon={orderByDescending ? <ArrowDownward /> : <ArrowUpward />}
-          onClick={handleSortMenuClick}
-        >
-          Sort by:{" "}
-          {SORTABLE_FIELDS.find((f) => f.id === orderBy)?.label || "Default"}
-        </Button>
+        <Typography variant="h6" component="h2" gutterBottom>
+          {pagination.TotalCount || 0} VLANs found
+        </Typography>
 
-        <Menu anchorEl={anchorEl} open={open} onClose={handleSortMenuClose}>
-          {SORTABLE_FIELDS.map((field) => (
-            <MenuItem
-              key={field.id}
-              onClick={() => handleSortSelection(field.id)}
-              selected={orderBy === field.id}
-            >
-              {field.label}
-              {orderBy === field.id &&
-                (orderByDescending ? (
-                  <ArrowDownward fontSize="small" />
-                ) : (
-                  <ArrowUpward fontSize="small" />
-                ))}
-            </MenuItem>
-          ))}
-        </Menu>
-      </Stack>
+        {/* Sort controls */}
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          alignItems="center"
+          spacing={2}
+        >
+          <Button
+            variant="outlined"
+            startIcon={<Sort />}
+            endIcon={orderByDescending ? <ArrowDownward /> : <ArrowUpward />}
+            onClick={handleSortMenuClick}
+          >
+            Sort by:{" "}
+            {SORTABLE_FIELDS.find((f) => f.id === orderBy)?.label || "Default"}
+          </Button>
+
+          <Menu anchorEl={anchorEl} open={open} onClose={handleSortMenuClose}>
+            {SORTABLE_FIELDS.map((field) => (
+              <MenuItem
+                key={field.id}
+                onClick={() => handleSortSelection(field.id)}
+                selected={orderBy === field.id}
+              >
+                {field.label}
+                {orderBy === field.id &&
+                  (orderByDescending ? (
+                    <ArrowDownward fontSize="small" sx={{ ml: 1 }} />
+                  ) : (
+                    <ArrowUpward fontSize="small" sx={{ ml: 1 }} />
+                  ))}
+              </MenuItem>
+            ))}
+          </Menu>
+        </Stack>
+      </Box>
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell>{column.label}</TableCell>
+                <TableCell key={column.id}>{column.label}</TableCell>
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
             {sprVlans.map((sprVlan) => (
               <TableRow key={sprVlan.id}>
                 <TableCell>{sprVlan.idVlan}</TableCell>
-                <TableCell>{sprVlan.idClient}</TableCell>
-                <TableCell>{sprVlan.useClient ? "Yes" : "No"}</TableCell>
-                <TableCell>{sprVlan.useCOD ? "Yes" : "No"}</TableCell>
+                <TableCell>{sprVlan.idClient || "N/A"}</TableCell>
                 <TableCell>
-                  {sprVlan.idClient === 0 ? (
-                    <></>
-                  ) : (
+                  <Chip
+                    label={sprVlan.useClient ? "Yes" : "No"}
+                    color={sprVlan.useClient ? "success" : "default"}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={sprVlan.useCOD ? "Yes" : "No"}
+                    color={sprVlan.useCOD ? "success" : "default"}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {sprVlan.idClient && sprVlan.idClient !== 0 ? (
                     <Button
-                      variant="contained"
-                      color="primary"
+                      variant="outlined"
                       component={Link}
                       to={`/clients/${sprVlan.idClient}`}
+                      size="small"
                     >
-                      клиент
+                      View Client
                     </Button>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No client
+                    </Typography>
                   )}
                 </TableCell>
               </TableRow>
@@ -154,15 +194,18 @@ export default function SPRVlanListPage({
         </Table>
       </TableContainer>
 
-      {/* Pagination Component */}
-      <Pagination
-        count={pagination.TotalPages || 1} // Total pages based on pagination metadata
-        page={pageNumber} // Current active page
-        onChange={handlePageChange} // Handle page change
-        variant="outlined"
-        color="primary"
-        sx={{ alignSelf: "center", mt: 2 }}
-      />
+      {pagination.TotalPages > 1 && (
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={pagination.TotalPages}
+            page={pageNumber}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+      )}
     </Box>
   );
 }

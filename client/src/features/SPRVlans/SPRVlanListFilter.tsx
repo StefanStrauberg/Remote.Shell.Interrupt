@@ -1,15 +1,14 @@
 import {
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Checkbox,
   Divider,
   FormControlLabel,
-  Grid2,
   TextField,
+  Chip,
 } from "@mui/material";
 import { useState } from "react";
 import { FilterList } from "@mui/icons-material";
@@ -28,7 +27,11 @@ export default function SPRVlanListFilter({
   initialFilters = [],
   onResetFilters,
 }: SPRVlanListFilterProps) {
-  // Parse initial filters
+  const getInitialNumber = (property: string, defaultValue: number): number => {
+    const filter = initialFilters.find((f) => f.PropertyPath === property);
+    return filter ? parseInt(filter.Value) || defaultValue : defaultValue;
+  };
+
   const getInitialBoolean = (
     property: string,
     defaultValue: boolean
@@ -37,12 +40,6 @@ export default function SPRVlanListFilter({
     return filter ? filter.Value === "true" : defaultValue;
   };
 
-  const getInitialNumber = (property: string, defaultValue: number): number => {
-    const filter = initialFilters.find((f) => f.PropertyPath === property);
-    return filter ? parseInt(filter.Value) || defaultValue : defaultValue;
-  };
-
-  // Form state
   const [idVlan, setIdVlan] = useState<number>(getInitialNumber("IdVlan", 0));
   const [idClient, setIdClient] = useState<number>(
     getInitialNumber("IdClient", 0)
@@ -83,7 +80,6 @@ export default function SPRVlanListFilter({
     setIdClient(0);
     setUseClient(true);
     setUseCOD(false);
-
     onApplyFilters(DEFAULT_FILTERS_SPRVlans);
     onResetFilters?.();
   };
@@ -97,79 +93,107 @@ export default function SPRVlanListFilter({
       }
     };
 
+  const hasActiveFilters =
+    idVlan !== 0 || idClient !== 0 || !useClient || useCOD;
+
   return (
     <Card
       sx={{
-        borderRadius: 4,
-        boxShadow: 3,
-        bgcolor: "background.default",
-        fontSize: 18,
+        borderRadius: 2,
         overflow: "hidden",
+        position: "sticky",
+        top: 20,
       }}
     >
       <CardHeader
-        title="Фильтры"
-        avatar={<FilterList color="primary" />}
-        sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
+        title={
+          <Box display="flex" alignItems="center">
+            <FilterList color="primary" sx={{ mr: 1 }} />
+            <span>Filters</span>
+            {hasActiveFilters && (
+              <Chip
+                label="Active"
+                size="small"
+                color="primary"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+        }
+        sx={{
+          bgcolor: "grey.50",
+          borderBottom: 1,
+          borderColor: "divider",
+          py: 1.5,
+        }}
       />
-      <CardContent>
+
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Id влана"
-            value={idVlan.toString() || ""}
+            label="VLAN ID"
+            value={idVlan === 0 ? "" : idVlan.toString()}
             onChange={handleNumberChange(setIdVlan)}
             variant="outlined"
             fullWidth
-            type="number" // Устанавливаем тип поля как "number"
-            inputProps={{ min: 0 }} // Ограничение ввода только положительных чисел (опционально)
-            error={isNaN(idVlan)} // Показывает ошибку, если значение некорректное
-            helperText={isNaN(idVlan) ? "Введите корректное число" : ""} // Текст подсказки
+            size="small"
+            type="number"
+            inputProps={{ min: 0 }}
           />
+
           <TextField
-            label="Id клиента"
-            value={idClient.toString() || ""}
+            label="Client ID"
+            value={idClient === 0 ? "" : idClient.toString()}
             onChange={handleNumberChange(setIdClient)}
             variant="outlined"
             fullWidth
-            type="number" // Устанавливаем тип поля как "number"
-            inputProps={{ min: 0 }} // Ограничение ввода только положительных чисел (опционально)
-            error={isNaN(idClient)} // Показывает ошибку, если значение некорректное
-            helperText={isNaN(idClient) ? "Введите корректное число" : ""} // Текст подсказки
+            size="small"
+            type="number"
+            inputProps={{ min: 0 }}
           />
+
           <Divider />
-          <Grid2 container spacing={1}>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={useClient}
-                    onChange={(e) => setUseClient(e.target.checked)}
-                  />
-                }
-                label="Использ. клиент"
-              />
-            </Grid2>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={useCOD}
-                    onChange={(e) => setUseCOD(e.target.checked)}
-                  />
-                }
-                label="Использ. COD"
-              />
-            </Grid2>
-          </Grid2>
+
+          <Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={useClient}
+                  onChange={(e) => setUseClient(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Used by Client"
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={useCOD}
+                  onChange={(e) => setUseCOD(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Used by COD"
+            />
+          </Box>
+
           <Divider />
-          <ButtonGroup>
-            <Button variant="contained" color="info" onClick={handleReset}>
-              Сбросить
+
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              onClick={handleReset}
+              fullWidth
+              disabled={!hasActiveFilters}
+            >
+              Reset
             </Button>
-            <Button variant="contained" color="success" onClick={handleApply}>
-              Применить
+
+            <Button variant="contained" onClick={handleApply} fullWidth>
+              Apply
             </Button>
-          </ButtonGroup>
+          </Box>
         </Box>
       </CardContent>
     </Card>

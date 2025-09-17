@@ -12,4 +12,5 @@ export type Port = {
   description: string;
   vlaNs: Vlan[];
   aggregatedPorts: Port[];
+  macTable: string[];
 };

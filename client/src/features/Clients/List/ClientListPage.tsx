@@ -6,15 +6,25 @@ import {
   Pagination,
   Stack,
   Typography,
+  CircularProgress,
+  Chip,
 } from "@mui/material";
 import ClientCard from "./ClientCard";
 import { ClientShort } from "../../../lib/types/Clients/ClientShort";
 import { PaginationMetadata } from "../../../lib/types/Common/PaginationMetadata";
 import { useState } from "react";
-import { ArrowDownward, ArrowUpward, Sort } from "@mui/icons-material";
+import {
+  ArrowDownward,
+  ArrowUpward,
+  Sort,
+  GridView,
+  ViewList,
+} from "@mui/icons-material";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 type Props = {
-  clients: ClientShort[] | undefined;
+  clients: ClientShort[];
   isPending: boolean;
   pageNumber: number;
   pagination: PaginationMetadata;
@@ -25,11 +35,12 @@ type Props = {
 };
 
 const SORTABLE_FIELDS = [
-  { id: "name", label: "Имя клиента" },
-  { id: "idClient", label: "Id клиента" },
-  { id: "nrDogovor", label: "Номер договора" },
-  // Add more fields as needed
+  { id: "name", label: "Client Name" },
+  { id: "idClient", label: "Client ID" },
+  { id: "nrDogovor", label: "Contract Number" },
 ];
+
+type ViewMode = "grid" | "list";
 
 export default function ClientListPage({
   clients,
@@ -42,17 +53,14 @@ export default function ClientListPage({
   onSort,
 }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const open = Boolean(anchorEl);
 
-  // Loading state
-  if (!clients || isPending) return <Typography>Loading ...</Typography>;
-
-  // Handle page change
   const handlePageChange = (
     _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
-    setPageNumber(value); // Update the page number
+    setPageNumber(value);
   };
 
   const handleSortMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -68,66 +76,135 @@ export default function ClientListPage({
     handleSortMenuClose();
   };
 
+  const handleViewModeChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newViewMode: ViewMode
+  ) => {
+    if (newViewMode !== null) {
+      setViewMode(newViewMode);
+    }
+  };
+
+  // Show loading state
+  if (isPending) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {/* Sort controls */}
-      <Stack
-        direction="row"
-        justifyContent="flex-end"
+      {/* Controls */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
         alignItems="center"
-        spacing={2}
+        flexWrap="wrap"
+        gap={2}
       >
-        <Button
-          variant="outlined"
-          startIcon={<Sort />}
-          endIcon={orderByDescending ? <ArrowDownward /> : <ArrowUpward />}
-          onClick={handleSortMenuClick}
-        >
-          Sort by:{" "}
-          {SORTABLE_FIELDS.find((f) => f.id === orderBy)?.label || "Default"}
-        </Button>
+        <Typography variant="h6" component="h2">
+          {pagination.TotalCount || 0} clients found
+        </Typography>
 
-        <Menu anchorEl={anchorEl} open={open} onClose={handleSortMenuClose}>
-          {SORTABLE_FIELDS.map((field) => (
-            <MenuItem
-              key={field.id}
-              onClick={() => handleSortSelection(field.id)}
-              selected={orderBy === field.id}
-            >
-              {field.label}
-              {orderBy === field.id &&
-                (orderByDescending ? (
-                  <ArrowDownward fontSize="small" />
-                ) : (
-                  <ArrowUpward fontSize="small" />
-                ))}
-            </MenuItem>
-          ))}
-        </Menu>
-      </Stack>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+            size="small"
+          >
+            <ToggleButton value="grid" aria-label="grid view">
+              <GridView />
+            </ToggleButton>
+            <ToggleButton value="list" aria-label="list view">
+              <ViewList />
+            </ToggleButton>
+          </ToggleButtonGroup>
 
-      {/* Client cards grid */}
+          <Button
+            variant="outlined"
+            startIcon={<Sort />}
+            onClick={handleSortMenuClick}
+            size="small"
+          >
+            Sort
+            {orderBy && (
+              <Chip
+                label={
+                  SORTABLE_FIELDS.find((f) => f.id === orderBy)?.label ||
+                  orderBy
+                }
+                size="small"
+                sx={{ ml: 1 }}
+                variant="outlined"
+                icon={orderByDescending ? <ArrowDownward /> : <ArrowUpward />}
+              />
+            )}
+          </Button>
+
+          <Menu anchorEl={anchorEl} open={open} onClose={handleSortMenuClose}>
+            {SORTABLE_FIELDS.map((field) => (
+              <MenuItem
+                key={field.id}
+                onClick={() => handleSortSelection(field.id)}
+                selected={orderBy === field.id}
+              >
+                {field.label}
+                {orderBy === field.id &&
+                  (orderByDescending ? (
+                    <ArrowDownward fontSize="small" sx={{ ml: 1 }} />
+                  ) : (
+                    <ArrowUpward fontSize="small" sx={{ ml: 1 }} />
+                  ))}
+              </MenuItem>
+            ))}
+          </Menu>
+        </Stack>
+      </Box>
+
+      {/* Client cards grid/list */}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)", // Two columns
-          gap: 3,
+          display: viewMode === "grid" ? "grid" : "flex",
+          gridTemplateColumns:
+            viewMode === "grid"
+              ? { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }
+              : "1fr",
+          flexDirection: viewMode === "list" ? "column" : undefined,
+          gap: 2,
         }}
       >
         {clients.map((client) => (
-          <ClientCard key={client.idClient} client={client} />
+          <ClientCard
+            key={client.idClient}
+            client={client}
+            viewMode={viewMode}
+          />
         ))}
       </Box>
 
-      {/* Pagination Component */}
-      <Pagination
-        count={pagination.TotalPages || 1} // Total pages based on pagination metadata
-        page={pageNumber} // Current active page
-        onChange={handlePageChange} // Handle page change
-        variant="outlined"
-        color="primary"
-        sx={{ alignSelf: "center", mt: 2 }}
-      />
+      {/* Pagination */}
+      {pagination.TotalPages > 1 && (
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={pagination.TotalPages}
+            page={pageNumber}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+            size="large"
+          />
+        </Box>
+      )}
     </Box>
   );
 }

@@ -2,15 +2,15 @@ import { FilterList } from "@mui/icons-material";
 import {
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Checkbox,
   Divider,
   FormControlLabel,
-  Grid2,
   TextField,
+  FormGroup,
+  Chip,
 } from "@mui/material";
 import { useState } from "react";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
@@ -81,76 +81,107 @@ export default function ClientListFilter({
     setNrDogovor("");
     setWorking(true);
     setAntiDDOS(false);
-
     onApplyFilters(DEFAULT_FILTERS_Clients);
     onResetFilters?.();
   };
 
+  const hasActiveFilters =
+    name !== "" || nrDogovor !== "" || !working || antiDDOS;
+
   return (
     <Card
       sx={{
-        borderRadius: 4,
-        boxShadow: 3,
-        bgcolor: "background.default",
-        fontSize: 18,
+        borderRadius: 2,
         overflow: "hidden",
+        position: "sticky",
+        top: 20,
       }}
     >
       <CardHeader
-        title="Фильтры"
-        avatar={<FilterList color="primary" />}
-        sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
+        title={
+          <Box display="flex" alignItems="center">
+            <FilterList color="primary" sx={{ mr: 1 }} />
+            <span>Filters</span>
+            {hasActiveFilters && (
+              <Chip
+                label="Active"
+                size="small"
+                color="primary"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+        }
+        sx={{
+          bgcolor: "grey.50",
+          borderBottom: 1,
+          borderColor: "divider",
+          py: 1.5,
+        }}
       />
-      <CardContent>
+
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Название организации"
+            label="Organization Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             variant="outlined"
             fullWidth
+            size="small"
           />
+
           <TextField
-            label="Номер договора"
+            label="Contract Number"
             value={nrDogovor}
             onChange={(e) => setNrDogovor(e.target.value)}
             variant="outlined"
             fullWidth
+            size="small"
           />
+
           <Divider />
-          <Grid2 container spacing={1}>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={working}
-                    onChange={(e) => setWorking(e.target.checked)}
-                  />
-                }
-                label="Working"
-              />
-            </Grid2>
-            <Grid2 size={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={antiDDOS}
-                    onChange={(e) => setAntiDDOS(e.target.checked)}
-                  />
-                }
-                label="AntiDDOS"
-              />
-            </Grid2>
-          </Grid2>
+
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={working}
+                  onChange={(e) => setWorking(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Active Clients"
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={antiDDOS}
+                  onChange={(e) => setAntiDDOS(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="AntiDDOS Enabled"
+            />
+          </FormGroup>
+
           <Divider />
-          <ButtonGroup>
-            <Button variant="contained" color="info" onClick={handleReset}>
-              Сбросить
+
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              onClick={handleReset}
+              fullWidth
+              disabled={!hasActiveFilters}
+            >
+              Reset
             </Button>
-            <Button variant="contained" color="success" onClick={handleApply}>
-              Применить
+
+            <Button variant="contained" onClick={handleApply} fullWidth>
+              Apply
             </Button>
-          </ButtonGroup>
+          </Box>
         </Box>
       </CardContent>
     </Card>

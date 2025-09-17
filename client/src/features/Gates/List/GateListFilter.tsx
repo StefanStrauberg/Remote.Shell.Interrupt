@@ -18,7 +18,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { typeOfNetworkDeviceOptions } from "../../../lib/types/Gates/typeOfNetworkDeviceOptions";
+import { typeOfNetworkDeviceOptions } from "../../../lib/types/Common/typeOfNetworkDeviceOptions";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
 import { DEFAULT_FILTERS_Gates } from "../../../lib/api/gates/DEFAULT_FILTERS_Gates";

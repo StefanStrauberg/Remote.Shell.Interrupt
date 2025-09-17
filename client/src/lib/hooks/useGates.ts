@@ -5,8 +5,8 @@ import { useLocation } from "react-router";
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
-import { DEFAULT_PAGINATION } from "../types/Common/PaginationMetadata";
 import { OrderByParams } from "../api/common/orderByParams";
+import { DEFAULT_PAGINATION } from "../types/Common/DEFAULT_PAGINATION";
 
 export const useGates = (
   pagination: PaginationParams,
