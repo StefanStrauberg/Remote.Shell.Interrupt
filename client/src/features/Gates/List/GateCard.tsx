@@ -2,12 +2,13 @@ import {
   Avatar,
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Divider,
   Typography,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import { Checklist, LocalLibrary, LocationOn } from "@mui/icons-material";
 import { Gate } from "../../../lib/types/Gates/Gate";
@@ -26,7 +27,7 @@ export default function GateCard({ gate }: GateCardProps) {
   });
 
   const handleDelete = () => {
-    if (window.confirm(`Вы уверены что хотите удалить "${gate.name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete "${gate.name}"?`)) {
       deleteGate.mutate(gate.id!, {
         onSuccess: () => {
           console.log(`Gate with ID ${gate.id} deleted successfully`);
@@ -51,7 +52,7 @@ export default function GateCard({ gate }: GateCardProps) {
       case "FortiGate":
         return "Fortinet logo";
       default:
-        return "Undefined type of network device";
+        return "Network device logo";
     }
   };
 
@@ -75,69 +76,112 @@ export default function GateCard({ gate }: GateCardProps) {
   return (
     <Card
       variant="outlined"
-      elevation={5}
       sx={{
-        borderRadius: 4,
-        boxShadow: 3,
-        fontSize: 18,
+        borderRadius: 2,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          boxShadow: 3,
+          transform: "translateY(-2px)",
+        },
       }}
     >
       <CardHeader
         avatar={
           <Avatar
             sx={{
-              height: 100,
-              width: 100,
-              overflow: "hidden",
-              position: "relative",
+              height: 60,
+              width: 60,
               bgcolor: "transparent",
             }}
+            variant="square"
           >
             <img
               alt={processAltText(gate.typeOfNetworkDevice)}
               src={processSrcImg(gate.typeOfNetworkDevice)}
               style={{
                 height: "100%",
-                width: "100%", // Maintain aspect ratio
+                width: "100%",
+                objectFit: "contain",
               }}
             />
           </Avatar>
         }
         title={
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-            {gate.name}
-          </Typography>
+          <Tooltip title={gate.name} arrow>
+            <Typography
+              variant="h6"
+              component="h3"
+              noWrap
+              sx={{ fontWeight: "bold" }}
+            >
+              {gate.name}
+            </Typography>
+          </Tooltip>
+        }
+        subheader={
+          <Chip
+            label={gate.typeOfNetworkDevice}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
         }
       />
+
       <Divider />
-      <CardContent sx={{ p: 0 }}>
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <LocationOn sx={{ mr: 1 }} />
-          <Typography variant="body1">IP Address: {gate.ipAddress}</Typography>
+
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <LocationOn sx={{ mr: 1, color: "text.secondary", flexShrink: 0 }} />
+          <Typography variant="body2" noWrap>
+            <strong>IP:</strong> {gate.ipAddress}
+          </Typography>
         </Box>
-        <Divider />
-        <Box display="flex" alignItems="center" mt={2} mb={2} px={2}>
-          <LocalLibrary sx={{ mr: 1 }} />
-          <Typography variant="body1">Community: {gate.community}</Typography>
+
+        <Box display="flex" alignItems="center">
+          <LocalLibrary
+            sx={{ mr: 1, color: "text.secondary", flexShrink: 0 }}
+          />
+          <Typography variant="body2" noWrap>
+            <strong>Community:</strong> {gate.community}
+          </Typography>
         </Box>
-        <Divider />
       </CardContent>
-      <CardContent>
-        <Box display="flex" justifyContent="space-between">
+
+      <Divider />
+
+      <CardContent sx={{ p: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box display="flex" alignItems="center">
-            <Checklist sx={{ mr: 1 }} />
-            <Typography variant="body1">
+            <Checklist sx={{ mr: 1, color: "text.secondary" }} />
+            <Typography variant="body2">
               Type: {gate.typeOfNetworkDevice}
             </Typography>
           </Box>
-          <ButtonGroup variant="contained">
-            <Button color="primary" component={Link} to={`/gates/${gate.id}`}>
-              Изменить
+
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              component={Link}
+              to={`/gates/${gate.id}`}
+              size="small"
+            >
+              Edit
             </Button>
-            <Button color="error" onClick={handleDelete}>
-              Удалить
+
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+              size="small"
+              disabled={deleteGate.isPending}
+            >
+              {deleteGate.isPending ? "Deleting..." : "Delete"}
             </Button>
-          </ButtonGroup>
+          </Box>
         </Box>
       </CardContent>
     </Card>

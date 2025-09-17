@@ -1,5 +1,18 @@
-import { Box, Button, Divider, Typography, Grid2 } from "@mui/material";
-import { Link, NavLink } from "react-router";
+import {
+  Box,
+  Button,
+  Typography,
+  Grid2,
+  Alert,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Card,
+  CardContent,
+} from "@mui/material";
+import { Link } from "react-router";
 import { useGates } from "../../lib/hooks/useGates";
 import { useClients } from "../../lib/hooks/useClients";
 import { useState } from "react";
@@ -7,6 +20,12 @@ import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import { DEFAULT_FILTERS_Gates } from "../../lib/api/gates/DEFAULT_FILTERS_Gates";
 import { DEFAULT_FILTERS_Clients } from "../../lib/api/Clients/DEFAULT_FILTERS_Clients";
 import { useNetworkDevices } from "../../lib/hooks/useNetworkDevices";
+import SettingsIcon from "@mui/icons-material/Settings";
+import WarningIcon from "@mui/icons-material/Warning";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import AddIcon from "@mui/icons-material/Add";
+import RouterIcon from "@mui/icons-material/Router";
 
 export default function AdminComponent() {
   const pageNumber = 1;
@@ -16,235 +35,408 @@ export default function AdminComponent() {
   const [orderByForGates] = useState<string>("ipAddress");
   const [orderByForClients] = useState<string>("name");
   const [orderByDescending] = useState<boolean>(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    action: () => void;
+  }>({
+    open: false,
+    title: "",
+    message: "",
+    action: () => {},
+  });
 
-  const { gates, deleteGate } = useGates(
-    { pageNumber, pageSize },
-    gateFilters,
-    {
-      property: orderByForGates,
-      descending: orderByDescending,
-    }
-  );
+  const {
+    gates,
+    deleteGate,
+    isPending: isGatesLoading,
+  } = useGates({ pageNumber, pageSize }, gateFilters, {
+    property: orderByForGates,
+    descending: orderByDescending,
+  });
 
-  const { deleteClients, updateClients } = useClients(
-    { pageNumber, pageSize },
-    clientFilters,
-    { property: orderByForClients, descending: orderByDescending }
-  );
+  const {
+    deleteClients,
+    updateClients,
+    isLoadingClients: isClientsLoading,
+  } = useClients({ pageNumber, pageSize }, clientFilters, {
+    property: orderByForClients,
+    descending: orderByDescending,
+  });
 
-  const { deleteNetworkDevices } = useNetworkDevices(
-    {
-      pageNumber,
-      pageSize,
-    },
-    [],
-    { property: "", descending: false }
-  );
+  const { deleteNetworkDevices, isPending: isNetworkDevicesLoading } =
+    useNetworkDevices({ pageNumber, pageSize }, [], {
+      property: "",
+      descending: false,
+    });
+
+  const showConfirmation = (
+    title: string,
+    message: string,
+    action: () => void
+  ) => {
+    setConfirmDialog({
+      open: true,
+      title,
+      message,
+      action,
+    });
+  };
+
+  const handleConfirm = () => {
+    confirmDialog.action();
+    setConfirmDialog({ open: false, title: "", message: "", action: () => {} });
+  };
+
+  const handleCancel = () => {
+    setConfirmDialog({ open: false, title: "", message: "", action: () => {} });
+  };
 
   const updateClientsHandle = () => {
-    if (window.confirm(`Подумай дважды!!!`)) {
-      updateClients.mutate(null!, {
-        onSuccess: () => {
-          console.log(`Clients were updated successfully`);
-        },
-        onError: (error) => {
-          console.error("Failed to update clients:", error);
-        },
-      });
-    }
+    showConfirmation(
+      "Update Clients",
+      "Are you sure you want to update all clients? This operation may take some time.",
+      () => {
+        updateClients.mutate(undefined, {
+          onSuccess: () => {
+            console.log("Clients were updated successfully");
+          },
+          onError: (error) => {
+            console.error("Failed to update clients:", error);
+          },
+        });
+      }
+    );
   };
 
   const deleteGatesHandle = () => {
-    if (window.confirm(`Подумай дважды!!!`)) {
-      const gatesIds = gates?.map((x) => x.id);
-      gatesIds?.forEach((gateId) => {
-        deleteGate.mutate(gateId!, {
-          onSuccess: () => {
-            console.log(`Gate with ID ${gateId} deleted successfully`);
-          },
-          onError: (error) => {
-            console.error("Failed to delete gate:", error);
-          },
+    showConfirmation(
+      "Delete All Gates",
+      "WARNING: This will permanently delete ALL gates. This action cannot be undone!",
+      () => {
+        const gatesIds = gates?.map((x) => x.id).filter(Boolean) as string[];
+        gatesIds.forEach((gateId) => {
+          deleteGate.mutate(gateId, {
+            onSuccess: () => {
+              console.log(`Gate with ID ${gateId} deleted successfully`);
+            },
+            onError: (error) => {
+              console.error("Failed to delete gate:", error);
+            },
+          });
         });
-      });
-    }
+      }
+    );
   };
 
   const deleteClientsHandle = () => {
-    if (window.confirm(`Подумай дважды!!!`)) {
-      deleteClients.mutate(null!, {
-        onSuccess: () => {
-          console.log(`Clients were deleted successfully`);
-        },
-        onError: (error) => {
-          console.error("Failed to delete clients:", error);
-        },
-      });
-    }
+    showConfirmation(
+      "Delete All Clients",
+      "WARNING: This will permanently delete ALL clients. This action cannot be undone!",
+      () => {
+        deleteClients.mutate(undefined, {
+          onSuccess: () => {
+            console.log("Clients were deleted successfully");
+          },
+          onError: (error) => {
+            console.error("Failed to delete clients:", error);
+          },
+        });
+      }
+    );
   };
 
   const deleteAllNetworkDevices = () => {
-    if (window.confirm(`Подумай дважды!!!`)) {
-      deleteNetworkDevices.mutate(null!, {
-        onSuccess: () => {
-          console.log(`All Network Devices were deleted successfully`);
-        },
-        onError: (error) => {
-          console.error("Failed to delete All Network Devices:", error);
-        },
-      });
-    }
+    showConfirmation(
+      "Delete All Network Devices",
+      "WARNING: This will permanently delete ALL network devices. This action cannot be undone!",
+      () => {
+        deleteNetworkDevices.mutate(undefined, {
+          onSuccess: () => {
+            console.log("All Network Devices were deleted successfully");
+          },
+          onError: (error) => {
+            console.error("Failed to delete All Network Devices:", error);
+          },
+        });
+      }
+    );
   };
 
+  const isAnyOperationPending =
+    deleteGate.isPending ||
+    deleteClients.isPending ||
+    updateClients.isPending ||
+    deleteNetworkDevices.isPending ||
+    isGatesLoading ||
+    isClientsLoading ||
+    isNetworkDevicesLoading;
+
   return (
-    <Box p={3} sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}>
-      {/* Создание маршрутизатора */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
-          <Button
-            variant="contained"
-            color="info"
-            component={Link}
-            to={`/createGate`}
-            sx={{ boxShadow: 3 }}
-          >
-            Создать маршрутизатор
-          </Button>
+    <Box p={3}>
+      <Box display="flex" alignItems="center" mb={3}>
+        <SettingsIcon sx={{ mr: 1, fontSize: 32, color: "primary.main" }} />
+        <Typography variant="h4" component="h1" fontWeight="bold">
+          Administration Panel
+        </Typography>
+      </Box>
+
+      {isAnyOperationPending && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Box display="flex" alignItems="center">
+            <CircularProgress size={20} sx={{ mr: 1 }} />
+            Operation in progress...
+          </Box>
+        </Alert>
+      )}
+
+      <Grid2 container spacing={3}>
+        {/* Gates Section */}
+        <Grid2 size={12}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom color="primary">
+                <RouterIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
+                Gate Management
+              </Typography>
+
+              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <Grid2 size="auto">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    component={Link}
+                    to="/createGate"
+                    startIcon={<AddIcon />}
+                    disabled={isAnyOperationPending}
+                  >
+                    Create Gate
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    Create a new gate router. The system will automatically
+                    update information about them.
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Grid2 container spacing={2} alignItems="center">
+                <Grid2 size="auto">
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={deleteGatesHandle}
+                    startIcon={<DeleteForeverIcon />}
+                    disabled={isAnyOperationPending || gates.length === 0}
+                  >
+                    Delete All Gates
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    <WarningIcon
+                      sx={{
+                        fontSize: 16,
+                        verticalAlign: "text-bottom",
+                        mr: 0.5,
+                      }}
+                    />
+                    Warning! This will permanently delete all gates (
+                    {gates.length} found).
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Typography
+                variant="body2"
+                color="text.primary"
+                sx={{ mt: 2, fontStyle: "italic" }}
+              >
+                Gates are virtual entities created exclusively for polling
+                gateways.
+              </Typography>
+            </CardContent>
+          </Card>
         </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Создание нового маршрутизатора, ПО автоматически обновляет
-            информацию о них.
-          </Typography>
+
+        {/* Clients Section */}
+        <Grid2 size={12}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom color="primary">
+                👥 Client Management
+              </Typography>
+
+              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <Grid2 size="auto">
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    onClick={updateClientsHandle}
+                    startIcon={<RefreshIcon />}
+                    disabled={isAnyOperationPending}
+                  >
+                    Update Clients
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    Update information about clients, tariff plans, VLANs, and
+                    address pools.
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Grid2 container spacing={2} alignItems="center">
+                <Grid2 size="auto">
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={deleteClientsHandle}
+                    startIcon={<DeleteForeverIcon />}
+                    disabled={isAnyOperationPending}
+                  >
+                    Delete All Clients
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    <WarningIcon
+                      sx={{
+                        fontSize: 16,
+                        verticalAlign: "text-bottom",
+                        mr: 0.5,
+                      }}
+                    />
+                    Warning! This will permanently delete all clients.
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Typography
+                variant="body2"
+                color="text.primary"
+                sx={{ mt: 2, fontStyle: "italic" }}
+              >
+                Clients are entities whose information is collected from the
+                billing system.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid2>
+
+        {/* Network Devices Section */}
+        <Grid2 size={12}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" gutterBottom color="primary">
+                🌐 Network Devices Management
+              </Typography>
+
+              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <Grid2 size="auto">
+                  <Button
+                    component={Link}
+                    to="/networkDevices"
+                    variant="contained"
+                    color="info"
+                    disabled={isAnyOperationPending}
+                  >
+                    View Gateways
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    Manage and view all network gateways.
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Grid2 container spacing={2} alignItems="center">
+                <Grid2 size="auto">
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={deleteAllNetworkDevices}
+                    startIcon={<DeleteForeverIcon />}
+                    disabled={isAnyOperationPending}
+                  >
+                    Delete All Network Devices
+                  </Button>
+                </Grid2>
+                <Grid2>
+                  <Typography variant="body2" color="text.secondary">
+                    <WarningIcon
+                      sx={{
+                        fontSize: 16,
+                        verticalAlign: "text-bottom",
+                        mr: 0.5,
+                      }}
+                    />
+                    Warning! This will permanently delete all network devices.
+                  </Typography>
+                </Grid2>
+              </Grid2>
+
+              <Typography
+                variant="body2"
+                color="text.primary"
+                sx={{ mt: 2, fontStyle: "italic" }}
+              >
+                Network devices are entities whose information is collected from
+                data center routers.
+              </Typography>
+            </CardContent>
+          </Card>
         </Grid2>
       </Grid2>
-      <Divider sx={{ my: 2 }} />
 
-      {/* Удаление маршрутизаторов */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={deleteGatesHandle}
-            sx={{ boxShadow: 3 }}
-          >
-            Удалить все маршрутизаторы
-          </Button>
-        </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Внимание! Удаление всех маршрутизаторов (нужно создавать заново).
-          </Typography>
-        </Grid2>
-      </Grid2>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Информация о маршрутизаторах */}
-      <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-        Маршрутизаторы - это виртуальные сущности, создаваемые исключительно для
-        опроса шлюзов.
-      </Typography>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Обновление клиентов */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
-          <Button
-            variant="contained"
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={handleCancel}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <WarningIcon
             color="warning"
-            onClick={updateClientsHandle}
-            sx={{ boxShadow: 3 }}
-          >
-            Обновить клиентов
-          </Button>
-        </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Обновить информацию о клиентах, тарифных планах, VLAN'ах и пулах
-            адресов.
+            sx={{ mr: 1, verticalAlign: "bottom" }}
+          />
+          {confirmDialog.title}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            {confirmDialog.message}
           </Typography>
-        </Grid2>
-      </Grid2>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Удаление клиентов */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
+          <Alert severity="error" sx={{ mt: 2 }}>
+            This action cannot be undone. Please make sure you understand the
+            consequences.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel} disabled={isAnyOperationPending}>
+            Cancel
+          </Button>
           <Button
-            variant="contained"
+            onClick={handleConfirm}
             color="error"
-            onClick={deleteClientsHandle}
-            sx={{ boxShadow: 3 }}
-          >
-            Удалить всех клиентов
-          </Button>
-        </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Внимание! Удаление всех клиентов (нужно опрашивать заново).
-          </Typography>
-        </Grid2>
-      </Grid2>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Информация о клиентах */}
-      <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-        Клиенты - это сущности, информация которых собирается из биллинга.
-      </Typography>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Обновление шлюзов */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
-          <Button
-            component={NavLink}
-            to="/networkDevices"
             variant="contained"
-            color="info"
-            sx={{ boxShadow: 3 }}
+            disabled={isAnyOperationPending}
+            startIcon={
+              isAnyOperationPending ? (
+                <CircularProgress size={20} />
+              ) : (
+                <DeleteForeverIcon />
+              )
+            }
           >
-            Шлюзы
+            {isAnyOperationPending ? "Processing..." : "Confirm"}
           </Button>
-        </Grid2>
-        <Grid2>
-          <Button variant="contained" color="warning" sx={{ boxShadow: 3 }}>
-            Обновить все шлюзы
-          </Button>
-        </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Обновить информацию о всех шлюзах (може длиться долго ~30 мин.)
-          </Typography>
-        </Grid2>
-      </Grid2>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Удаление шлюзов */}
-      <Grid2 container spacing={2} alignItems="center">
-        <Grid2>
-          <Button
-            variant="contained"
-            color="error"
-            sx={{ boxShadow: 3 }}
-            onClick={deleteAllNetworkDevices}
-          >
-            Удалить всех шлюзов
-          </Button>
-        </Grid2>
-        <Grid2>
-          <Typography variant="body1" color="text.secondary">
-            Внимание! Удаление всех шлюзов (нужно опрашивать заново).
-          </Typography>
-        </Grid2>
-      </Grid2>
-      <Divider sx={{ my: 2 }} />
-
-      {/* Информация о шлюзах */}
-      <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-        Шлюзы - это сущности, информация которых собирается из маршрутизаторов
-        ЦОДа.
-      </Typography>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

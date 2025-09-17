@@ -1,40 +1,61 @@
-import { MenuItem } from "@mui/material";
-import { ReactNode } from "react";
 import { NavLink } from "react-router";
+import { MenuItem, Typography } from "@mui/material";
+import { ReactNode } from "react";
 
-export default function MenuItemLinks({
-  children,
-  to,
-}: {
-  children: ReactNode;
+interface MenuItemLinksProps {
   to: string;
-}) {
+  children: ReactNode;
+}
+
+export default function MenuItemLinks({ to, children }: MenuItemLinksProps) {
   return (
     <MenuItem
       component={NavLink}
       to={to}
       sx={{
-        backgroundColor: "#e5e7eb",
-        color: "#1d3557",
-        height: 40,
+        color: "#f1faee",
+        textDecoration: "none",
         borderRadius: "8px",
-        textTransform: "none",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", // Add shadow to button
+        margin: "0 0.25rem",
         transition: "all 0.3s ease",
+        position: "relative",
         "&:hover": {
-          backgroundColor: "#ffd166", // Slightly lighter hover effect
-          transform: "scale(1.05)", // Subtle scaling on hover
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          transform: "translateY(-2px)",
         },
         "&.active": {
-          backgroundColor: "#ffd166", // Bold yellow background for active link
-          color: "#1d3557", // Contrasting text color
+          backgroundColor: "rgba(255, 255, 255, 0.15)",
           fontWeight: "bold",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Subtle shadow to make it pop
-          textDecoration: "none",
+        },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          bottom: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 0,
+          height: "2px",
+          backgroundColor: "#f1faee",
+          transition: "width 0.3s ease",
+        },
+        "&:hover::before": {
+          width: "70%",
+        },
+        "&.active::before": {
+          width: "80%",
         },
       }}
     >
-      {children}
+      <Typography
+        variant="body1"
+        sx={{
+          fontWeight: "inherit",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {children}
+      </Typography>
     </MenuItem>
   );
 }
