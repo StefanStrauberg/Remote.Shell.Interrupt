@@ -2,12 +2,12 @@ import { FilterList } from "@mui/icons-material";
 import {
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
   Divider,
   TextField,
+  Chip,
 } from "@mui/material";
 import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
 import { useState } from "react";
@@ -21,66 +21,112 @@ export default function MainPageListFilter({
   onApplyFilters,
   onSearch,
 }: Props) {
-  const [idVlan, setIdVlan] = useState<number | null>(0);
+  const [idVlan, setIdVlan] = useState<number | null>(null);
+  const [error, setError] = useState<string>("");
 
   const handleApplyClick = () => {
-    const filters: RouterFilter = {};
-    if (idVlan) filters.IdVlan = { op: "==", value: idVlan };
+    setError("");
+
+    if (!idVlan || idVlan <= 0) {
+      setError("Please enter a valid VLAN ID");
+      return;
+    }
+
+    const filters: RouterFilter = {
+      IdVlan: { op: "==", value: idVlan },
+    };
+
     onApplyFilters(filters);
     onSearch();
+  };
+
+  const handleReset = () => {
+    setIdVlan(null);
+    setError("");
+    onApplyFilters({});
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "") {
+      setIdVlan(null);
+      setError("");
+    } else if (!isNaN(Number(value)) && Number(value) >= 0) {
+      setIdVlan(Number(value));
+      setError("");
+    }
   };
 
   return (
     <Card
       sx={{
-        borderRadius: 4,
-        boxShadow: 3,
-        bgcolor: "background.default",
-        fontSize: 18,
+        borderRadius: 2,
         overflow: "hidden",
+        position: "sticky",
+        top: 20,
       }}
     >
       <CardHeader
-        title="Фильтры"
-        avatar={<FilterList color="primary" />}
-        sx={{ bgcolor: "primary.light", color: "white", p: 2 }}
+        title={
+          <Box display="flex" alignItems="center">
+            <FilterList color="primary" sx={{ mr: 1 }} />
+            <span>Search Filters</span>
+          </Box>
+        }
+        sx={{
+          bgcolor: "grey.50",
+          borderBottom: 1,
+          borderColor: "divider",
+          py: 1.5,
+        }}
       />
-      <CardContent>
+
+      <CardContent sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Id влана"
+            label="VLAN ID"
             value={idVlan?.toString() || ""}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              if (!isNaN(Number(newValue))) {
-                setIdVlan(Number(newValue));
-              }
-            }}
+            onChange={handleInputChange}
             variant="outlined"
             fullWidth
+            size="small"
             type="number"
-            inputProps={{ min: 0 }}
+            inputProps={{ min: 1, max: 4094 }}
+            error={!!error}
+            helperText={error || "Enter VLAN ID to search (1-4094)"}
+            placeholder="e.g., 100"
           />
+
           <Divider />
-          <ButtonGroup>
+
+          <Box display="flex" gap={1}>
             <Button
-              variant="contained"
-              color="info"
-              onClick={() => {
-                setIdVlan(0);
-              }}
+              variant="outlined"
+              onClick={handleReset}
+              fullWidth
+              disabled={!idVlan}
             >
-              Сбросить
+              Reset
             </Button>
+
             <Button
               variant="contained"
-              color="success"
               onClick={handleApplyClick}
-              disabled={!idVlan} // Кнопка неактивна, если поле пустое
+              fullWidth
+              disabled={!idVlan || idVlan <= 0}
             >
-              Применить
+              Search
             </Button>
-          </ButtonGroup>
+          </Box>
+
+          {idVlan && (
+            <Chip
+              label={`Searching VLAN: ${idVlan}`}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
+          )}
         </Box>
       </CardContent>
     </Card>

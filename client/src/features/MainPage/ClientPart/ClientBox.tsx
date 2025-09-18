@@ -1,9 +1,10 @@
 import {
+  Box,
   Card,
   CardContent,
-  CardHeader,
   Collapse,
   Divider,
+  IconButton,
   Typography,
 } from "@mui/material";
 import { Client } from "../../../lib/types/Clients/Client";
@@ -16,6 +17,7 @@ import ClientDetailTechnicalContact from "../../Clients/Detail/ClientDetailTechn
 import ClientDetailHistory from "../../Clients/Detail/ClientDetailHistory";
 import ClientDetailCOD from "../../Clients/Detail/ClientDetailCOD";
 import { useState } from "react";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
 type Props = {
   client: Client;
@@ -30,24 +32,29 @@ export default function ClientBox({ client }: Props) {
 
   return (
     <Card
-      elevation={5}
       sx={{
         mb: 2,
         borderRadius: 4,
         boxShadow: 3,
         fontSize: 18,
-        cursor: "pointer", // Визуально показывает, что по элементу можно кликнуть
       }}
-      onClick={toggleExpand} // Добавляем обработчик клика
     >
-      <CardHeader
-        title={
-          <Typography sx={{ fontWeight: "bold" }}>
-            {client.name} ({client.telephoneT || "к.т нет"},{" "}
-            {client.emailT || "email нет"})
-          </Typography>
-        }
-      />
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={2}
+        mb={2}
+      >
+        <Typography sx={{ fontWeight: "bold", ml: 2 }}>
+          {client.name} ({client.telephoneT || "к.т нет"},{" "}
+          {client.emailT || "email нет"})
+        </Typography>
+        <IconButton onClick={toggleExpand} sx={{ mr: 2, size: "small" }}>
+          {isExpanded ? <ExpandLess /> : <ExpandMore />}
+        </IconButton>
+      </Box>
+
       <Collapse in={isExpanded}>
         <CardContent sx={{ p: 2 }}></CardContent>
         <Divider>Общая информация</Divider>

@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Alert,
   Chip,
-  Grid,
 } from "@mui/material";
 import NetworkDevicePort from "./NetworkDevicePort";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";

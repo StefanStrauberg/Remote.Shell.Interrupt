@@ -16,7 +16,6 @@ import {
   ExpandMore,
   ExpandLess,
   Lan,
-  Dns,
 } from "@mui/icons-material";
 import { useState } from "react";
 import NetworkDeviceSubPort from "./NetworkDeviceSubPort";
@@ -33,9 +32,6 @@ export default function NetworkDevicePort({ port }: Props) {
 
   const toggleExpand = () => setIsExpanded(!isExpanded);
   const toggleMacTable = () => setShowMacTable(!showMacTable);
-
-  const getStatusColor = (status: string) =>
-    status === "up" ? "success.main" : "error.main";
 
   const getStatusIconColor = (status: string) =>
     status === "up" ? "success.main" : "disabled";
@@ -93,12 +89,6 @@ export default function NetworkDevicePort({ port }: Props) {
             </Typography>
           </Box>
         </Box>
-
-        {port.aggregatedPorts.length > 0 && (
-          <IconButton onClick={toggleExpand} size="small">
-            {isExpanded ? <ExpandLess /> : <ExpandMore />}
-          </IconButton>
-        )}
       </Box>
 
       {/* VLANs */}
@@ -127,7 +117,7 @@ export default function NetworkDevicePort({ port }: Props) {
 
       {/* MAC Table */}
       <Box display="flex" alignItems="flex-start" mt={2}>
-        <DeveloperBoardIcon sx={{ mr: 1, color: "secondary.main", mt: 0.5 }} />
+        <DeveloperBoardIcon sx={{ mr: 1, color: "secondary.light", mt: 0.5 }} />
         <Box flexGrow={1}>
           <Box display="flex" alignItems="center">
             <Typography variant="body2" fontWeight="medium" sx={{ mr: 1 }}>
@@ -149,19 +139,35 @@ export default function NetworkDevicePort({ port }: Props) {
       </Box>
 
       {/* Aggregated Ports */}
-      <Collapse in={isExpanded}>
-        <Box sx={{ pl: 4, mt: 2, borderLeft: 2, borderColor: "divider" }}>
-          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-            Aggregated Ports:
-          </Typography>
-          {port.aggregatedPorts.map((aggregatedPort) => (
-            <NetworkDeviceSubPort
-              key={aggregatedPort.id}
-              port={aggregatedPort}
-            />
-          ))}
+      <Box display="flex" alignItems="flex-start" mt={2}>
+        <Lan sx={{ mr: 1, color: "secondary.dark", mt: 0.5 }} />
+        <Box flexGrow={1}>
+          <Box display="flex" alignItems="center">
+            <Typography variant="body2" fontWeight="medium" sx={{ mr: 1 }}>
+              Aggregated Ports: {port.aggregatedPorts.length} entries
+            </Typography>
+            {port.aggregatedPorts.length > 0 && (
+              <IconButton onClick={toggleExpand} size="small">
+                {isExpanded ? <ExpandLess /> : <ExpandMore />}
+              </IconButton>
+            )}
+          </Box>
+
+          <Collapse in={isExpanded}>
+            <Box sx={{ pl: 0, mt: 1 }}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Aggregated Ports:
+              </Typography>
+              {port.aggregatedPorts.map((aggregatedPort) => (
+                <NetworkDeviceSubPort
+                  key={aggregatedPort.id}
+                  port={aggregatedPort}
+                />
+              ))}
+            </Box>
+          </Collapse>
         </Box>
-      </Collapse>
+      </Box>
 
       <Divider sx={{ mt: 2 }} />
     </Box>
