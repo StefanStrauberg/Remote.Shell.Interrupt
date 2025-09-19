@@ -10,7 +10,7 @@ import {
   TextField,
   Chip,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FilterList } from "@mui/icons-material";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../lib/types/Common/FilterOperator";
@@ -27,6 +27,8 @@ export default function SPRVlanListFilter({
   initialFilters = [],
   onResetFilters,
 }: SPRVlanListFilterProps) {
+  const [shouldSyncWithInitial, setShouldSyncWithInitial] = useState(true);
+
   const getInitialNumber = (property: string, defaultValue: number): number => {
     const filter = initialFilters.find((f) => f.PropertyPath === property);
     return filter ? parseInt(filter.Value) || defaultValue : defaultValue;
@@ -51,6 +53,34 @@ export default function SPRVlanListFilter({
     getInitialBoolean("UseCOD", false)
   );
 
+  useEffect(() => {
+    if (!shouldSyncWithInitial) return;
+
+    const currentVlanFilter = initialFilters.find(
+      (f) => f.PropertyPath === "IdVlan"
+    );
+    const currentIdClientFilter = initialFilters.find(
+      (f) => f.PropertyPath === "IdClient"
+    );
+    const currentUseClientFilter = initialFilters.find(
+      (f) => f.PropertyPath === "UseClient"
+    );
+    const currentUseCODFilter = initialFilters.find(
+      (f) => f.PropertyPath === "UseCOD"
+    );
+
+    setIdVlan(currentVlanFilter ? parseInt(currentVlanFilter.Value) || 0 : 0);
+    setIdClient(
+      currentIdClientFilter ? parseInt(currentIdClientFilter.Value) || 0 : 0
+    );
+    setUseClient(
+      currentUseClientFilter ? currentUseClientFilter.Value === "true" : true
+    );
+    setUseCOD(
+      currentUseCODFilter ? currentUseCODFilter.Value === "true" : false
+    );
+  }, [initialFilters, shouldSyncWithInitial]);
+
   const createFilter = (
     property: string,
     operator: FilterOperator,
@@ -72,10 +102,12 @@ export default function SPRVlanListFilter({
         ? [createFilter("IdClient", FilterOperator.Equals, idClient)]
         : []),
     ];
+    setShouldSyncWithInitial(false);
     onApplyFilters(filters);
   };
 
   const handleReset = () => {
+    setShouldSyncWithInitial(true);
     setIdVlan(0);
     setIdClient(0);
     setUseClient(true);

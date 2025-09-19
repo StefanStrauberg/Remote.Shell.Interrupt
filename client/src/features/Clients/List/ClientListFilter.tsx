@@ -12,7 +12,7 @@ import {
   FormGroup,
   Chip,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FilterDescriptor } from "../../../lib/types/Common/FilterDescriptor";
 import { FilterOperator } from "../../../lib/types/Common/FilterOperator";
 import { DEFAULT_FILTERS_Clients } from "../../../lib/api/Clients/DEFAULT_FILTERS_Clients";
@@ -28,6 +28,8 @@ export default function ClientListFilter({
   initialFilters = [],
   onResetFilters,
 }: ClientListFilterProps) {
+  const [shouldSyncWithInitial, setShouldSyncWithInitial] = useState(true);
+
   const getInitialBoolean = (
     property: string,
     defaultValue: boolean
@@ -52,6 +54,28 @@ export default function ClientListFilter({
     getInitialBoolean("AntiDDOS", false)
   );
 
+  useEffect(() => {
+    if (!shouldSyncWithInitial) return;
+
+    const currentNameFilter = initialFilters.find(
+      (f) => f.PropertyPath === "Name"
+    );
+    const currentNrDogovorFilter = initialFilters.find(
+      (f) => f.PropertyPath === "NrDogovor"
+    );
+    const currentWorkingFilter = initialFilters.find(
+      (f) => f.PropertyPath === "Working"
+    );
+    const currentAntiDDOSFilter = initialFilters.find(
+      (f) => f.PropertyPath === "AntiDDOS"
+    );
+
+    setName(currentNameFilter?.Value ?? "");
+    setNrDogovor(currentNrDogovorFilter?.Value ?? "");
+    setWorking(currentWorkingFilter?.Value === "true");
+    setAntiDDOS(currentAntiDDOSFilter?.Value === "true");
+  }, [initialFilters, shouldSyncWithInitial]);
+
   const createFilter = (
     property: string,
     operator: FilterOperator,
@@ -73,10 +97,12 @@ export default function ClientListFilter({
         ? [createFilter("NrDogovor", FilterOperator.Contains, nrDogovor)]
         : []),
     ];
+    setShouldSyncWithInitial(false);
     onApplyFilters(filters);
   };
 
   const handleReset = () => {
+    setShouldSyncWithInitial(true);
     setName("");
     setNrDogovor("");
     setWorking(true);

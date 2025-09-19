@@ -17,7 +17,7 @@ import { typeOfNetworkDeviceOptions } from "../../../lib/types/Common/typeOfNetw
 import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/DEFAULT_PAGINATION_PARAMS";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import TextInput from "../../../app/shared/components/TextImput";
+import TextInput from "../../../app/shared/components/TextInput";
 
 export default function GateForm() {
   const { id } = useParams();
@@ -88,7 +88,7 @@ export default function GateForm() {
         minHeight="200px"
       >
         <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>
+        <Typography variant="h6" color="text.secondary">
           Loading gate data...
         </Typography>
       </Box>
@@ -108,6 +108,7 @@ export default function GateForm() {
           component={Link}
           to="/gates"
           startIcon={<CancelIcon />}
+          fullWidth
         >
           Back to Gates
         </Button>
@@ -163,6 +164,7 @@ export default function GateForm() {
           required
           error={errors.name}
           helperText={errors.name?.message}
+          fullWidth
         />
 
         <TextInput
@@ -173,6 +175,7 @@ export default function GateForm() {
           error={errors.ipAddress}
           helperText={errors.ipAddress?.message}
           placeholder="e.g., 192.168.1.1"
+          fullWidth
         />
 
         <TextInput
@@ -183,6 +186,7 @@ export default function GateForm() {
           error={errors.community}
           helperText={errors.community?.message}
           placeholder="SNMP community string"
+          fullWidth
         />
 
         <SelectInput
@@ -193,6 +197,8 @@ export default function GateForm() {
           required
           error={errors.typeOfNetworkDevice}
           helperText={errors.typeOfNetworkDevice?.message}
+          // disabled={isFormDisabled}
+          fullWidth
         />
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
