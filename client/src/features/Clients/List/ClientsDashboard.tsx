@@ -112,7 +112,7 @@ export default function ClientsDashboard() {
         <Grid2 size={{ xs: 12, md: 3 }} order={{ xs: 1, md: 2 }}>
           <ClientListFilter
             onApplyFilters={handleApplyFilters}
-            initialFilters={DEFAULT_FILTERS_Clients}
+            initialFilters={filters}
             onResetFilters={handleResetFilters}
           />
         </Grid2>

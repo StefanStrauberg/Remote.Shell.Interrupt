@@ -8,13 +8,13 @@ import {
   Box,
   useTheme,
 } from "@mui/material";
-import { SelectInputProps } from "@mui/material/Select/SelectInput";
+import { SelectChangeEvent } from "@mui/material/Select";
 import {
   FieldValues,
   useController,
   UseControllerProps,
 } from "react-hook-form";
-import { ReactNode } from "react";
+import { ReactNode, FocusEvent } from "react";
 
 interface SelectItem {
   text: string;
@@ -23,6 +23,13 @@ interface SelectItem {
   icon?: ReactNode;
 }
 
+// Create proper types for the Select props we want to include
+type SelectPropsWithoutConflicts = Omit<
+  React.ComponentProps<typeof Select>,
+  "name" | "onChange" | "onBlur" | "value" | "ref" | "defaultValue"
+>;
+
+// Replace the existing Props type with:
 type Props<T extends FieldValues> = {
   items: SelectItem[];
   label: string;
@@ -30,23 +37,38 @@ type Props<T extends FieldValues> = {
   showChips?: boolean;
   placeholder?: string;
   size?: "small" | "medium";
+  onChange?: (event: SelectChangeEvent<unknown>, child: ReactNode) => void;
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
 } & UseControllerProps<T> &
-  Partial<SelectInputProps>;
+  Omit<
+    SelectPropsWithoutConflicts,
+    "name" | "onChange" | "onBlur" | "value" | "ref"
+  >;
 
 export default function SelectInput<T extends FieldValues>(props: Props<T>) {
   const {
+    name,
+    control,
+    rules,
+    shouldUnregister,
     items,
     label,
     multiple = false,
     showChips = false,
     placeholder,
     size = "medium",
-    ...controllerProps
+    onChange, // Properly typed now
+    onBlur, // Properly typed now
+    ...selectProps
   } = props;
 
   const theme = useTheme();
-
-  const { field, fieldState } = useController({ ...controllerProps });
+  const { field, fieldState } = useController({
+    name,
+    control,
+    rules,
+    shouldUnregister,
+  });
 
   const renderValue = (selected: unknown) => {
     if (multiple && Array.isArray(selected)) {
@@ -83,7 +105,7 @@ export default function SelectInput<T extends FieldValues>(props: Props<T>) {
         .join(", ");
     }
 
-    if (!selected) {
+    if (!selected || selected === "") {
       return placeholder || `Select ${label}`;
     }
 
@@ -91,29 +113,53 @@ export default function SelectInput<T extends FieldValues>(props: Props<T>) {
     return item?.text || String(selected);
   };
 
+  const handleChange = (
+    event: SelectChangeEvent<unknown>,
+    child: ReactNode
+  ) => {
+    field.onChange(event.target.value);
+    onChange?.(event, child);
+  };
+
+  const handleBlur = () => {
+    field.onBlur();
+    // MUI Select's onBlur doesn't receive parameters in the same way as TextField
+    if (onBlur) {
+      // You might need to adapt this based on how you want to handle onBlur
+      const syntheticEvent = {
+        target: { value: field.value },
+        type: "blur",
+      } as unknown as FocusEvent<HTMLInputElement>;
+      onBlur(syntheticEvent);
+    }
+  };
+
+  // Safe value checking for multiple selects
+  const hasValue = multiple
+    ? Array.isArray(field.value) && field.value.length > 0
+    : !!field.value && field.value !== "";
+
   return (
     <FormControl
       fullWidth
       error={!!fieldState.error}
       size={size}
-      disabled={props.disabled}
+      disabled={selectProps.disabled}
     >
-      <InputLabel
-        id={`${field.name}-label`}
-        shrink={
-          !!field.value ||
-          (multiple && Array.isArray(field.value) && field.value.length > 0)
-        }
-      >
+      <InputLabel id={`${field.name}-label`} shrink={hasValue}>
         {label}
       </InputLabel>
-
       <Select
-        {...field}
+        {...selectProps}
+        name={field.name}
+        value={field.value ?? (multiple ? [] : "")}
         labelId={`${field.name}-label`}
         multiple={multiple}
         renderValue={renderValue}
         displayEmpty
+        onBlur={handleBlur}
+        onChange={handleChange}
+        inputRef={field.ref}
         MenuProps={{
           PaperProps: {
             sx: {
@@ -133,12 +179,11 @@ export default function SelectInput<T extends FieldValues>(props: Props<T>) {
             alignItems: "center",
             gap: 1,
           },
+          ...selectProps.sx,
         }}
-        // Pass through any additional Select props
-        {...props}
       >
-        {placeholder && (
-          <MenuItem value="" disabled>
+        {placeholder && !multiple && (
+          <MenuItem value="">
             <em>{placeholder}</em>
           </MenuItem>
         )}
@@ -164,7 +209,6 @@ export default function SelectInput<T extends FieldValues>(props: Props<T>) {
           </MenuItem>
         ))}
       </Select>
-
       {fieldState.error && (
         <FormHelperText error>{fieldState.error.message}</FormHelperText>
       )}

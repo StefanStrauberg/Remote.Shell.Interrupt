@@ -83,22 +83,11 @@ export default function SPRVlansDashboard() {
         </Typography>
       </Box>
 
-      {sprVlans.length === 0 ? (
-        <Grid2 container spacing={3}>
-          <Grid2 size={9}>
+      <Grid2 container spacing={3}>
+        <Grid2 size={{ xs: 12, md: 9 }} order={{ xs: 2, md: 1 }}>
+          {sprVlans.length === 0 && !isLoading ? (
             <EmptyPage input="No VLANs found" />
-          </Grid2>
-          <Grid2 size={3}>
-            <SPRVlanListFilter
-              onApplyFilters={handleApplyFilters}
-              initialFilters={DEFAULT_FILTERS_SPRVlans}
-              onResetFilters={handleResetFilters}
-            />
-          </Grid2>
-        </Grid2>
-      ) : (
-        <Grid2 container spacing={3}>
-          <Grid2 size={{ xs: 12, md: 9 }} order={{ xs: 2, md: 1 }}>
+          ) : (
             <SPRVlanListPage
               sprVlans={sprVlans}
               isPending={isLoading}
@@ -109,17 +98,16 @@ export default function SPRVlansDashboard() {
               orderByDescending={orderByDescending}
               onSort={handleSort}
             />
-          </Grid2>
-
-          <Grid2 size={{ xs: 12, md: 3 }} order={{ xs: 1, md: 2 }}>
-            <SPRVlanListFilter
-              onApplyFilters={handleApplyFilters}
-              initialFilters={DEFAULT_FILTERS_SPRVlans}
-              onResetFilters={handleResetFilters}
-            />
-          </Grid2>
+          )}
         </Grid2>
-      )}
+        <Grid2 size={{ xs: 12, md: 3 }} order={{ xs: 1, md: 2 }}>
+          <SPRVlanListFilter
+            onApplyFilters={handleApplyFilters}
+            initialFilters={filters}
+            onResetFilters={handleResetFilters}
+          />
+        </Grid2>
+      </Grid2>
     </Box>
   );
 }

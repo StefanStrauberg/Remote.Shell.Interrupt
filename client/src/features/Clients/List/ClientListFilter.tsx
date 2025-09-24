@@ -28,8 +28,6 @@ export default function ClientListFilter({
   initialFilters = [],
   onResetFilters,
 }: ClientListFilterProps) {
-  const [shouldSyncWithInitial, setShouldSyncWithInitial] = useState(true);
-
   const getInitialBoolean = (
     property: string,
     defaultValue: boolean
@@ -55,8 +53,6 @@ export default function ClientListFilter({
   );
 
   useEffect(() => {
-    if (!shouldSyncWithInitial) return;
-
     const currentNameFilter = initialFilters.find(
       (f) => f.PropertyPath === "Name"
     );
@@ -74,7 +70,7 @@ export default function ClientListFilter({
     setNrDogovor(currentNrDogovorFilter?.Value ?? "");
     setWorking(currentWorkingFilter?.Value === "true");
     setAntiDDOS(currentAntiDDOSFilter?.Value === "true");
-  }, [initialFilters, shouldSyncWithInitial]);
+  }, [initialFilters]);
 
   const createFilter = (
     property: string,
@@ -97,12 +93,10 @@ export default function ClientListFilter({
         ? [createFilter("NrDogovor", FilterOperator.Contains, nrDogovor)]
         : []),
     ];
-    setShouldSyncWithInitial(false);
     onApplyFilters(filters);
   };
 
   const handleReset = () => {
-    setShouldSyncWithInitial(true);
     setName("");
     setNrDogovor("");
     setWorking(true);

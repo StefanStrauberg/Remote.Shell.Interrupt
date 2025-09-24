@@ -162,7 +162,6 @@ export default function GateForm() {
           control={control}
           name="name"
           required
-          error={errors.name}
           helperText={errors.name?.message}
           fullWidth
         />
@@ -172,7 +171,6 @@ export default function GateForm() {
           control={control}
           name="ipAddress"
           required
-          error={errors.ipAddress}
           helperText={errors.ipAddress?.message}
           placeholder="e.g., 192.168.1.1"
           fullWidth
@@ -183,7 +181,6 @@ export default function GateForm() {
           control={control}
           name="community"
           required
-          error={errors.community}
           helperText={errors.community?.message}
           placeholder="SNMP community string"
           fullWidth
@@ -195,9 +192,6 @@ export default function GateForm() {
           control={control}
           name="typeOfNetworkDevice"
           required
-          error={errors.typeOfNetworkDevice}
-          helperText={errors.typeOfNetworkDevice?.message}
-          // disabled={isFormDisabled}
           fullWidth
         />
 

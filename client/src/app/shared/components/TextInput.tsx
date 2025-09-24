@@ -17,7 +17,13 @@ import {
   HelpOutline,
   Clear,
 } from "@mui/icons-material";
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, ChangeEvent, FocusEvent } from "react";
+
+// Create a type that excludes the conflicting props but includes onChange/onBlur with proper types
+type TextFieldPropsWithoutConflicts = Omit<
+  TextFieldProps,
+  "defaultValue" | "value" | "ref" | "name"
+>;
 
 type Props<T extends FieldValues> = UseControllerProps<T> & {
   helperText?: string;
@@ -27,10 +33,7 @@ type Props<T extends FieldValues> = UseControllerProps<T> & {
   endAdornment?: ReactNode;
   showPasswordToggle?: boolean;
   tooltip?: string;
-} & Omit<
-    TextFieldProps,
-    "defaultValue" | "onChange" | "onBlur" | "value" | "ref"
-  >;
+} & TextFieldPropsWithoutConflicts;
 
 export default function TextInput<T extends FieldValues>(props: Props<T>) {
   const {
@@ -49,6 +52,9 @@ export default function TextInput<T extends FieldValues>(props: Props<T>) {
     tooltip,
     // TextField props
     type: initialType = "text",
+    onChange, // This is now properly typed from TextFieldPropsWithoutConflicts
+    onBlur, // This is now properly typed from TextFieldPropsWithoutConflicts
+    onFocus,
     ...textFieldProps
   } = props;
 
@@ -88,7 +94,11 @@ export default function TextInput<T extends FieldValues>(props: Props<T>) {
     const adornments: ReactNode[] = [];
 
     if (endAdornment) {
-      adornments.push(endAdornment);
+      adornments.push(
+        <InputAdornment position="end" key="custom-end-adornment">
+          {endAdornment}
+        </InputAdornment>
+      );
     }
 
     if (showPasswordToggle) {
@@ -141,42 +151,43 @@ export default function TextInput<T extends FieldValues>(props: Props<T>) {
     return adornments.length > 0 ? adornments : null;
   };
 
+  const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
+    onFocus?.(e);
+  };
+
+  const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+    setIsFocused(false);
+    field.onBlur();
+    onBlur?.(e);
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    field.onChange(e.target.value);
+    onChange?.(e);
+  };
+
   return (
     <Box position="relative">
       <TextField
         {...textFieldProps}
-        {...field}
-        value={field.value || ""}
+        name={field.name}
+        value={field.value ?? ""}
         fullWidth
         variant="outlined"
         type={type}
         error={!!fieldState.error}
         helperText={combinedHelperText}
-        onFocus={(e) => {
-          setIsFocused(true);
-          textFieldProps.onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setIsFocused(false);
-          field.onBlur();
-          textFieldProps.onBlur?.(e);
-        }}
-        onChange={(e) => {
-          field.onChange(e.target.value);
-          textFieldProps.onChange?.(e);
-        }}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        inputRef={field.ref}
         InputProps={{
           ...textFieldProps.InputProps,
           startAdornment: startAdornment ? (
             <InputAdornment position="start">{startAdornment}</InputAdornment>
           ) : undefined,
           endAdornment: buildEndAdornment(),
-        }}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            ...(textFieldProps.sx as any)?.["& .MuiOutlinedInput-root"],
-          },
-          ...textFieldProps.sx,
         }}
       />
     </Box>

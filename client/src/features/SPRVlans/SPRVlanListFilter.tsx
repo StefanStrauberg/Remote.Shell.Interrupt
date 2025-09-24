@@ -27,8 +27,6 @@ export default function SPRVlanListFilter({
   initialFilters = [],
   onResetFilters,
 }: SPRVlanListFilterProps) {
-  const [shouldSyncWithInitial, setShouldSyncWithInitial] = useState(true);
-
   const getInitialNumber = (property: string, defaultValue: number): number => {
     const filter = initialFilters.find((f) => f.PropertyPath === property);
     return filter ? parseInt(filter.Value) || defaultValue : defaultValue;
@@ -54,8 +52,6 @@ export default function SPRVlanListFilter({
   );
 
   useEffect(() => {
-    if (!shouldSyncWithInitial) return;
-
     const currentVlanFilter = initialFilters.find(
       (f) => f.PropertyPath === "IdVlan"
     );
@@ -79,7 +75,7 @@ export default function SPRVlanListFilter({
     setUseCOD(
       currentUseCODFilter ? currentUseCODFilter.Value === "true" : false
     );
-  }, [initialFilters, shouldSyncWithInitial]);
+  }, [initialFilters]);
 
   const createFilter = (
     property: string,
@@ -102,12 +98,10 @@ export default function SPRVlanListFilter({
         ? [createFilter("IdClient", FilterOperator.Equals, idClient)]
         : []),
     ];
-    setShouldSyncWithInitial(false);
     onApplyFilters(filters);
   };
 
   const handleReset = () => {
-    setShouldSyncWithInitial(true);
     setIdVlan(0);
     setIdClient(0);
     setUseClient(true);
