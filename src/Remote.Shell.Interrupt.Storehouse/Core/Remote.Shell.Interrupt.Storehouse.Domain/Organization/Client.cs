@@ -46,12 +46,12 @@ public class Client : BaseEntity
   public string Name { get; set; } = string.Empty;
 
   /// <summary>
-  /// Gets or sets the comercial contact person.
+  /// Gets or sets the commercial contact person.
   /// </summary>
   public string? ContactC { get; set; } = string.Empty;
 
   /// <summary>
-  /// Gets or sets the telephone number for the comercial contact.
+  /// Gets or sets the telephone number for the commercial contact.
   /// </summary>
   public string? TelephoneC { get; set; } = string.Empty;
 
@@ -66,7 +66,7 @@ public class Client : BaseEntity
   public string? TelephoneT { get; set; } = string.Empty;
 
   /// <summary>
-  /// Gets or sets the email address for the comercial contact.
+  /// Gets or sets the email address for the commercial contact.
   /// </summary>
   public string? EmailC { get; set; } = string.Empty;
 

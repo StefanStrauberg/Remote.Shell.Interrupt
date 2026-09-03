@@ -31,8 +31,7 @@ public sealed class AssemblyMappingProfile : Profile
       var map = type.GetInterfaceMap(type.GetInterfaces()
                                          .FirstOrDefault()!);
       var interfaceMethod = map.TargetMethods
-                                .Where(x => x.Name.Contains("Mapping"))
-                                .FirstOrDefault();
+                               .FirstOrDefault(x => x.Name.Contains("Mapping"));
       interfaceMethod?.Invoke(instance, [this]);
     }
   }

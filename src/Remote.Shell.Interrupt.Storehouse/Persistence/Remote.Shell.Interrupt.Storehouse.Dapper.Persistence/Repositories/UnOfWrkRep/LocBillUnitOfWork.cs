@@ -89,7 +89,7 @@ internal class LocBillUnitOfWork(ApplicationDbContext applicationContext,
     {
       if (disposing)
       {
-        applicationContext.Dispose();
+        _transaction?.Dispose();
       }
 
       disposed = true;

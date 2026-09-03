@@ -25,16 +25,26 @@ public class TerminatedNetworkEntity : BaseEntity
   /// </summary>
   /// <param name="ipAddress">The IP address as a string.</param>
   /// <param name="netmask">The subnet mask as a string.</param>
+  /// <exception cref="ArgumentException">Thrown when the IP address or netmask format is invalid.</exception>
   public void SetAddressAndMask(string ipAddress, string netmask)
   {
-    NetworkAddress = ConvertToLong(IPAddress.Parse(ipAddress));
-    Netmask = ConvertToLong(IPAddress.Parse(netmask));
+    if (!IPAddress.TryParse(ipAddress, out var ip))
+      throw new ArgumentException($"Invalid IP address format: {ipAddress}", nameof(ipAddress));
+
+    if (!IPAddress.TryParse(netmask, out var mask))
+      throw new ArgumentException($"Invalid netmask format: {netmask}", nameof(netmask));
+
+    if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+      throw new ArgumentException("Only IPv4 addresses are supported.", nameof(ipAddress));
+
+    NetworkAddress = ConvertToLong(ip);
+    Netmask = ConvertToLong(mask);
   }
 
   /// <summary>
-  /// Converts an IP address to its long representation.
+  /// Converts an IPv4 address to its long representation.
   /// </summary>
-  /// <param name="ip">The IP address to convert.</param>
+  /// <param name="ip">The IPv4 address to convert.</param>
   /// <returns>The long integer representation of the IP address.</returns>
   static long ConvertToLong(IPAddress ip)
     => BitConverter.ToUInt32([.. ip.GetAddressBytes().Reverse()], 0);

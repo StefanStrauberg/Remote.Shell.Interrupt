@@ -7,12 +7,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Middleware;
 public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware> logger) : IMiddleware
 {
   /// <summary>
-  /// The logger instance used for error logging.
-  /// </summary>
-  readonly IAppLogger<ExceptionHandlingMiddleware> _logger = logger
-    ?? throw new ArgumentNullException(nameof(logger));
-
-  /// <summary>
   /// Invokes the next middleware component and handles exceptions globally.
   /// </summary>
   /// <param name="context">The HTTP context of the request.</param>
@@ -25,7 +19,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
     }
     catch (Exception e)
     {
-      _logger.LogError(e.ToString());
+      logger.LogError(e.ToString());
       await HandleExceptionAsync(context, e);
     }
   }

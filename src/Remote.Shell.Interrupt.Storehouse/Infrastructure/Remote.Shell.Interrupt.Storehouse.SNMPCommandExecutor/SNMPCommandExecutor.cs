@@ -16,13 +16,9 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
             if (response.Count > 0)
             {
-                var item = response.FirstOrDefault();
-
-                if (item is not null)
-                {
-                    result.OID = item.Id.ToString();
-                    result.Data = toHex ? ConvertSnmpDataToHex(item.Data) : item.Data.ToString();
-                }
+                var item = response[0];
+                result.OID = item.Id.ToString();
+                result.Data = toHex ? ConvertSnmpDataToHex(item.Data) : item.Data.ToString();
             }
         }
         catch (OperationCanceledException)
@@ -64,7 +60,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                 if (responseVariables.Count is 0)
                     break;
 
-                bool foundBaseOid = false;
+                Variable? lastMatchingVariable = null;
 
                 foreach (var item in response.Pdu().Variables)
                 {
@@ -79,28 +75,27 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                             Data = toHex ? ConvertSnmpDataToHex(data) : data.ToString()
                         });
 
-                        foundBaseOid = true;
+                        lastMatchingVariable = item;
                     }
                     else
                     {
-                        foundBaseOid = false;
                         break;
                     }
                 }
 
-                if (!foundBaseOid)
+                if (lastMatchingVariable is null)
                     break;
 
-                currentOid = responseVariables.Last().Id;
+                currentOid = lastMatchingVariable.Id;
             }
         }
         catch (OperationCanceledException)
         {
-            throw new SNMPBadRequestException("The SNMP Get operation was canceled.");
+            throw new SNMPBadRequestException("The SNMP Walk operation was canceled.");
         }
         catch (Exception ex)
         {
-            throw new SNMPBadRequestException($"Error during SNMP Get: {ex.Message}", ex);
+            throw new SNMPBadRequestException($"Error during SNMP Walk: {ex.Message}", ex);
         }
         return result;
     }

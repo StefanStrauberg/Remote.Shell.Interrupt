@@ -26,14 +26,14 @@ internal class GetGateByIdQueryHandler(IGateUnitOfWork gateUnitOfWork,
   /// </summary>
   /// <param name="specification">The specification defining the gate lookup criteria.</param>
   /// <param name="cancellationToken">Token used to signal cancellation.</param>
-  /// <exception cref="EntityAlreadyExists">Thrown when no gate is found matching the specification.</exception>
+  /// <exception cref="EntityNotFoundException">Thrown when no gate is found matching the specification.</exception>
   protected override async Task EnsureEntityExistAsync(ISpecification<Gate> specification,
                                                        CancellationToken cancellationToken)
   {
     bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
 
     if (exists is not true)
-      throw new EntityAlreadyExists(typeof(Gate), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(Gate), specification.ToString() ?? string.Empty);
   }
 
   /// <summary>

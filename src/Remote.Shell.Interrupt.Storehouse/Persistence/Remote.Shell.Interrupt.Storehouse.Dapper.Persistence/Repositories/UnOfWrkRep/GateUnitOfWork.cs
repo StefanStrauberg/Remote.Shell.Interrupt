@@ -61,7 +61,7 @@ internal class GateUnitOfWork(ApplicationDbContext applicationContext,
     {
       if (disposing)
       {
-        applicationContext.Dispose();
+        _transaction?.Dispose();
       }
 
       disposed = true;

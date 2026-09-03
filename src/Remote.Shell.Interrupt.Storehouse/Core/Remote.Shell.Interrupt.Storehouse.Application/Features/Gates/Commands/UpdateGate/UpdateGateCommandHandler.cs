@@ -1,10 +1,10 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.UpdateGate;
 
 
-public record UpdateGateCommand(UpdateGateDTO UpdateGateDTO) 
+public record UpdateGateCommand(UpdateGateDTO UpdateGateDTO)
   : UpdateEntityCommand<Gate, UpdateGateDTO>(UpdateGateDTO.Id, UpdateGateDTO);
 
-internal class UpdateGateGommandHandler(IGateUnitOfWork gateUnitOfWork,
+internal class UpdateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
                                         IGateSpecification specification,
                                         IQueryFilterParser queryFilterParser,
                                         IMapper mapper)

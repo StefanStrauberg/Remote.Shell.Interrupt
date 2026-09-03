@@ -89,7 +89,7 @@ public class ClientsController(ISender sender) : BaseAPIController(sender)
   /// </returns>
   [HttpGet("{vlanTag}")]
   [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status404NotFound)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetClientsByVlanTag(int vlanTag, CancellationToken cancellationToken)
     => Ok(await Sender.Send(new GetClientsByVlanTagQuery(vlanTag), cancellationToken));
 

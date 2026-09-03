@@ -32,11 +32,11 @@ internal class RemBillUnitOfWork(MySQLDapperContext context,
   {
     if (!disposed)
     {
-      if (disposing)
-        ((IDisposable)context).Dispose();
-
-      disposed = true;
+      // MySQLDapperContext is DI-scoped; do not dispose it here.
+      // The DI container manages its lifecycle.
     }
+
+    disposed = true;
   }
 
   ~RemBillUnitOfWork()

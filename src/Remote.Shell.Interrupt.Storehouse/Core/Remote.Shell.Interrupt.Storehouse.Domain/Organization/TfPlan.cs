@@ -18,5 +18,5 @@ public class TfPlan : BaseEntity
   /// <summary>
   /// Gets or sets the description of the traffic plan.
   /// </summary>
-  public string? DescTfPlan { get; set; } = string.Empty;
+  public string DescTfPlan { get; set; } = string.Empty;
 }

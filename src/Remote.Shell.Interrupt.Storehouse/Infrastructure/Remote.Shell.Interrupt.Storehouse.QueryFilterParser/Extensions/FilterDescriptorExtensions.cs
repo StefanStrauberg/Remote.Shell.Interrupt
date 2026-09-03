@@ -150,7 +150,7 @@ internal static class FilterDescriptorExtensions
     {
       FilterOperator.Equals => Expression.Equal(property, constant),
       FilterOperator.NotEquals => Expression.NotEqual(property, constant),
-      FilterOperator.GraterThan => Expression.GreaterThan(property, constant),
+      FilterOperator.GreaterThan => Expression.GreaterThan(property, constant),
       FilterOperator.LessThan => Expression.LessThan(property, constant),
       FilterOperator.Contains => Expression.Call(property, GetMethodInfoOfContainsMethod(), constant),
       FilterOperator.Word => Expression.Call(null, GetMethodInfoOfContainsWholeWordMethod(), property, constant),

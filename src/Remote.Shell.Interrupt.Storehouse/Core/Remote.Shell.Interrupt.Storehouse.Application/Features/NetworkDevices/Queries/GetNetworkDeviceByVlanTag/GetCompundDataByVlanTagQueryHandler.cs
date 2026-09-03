@@ -1,15 +1,15 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceByVlanTag;
 
-public record GetCompundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
+public record GetCompoundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
 
-internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
+internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
                                                    INetworkDeviceSpecification netDevSpec,
                                                    IQueryFilterParser parser,
                                                    IMapper mapper,
                                                    IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> clientsHandler)
-  : IQueryHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>
+  : IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>
 {
-  async Task<CompoundObjectDTO> IRequestHandler<GetCompundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompundDataByVlanTagQuery request,
+  async Task<CompoundObjectDTO> IRequestHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompoundDataByVlanTagQuery request,
                                                                                                         CancellationToken cancellationToken)
   {
     ValidateRequest(request);
@@ -28,7 +28,7 @@ internal class GetCompundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
     return BuildResult(clients, networkDevices);
   }
 
-  static void ValidateRequest(GetCompundDataByVlanTagQuery request)
+  static void ValidateRequest(GetCompoundDataByVlanTagQuery request)
   {
     if (request.VlanTag <= 0)
       throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));

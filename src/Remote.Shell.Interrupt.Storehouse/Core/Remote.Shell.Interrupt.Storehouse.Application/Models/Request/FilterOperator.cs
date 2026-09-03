@@ -18,7 +18,7 @@ public enum FilterOperator
   /// <summary>
   /// Checks if the value is greater than the comparison value.
   /// </summary>
-  GraterThan,
+  GreaterThan,
 
   /// <summary>
   /// Checks if the value is less than the comparison value.

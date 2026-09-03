@@ -19,24 +19,29 @@ public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRe
   public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
   {
     var requestName = typeof(TRequest).Name;
-    logger.LogInformation($"[START] Handling request: {requestName} with data: {request}");
+    logger.LogInformation("[START] Handling request: {RequestName} with data: {Request}", requestName, request);
 
     var stopwatch = Stopwatch.StartNew();
-    
+
     try
     {
       var response = await next();
-      return response;
-    }
-    finally
-    {
       stopwatch.Stop();
       var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
 
       if (elapsedSeconds > 3)
-        logger.LogWarning($"[PERFORMANCE] Request {requestName} took {elapsedSeconds:F2} seconds");
+        logger.LogWarning("[PERFORMANCE] Request {RequestName} took {ElapsedSeconds:F2} seconds", requestName, elapsedSeconds);
       else
-        logger.LogInformation($"[END] Finished handling request: {requestName} in {elapsedSeconds:F2} seconds");
+        logger.LogInformation("[END] Finished handling request: {RequestName} in {ElapsedSeconds:F2} seconds", requestName, elapsedSeconds);
+
+      return response;
+    }
+    catch (Exception ex)
+    {
+      stopwatch.Stop();
+      var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+      logger.LogError("[ERROR] Request {RequestName} failed after {ElapsedSeconds:F2} seconds: {ErrorMessage}", requestName, elapsedSeconds, ex.Message);
+      throw;
     }
   }
 }

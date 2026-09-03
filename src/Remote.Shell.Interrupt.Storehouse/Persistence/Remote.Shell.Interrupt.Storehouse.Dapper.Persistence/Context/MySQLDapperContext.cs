@@ -2,8 +2,8 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Context;
 
 internal class MySQLDapperContext(IConfiguration configuration) : IDisposable
 {
-  readonly string _connectionString = configuration.GetConnectionString("DefaultConnection2")!
-    ?? throw new ArgumentException(nameof(configuration));
+  readonly string _connectionString = configuration.GetConnectionString("DefaultConnection2")
+    ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection2' in configuration.");
   MySqlConnection? _dbConnection;
 
   public async Task<MySqlConnection> CreateConnectionAsync(CancellationToken cancellationToken)
@@ -16,7 +16,7 @@ internal class MySQLDapperContext(IConfiguration configuration) : IDisposable
     }
     else if (_dbConnection.State is not ConnectionState.Open)
     {
-      _dbConnection.Open();
+      await _dbConnection.OpenAsync(cancellationToken);
       return _dbConnection;
     }
     return _dbConnection;

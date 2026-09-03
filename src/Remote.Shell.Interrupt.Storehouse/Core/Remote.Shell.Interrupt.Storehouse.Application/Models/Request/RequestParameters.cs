@@ -81,7 +81,8 @@ public class RequestParameters
   /// Validates and normalizes the page number.
   /// </summary>
   /// <param name="value">The page number to validate.</param>
-  /// <returns>Normalized page number, defaulting to 1 if null.</returns>
+  /// <returns>The validated page number.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is null or less than 1.</exception>
   static int? ValidatePageNumber(int? value)
   {
     if (value < 1)
@@ -94,7 +95,8 @@ public class RequestParameters
   /// Validates and normalizes the page size.
   /// </summary>
   /// <param name="value">The page size to validate.</param>
-  /// <returns>Capped page size, defaulting to <c>MaxPageSize</c> if null.</returns>
+  /// <returns>The validated page size, capped at <c>MaxPageSize</c>.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is null or less than 1.</exception>
   static int? ValidatePageSize(int? value)
   {
     if (value < 1)

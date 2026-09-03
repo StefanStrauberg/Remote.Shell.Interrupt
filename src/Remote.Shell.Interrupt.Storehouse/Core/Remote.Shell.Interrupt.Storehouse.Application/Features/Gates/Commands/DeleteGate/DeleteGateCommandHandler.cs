@@ -19,11 +19,11 @@ internal class DeleteGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
 {
   /// <summary>
   /// Verifies that a gate entity matching the specification exists.
-  /// Throws <see cref="EntityAlreadyExists"/> if no match is found.
+  /// Throws <see cref="EntityNotFoundException"/> if no match is found.
   /// </summary>
   /// <param name="specification">Specification used to locate the gate.</param>
   /// <param name="cancellationToken">Token for cancelling the operation.</param>
-  /// <exception cref="EntityAlreadyExists">
+  /// <exception cref="EntityNotFoundException">
   /// Thrown when no gate matches the provided specification.
   /// </exception>
   protected override async Task EnsureEntityExistAsync(ISpecification<Gate> specification,

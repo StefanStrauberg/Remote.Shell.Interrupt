@@ -13,7 +13,7 @@ public static class ServiceRegistration
   {
     // Logging
     builder.Services.AddLoggerServices();
-    builder.Services.AddSingleton(sp => new LoggerFactory().AddSerilog(Log.Logger));
+    builder.Logging.AddSerilog(Log.Logger);
 
     // Application Layers
     builder.Services.AddApplicationServices();

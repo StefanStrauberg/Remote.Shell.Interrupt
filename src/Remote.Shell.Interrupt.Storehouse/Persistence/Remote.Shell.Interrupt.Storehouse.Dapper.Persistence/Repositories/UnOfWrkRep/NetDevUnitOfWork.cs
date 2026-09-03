@@ -77,7 +77,7 @@ internal class NetDevUnitOfWork(ApplicationDbContext applicationContext,
     if (!disposed)
     {
       if (disposing)
-        applicationContext.Dispose();
+        _transaction?.Dispose();
 
       disposed = true;
     }

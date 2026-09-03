@@ -19,11 +19,8 @@ internal class AppLogger<T>(ILoggerFactory loggerFactory)
   /// <param name="args">Optional arguments for message formatting.</param>
   void IAppLogger<T>.LogInformation(string message, params object[] args)
   {
-    if (args.Length == 0)
-        _logger.LogInformation("Message: {Message}", message);
-    else
-        _logger.LogInformation("Message: {Message}\nArgs: {Args}", message, args);
-  }  
+    _logger.LogInformation(message, args);
+  }
   /// <summary>
   /// Logs a warning message.
   /// </summary>
@@ -31,11 +28,8 @@ internal class AppLogger<T>(ILoggerFactory loggerFactory)
   /// <param name="args">Optional arguments for message formatting.</param>
   void IAppLogger<T>.LogWarning(string message, params object[] args)
   {
-    if (args.Length == 0)
-        _logger.LogWarning("Message: {Message}", message);
-    else
-        _logger.LogWarning("Message: {Message}\nArgs: {Args}", message, args);
-  }  
+    _logger.LogWarning(message, args);
+  }
   /// <summary>
   /// Logs an error message.
   /// </summary>
@@ -43,10 +37,7 @@ internal class AppLogger<T>(ILoggerFactory loggerFactory)
   /// <param name="args">Optional arguments for message formatting.</param>
   void IAppLogger<T>.LogError(string message, params object[] args)
   {
-    if (args.Length == 0)
-      _logger.LogError("Message: {Message}", message);
-    else
-      _logger.LogError("Message: {Message}\nArgs: {Args}", message, args);
+    _logger.LogError(message, args);
   }
 }
 
@@ -70,12 +61,8 @@ internal class AppLogger(ILoggerFactory loggerFactory)
   public void LogInformation(string className, string message, params object[] args)
   {
     var logger = _loggerFactory.CreateLogger(className);
-  
-    if (args.Length == 0)
-      logger.LogInformation("Message: {Message}", message);
-    else
-      logger.LogInformation("Message: {Message}\nArgs: {Args}", message, args);
-  }    
+    logger.LogInformation(message, args);
+  }
   /// <summary>
   /// Logs a warning message.
   /// </summary>
@@ -84,12 +71,8 @@ internal class AppLogger(ILoggerFactory loggerFactory)
   /// <param name="args">The arguments to be formatted into the message.</param>
   public void LogWarning(string className, string message, params object[] args)
   {
-    var logger = _loggerFactory.CreateLogger(className); 
-
-    if (args.Length == 0)
-      logger.LogWarning("Message: {Message}", message);
-    else
-      logger.LogWarning("Message: {Message}\nArgs: {Args}", message, args);
+    var logger = _loggerFactory.CreateLogger(className);
+    logger.LogWarning(message, args);
   }
 
   /// <summary>
@@ -101,10 +84,6 @@ internal class AppLogger(ILoggerFactory loggerFactory)
   public void LogError(string className, string message, params object[] args)
   {
     var logger = _loggerFactory.CreateLogger(className);
-
-    if (args.Length == 0)
-      logger.LogError("Message: {Message}", message);
-    else
-      logger.LogError("Message: {Message}\nArgs: {Args}", message, args);
+    logger.LogError(message, args);
   }
 }
