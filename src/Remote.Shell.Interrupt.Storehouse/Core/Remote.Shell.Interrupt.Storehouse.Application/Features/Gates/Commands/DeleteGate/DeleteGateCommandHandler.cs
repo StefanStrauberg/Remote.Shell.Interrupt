@@ -32,7 +32,7 @@ internal class DeleteGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
     bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
 
     if (exists is not true)
-      throw new EntityNotFoundException(typeof(Gate), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(Gate), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

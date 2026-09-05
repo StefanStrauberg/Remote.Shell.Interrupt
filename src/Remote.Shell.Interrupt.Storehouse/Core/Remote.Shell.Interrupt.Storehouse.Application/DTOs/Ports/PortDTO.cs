@@ -50,8 +50,8 @@ public class PortDTO : IMapWith<Port>
                       opt => opt.MapFrom(src => src.VLANs))
            .ForMember(dest => dest.ARPTableOfPort,
                       opt => opt.MapFrom(src => src.ARPTableOfInterface
-                                                   .GroupBy(arp => arp.MAC) // Группируем по MAC-адресу
-                                                   .ToDictionary(grp => grp.Key, // MAC-адрес как ключ
+                                                   .GroupBy(arp => arp.MAC) // Group by MAC address
+                                                   .ToDictionary(grp => grp.Key, // MAC address as the key
                                                                  grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
                                                    )))
            .ForMember(dest => dest.NetworkTableOfPort,

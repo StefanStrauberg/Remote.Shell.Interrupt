@@ -40,7 +40,7 @@ public class GatesController(ISender sender) : BaseAPIController(sender)
   /// <returns>
   /// A <see cref="GateDTO"/> object if found, or <see cref="ApiErrorResponse"/> with status <c>404</c> if not.
   /// </returns>
-  [HttpGet("{id}")]
+  [HttpGet("{id:guid}")]
   [ProducesResponseType(typeof(GateDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetGateById(Guid id, CancellationToken cancellationToken)
@@ -61,16 +61,16 @@ public class GatesController(ISender sender) : BaseAPIController(sender)
   /// <summary>
   /// Deletes a gate entity by its unique identifier.
   /// </summary>
-  /// <param name="Id">The ID of the gate to delete.</param>
+  /// <param name="id">The ID of the gate to delete.</param>
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
   /// <returns>
   /// <see cref="StatusCodes.Status200OK"/> on successful deletion, or <see cref="ApiErrorResponse"/> with status <c>404</c> if not found.
   /// </returns>
-  [HttpDelete("{Id}")]
+  [HttpDelete("{id:guid}")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> DeleteGateById(Guid Id, CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new DeleteGateCommand(Id), cancellationToken));
+  public async Task<IActionResult> DeleteGateById(Guid id, CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new DeleteGateCommand(id), cancellationToken));
 
   /// <summary>
   /// Updates an existing gate entity using the provided data.

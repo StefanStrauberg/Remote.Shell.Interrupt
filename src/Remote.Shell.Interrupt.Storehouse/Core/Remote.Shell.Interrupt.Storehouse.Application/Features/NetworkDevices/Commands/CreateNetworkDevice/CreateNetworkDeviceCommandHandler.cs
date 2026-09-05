@@ -53,10 +53,13 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
   async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
+    if (!Enum.TryParse<TypeOfNetworkDevice>(request.TypeOfNetworkDevice, ignoreCase: true, out var deviceType))
+      throw new BadRequestException($"Unknown network device type '{request.TypeOfNetworkDevice}'. Supported types: {string.Join(", ", Enum.GetNames<TypeOfNetworkDevice>())}.");
+
     var networkDevice = new NetworkDevice
     {
       Id = Guid.NewGuid(),
-      TypeOfNetworkDevice = Enum.Parse<TypeOfNetworkDevice>(request.TypeOfNetworkDevice),
+      TypeOfNetworkDevice = deviceType,
       Host = ConvertStringIPAddressToLong.Handle(request.Host)
     };
 
@@ -506,7 +509,7 @@ internal class CreateNetworkDeviceCommandHandler(ISNMPCommandExecutor snmpComman
       throw new InvalidOperationException("One or more SNMP requests returned empty results for VLAN data.");
 
     if (basePorts.Count != portIfIndexes.Count)
-      throw new InvalidOperationException($"SNMP responses count mismatch: dot1dBasePortIfIndex({basePorts.Count}) != dot1dBasePortIfIndex({portIfIndexes.Count})");
+      throw new InvalidOperationException($"SNMP responses count mismatch: dot1dBasePort({basePorts.Count}) != dot1dBasePortIfIndex({portIfIndexes.Count})");
 
     if (vlanNames.Count != vlanEgressPorts.Count)
       throw new InvalidOperationException($"SNMP responses count mismatch: dot1qVlanStaticName({vlanNames.Count}) != dot1qVlanStaticEgressPorts({vlanEgressPorts.Count})");

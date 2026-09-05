@@ -14,7 +14,7 @@ public class SNMPExecutorController(ISender sender) : BaseAPIController(sender)
     /// A result containing the SNMP response payload. 
     /// Returns <c>200 OK</c> with a <see cref="SNMPResponse"/> on success, or <c>404 Not Found</c> if the device or OID is unreachable.
     /// </returns>
-    [HttpGet]
+    [HttpPost]
     [ProducesResponseType(typeof(SNMPResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get([FromBody] SNMPGetCommand snmpGetCommand,
@@ -30,7 +30,7 @@ public class SNMPExecutorController(ISender sender) : BaseAPIController(sender)
     /// A result containing a sequence of <see cref="SNMPResponse"/> objects. 
     /// Returns <c>200 OK</c> on success, or <c>404 Not Found</c> if the device or root OID cannot be resolved.
     /// </returns>
-    [HttpGet]
+    [HttpPost]
     [ProducesResponseType(typeof(IEnumerable<SNMPResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Walk([FromBody] SNMPWalkCommand snmpWalkCommand,

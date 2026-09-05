@@ -7,15 +7,15 @@ public class DetailClientDTO : BaseClientDTO, IMapWith<Client>
   public DateTime? Dat2 { get; set; }
   public string Prim1 { get; set; } = string.Empty;
   public string Prim2 { get; set; } = string.Empty;
-  public string Nik { get; set; } =string.Empty;
+  public string Nik { get; set; } = string.Empty;
   public string ContactC { get; set; } = string.Empty;
   public string TelephoneC { get; set; } = string.Empty;
   public string EmailC { get; set; } = string.Empty;
   public string History { get; set; } = string.Empty;
   public int Id_COD { get; set; }
   public CODDTO COD { get; set; } = null!;
-  public int? Id_TPlan { get; set; } = null!;
-  public TfPlanDTO? TfPlan { get; set; } = null!;
+  public int? Id_TPlan { get; set; }
+  public TfPlanDTO? TfPlan { get; set; }
   public List<SPRVlanDTO> SPRVlans { get; set; } = [];
 
   void IMapWith<Client>.Mapping(Profile profile)

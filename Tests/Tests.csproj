@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="FluentAssertions" Version="8.6.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -22,12 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Domain\Remote.Shell.Interrupt.Storehouse.Domain.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Core\Remote.Shell.Interrupt.Storehouse.Application\Remote.Shell.Interrupt.Storehouse.Application.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.QueryFilterParser\Remote.Shell.Interrupt.Storehouse.QueryFilterParser.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.Specification\Remote.Shell.Interrupt.Storehouse.Specification.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.AppLogger\Remote.Shell.Interrupt.Storehouse.AppLogger.csproj" />
+    <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.csproj" />
+    <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Remote.Shell.Interrupt.Storehouse.API\Remote.Shell.Interrupt.Storehouse.API.csproj" />
   </ItemGroup>
 
 </Project>

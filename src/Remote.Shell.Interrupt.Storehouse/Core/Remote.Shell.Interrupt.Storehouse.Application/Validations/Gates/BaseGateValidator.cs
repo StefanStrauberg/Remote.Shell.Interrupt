@@ -16,7 +16,9 @@ public class BaseGateValidator<T, TDto> : AbstractValidator<T> where TDto : Base
         RuleFor(x => selector(x).TypeOfNetworkDevice).NotNull()
                                 .WithMessage("{PropertyName} can't be null")
                                 .NotEmpty()
-                                .WithMessage("{PropertyName} is required");
+                                .WithMessage("{PropertyName} is required")
+                                .Must(deviceType => Enum.TryParse<TypeOfNetworkDevice>(deviceType, ignoreCase: true, out _))
+                                .WithMessage("{PropertyName} must be a valid network device type");
 
         _selector = selector;
     }

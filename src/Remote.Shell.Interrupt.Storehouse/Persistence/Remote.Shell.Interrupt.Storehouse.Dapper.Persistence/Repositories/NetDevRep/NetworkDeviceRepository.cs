@@ -8,7 +8,7 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                                        IReadRepository<NetworkDevice> readRepository)
   : INetworkDeviceRepository
 {
-  void INetworkDeviceRepository.DeleteOneWithChilren(NetworkDevice networkDeviceToDelete)
+  void INetworkDeviceRepository.DeleteOneWithChildren(NetworkDevice networkDeviceToDelete)
   {
     // Load Ports with children
     var ports = context.Ports.Include(p => p.ARPTableOfInterface)

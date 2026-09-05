@@ -16,5 +16,5 @@ public interface INetworkDeviceRepository
   /// Deletes a single NetworkDevice entity along with its associated child entities.
   /// </summary>
   /// <param name="networkDeviceToDelete">The NetworkDevice entity to be deleted, including its related children.</param>
-  void DeleteOneWithChilren(NetworkDevice networkDeviceToDelete);
+  void DeleteOneWithChildren(NetworkDevice networkDeviceToDelete);
 }

@@ -23,7 +23,7 @@ internal class DeleteNetworkDeviceByIdCommandHandler(INetDevUnitOfWork netDevUni
   /// <param name="entity">The network device to delete.</param>
   protected override void DeleteEntity(NetworkDevice entity)
   {
-    netDevUnitOfWork.NetworkDevices.DeleteOneWithChilren(entity);
+    netDevUnitOfWork.NetworkDevices.DeleteOneWithChildren(entity);
     netDevUnitOfWork.Complete();
   }
 
@@ -41,7 +41,7 @@ internal class DeleteNetworkDeviceByIdCommandHandler(INetDevUnitOfWork netDevUni
     bool exists = await netDevUnitOfWork.NetworkDevices.AnyByQueryAsync(specification, cancellationToken);
 
     if (exists is not true)
-      throw new EntityNotFoundException(typeof(NetworkDevice), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(NetworkDevice), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

@@ -22,5 +22,5 @@ public class RemoteClient
   public int Id_COD { get; set; }
   public RemoteCOD COD { get; set; } = null!;
   public int? Id_TfPlan { get; set; }
-  public RemoteTfPlan? TfPlan { get; set; } = null!;
+  public RemoteTfPlan? TfPlan { get; set; }
 }

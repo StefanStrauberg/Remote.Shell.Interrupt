@@ -77,7 +77,11 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   {
     foreach (var port in networkDevice.PortsOfNetworkDevice.Where(x => x.ParentId is not null))
     {
-      var parentPort = networkDevice.PortsOfNetworkDevice.First(x => x.Id == port.ParentId);
+      var parentPort = networkDevice.PortsOfNetworkDevice.FirstOrDefault(x => x.Id == port.ParentId);
+
+      if (parentPort is null)
+        continue;
+
       parentPort.AggregatedPorts.Add(port);
       aggregatedPortsIds.Add(port.Id);
     }
@@ -121,7 +125,7 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
     var exists = await netDevUnitOfWork.NetworkDevices.AnyByQueryAsync(specification, cancellationToken);
 
     if (!exists)
-      throw new EntityNotFoundException(typeof(NetworkDevice), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(NetworkDevice), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

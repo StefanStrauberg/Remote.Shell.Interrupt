@@ -56,7 +56,7 @@ internal class GetClientWithChildrenByFilterHandler(ILocBillUnitOfWork locBillUn
     var existing = await locBillUnitOfWork.Clients.AnyByQueryAsync(specification, cancellationToken);
 
     if (existing is not true)
-      throw new EntityNotFoundException(typeof(Client), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(Client), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

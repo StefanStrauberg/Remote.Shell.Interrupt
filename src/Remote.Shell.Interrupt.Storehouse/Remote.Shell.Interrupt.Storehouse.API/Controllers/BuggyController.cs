@@ -37,5 +37,5 @@ public class BuggyController(ISender sender) : BaseAPIController(sender)
     /// <returns><see cref="UnauthorizedResult"/> with a test payload.</returns>
     [HttpGet]
     public IActionResult GetUnauthorized()
-        => Unauthorized(new ApiErrorResponse(401, "Unauthorized", "Testing  an unauthorized error", null));
+        => Unauthorized(new ApiErrorResponse(401, "Unauthorized", "Testing an unauthorized error", null));
 }

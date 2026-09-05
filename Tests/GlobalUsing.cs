@@ -30,3 +30,10 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 
 // Infrastructure - Specification (InternalsVisibleTo)
 global using Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.RemBillRep;

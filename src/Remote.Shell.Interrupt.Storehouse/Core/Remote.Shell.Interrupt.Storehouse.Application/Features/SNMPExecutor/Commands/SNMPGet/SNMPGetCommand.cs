@@ -8,7 +8,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Co
 /// <param name="OID">The object identifier (OID) specifying the data to retrieve.</param>
 public record SNMPGetCommand(string Host,
                              string Community,
-                             string OID) : IRequest<SNMPResponse>;
+                             string OID) : ICommand<SNMPResponse>;
 
 /// <summary>
 /// Handles the SNMPGetCommand and executes the SNMP GET operation.

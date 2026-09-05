@@ -32,14 +32,14 @@ internal class MySQLDapperContext(IConfiguration configuration) : IDisposable
   {
     if (disposing)
     {
-      // Освобождаем управляемые ресурсы
+      // Release managed resources
       if (_dbConnection is not null)
       {
         if (_dbConnection.State == ConnectionState.Open)
-          _dbConnection.Close(); // Закрываем соединение, если оно открыто
+          _dbConnection.Close(); // Close the connection if it is open
 
-        _dbConnection.Dispose(); // Освобождаем ресурсы соединения
-        _dbConnection = null; // Убираем ссылку на соединение
+        _dbConnection.Dispose(); // Release the connection resources
+        _dbConnection = null; // Drop the connection reference
       }
     }
   }

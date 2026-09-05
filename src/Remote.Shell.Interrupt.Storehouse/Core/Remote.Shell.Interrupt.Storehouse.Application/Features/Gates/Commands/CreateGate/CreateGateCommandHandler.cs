@@ -47,7 +47,7 @@ internal class CreateGateCommandHandler(IGateUnitOfWork gateUnitOfWork,
     bool exists = await gateUnitOfWork.Gates.AnyByQueryAsync(specification, cancellationToken);
 
     if (exists is true)
-      throw new EntityAlreadyExists(typeof(Gate), specification.ToString() ?? string.Empty);
+      throw new EntityAlreadyExists(typeof(Gate), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

@@ -55,7 +55,7 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
     bool exists = await locBillUnitOfWork.Clients.AnyByQueryAsync(specification, cancellationToken);
 
     if (exists is not true)
-      throw new EntityNotFoundException(typeof(Client), specification.ToString() ?? string.Empty);
+      throw new EntityNotFoundException(typeof(Client), specification.Criterias?.ToString() ?? nameof(BaseEntity.Id));
   }
 
   /// <summary>

@@ -34,9 +34,10 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   public virtual async Task<PagedList<TDto>> Handle(TQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Parameters);
+    var isPaginated = request.Parameters.IsPaginated;
     var pagination = BuildPagination(request.Parameters);
 
-    if (request.Parameters.IsPaginated)
+    if (isPaginated)
       specification.ConfigurePagination(pagination);
 
     var entities = await FetchEntitiesAsync(specification, cancellationToken);
@@ -44,7 +45,19 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
     if (IsEmptyResult(entities))
       return PagedList<TDto>.Empty();
 
-    var totalCount = await CountResultsAsync(specification, cancellationToken);
+    int totalCount;
+    if (isPaginated)
+    {
+      totalCount = await CountResultsAsync(specification, cancellationToken);
+    }
+    else
+    {
+      // Without pagination the fetch already returned every matching entity,
+      // so a separate COUNT query is unnecessary; report it as a single page.
+      totalCount = entities.Count();
+      pagination = new PaginationContext(1, Math.Max(totalCount, 1));
+    }
+
     var dtos = MapToDtos(entities);
 
     return PagedList<TDto>.Create(dtos, totalCount, pagination);

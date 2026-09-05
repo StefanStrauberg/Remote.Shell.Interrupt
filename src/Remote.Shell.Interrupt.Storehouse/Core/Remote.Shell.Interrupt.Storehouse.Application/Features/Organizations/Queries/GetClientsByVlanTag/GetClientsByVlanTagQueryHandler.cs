@@ -23,7 +23,7 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
   static void ValidateRequest(GetClientsByVlanTagQuery request)
   {
     if (request.VlanTag <= 0)
-      throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
+      throw new BadRequestException("VlanTag must be greater than 0.");
   }
 
   async Task<IEnumerable<SPRVlanDTO>> FetchVlans(GetClientsByVlanTagQuery request, 
@@ -61,7 +61,10 @@ internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
   public static ISpecification<Client> BuildSpecification(IClientSpecification baseSpec,
                                                           Expression<Func<Client, bool>>? filterExpr)
   {
-    var spec = baseSpec.AddInclude(c => c.COD)
+    // Clone first: the injected specification is shared, and mutating it directly
+    // would accumulate includes and filters across calls.
+    var spec = baseSpec.Clone()
+                       .AddInclude(c => c.COD)
                        .AddInclude(c => c.TfPlan!)
                        .AddInclude(c => c.SPRVlans);
 

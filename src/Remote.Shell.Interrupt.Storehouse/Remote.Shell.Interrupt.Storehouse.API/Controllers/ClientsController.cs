@@ -72,22 +72,22 @@ public class ClientsController(ISender sender) : BaseAPIController(sender)
   /// An <see cref="IActionResult"/> containing a <see cref="DetailClientDTO"/> if found,
   /// or an <see cref="ApiErrorResponse"/> with status <c>404</c> if not.
   /// </returns>
-  [HttpGet("{id}")]
+  [HttpGet("{id:guid}")]
   [ProducesResponseType(typeof(DetailClientDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetClientById(Guid id, CancellationToken cancellationToken)
     => Ok(await Sender.Send(new GetClientByIdQuery(id), cancellationToken));
 
   /// <summary>
-  /// Retrieves a list of client by VLAN ID.
+  /// Retrieves clients by VLAN ID.
   /// </summary>
   /// <param name="vlanTag">The VLAN ID.</param>
   /// <param name="cancellationToken">Token for request cancellation.</param>
   /// <returns>
-  /// An <see cref="IActionResult"/> containing a <see cref="IEnumerable<DetailClientDTO>"/> if found,
+  /// An <see cref="IActionResult"/> containing a <see cref="IEnumerable{DetailClientDTO}"/> if found,
   /// or an <see cref="ApiErrorResponse"/> with status <c>404</c> if not.
   /// </returns>
-  [HttpGet("{vlanTag}")]
+  [HttpGet("{vlanTag:int}")]
   [ProducesResponseType(typeof(IEnumerable<DetailClientDTO>), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetClientsByVlanTag(int vlanTag, CancellationToken cancellationToken)

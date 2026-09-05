@@ -31,7 +31,7 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
   static void ValidateRequest(GetCompoundDataByVlanTagQuery request)
   {
     if (request.VlanTag <= 0)
-      throw new ArgumentException("Invalid VLAN Tag.", nameof(request.VlanTag));
+      throw new BadRequestException("VlanTag must be greater than 0.");
   }
 
   async Task<IEnumerable<DetailClientDTO>> FetchClients(int vlanTag, CancellationToken cancellationToken)
@@ -60,7 +60,8 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
                                                           Expression<Func<NetworkDevice, bool>>? filterExpr,
                                                           IEnumerable<int>? vlanTags = null)
   {
-    var spec = baseSpec;
+    // Clone first: the injected specification is shared and must not be mutated.
+    var spec = baseSpec.Clone();
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
@@ -69,7 +70,7 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
     spec.AddThenInclude<Port, IEnumerable<VLAN>>(port => port.VLANs);
 
     if (vlanTags is not null && vlanTags.Any())
-      spec.AddFilter(x => x.PortsOfNetworkDevice.Any(x => x.VLANs.Any(x => vlanTags.Contains(x.VLANTag))));
+      spec.AddFilter(device => device.PortsOfNetworkDevice.Any(port => port.VLANs.Any(vlan => vlanTags.Contains(vlan.VLANTag))));
 
     return spec;
   }
@@ -80,19 +81,19 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
     {
       var allPorts = device.PortsOfNetworkDevice;
 
-      // Выбираем родительские порты (без ParentId)
+      // Select the parent ports (those without a ParentId)
       var parentPorts = allPorts.Where(p => p.ParentId is null)
                                 .ToList();
 
       if (parentPorts.Count == 0)
         continue;
 
-      // Группируем дочерние порты по ParentId
+      // Group the child ports by ParentId
       var childrenByParent = allPorts.Where(p => p.ParentId.HasValue)
                                      .GroupBy(p => p.ParentId!.Value)
                                      .ToDictionary(g => g.Key, g => g.ToList());
 
-      // Назначаем дочерние порты каждому родителю
+      // Assign the child ports to each parent
       foreach (var parent in parentPorts)
         parent.AggregatedPorts = childrenByParent.TryGetValue(parent.Id, out var aggregated) ? aggregated : [];
     }
@@ -102,14 +103,14 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
   {
     foreach (var device in networkDevices)
     {
-      // Собираем все Id агрегированных портов
+      // Collect the IDs of all aggregated ports
       var aggregatedIds = device.PortsOfNetworkDevice.Where(p => p.AggregatedPorts is not null &&
                                                                  p.AggregatedPorts.Count > 0)
                                                      .SelectMany(p => p.AggregatedPorts)
                                                      .Select(p => p.Id)
                                                      .ToHashSet();
 
-      // Очищаем список, исключая агрегированные порты
+      // Exclude the aggregated ports from the list
       device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice.Where(p => !aggregatedIds.Contains(p.Id))];
     }
   }

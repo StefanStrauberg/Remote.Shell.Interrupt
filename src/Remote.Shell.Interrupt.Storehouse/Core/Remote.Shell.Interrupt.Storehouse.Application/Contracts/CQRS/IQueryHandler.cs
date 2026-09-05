@@ -6,6 +6,6 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 /// <typeparam name="TQuery">The type of the query being handled.</typeparam>
 /// <typeparam name="TResponse">The type of the response returned by the query.</typeparam>
 public interface IQueryHandler<in TQuery, TResponse> : IRequestHandler<TQuery, TResponse>
-  where TQuery : IRequest<TResponse>
+  where TQuery : IQuery<TResponse>
   where TResponse : notnull
 { }

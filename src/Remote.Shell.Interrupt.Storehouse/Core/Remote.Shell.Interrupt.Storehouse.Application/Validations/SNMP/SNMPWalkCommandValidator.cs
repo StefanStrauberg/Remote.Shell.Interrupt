@@ -13,6 +13,6 @@ public class SNMPWalkCommandValidator : AbstractValidator<SNMPWalkCommand>
         RuleFor(x => x.OID).NotNull().WithMessage("OID can't be null")
                            .NotEmpty().WithMessage("OID can't be empty")
                            .Matches(@"^\d+(\.\d+)+$")
-                           .WithMessage("Invalid OID. OID should be mtches x.x.x where x are numbers");
+                           .WithMessage("Invalid OID. OID must match x.x.x where x are numbers");
     }
 }

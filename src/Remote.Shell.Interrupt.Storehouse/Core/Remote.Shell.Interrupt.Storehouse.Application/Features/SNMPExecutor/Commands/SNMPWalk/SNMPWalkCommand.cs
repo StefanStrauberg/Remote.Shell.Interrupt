@@ -6,9 +6,9 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Co
 /// <param name="Host">The target host for the SNMP request.</param>
 /// <param name="Community">The SNMP community string used for authentication.</param>
 /// <param name="OID">The object identifier (OID) specifying the starting point for the walk operation.</param>
-public record class SNMPWalkCommand(string Host,
-                                    string Community,
-                                    string OID) : IRequest<IEnumerable<SNMPResponse>>;
+public record SNMPWalkCommand(string Host,
+                              string Community,
+                              string OID) : ICommand<IEnumerable<SNMPResponse>>;
 
 /// <summary>
 /// Handles the SNMPWalkCommand and executes an SNMP Walk operation.

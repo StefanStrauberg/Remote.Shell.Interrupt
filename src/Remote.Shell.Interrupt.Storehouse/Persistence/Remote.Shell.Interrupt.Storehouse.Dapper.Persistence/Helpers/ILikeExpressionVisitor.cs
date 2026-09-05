@@ -32,12 +32,12 @@ public class ILikeExpressionVisitor : ExpressionVisitor
       if (node.Object != null)
       {
         instance = node.Object;
-        argument = node.Arguments[0]; // Первый и единственный аргумент
+        argument = node.Arguments[0]; // The first and only argument
       }
       else
       {
-        instance = node.Arguments[0]; // Первый аргумент - текст
-        argument = node.Arguments[1]; // Второй аргумент - слово
+        instance = node.Arguments[0]; // First argument - the text
+        argument = node.Arguments[1]; // Second argument - the word
       }
 
       var patternExpression = Expression.Call(ConcatMethod, Expression.Constant("\\m"), argument, Expression.Constant("\\M"));

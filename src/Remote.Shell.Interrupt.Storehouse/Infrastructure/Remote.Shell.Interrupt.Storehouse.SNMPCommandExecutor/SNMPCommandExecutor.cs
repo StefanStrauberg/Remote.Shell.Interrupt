@@ -67,7 +67,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                     var itemOid = item.Id.ToString();
                     var data = item.Data;
 
-                    if (itemOid.StartsWith(oid))
+                    if (IsWithinSubtree(itemOid, oid))
                     {
                         result.Add(new()
                         {
@@ -102,13 +102,13 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
     public static string ConvertSnmpDataToHex(ISnmpData snmpData)
     {
-        // Проверяем, является ли snmpData экземпляром OctetString
+        // Check whether snmpData is an OctetString instance.
         if (snmpData is OctetString octetString)
         {
-            // Получаем массив байтов из OctetString
+            // Get the byte array from the OctetString.
             byte[] bytes = octetString.GetRaw();
 
-            // Создаем строку в формате Hex
+            // Build a hex-formatted string.
             return string.Join(" ", bytes.Select(b => b.ToString("X2")));
         }
         else
@@ -116,4 +116,13 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
             throw new ArgumentException("Provided ISnmpData is not an OctetString.");
         }
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="candidateOid"/> lies within the OID subtree rooted at
+    /// <paramref name="rootOid"/>, comparing OID arcs instead of raw characters so that e.g.
+    /// "1.3.6.1.2.1.10" does not match a walk root of "1.3.6.1.2.1.1".
+    /// </summary>
+    internal static bool IsWithinSubtree(string candidateOid, string rootOid)
+        => candidateOid.StartsWith(rootOid, StringComparison.Ordinal)
+           && (candidateOid.Length == rootOid.Length || candidateOid[rootOid.Length] == '.');
 }

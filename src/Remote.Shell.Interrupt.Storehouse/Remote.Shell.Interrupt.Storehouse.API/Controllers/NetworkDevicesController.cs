@@ -41,7 +41,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <returns>
   /// A <see cref="NetworkDeviceDTO"/> if found, or an <see cref="ApiErrorResponse"/> with <c>404 Not Found</c> if missing.
   /// </returns>
-  [HttpGet("{id}")]
+  [HttpGet("{id:guid}")]
   [ProducesResponseType(typeof(NetworkDeviceDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetNetworkDeviceById(Guid id, CancellationToken cancellationToken)
@@ -50,16 +50,16 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <summary>
   /// Retrieves compound network device information associated with the specified VLAN tag.
   /// </summary>
-  /// <param name="VLANTag">The VLAN tag used to identify associated network devices.</param>
+  /// <param name="vlanTag">The VLAN tag used to identify associated network devices.</param>
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
   /// <returns>
   /// A <see cref="CompoundObjectDTO"/> with aggregated data if found, or <see cref="ApiErrorResponse"/> if missing.
   /// </returns>
-  [HttpGet("{VLANTag}")]
+  [HttpGet("{vlanTag:int}")]
   [ProducesResponseType(typeof(CompoundObjectDTO), StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> GetNetworkDevicesByVlanTag(int VLANTag, CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new GetCompoundDataByVlanTagQuery(VLANTag), cancellationToken));
+  public async Task<IActionResult> GetNetworkDevicesByVlanTag(int vlanTag, CancellationToken cancellationToken)
+    => Ok(await Sender.Send(new GetCompoundDataByVlanTagQuery(vlanTag), cancellationToken));
 
   /// <summary>
   /// Creates a new network device record.
@@ -81,7 +81,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <returns>
   /// <see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> with <c>404 Not Found</c> if missing.
   /// </returns>
-  [HttpDelete("{id}")]
+  [HttpDelete("{id:guid}")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteNetworkDeviceById(Guid id, CancellationToken cancellationToken)

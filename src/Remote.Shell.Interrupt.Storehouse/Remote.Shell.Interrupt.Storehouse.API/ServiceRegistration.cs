@@ -47,8 +47,11 @@ public static class ServiceRegistration
     app.UseCors(DefaultEntities.CorsPolicyName);
 
     // Development-specific middleware
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    if (app.Environment.IsDevelopment())
+    {
+      app.UseSwagger();
+      app.UseSwaggerUI();
+    }
 
     // Application middleware
     app.UseMiddleware<ExceptionHandlingMiddleware>();

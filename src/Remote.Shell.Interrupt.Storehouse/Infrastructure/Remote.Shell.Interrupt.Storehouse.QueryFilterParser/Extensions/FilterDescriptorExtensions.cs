@@ -1,3 +1,4 @@
+using System.Globalization;
 using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 
 namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.Extensions;
@@ -206,9 +207,17 @@ internal static class FilterDescriptorExtensions
     {
       if (targetType == typeof(Guid)) return Guid.Parse(value);
       if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
-      if (targetType == typeof(long)) return ConvertStringIPAddressToLong.Handle(value);
+      if (targetType == typeof(long))
+      {
+        // Numeric values (speeds, counters) first; dotted-quad IPv4 strings,
+        // stored as long in several entities, are converted as a fallback.
+        if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numeric))
+          return numeric;
 
-      return Convert.ChangeType(value, targetType);
+        return ConvertStringIPAddressToLong.Handle(value);
+      }
+
+      return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
     }
     catch (Exception ex)
     {

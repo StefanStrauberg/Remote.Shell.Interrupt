@@ -34,7 +34,7 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
 
     if (errors.Count != 0)
     {
-      // Группируем ошибки по имени свойства. 
+      // Group errors by property name.
       var errorsDictionary = errors.GroupBy(error => error.PropertyName, 
                                             error => error.ErrorMessage)
                                    .ToDictionary(group => group.Key, 
