@@ -4,8 +4,8 @@ import { TfPlan } from "../TfPlans/TfPlan";
 
 export type Client = {
   id: string;
-  dat1?: Date;
-  dat2?: Date;
+  dat1?: string;
+  dat2?: string;
   prim1?: string;
   prim2?: string;
   nik?: string;
@@ -16,7 +16,8 @@ export type Client = {
   history?: string; // Nullable field
   id_COD: number;
   cod?: Cod; // Required COD object
-  id_TfPlan?: number; // Nullable field
+  // Matches DetailClientDTO.Id_TPlan (serialized camelCase as "id_TPlan").
+  id_TPlan?: number;
   tfPlan?: TfPlan; // Nullable TfPlan object
   sprVlans: SprVlan[];
   idClient: number;

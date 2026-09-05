@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -21,7 +22,7 @@ import { DEFAULT_PAGINATION_PARAMS } from "../../../lib/types/Common/DEFAULT_PAG
 
 export default function ClientDetailPage() {
   const { id } = useParams();
-  const { clientById, isLoadingById } = useClients(
+  const { clientById, isLoadingById, isErrorById, errorById } = useClients(
     DEFAULT_PAGINATION_PARAMS,
     [],
     { property: "", descending: false },
@@ -30,7 +31,15 @@ export default function ClientDetailPage() {
 
   if (isLoadingById) return <Typography>Loading...</Typography>;
 
-  if (!clientById) return <Typography>Activity not found</Typography>;
+  if (isErrorById)
+    return (
+      <Alert severity="error">
+        Failed to load client:{" "}
+        {errorById instanceof Error ? errorById.message : "Unknown error"}
+      </Alert>
+    );
+
+  if (!clientById) return <Typography>Client not found</Typography>;
 
   return (
     <Box>

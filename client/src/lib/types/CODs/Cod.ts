@@ -1,5 +1,5 @@
 export type Cod = {
-  idCOD: number;
+  id: string;
   nameCOD: string;
   telephone: string;
   email1: string;

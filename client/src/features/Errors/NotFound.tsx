@@ -17,8 +17,8 @@ export default function NotFound() {
       <Typography gutterBottom variant="h3">
         Oops - we could not find what you are looking for
       </Typography>
-      <Button variant="contained" component={Link} to="/networkdevices">
-        Return to the networkdevices page
+      <Button variant="contained" component={Link} to="/networkDevices">
+        Return to the network devices page
       </Button>
     </Paper>
   );

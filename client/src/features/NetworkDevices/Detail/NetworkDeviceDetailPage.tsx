@@ -18,7 +18,7 @@ import DeviceHubIcon from '@mui/icons-material/DeviceHub'
 
 export default function NetworkDeviceDetailPage() {
 	const { id } = useParams()
-	const { networkDevice, isLoadingNetworkDevice, error } = useNetworkDevices(
+	const { networkDevice, isLoadingNetworkDevice, isErrorNetworkDevice, errorNetworkDevice } = useNetworkDevices(
 		DEFAULT_PAGINATION_PARAMS,
 		[],
 		{ property: '', descending: false },
@@ -41,7 +41,7 @@ export default function NetworkDeviceDetailPage() {
 		)
 	}
 
-	if (error) {
+	if (isErrorNetworkDevice) {
 		return (
 			<Box>
 				<Button
@@ -55,7 +55,10 @@ export default function NetworkDeviceDetailPage() {
 					Back to Devices
 				</Button>
 				<Alert severity='error' sx={{ borderRadius: 2 }}>
-					{/* Error loading device: {error.message} */}
+					Error loading device:{' '}
+					{errorNetworkDevice instanceof Error
+						? errorNetworkDevice.message
+						: 'Unknown error'}
 				</Alert>
 			</Box>
 		)

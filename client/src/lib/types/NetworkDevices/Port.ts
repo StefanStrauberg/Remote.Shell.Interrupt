@@ -7,10 +7,15 @@ export type Port = {
   interfaceType: string;
   interfaceStatus: string;
   interfaceSpeed: number;
-  isAggregated: false;
+  isAggregated: boolean;
   macAddress: string;
   description: string;
-  vlaNs: Vlan[];
+  vlans: Vlan[];
   aggregatedPorts: Port[];
   macTable: string[];
+  /** MAC address -> set of IP addresses resolved via ARP on this port. */
+  arpTableOfPort?: Record<string, string[]>;
+  /** Network address -> netmask of terminated networks on this port. */
+  networkTableOfPort?: Record<string, string>;
+  parentId?: string;
 };

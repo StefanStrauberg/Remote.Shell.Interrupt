@@ -38,19 +38,19 @@ export default function TestErrors() {
       <Typography variant="h4">Test errors component</Typography>
 
       <ButtonGroup variant="contained" sx={{ mt: 4 }}>
-        <Button onClick={() => handleError("Buggy/GetNotFound")}>
+        <Button onClick={() => handleError("/api/Buggy/GetNotFound")}>
           Not found
         </Button>
-        <Button onClick={() => handleError("Buggy/GetBadRequest")}>
+        <Button onClick={() => handleError("/api/Buggy/GetBadRequest")}>
           Bad request
         </Button>
-        <Button onClick={() => handleError("Gates/CreateGate", "post")}>
+        <Button onClick={() => handleError("/api/Gates/CreateGate", "post")}>
           Validation error
         </Button>
-        <Button onClick={() => handleError("Buggy/GetServerError")}>
+        <Button onClick={() => handleError("/api/Buggy/GetServerError")}>
           Server error
         </Button>
-        <Button onClick={() => handleError("Buggy/GetUnauthorized")}>
+        <Button onClick={() => handleError("/api/Buggy/GetUnauthorized")}>
           Unauthorised
         </Button>
       </ButtonGroup>

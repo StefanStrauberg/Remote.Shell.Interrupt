@@ -1,11 +1,18 @@
 import { Divider, Paper, Typography } from "@mui/material";
 import { useLocation } from "react-router";
+import { ApiErrorResponse } from "../../lib/types/Common/ApiErrorResponse";
+
+type ServerErrorState = {
+  error: ApiErrorResponse;
+};
 
 export default function ServerError() {
   const { state } = useLocation();
+  const error = (state as ServerErrorState | null)?.error;
+
   return (
     <Paper>
-      {state.error ? (
+      {error ? (
         <>
           <Typography
             gutterBottom
@@ -13,20 +20,22 @@ export default function ServerError() {
             sx={{ px: 4, pt: 2 }}
             color="error"
           >
-            {state.error?.message || "There has been an error"}
+            {error.Title || "There has been an error"}
           </Typography>
           <Divider />
           <Typography variant="body1" sx={{ p: 2 }}>
-            Detail: {state.error?.Detail || "Internal server error's detail"}
+            Detail: {error.Detail || "Internal server error's detail"}
           </Typography>
           <Typography variant="body1" sx={{ p: 2 }}>
-            Errors: {state.error?.Errors || "Internal server error's errors"}
+            Status: {error.Status || "Internal server error's status"}
           </Typography>
           <Typography variant="body1" sx={{ p: 2 }}>
-            Status: {state.error?.Status || "Internal server error's status"}
-          </Typography>
-          <Typography variant="body1" sx={{ p: 2 }}>
-            Title: {state.error?.Title || "Internal server error's title"}
+            Errors:{" "}
+            {error.Errors
+              ? Object.entries(error.Errors)
+                  .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+                  .join("; ")
+              : "Internal server error's errors"}
           </Typography>
         </>
       ) : (

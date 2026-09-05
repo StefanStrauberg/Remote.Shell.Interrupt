@@ -27,7 +27,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import RouterIcon from "@mui/icons-material/Router";
 
-export default function AdminComponent() {
+export default function AdminPage() {
   const pageNumber = 1;
   const pageSize = 100;
   const [gateFilters] = useState<FilterDescriptor[]>(DEFAULT_FILTERS_Gates);

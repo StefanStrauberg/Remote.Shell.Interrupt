@@ -1,12 +1,8 @@
-import {
-  useQuery,
-  useQueryClient,
-  UseQueryResult,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { CompoundObject } from "../types/NetworkDevices/CompoundObject";
 import agent from "../api/agent";
 import { RouterFilter } from "../types/NetworkDevices/RouterFilter";
-import { AxiosError } from "axios";
+import { defaultRetry } from "../api/common/paged";
 
 interface UseRoutersReturn {
   compoundObject: CompoundObject | undefined;
@@ -17,10 +13,8 @@ interface UseRoutersReturn {
   refetch: () => void;
 }
 
-// Type guard to check if error is an AxiosError
-const isAxiosError = (error: unknown): error is AxiosError => {
-  return error instanceof Error && "response" in error;
-};
+const MAIN_PAGE_QUERY_KEY = "mainPage";
+const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes
 
 export const useRouters = (
   filters: RouterFilter = {},
@@ -28,21 +22,15 @@ export const useRouters = (
 ): UseRoutersReturn => {
   const queryClient = useQueryClient();
 
-  const fetchData = async (): Promise<CompoundObject> => {
-    try {
-      if (!filters.IdVlan?.value) {
-        throw new Error("VLAN ID is required");
-      }
-
-      const response = await agent.get<CompoundObject>(
-        `/api/NetworkDevices/GetNetworkDevicesByVlanTag/${filters.IdVlan.value}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching routers:", error);
-      throw error;
+  async function fetchCompoundObject(): Promise<CompoundObject> {
+    if (!filters.IdVlan?.value) {
+      throw new Error("VLAN ID is required");
     }
-  };
+    const response = await agent.get<CompoundObject>(
+      `/api/NetworkDevices/GetNetworkDevicesByVlanTag/${filters.IdVlan.value}`
+    );
+    return response.data;
+  }
 
   const {
     data: compoundObject,
@@ -51,21 +39,15 @@ export const useRouters = (
     error,
     refetch,
   }: UseQueryResult<CompoundObject, unknown> = useQuery({
-    queryKey: ["mainPage", filters],
-    queryFn: fetchData,
+    queryKey: [MAIN_PAGE_QUERY_KEY, filters],
+    queryFn: fetchCompoundObject,
     enabled: isEnabled && !!filters.IdVlan?.value,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error) => {
-      if (isAxiosError(error) && error.response?.status === 404) return false;
-      return failureCount < 3;
-    },
+    staleTime: STALE_TIME_MS,
+    retry: defaultRetry,
   });
 
   const resetCache = () => {
-    queryClient.removeQueries({
-      queryKey: ["mainPage"],
-      exact: false,
-    });
+    queryClient.removeQueries({ queryKey: [MAIN_PAGE_QUERY_KEY] });
   };
 
   return {

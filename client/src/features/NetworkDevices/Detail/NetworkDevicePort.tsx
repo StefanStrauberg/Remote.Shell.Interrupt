@@ -97,8 +97,8 @@ export default function NetworkDevicePort({ port }: Props) {
         <Typography variant="body2" fontWeight="medium" sx={{ mr: 1 }}>
           VLANs:
         </Typography>
-        {port.vlaNs.length > 0 ? (
-          port.vlaNs.map((vlan) => (
+        {port.vlans.length > 0 ? (
+          port.vlans.map((vlan) => (
             <Chip
               key={vlan.vlanTag}
               icon={<Lan />}

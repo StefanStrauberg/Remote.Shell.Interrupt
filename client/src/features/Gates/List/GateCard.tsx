@@ -59,15 +59,15 @@ export default function GateCard({ gate }: GateCardProps) {
   const processSrcImg = (typeOfNetworkDevice: string) => {
     switch (typeOfNetworkDevice) {
       case "Huawei":
-        return "images/Huawei_Logo.png";
+        return "/images/Huawei_Logo.png";
       case "Juniper":
-        return "images/Juniper_Logo.png";
+        return "/images/Juniper_Logo.png";
       case "Extreme":
-        return "images/Extreme_Logo.png";
+        return "/images/Extreme_Logo.png";
       case "Cisco":
-        return "images/Cisco_Logo.png";
+        return "/images/Cisco_Logo.png";
       case "FortiGate":
-        return "images/Fortinet_Logo.png";
+        return "/images/Fortinet_Logo.png";
       default:
         return "";
     }

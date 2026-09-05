@@ -8,21 +8,17 @@ import {
 import agent from "../api/agent";
 import { Gate } from "../types/Gates/Gate";
 import { useLocation } from "react-router";
+import { PaginationMetadata } from "../types/Common/PaginationMetadata";
 import { PaginationParams } from "../types/Common/PaginationParams";
 import { FilterDescriptor } from "../types/Common/FilterDescriptor";
 import { buildRequestParams } from "../api/common/buildRequestParams";
+import { defaultRetry, fetchPaged, PagedResponse } from "../api/common/paged";
 import { OrderByParams } from "../api/common/orderByParams";
 import { DEFAULT_PAGINATION } from "../types/Common/DEFAULT_PAGINATION";
-import { AxiosError } from "axios";
-
-interface GatesResponse {
-  data: Gate[];
-  pagination: typeof DEFAULT_PAGINATION;
-}
 
 interface UseGatesReturn {
   gates: Gate[];
-  pagination: typeof DEFAULT_PAGINATION;
+  pagination: PaginationMetadata;
   isPending: boolean;
   isError: boolean;
   error: unknown;
@@ -37,10 +33,8 @@ interface UseGatesReturn {
   refetchGate: () => void;
 }
 
-// Type guard to check if error is an AxiosError
-const isAxiosError = (error: unknown): error is AxiosError => {
-  return error instanceof Error && "response" in error;
-};
+const GATES_QUERY_KEY = "gates";
+const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes
 
 export const useGates = (
   pagination: PaginationParams,
@@ -53,7 +47,7 @@ export const useGates = (
   const { pageNumber, pageSize } = pagination;
 
   const queryKey = [
-    "gates",
+    GATES_QUERY_KEY,
     pageNumber,
     pageSize,
     JSON.stringify(filters),
@@ -61,54 +55,31 @@ export const useGates = (
     orderBy.descending,
   ];
 
+  async function fetchGates(): Promise<PagedResponse<Gate>> {
+    const params = buildRequestParams(pagination, orderBy, filters);
+    return fetchPaged<Gate>("/api/Gates/GetGatesByFilter", params);
+  }
+
   const {
     data: gatesResponse,
     isPending,
     isError,
     error,
     refetch: refetchGates,
-  }: UseQueryResult<GatesResponse, unknown> = useQuery({
+  }: UseQueryResult<PagedResponse<Gate>, unknown> = useQuery({
     queryKey,
-    queryFn: async (): Promise<GatesResponse> => {
-      try {
-        const params = buildRequestParams(pagination, orderBy, filters);
-
-        const response = await agent.get<Gate[]>(
-          "/api/Gates/GetGatesByFilter",
-          {
-            params,
-          }
-        );
-
-        // Parse pagination metadata from headers
-        const paginationHeader = response.headers["x-pagination"];
-        let paginationData: typeof DEFAULT_PAGINATION = DEFAULT_PAGINATION;
-
-        if (paginationHeader && typeof paginationHeader === "string") {
-          try {
-            paginationData = JSON.parse(paginationHeader);
-          } catch (parseError) {
-            console.warn("Failed to parse pagination header:", parseError);
-          }
-        }
-
-        return {
-          data: response.data,
-          pagination: paginationData,
-        };
-      } catch (error) {
-        console.error("Error fetching gates:", error);
-        throw error;
-      }
-    },
+    queryFn: fetchGates,
     enabled:
       (!id && location.pathname === "/gates") || location.pathname === "/admin",
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error) => {
-      if (isAxiosError(error) && error.response?.status === 404) return false;
-      return failureCount < 3;
-    },
+    staleTime: STALE_TIME_MS,
+    retry: defaultRetry,
   });
+
+  async function fetchGate(): Promise<Gate> {
+    if (!id) throw new Error("No ID provided for gate query");
+    const response = await agent.get<Gate>(`/api/Gates/GetGateById/${id}`);
+    return response.data;
+  }
 
   const {
     data: gate,
@@ -117,87 +88,38 @@ export const useGates = (
     error: errorGate,
     refetch: refetchGate,
   }: UseQueryResult<Gate, unknown> = useQuery({
-    queryKey: ["gates", id],
-    queryFn: async (): Promise<Gate> => {
-      try {
-        if (!id) throw new Error("No ID provided for gate query");
-
-        const response = await agent.get<Gate>(`/api/Gates/GetGateById/${id}`);
-        return response.data;
-      } catch (error) {
-        console.error(`Error fetching gate with ID ${id}:`, error);
-        throw error;
-      }
-    },
+    queryKey: [GATES_QUERY_KEY, id],
+    queryFn: fetchGate,
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error) => {
-      if (isAxiosError(error) && error.response?.status === 404) return false;
-      return failureCount < 3;
-    },
+    staleTime: STALE_TIME_MS,
+    retry: defaultRetry,
   });
 
   const updateGate = useMutation<void, Error, Gate>({
     mutationFn: async (gate: Gate): Promise<void> => {
-      try {
-        await agent.put("/api/Gates/UpdateGate", gate);
-      } catch (error) {
-        console.error("Error updating gate:", error);
-        throw new Error(
-          error instanceof Error ? error.message : "Failed to update gate"
-        );
-      }
+      await agent.put("/api/Gates/UpdateGate", gate);
     },
     onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({
-        queryKey: ["gates"],
-      });
-    },
-    onError: (error: Error): void => {
-      console.error("Update gate mutation failed:", error);
+      await queryClient.invalidateQueries({ queryKey: [GATES_QUERY_KEY] });
     },
   });
 
   const createGate = useMutation<Gate, Error, Gate>({
     mutationFn: async (gate: Gate): Promise<Gate> => {
-      try {
-        const response = await agent.post("/api/Gates/CreateGate", gate);
-        return response.data;
-      } catch (error) {
-        console.error("Error creating gate:", error);
-        throw new Error(
-          error instanceof Error ? error.message : "Failed to create gate"
-        );
-      }
+      const response = await agent.post("/api/Gates/CreateGate", gate);
+      return response.data;
     },
     onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({
-        queryKey: ["gates"],
-      });
-    },
-    onError: (error: Error): void => {
-      console.error("Create gate mutation failed:", error);
+      await queryClient.invalidateQueries({ queryKey: [GATES_QUERY_KEY] });
     },
   });
 
   const deleteGate = useMutation<void, Error, string>({
     mutationFn: async (id: string): Promise<void> => {
-      try {
-        await agent.delete(`/api/Gates/DeleteGateById/${id}`);
-      } catch (error) {
-        console.error("Error deleting gate:", error);
-        throw new Error(
-          error instanceof Error ? error.message : "Failed to delete gate"
-        );
-      }
+      await agent.delete(`/api/Gates/DeleteGateById/${id}`);
     },
     onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({
-        queryKey: ["gates"],
-      });
-    },
-    onError: (error: Error): void => {
-      console.error("Delete gate mutation failed:", error);
+      await queryClient.invalidateQueries({ queryKey: [GATES_QUERY_KEY] });
     },
   });
 

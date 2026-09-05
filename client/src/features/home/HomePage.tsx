@@ -33,7 +33,7 @@ export default function HomePage() {
     {
       icon: <Security sx={{ fontSize: 40, color: "#ffc966ff" }} />,
       title: "Secure Access",
-      description: "Optimized only for getting information using ICMP",
+      description: "Optimized for retrieving network information over SNMP",
     },
     {
       icon: <Speed sx={{ fontSize: 40, color: "#06d6a0" }} />,

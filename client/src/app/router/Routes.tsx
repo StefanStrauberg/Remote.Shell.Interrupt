@@ -1,19 +1,43 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 import App from "../layout/App";
+import RouteSuspenseFallback from "../shared/components/RouteSuspenseFallback";
 import HomePage from "../../features/home/HomePage";
 import TestErrors from "../../features/Errors/TestErrors";
 import NotFound from "../../features/Errors/NotFound";
 import ServerError from "../../features/Errors/ServerError";
-import TfPlansDashboard from "../../features/TfPlans/TfPlansDashboard";
-import SPRVlansDashboard from "../../features/SPRVlans/SPRVlansDashboard";
-import ClientsDashboard from "../../features/Clients/List/ClientsDashboard";
-import ClientDetailPage from "../../features/Clients/Detail/ClientDetailPage";
-import GatesDashboard from "../../features/Gates/List/GatesDashboard";
-import GateForm from "../../features/Gates/CreateUpdate/GateForm";
-import AdminComponent from "../../features/Admin/AdminComponent";
-import NetworkDeviceDashboard from "../../features/NetworkDevices/List/NetworkDeviceDashboard";
-import MainPageDashboard from "../../features/MainPage/MainPageDashboard";
-import NetworkDeviceDetailPage from "../../features/NetworkDevices/Detail/NetworkDeviceDetailPage";
+
+// Feature pages are code-split so each route ships its own chunk.
+const TfPlansDashboard = lazy(
+  () => import("../../features/TfPlans/TfPlansDashboard")
+);
+const SPRVlansDashboard = lazy(
+  () => import("../../features/SPRVlans/SPRVlansDashboard")
+);
+const ClientsDashboard = lazy(
+  () => import("../../features/Clients/List/ClientsDashboard")
+);
+const ClientDetailPage = lazy(
+  () => import("../../features/Clients/Detail/ClientDetailPage")
+);
+const GatesDashboard = lazy(
+  () => import("../../features/Gates/List/GatesDashboard")
+);
+const GateForm = lazy(() => import("../../features/Gates/CreateUpdate/GateForm"));
+const AdminPage = lazy(() => import("../../features/Admin/AdminPage"));
+const NetworkDeviceDashboard = lazy(
+  () => import("../../features/NetworkDevices/List/NetworkDeviceDashboard")
+);
+const MainPageDashboard = lazy(
+  () => import("../../features/MainPage/MainPageDashboard")
+);
+const NetworkDeviceDetailPage = lazy(
+  () => import("../../features/NetworkDevices/Detail/NetworkDeviceDetailPage")
+);
+
+function page(element: React.ReactNode) {
+  return <Suspense fallback={<RouteSuspenseFallback />}>{element}</Suspense>;
+}
 
 export const router = createBrowserRouter([
   {
@@ -21,18 +45,22 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <HomePage /> },
-      { path: "mainPage", element: <MainPageDashboard /> },
-      { path: "mainPage/:id", element: <MainPageDashboard /> },
-      { path: "networkDevices", element: <NetworkDeviceDashboard /> },
-      { path: "networkDevices/:id", element: <NetworkDeviceDetailPage /> },
-      { path: "gates", element: <GatesDashboard /> },
-      { path: "gates/:id", element: <GateForm /> },
-      { path: "createGate", element: <GateForm /> },
-      { path: "clients", element: <ClientsDashboard /> },
-      { path: "clients/:id", element: <ClientDetailPage /> },
-      { path: "tfPlans", element: <TfPlansDashboard /> },
-      { path: "sprVlans", element: <SPRVlansDashboard /> },
-      { path: "admin", element: <AdminComponent /> },
+      { path: "mainPage", element: page(<MainPageDashboard />) },
+      { path: "mainPage/:id", element: page(<MainPageDashboard />) },
+      { path: "networkDevices", element: page(<NetworkDeviceDashboard />) },
+      {
+        path: "networkDevices/:id",
+        element: page(<NetworkDeviceDetailPage />),
+      },
+      { path: "gates", element: page(<GatesDashboard />) },
+      { path: "gates/:id", element: page(<GateForm />) },
+      { path: "createGate", element: page(<GateForm />) },
+      { path: "clients", element: page(<ClientsDashboard />) },
+      { path: "clients/:id", element: page(<ClientDetailPage />) },
+      { path: "tfPlans", element: page(<TfPlansDashboard />) },
+      { path: "sprVlans", element: page(<SPRVlansDashboard />) },
+      { path: "admin", element: page(<AdminPage />) },
+      // Error pages stay eager: they must render even if other chunks fail.
       { path: "errors", element: <TestErrors /> },
       { path: "not-found", element: <NotFound /> },
       { path: "server-error", element: <ServerError /> },
