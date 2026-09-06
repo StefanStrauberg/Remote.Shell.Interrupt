@@ -14,6 +14,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      Idempotent schema-sync script generated with:
+        dotnet ef migrations script -idempotent -o Scripts/InitialDatabaseSync.sql ...
+      Embedded into the assembly so the API host can apply it at startup
+      without any file-system dependency.
+    -->
+    <EmbeddedResource Include="Scripts\InitialDatabaseSync.sql" LogicalName="InitialDatabaseSync.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Required by the IdentityService implementation: cookie sign-in flows and
          IdentityConstants live behind ASP.NET Core abstractions (IHttpContextAccessor). -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

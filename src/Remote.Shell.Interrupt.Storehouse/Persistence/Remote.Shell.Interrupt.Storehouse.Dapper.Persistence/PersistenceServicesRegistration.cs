@@ -18,9 +18,21 @@ public static class PersistenceServicesRegistration
   {
     // Database contexts
     services.AddScoped<MySQLDapperContext>();
+
+    // Target database: PostgreSQL ("DefaultConnection"). The connection string
+    // is resolved via IConfiguration; migrations are kept in this assembly,
+    // next to the DbContext they describe.
+    var connectionString = configuration.GetConnectionString("DefaultConnection")
+      ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' is missing. " +
+        "Point it at the target PostgreSQL database via appsettings or environment variables.");
+
     services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
     {
-      optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+      optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+      {
+        npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+      });
     });
 
     // Generic query repositories

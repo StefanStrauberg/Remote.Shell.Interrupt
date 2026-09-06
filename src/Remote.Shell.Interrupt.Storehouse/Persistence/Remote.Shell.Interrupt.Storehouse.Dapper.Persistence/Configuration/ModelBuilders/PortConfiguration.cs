@@ -7,6 +7,8 @@ public class PortConfiguration : IEntityTypeConfiguration<Port>
               builder.ToTable("Ports");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.NetworkDeviceId);
+              builder.HasIndex(x => x.ParentId);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

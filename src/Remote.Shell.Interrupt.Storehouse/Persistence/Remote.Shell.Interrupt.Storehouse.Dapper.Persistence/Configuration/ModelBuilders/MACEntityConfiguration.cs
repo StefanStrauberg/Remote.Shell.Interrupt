@@ -7,6 +7,7 @@ public class MACEntityConfiguration : IEntityTypeConfiguration<MACEntity>
               builder.ToTable("MACEntities");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.PortId);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

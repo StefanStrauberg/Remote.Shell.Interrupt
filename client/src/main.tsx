@@ -1,18 +1,15 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { router } from "./app/router/Routes.tsx";
+import { queryClient } from "./lib/queryClient.ts";
 import { ToastContainer } from "react-toastify";
+import { useAuthStore } from "./lib/auth/authStore.ts";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+// Silent session check: validates the persisted token and restores the
+// profile before the first render, so page refreshes keep the session.
+useAuthStore.getState().restoreSession();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

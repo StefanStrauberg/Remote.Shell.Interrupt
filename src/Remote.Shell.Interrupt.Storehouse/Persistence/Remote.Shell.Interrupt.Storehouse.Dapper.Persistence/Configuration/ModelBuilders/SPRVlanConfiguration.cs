@@ -7,6 +7,8 @@ public class SPRVlanConfiguration : IEntityTypeConfiguration<SPRVlan>
               builder.ToTable("SPRVlans");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.IdClient);
+              builder.HasIndex(x => x.IdVlan);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

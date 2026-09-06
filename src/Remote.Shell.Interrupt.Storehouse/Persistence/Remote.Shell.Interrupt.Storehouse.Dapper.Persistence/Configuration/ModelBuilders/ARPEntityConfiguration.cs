@@ -7,6 +7,7 @@ public class ARPEntityConfiguration : IEntityTypeConfiguration<ARPEntity>
               builder.ToTable("ARPEntities");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.PortId);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

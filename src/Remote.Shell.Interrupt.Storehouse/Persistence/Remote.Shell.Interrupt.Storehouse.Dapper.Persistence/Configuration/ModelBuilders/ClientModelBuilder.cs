@@ -9,6 +9,8 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
               builder.HasKey(x => x.Id);
 
               builder.HasIndex(x => x.IdClient).IsUnique();
+              builder.HasIndex(x => x.Id_COD);
+              builder.HasIndex(x => x.Id_TfPlan);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

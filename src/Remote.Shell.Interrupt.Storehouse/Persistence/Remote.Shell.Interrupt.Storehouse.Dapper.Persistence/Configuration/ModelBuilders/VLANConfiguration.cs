@@ -7,6 +7,7 @@ public class VLANConfiguration : IEntityTypeConfiguration<VLAN>
               builder.ToTable("VLANs");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.VLANTag);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")

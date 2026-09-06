@@ -1,6 +1,7 @@
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 
-Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
+Log.Logger = new LoggerConfiguration().Filter.ByExcluding(e => e.Exception is HostAbortedException)
+                                      .MinimumLevel.Information()
                                       .Enrich.FromLogContext()
                                       .WriteTo.Console()
                                       .WriteTo.File(DefaultEntities.LoggingTo, rollingInterval: RollingInterval.Day)
@@ -17,6 +18,23 @@ try
 
   // Register Middlewares
   app.ConfigurePipeline();
+
+  // Idempotent schema sync: executes the embedded idempotent SQL script that
+  // creates missing tables/indices/constraints, skips everything that already
+  // exists, and stamps "__EFMigrationsHistory" so future migrations stay
+  // consistent with the deployed schema.
+  try
+  {
+    await app.Services.SyncDatabaseAsync();
+    Log.Information("Idempotent database schema sync completed successfully.");
+  }
+  catch (Exception ex)
+  {
+    Log.Fatal(ex,
+      "Database schema synchronization failed. Verify the 'DefaultConnection' string " +
+      "and that the PostgreSQL server is reachable, then restart the host.");
+    throw;
+  }
 
   // Seed identity roles and the default administrator account.
   using (var scope = app.Services.CreateScope())

@@ -8,6 +8,9 @@ public class GateConfiguration : IEntityTypeConfiguration<Gate>
 
               builder.HasKey(x => x.Id);
 
+              // Non-unique for now: promote to a unique index after deduplicating existing rows.
+              builder.HasIndex(x => x.IPAddress);
+
               builder.Property(x => x.Id)
                      .HasColumnName("Id")
                      .HasColumnType("uuid")

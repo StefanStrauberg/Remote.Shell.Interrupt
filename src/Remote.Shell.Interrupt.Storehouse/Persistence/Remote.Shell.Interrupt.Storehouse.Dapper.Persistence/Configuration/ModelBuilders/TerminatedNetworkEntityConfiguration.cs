@@ -7,6 +7,7 @@ public class TerminatedNetworkEntityConfiguration : IEntityTypeConfiguration<Ter
               builder.ToTable("TerminatedNetworkEntities");
 
               builder.HasKey(x => x.Id);
+              builder.HasIndex(x => x.PortId);
 
               builder.Property(x => x.Id)
                      .HasColumnName("Id")
