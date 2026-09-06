@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 ﻿namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 /// <summary>
 /// Provides endpoints for executing SNMP (Simple Network Management Protocol) commands.
 /// </summary>
+[Authorize(Roles = "Admin")]
 public class SNMPExecutorController(ISender sender) : BaseAPIController(sender)
 {
     /// <summary>

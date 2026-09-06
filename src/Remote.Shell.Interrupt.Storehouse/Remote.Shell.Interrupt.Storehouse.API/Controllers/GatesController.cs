@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 /// <summary>
 /// Provides API endpoints for retrieving, creating, updating, and deleting gate entities.
 /// </summary>
+[Authorize(Roles = "Admin")]
 public class GatesController(ISender sender) : BaseAPIController(sender)
 {
   /// <summary>

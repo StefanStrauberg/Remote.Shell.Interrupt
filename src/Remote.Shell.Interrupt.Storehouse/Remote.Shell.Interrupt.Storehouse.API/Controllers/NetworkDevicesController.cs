@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 
 /// <summary>
@@ -68,6 +70,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
   /// <returns><see cref="StatusCodes.Status200OK"/> on success.</returns>
   [HttpPost]
+  [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   public async Task<IActionResult> CreateNetworkDevice(CreateNetworkDeviceCommand createNetworkDeviceCommand,
                                                        CancellationToken cancellationToken)
@@ -82,6 +85,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> with <c>404 Not Found</c> if missing.
   /// </returns>
   [HttpDelete("{id:guid}")]
+  [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteNetworkDeviceById(Guid id, CancellationToken cancellationToken)
@@ -93,6 +97,7 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
   /// <returns><see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> if deletion fails.</returns>
   [HttpDelete]
+  [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> DeleteNetworkDevices(CancellationToken cancellationToken)

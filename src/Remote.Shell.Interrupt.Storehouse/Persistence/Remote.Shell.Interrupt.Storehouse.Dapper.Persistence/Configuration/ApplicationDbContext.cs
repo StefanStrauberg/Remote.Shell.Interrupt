@@ -1,7 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
+
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 
 internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-  : DbContext(options)
+  : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
   public DbSet<Client> Clients { get; set; }
   public DbSet<COD> CODs { get; set; }
@@ -17,6 +22,10 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
 
   protected override void OnModelCreating(ModelBuilder builder)
   {
+    // Applies the Identity user/role/claim/token mappings before the
+    // application-specific configurations.
+    base.OnModelCreating(builder);
+
     builder.ApplyConfiguration(new ClientConfiguration());
     builder.ApplyConfiguration(new CODConfiguration());
     builder.ApplyConfiguration(new TfPlanConfiguration());

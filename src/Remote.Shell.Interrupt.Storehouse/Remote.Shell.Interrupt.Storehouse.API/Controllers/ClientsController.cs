@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByVlanTag;
 
 namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
@@ -115,6 +116,7 @@ public class ClientsController(ISender sender) : BaseAPIController(sender)
   /// <param name="cancellationToken">Token for request cancellation.</param>
   /// <returns><see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> if update fails.</returns>
   [HttpPut]
+  [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateClientsLocalDb(CancellationToken cancellationToken)
@@ -126,6 +128,7 @@ public class ClientsController(ISender sender) : BaseAPIController(sender)
   /// <param name="cancellationToken">Token for request cancellation.</param>
   /// <returns><see cref="StatusCodes.Status200OK"/> upon successful deletion.</returns>
   [HttpDelete]
+  [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   public async Task<IActionResult> DeleteClientsLocalDb(CancellationToken cancellationToken)
     => Ok(await Sender.Send(new DeleteClientsLocalDbCommand(), cancellationToken));

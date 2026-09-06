@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
+
 Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
                                       .Enrich.FromLogContext()
                                       .WriteTo.Console()
@@ -15,6 +17,12 @@ try
 
   // Register Middlewares
   app.ConfigurePipeline();
+
+  // Seed identity roles and the default administrator account.
+  using (var scope = app.Services.CreateScope())
+  {
+    await IdentitySeeder.SeedIdentityAsync(scope.ServiceProvider);
+  }
 
   app.Run();
 }
