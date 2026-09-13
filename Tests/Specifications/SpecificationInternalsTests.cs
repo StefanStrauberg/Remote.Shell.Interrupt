@@ -148,6 +148,17 @@ public class GenericSpecificationInternalsTests
     }
 
     [Fact]
+    public void Clone_PreservesFilteredIncludeChains()
+    {
+        var spec = new TestSpec();
+        spec.AddFilteredInclude(g => g.Name.AsEnumerable());
+
+        var clone = spec.Clone();
+
+        clone.FilteredIncludeChains.Should().HaveCount(1);
+    }
+
+    [Fact]
     public void AddThenInclude_OnSpecification_AttachesToLastChain()
     {
         var spec = new TestSpec();

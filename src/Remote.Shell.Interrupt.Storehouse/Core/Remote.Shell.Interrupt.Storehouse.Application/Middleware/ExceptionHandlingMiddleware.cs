@@ -19,7 +19,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
     }
     catch (Exception e)
     {
-      logger.LogError(e.ToString());
+      logger.LogError(e, "Unhandled exception occurred while processing {RequestPath}", context.Request.Path);
       await HandleExceptionAsync(context, e);
     }
   }
@@ -34,7 +34,7 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
     var statusCode = GetStatusCode(exception);
     var response = new ApiErrorResponse(status: statusCode,
                                         title: GetTitle(exception),
-                                        detail: exception.Message,
+                                        detail: GetDetail(exception),
                                         errors: GetErrors(exception));
     httpContext.Response.ContentType = "application/json";
     httpContext.Response.StatusCode = statusCode;
@@ -54,6 +54,17 @@ public class ExceptionHandlingMiddleware(IAppLogger<ExceptionHandlingMiddleware>
         ValidationException => StatusCodes.Status422UnprocessableEntity,
         _ => StatusCodes.Status500InternalServerError
       };
+
+  /// <summary>
+  /// Retrieves the response detail text for an exception, hiding internal implementation
+  /// details for unmapped/unexpected exceptions so they are not leaked to clients.
+  /// </summary>
+  /// <param name="exception">The exception to evaluate.</param>
+  /// <returns>The exception message for known application exceptions; a generic message otherwise.</returns>
+  static string GetDetail(Exception exception) =>
+      exception is ApplicationException
+        ? exception.Message
+        : "An unexpected error occurred.";
 
   /// <summary>
   /// Retrieves the error title based on the exception type.

@@ -63,6 +63,35 @@ public class AssemblyMappingProfileTests
     }
 
     [Fact]
+    public void UpdateGateDtoToGate_MapsIntoExistingEntityAndConvertsIpAndEnum()
+    {
+        var mapper = CreateMapper();
+        var dto = new UpdateGateDTO
+        {
+            Id = Guid.NewGuid(),
+            Name = "gw-updated",
+            Community = "private",
+            IPAddress = "10.0.0.5",
+            TypeOfNetworkDevice = "Cisco"
+        };
+        var existingGate = new Gate
+        {
+            Id = dto.Id,
+            Name = "old",
+            Community = "old",
+            IPAddress = 1,
+            TypeOfNetworkDevice = TypeOfNetworkDevice.Juniper
+        };
+
+        mapper.Map(dto, existingGate);
+
+        existingGate.Name.Should().Be("gw-updated");
+        existingGate.Community.Should().Be("private");
+        existingGate.IPAddress.Should().Be(167772165);
+        existingGate.TypeOfNetworkDevice.Should().Be(TypeOfNetworkDevice.Cisco);
+    }
+
+    [Fact]
     public void NetworkDeviceToDto_MapsHostAndNestedPorts()
     {
         var mapper = CreateMapper();

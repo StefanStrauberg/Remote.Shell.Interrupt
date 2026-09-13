@@ -33,10 +33,10 @@ internal class GetClientWithChildrenByFilterHandler(ILocBillUnitOfWork locBillUn
   {
     var filterExpr = _queryFilterParser.ParseFilters<Client>(requestParameters.Filters);
 
-    var spec = specification.AddInclude(c => c.COD)
+    var spec = specification.Clone()
+                            .AddInclude(c => c.COD)
                             .AddInclude(c => c.TfPlan)
-                            .AddInclude(c => c.SPRVlans)
-                            .Clone();
+                            .AddInclude(c => c.SPRVlans);
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);

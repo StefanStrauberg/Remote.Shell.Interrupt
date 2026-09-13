@@ -249,7 +249,7 @@ BEGIN
         "UpdatedAt" timestamptz,
         CONSTRAINT "PK_Clients" PRIMARY KEY ("Id"),
         CONSTRAINT "AK_Clients_IdClient" UNIQUE ("IdClient"),
-        CONSTRAINT "FK_Clients_CODs_Id_COD" FOREIGN KEY ("Id_COD") REFERENCES "CODs" ("IdCOD") ON DELETE CASCADE,
+        CONSTRAINT "FK_Clients_CODs_Id_COD" FOREIGN KEY ("Id_COD") REFERENCES "CODs" ("IdCOD"),
         CONSTRAINT "FK_Clients_TfPlans_Id_TfPlan" FOREIGN KEY ("Id_TfPlan") REFERENCES "TfPlans" ("IdTfPlan")
     );
     END IF;

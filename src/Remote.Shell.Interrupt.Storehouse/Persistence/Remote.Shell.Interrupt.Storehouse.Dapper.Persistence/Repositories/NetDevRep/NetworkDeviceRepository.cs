@@ -15,7 +15,6 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
                              .Include(p => p.MACTable)
                              .Include(p => p.NetworkTableOfInterface)
                              .Include(p => p.AggregatedPorts)
-                             .Include(p => p.VLANs)
                              .Where(p => p.NetworkDeviceId == networkDeviceToDelete.Id)
                              .ToList();
 
@@ -33,14 +32,29 @@ internal class NetworkDeviceRepository(ApplicationDbContext context,
       if (port.NetworkTableOfInterface.Count > 0)
         context.TerminatedNetworkEntities.RemoveRange(port.NetworkTableOfInterface);
 
-      // Delete VLANs (not just detach, since they belong only here)
-      if (port.VLANs.Count > 0)
-        context.VLANs.RemoveRange(port.VLANs);
-
-      // Delete aggregated ports (self-referencing children)
-      if (port.AggregatedPorts.Count > 0)
-        context.Ports.RemoveRange(port.AggregatedPorts);
+      // VLANs are shared reference entities (a VLAN can be attached to ports on other
+      // devices via the PortVLAN join table), so they must not be deleted here. Removing
+      // the port below cascades the join-table rows automatically without touching the
+      // VLAN entities themselves.
     }
+
+    // Delete aggregated ports (self-referencing children) generation by generation, deepest
+    // first: FK_Ports_Ports_ParentId has no cascade-delete configured, so a port with its own
+    // aggregated children would otherwise violate the FK when its parent is removed.
+    var descendantGenerations = new List<List<Port>>();
+    var currentGeneration = ports.SelectMany(p => p.AggregatedPorts).ToList();
+
+    while (currentGeneration.Count > 0)
+    {
+      descendantGenerations.Add(currentGeneration);
+
+      var parentIds = currentGeneration.Select(p => p.Id).ToList();
+      currentGeneration = context.Ports.Where(p => p.ParentId != null && parentIds.Contains(p.ParentId!.Value))
+                                       .ToList();
+    }
+
+    for (var i = descendantGenerations.Count - 1; i >= 0; i--)
+      context.Ports.RemoveRange(descendantGenerations[i]);
 
     // Delete Ports themselves
     if (ports.Count > 0)

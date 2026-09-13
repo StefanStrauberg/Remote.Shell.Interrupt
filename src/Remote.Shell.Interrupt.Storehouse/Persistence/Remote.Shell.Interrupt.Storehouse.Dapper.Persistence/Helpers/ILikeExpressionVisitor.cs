@@ -40,21 +40,23 @@ public class ILikeExpressionVisitor : ExpressionVisitor
         argument = node.Arguments[1]; // Second argument - the word
       }
 
-      var patternExpression = Expression.Call(ConcatMethod, Expression.Constant("\\m"), argument, Expression.Constant("\\M"));
+      var escapedWordArgument = EscapeConstantIfPossible(argument, Regex.Escape);
+
+      var patternExpression = Expression.Call(ConcatMethod, Expression.Constant("\\m"), escapedWordArgument, Expression.Constant("\\M"));
 
       return Expression.Call(RegexIsMatchMethod,
                              instance,
                              patternExpression,
                              Expression.Constant(RegexOptions.IgnoreCase | RegexOptions.CultureInvariant));
     }
-    
+
     if (node.Method.Name == nameof(string.Contains) &&
         node.Object?.Type == typeof(string) &&
         node.Arguments.Count == 1 &&
         node.Arguments[0].Type == typeof(string))
     {
       var instance = node.Object;
-      var argument = node.Arguments[0];
+      var argument = EscapeConstantIfPossible(node.Arguments[0], EscapeLikePattern);
 
       var patternExpression = Expression.Call(ConcatMethod, Expression.Constant("%"), argument, Expression.Constant("%"));
 
@@ -66,4 +68,21 @@ public class ILikeExpressionVisitor : ExpressionVisitor
 
     return base.VisitMethodCall(node);
   }
+
+  /// <summary>
+  /// Escapes a filter value known at expression-build time so it is treated as a literal
+  /// by the target pattern language (LIKE wildcards or regex metacharacters) instead of
+  /// being interpreted as part of the pattern.
+  /// </summary>
+  static Expression EscapeConstantIfPossible(Expression argument, Func<string, string> escape)
+    => argument is ConstantExpression { Value: string value }
+         ? Expression.Constant(escape(value), typeof(string))
+         : argument;
+
+  /// <summary>
+  /// Escapes the characters that are significant to Postgres ILIKE (using the default
+  /// backslash escape character): the wildcard characters and the escape character itself.
+  /// </summary>
+  static string EscapeLikePattern(string value)
+    => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 }

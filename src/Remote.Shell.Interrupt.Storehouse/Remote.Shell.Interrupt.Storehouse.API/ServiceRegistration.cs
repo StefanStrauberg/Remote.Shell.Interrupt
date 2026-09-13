@@ -36,7 +36,7 @@ public static class ServiceRegistration
     builder.Services.AddIdentityServices(builder.Configuration);
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-    builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
+    builder.Services.AddAuthenticationAndAuthorization(builder.Configuration, builder.Environment.IsDevelopment());
 
     // Application Layers
     builder.Services.AddApplicationServices();
@@ -51,13 +51,24 @@ public static class ServiceRegistration
     builder.Services.AddSwaggerGen();
 
     // Cross-cutting concerns
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    var isDevelopment = builder.Environment.IsDevelopment();
+
     builder.Services.AddCors(options =>
                     {
-                      options.AddPolicy(DefaultEntities.CorsPolicyName,
-                                        builder => builder.AllowAnyOrigin()
-                                                          .AllowAnyHeader()
-                                                          .AllowAnyMethod()
-                                                          .WithExposedHeaders(DefaultEntities.ExposedHeaders));
+                      options.AddPolicy(DefaultEntities.CorsPolicyName, corsPolicy =>
+                      {
+                        if (allowedOrigins.Length > 0)
+                          corsPolicy.WithOrigins(allowedOrigins);
+                        else if (isDevelopment)
+                          corsPolicy.AllowAnyOrigin();
+                        // Outside Development, with no configured origins, no origin is allowed:
+                        // safer default than permitting any site to call the API cross-origin.
+
+                        corsPolicy.AllowAnyHeader()
+                                  .AllowAnyMethod()
+                                  .WithExposedHeaders(DefaultEntities.ExposedHeaders);
+                      });
                     });
   }
 
@@ -68,7 +79,8 @@ public static class ServiceRegistration
   /// </summary>
   public static IServiceCollection AddAuthenticationAndAuthorization(
     this IServiceCollection services,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    bool isDevelopment)
   {
     var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
                       ?? throw new InvalidOperationException(
@@ -125,7 +137,9 @@ public static class ServiceRegistration
         options.Cookie.Name = "rsi.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = isDevelopment
+          ? CookieSecurePolicy.SameAsRequest
+          : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromDays(jwtSettings.CookieExpiryDays);
         options.SlidingExpiration = true;
 
@@ -161,6 +175,12 @@ public static class ServiceRegistration
   /// <param name="app">The web application instance to configure.</param>
   public static void ConfigurePipeline(this WebApplication app)
   {
+    // Registered first so it also catches exceptions thrown by CORS/authentication/
+    // authorization middleware further down the pipeline, not just controller actions.
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+    app.UseHttpsRedirection();
+
     app.UseCors(DefaultEntities.CorsPolicyName);
 
     app.UseAuthentication();
@@ -173,8 +193,6 @@ public static class ServiceRegistration
       app.UseSwaggerUI();
     }
 
-    // Application middleware
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.MapControllers();
   }
 }

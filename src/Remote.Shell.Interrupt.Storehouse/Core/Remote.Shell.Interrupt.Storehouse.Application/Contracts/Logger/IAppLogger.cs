@@ -26,6 +26,14 @@ public interface IAppLogger<T>
   /// <param name="message">The error message to log.</param>
   /// <param name="args">Optional arguments for message formatting.</param>
   void LogError(string message, params object[] args);
+
+  /// <summary>
+  /// Logs an error message together with the exception that caused it.
+  /// </summary>
+  /// <param name="exception">The exception associated with the error.</param>
+  /// <param name="message">The error message to log.</param>
+  /// <param name="args">Optional arguments for message formatting.</param>
+  void LogError(Exception exception, string message, params object[] args);
 }
 
 /// <summary>
@@ -56,4 +64,13 @@ public interface IAppLogger
   /// <param name="message">The error message, optionally parameterized.</param>
   /// <param name="args">Optional arguments to be included in the message template.</param>
   void LogError(string className, string message, params object[] args);
+
+  /// <summary>
+  /// Logs an error message together with the exception that caused it.
+  /// </summary>
+  /// <param name="className">The name of the class invoking the log entry.</param>
+  /// <param name="exception">The exception associated with the error.</param>
+  /// <param name="message">The error message, optionally parameterized.</param>
+  /// <param name="args">Optional arguments to be included in the message template.</param>
+  void LogError(string className, Exception exception, string message, params object[] args);
 }

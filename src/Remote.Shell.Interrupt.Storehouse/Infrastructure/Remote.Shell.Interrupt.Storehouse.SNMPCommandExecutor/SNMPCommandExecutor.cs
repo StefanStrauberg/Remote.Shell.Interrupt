@@ -6,12 +6,16 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
     {
         var result = new SNMPResponse();
         var version = VersionCode.V2;
-        var target = new IPEndPoint(IPAddress.Parse(host), 161);
-        var communityString = new OctetString(community);
-        var currentOid = new ObjectIdentifier(oid);
 
         try
         {
+            if (!IPAddress.TryParse(host, out var hostAddress))
+                throw new SNMPBadRequestException($"'{host}' is not a valid IP address.");
+
+            var target = new IPEndPoint(hostAddress, 161);
+            var communityString = new OctetString(community);
+            var currentOid = new ObjectIdentifier(oid);
+
             var response = await Messenger.GetAsync(version, target, communityString, [new(currentOid)], cancellationToken);
 
             if (response.Count > 0)
@@ -25,6 +29,10 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         {
             throw new SNMPBadRequestException("The SNMP Get operation was canceled.");
         }
+        catch (SNMPBadRequestException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             throw new SNMPBadRequestException($"Error during SNMP Get: {ex.Message}", ex);
@@ -36,14 +44,18 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
     {
         var result = new List<SNMPResponse>();
         var version = VersionCode.V2;
-        var target = new IPEndPoint(IPAddress.Parse(host), 161);
-        var communityString = new OctetString(community);
-        var currentOid = new ObjectIdentifier(oid);
         var userRegistry = new Lextm.SharpSnmpLib.Security.UserRegistry();
         var maxRepetitions = repetitions;
 
         try
         {
+            if (!IPAddress.TryParse(host, out var hostAddress))
+                throw new SNMPBadRequestException($"'{host}' is not a valid IP address.");
+
+            var target = new IPEndPoint(hostAddress, 161);
+            var communityString = new OctetString(community);
+            var currentOid = new ObjectIdentifier(oid);
+
             while (true)
             {
                 var message = new GetBulkRequestMessage(0, version, communityString, 0, maxRepetitions, [new Variable(currentOid)]);
@@ -61,18 +73,35 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                     break;
 
                 Variable? lastMatchingVariable = null;
+                var reachedEndOfMib = false;
 
                 foreach (var item in response.Pdu().Variables)
                 {
                     var itemOid = item.Id.ToString();
                     var data = item.Data;
 
+                    if (data is EndOfMibView or NoSuchObject or NoSuchInstance)
+                    {
+                        reachedEndOfMib = true;
+                        break;
+                    }
+
                     if (IsWithinSubtree(itemOid, oid))
                     {
+                        string dataString;
+                        try
+                        {
+                            dataString = toHex ? ConvertSnmpDataToHex(data) : data.ToString();
+                        }
+                        catch (ArgumentException)
+                        {
+                            dataString = data.ToString();
+                        }
+
                         result.Add(new()
                         {
                             OID = item.Id.ToString(),
-                            Data = toHex ? ConvertSnmpDataToHex(data) : data.ToString()
+                            Data = dataString
                         });
 
                         lastMatchingVariable = item;
@@ -83,7 +112,7 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
                     }
                 }
 
-                if (lastMatchingVariable is null)
+                if (reachedEndOfMib || lastMatchingVariable is null)
                     break;
 
                 currentOid = lastMatchingVariable.Id;
@@ -92,6 +121,10 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
         catch (OperationCanceledException)
         {
             throw new SNMPBadRequestException("The SNMP Walk operation was canceled.");
+        }
+        catch (SNMPBadRequestException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

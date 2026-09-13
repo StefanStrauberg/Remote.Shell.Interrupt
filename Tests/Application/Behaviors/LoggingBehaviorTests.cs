@@ -45,7 +45,7 @@ public class LoggingBehaviorTests
                                                      CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("boom");
-        _logger.Received().LogError(Arg.Is<string>(m => m.Contains("[ERROR]")), Arg.Any<object[]>());
+        _logger.Received().LogError(Arg.Any<Exception>(), Arg.Is<string>(m => m.Contains("[ERROR]")), Arg.Any<object[]>());
     }
 }
 

@@ -88,7 +88,8 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
               builder.HasOne(x => x.COD)
                      .WithMany()
                      .HasPrincipalKey(c => c.IdCOD)
-                     .HasForeignKey(c => c.Id_COD);
+                     .HasForeignKey(c => c.Id_COD)
+                     .OnDelete(DeleteBehavior.Restrict);
 
               builder.HasOne(x => x.TfPlan)
                      .WithMany()

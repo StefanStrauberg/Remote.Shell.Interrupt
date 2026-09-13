@@ -38,9 +38,10 @@ public static class FormatMACAddress
       throw new ArgumentException($"OID must start with {prefix}.", nameof(oid));
 
     var parts = oid.Split('.');
+    var prefixLength = prefix.Split('.').Length;
 
-    // Need at least 8 parts: the prefix (7 segments) + at least 6 for the MAC bytes
-    if (parts.Length < 13)
+    // Need at least prefixLength parts (11 segments) + 6 for the MAC bytes
+    if (parts.Length < prefixLength + 6)
       throw new ArgumentException("OID must contain at least 6 MAC address bytes after the prefix.", nameof(oid));
 
     byte[] macBytes = new byte[6];

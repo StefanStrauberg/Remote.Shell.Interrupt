@@ -108,7 +108,31 @@ public class ExceptionHandlingMiddlewareTests
         var json = await ReadBodyAsync(body);
         json.Should().Contain("\"Status\":500");
         json.Should().Contain("Server Error");
-        json.Should().Contain("unexpected");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_UnmappedException_DoesNotLeakInternalExceptionMessage()
+    {
+        var (context, body) = CreateContext();
+        RequestDelegate next = _ => throw new InvalidOperationException("Host=db.internal;Password=super-secret");
+
+        await ((IMiddleware)_middleware).InvokeAsync(context, next);
+
+        var json = await ReadBodyAsync(body);
+        json.Should().NotContain("super-secret");
+        json.Should().Contain("An unexpected error occurred.");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_KnownApplicationException_StillIncludesItsOwnMessage()
+    {
+        var (context, body) = CreateContext();
+        RequestDelegate next = _ => throw new EntityNotFoundException(typeof(Gate), "Id");
+
+        await ((IMiddleware)_middleware).InvokeAsync(context, next);
+
+        var json = await ReadBodyAsync(body);
+        json.Should().Contain("was not found");
     }
 
     [Fact]
@@ -119,6 +143,6 @@ public class ExceptionHandlingMiddlewareTests
 
         await ((IMiddleware)_middleware).InvokeAsync(context, next);
 
-        _logger.Received().LogError(Arg.Is<string>(m => m.Contains("logged")));
+        _logger.Received().LogError(Arg.Is<Exception>(e => e.Message == "logged"), Arg.Any<string>(), Arg.Any<object[]>());
     }
 }

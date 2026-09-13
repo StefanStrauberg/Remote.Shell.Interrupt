@@ -7,7 +7,7 @@ public class WorkflowContext(NetworkDevice device, WorkflowDefinition workflow)
 
   public WorkflowDefinition Workflow { get; } = workflow;
 
-  public Guid? CurrentNodeId { get; internal set; }
+  public Guid? CurrentNodeId { get; set; }
 
   public void Set(string name,object? value)
   {
@@ -30,7 +30,16 @@ public class WorkflowContext(NetworkDevice device, WorkflowDefinition workflow)
     if (value is T typedValue)
       return typedValue;
 
-    return (T)Convert.ChangeType(value, typeof(T));
+    var targetType = typeof(T);
+    var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+    if (underlyingType == typeof(Guid) && value is string guidString)
+      return (T)(object)Guid.Parse(guidString);
+
+    if (underlyingType.IsEnum && value is string enumString)
+      return (T)Enum.Parse(underlyingType, enumString, true);
+
+    return (T)Convert.ChangeType(value, underlyingType);
   }
 
   public bool Contains(string name)

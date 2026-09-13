@@ -152,6 +152,8 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
       clone._includeChains.Add(newChain);
     }
 
+    clone._filteredIncludeChains.AddRange(_filteredIncludeChains);
+
     return clone;
   }
 

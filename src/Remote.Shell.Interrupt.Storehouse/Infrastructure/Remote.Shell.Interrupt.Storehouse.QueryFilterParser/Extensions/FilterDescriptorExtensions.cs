@@ -205,9 +205,15 @@ internal static class FilterDescriptorExtensions
   {
     try
     {
-      if (targetType == typeof(Guid)) return Guid.Parse(value);
-      if (targetType.IsEnum) return Enum.Parse(targetType, value, true);
-      if (targetType == typeof(long))
+      // Unwrap Nullable<T> so conversion targets the underlying type: Convert.ChangeType
+      // (and the special-cased branches below) cannot convert directly to a Nullable<T>,
+      // since Nullable<T> does not implement IConvertible. The resulting boxed underlying
+      // value is still valid as a Nullable<T> constant thanks to CLR boxing semantics.
+      var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+      if (underlyingType == typeof(Guid)) return Guid.Parse(value);
+      if (underlyingType.IsEnum) return Enum.Parse(underlyingType, value, true);
+      if (underlyingType == typeof(long))
       {
         // Numeric values (speeds, counters) first; dotted-quad IPv4 strings,
         // stored as long in several entities, are converted as a fallback.
@@ -217,7 +223,7 @@ internal static class FilterDescriptorExtensions
         return ConvertStringIPAddressToLong.Handle(value);
       }
 
-      return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+      return Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
     }
     catch (Exception ex)
     {

@@ -359,3 +359,45 @@ public class OrganizationsDelegatingQueryHandlerTests
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }
 }
+
+/// <summary>
+/// Regression coverage for the bug where BuildSpecification called AddInclude directly on
+/// the DI-shared IClientSpecification instance instead of cloning first, mutating shared
+/// state. These tests use a distinct substitute for the clone so that calls made on the
+/// original (pre-clone) instance are distinguishable from calls made on the clone.
+/// </summary>
+public class ClientQueryHandlerSpecificationCloningTests
+{
+    readonly ILocBillUnitOfWork _unitOfWork = Substitute.For<ILocBillUnitOfWork>();
+    readonly IClientsRepository _clients = Substitute.For<IClientsRepository>();
+    readonly IClientSpecification _originalSpec = Substitute.For<IClientSpecification>();
+    readonly IClientSpecification _clonedSpec = Substitute.For<IClientSpecification>();
+    readonly IQueryFilterParser _parser = new CommonQueryFilterParser();
+    readonly IMapper _mapper = Substitute.For<IMapper>();
+
+    public ClientQueryHandlerSpecificationCloningTests()
+    {
+        _unitOfWork.Clients.Returns(_clients);
+        _originalSpec.Clone().Returns(_clonedSpec);
+        _clonedSpec.AddInclude(Arg.Any<Expression<Func<Client, COD>>>()).Returns(_clonedSpec);
+        _clonedSpec.AddInclude(Arg.Any<Expression<Func<Client, TfPlan>>>()).Returns(_clonedSpec);
+        _clonedSpec.AddInclude(Arg.Any<Expression<Func<Client, List<SPRVlan>>>>()).Returns(_clonedSpec);
+        _clients.AnyByQueryAsync(Arg.Any<ISpecification<Client>>(), Arg.Any<CancellationToken>()).Returns(true);
+        _clients.GetOneWithChildrenAsync(Arg.Any<ISpecification<Client>>(), Arg.Any<CancellationToken>())
+                .Returns(new Client { Id = Guid.NewGuid() });
+        _mapper.Map<DetailClientDTO>(Arg.Any<Client>()).Returns(new DetailClientDTO());
+    }
+
+    [Fact]
+    public async Task GetClientById_BuildSpecification_AddsIncludesToCloneNotOriginal()
+    {
+        var handler = new GetClientByIdQueryHandler(_unitOfWork, _originalSpec, _parser, _mapper);
+
+        await ((IRequestHandler<GetClientByIdQuery, DetailClientDTO>)handler)
+            .Handle(new GetClientByIdQuery(Guid.NewGuid()), CancellationToken.None);
+
+        _originalSpec.Received(1).Clone();
+        _originalSpec.DidNotReceive().AddInclude(Arg.Any<Expression<Func<Client, COD>>>());
+        _clonedSpec.Received().AddInclude(Arg.Any<Expression<Func<Client, COD>>>());
+    }
+}

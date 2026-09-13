@@ -10,8 +10,8 @@ internal class AppLogger<T>(ILoggerFactory loggerFactory)
   /// <summary>
   /// The logger instance used for logging messages.
   /// </summary>
-  readonly ILogger<T> _logger = loggerFactory.CreateLogger<T>()
-      ?? throw new ArgumentNullException(nameof(loggerFactory));  
+  readonly ILogger<T> _logger = (loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory)))
+      .CreateLogger<T>();
   /// <summary>
   /// Logs an informational message.
   /// </summary>
@@ -38,6 +38,16 @@ internal class AppLogger<T>(ILoggerFactory loggerFactory)
   void IAppLogger<T>.LogError(string message, params object[] args)
   {
     _logger.LogError(message, args);
+  }
+  /// <summary>
+  /// Logs an error message together with the exception that caused it.
+  /// </summary>
+  /// <param name="exception">The exception associated with the error.</param>
+  /// <param name="message">The error message to log.</param>
+  /// <param name="args">Optional arguments for message formatting.</param>
+  void IAppLogger<T>.LogError(Exception exception, string message, params object[] args)
+  {
+    _logger.LogError(exception, message, args);
   }
 }
 
@@ -85,5 +95,18 @@ internal class AppLogger(ILoggerFactory loggerFactory)
   {
     var logger = _loggerFactory.CreateLogger(className);
     logger.LogError(message, args);
+  }
+
+  /// <summary>
+  /// Logs an error message together with the exception that caused it.
+  /// </summary>
+  /// <param name="className">The name of the class where the log originates.</param>
+  /// <param name="exception">The exception associated with the error.</param>
+  /// <param name="message">The log message format string.</param>
+  /// <param name="args">The arguments to be formatted into the message.</param>
+  public void LogError(string className, Exception exception, string message, params object[] args)
+  {
+    var logger = _loggerFactory.CreateLogger(className);
+    logger.LogError(exception, message, args);
   }
 }

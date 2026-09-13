@@ -52,6 +52,32 @@ public class ILikeExpressionVisitorTests
         var call = visited.Should().BeAssignableTo<MethodCallExpression>().Subject;
         call.Method.Name.Should().Be("StartsWith");
     }
+
+    [Fact]
+    public void Visit_ContainsWithLikeWildcardCharacters_EscapesThemInPattern()
+    {
+        Expression<Func<Gate, bool>> expression = g => g.Name.Contains("50%_off");
+
+        var visited = new ILikeExpressionVisitor().Visit(expression.Body);
+
+        var call = visited.Should().BeAssignableTo<MethodCallExpression>().Subject;
+        var pattern = Expression.Lambda<Func<string>>(call.Arguments[2]).Compile()();
+
+        pattern.Should().Be("%50\\%\\_off%");
+    }
+
+    [Fact]
+    public void Visit_ContainsWholeWordWithRegexMetacharacters_EscapesThemInPattern()
+    {
+        Expression<Func<Gate, bool>> expression = g => StringExtensions.ContainsWholeWord(g.Name, "C++ (beta)");
+
+        var visited = new ILikeExpressionVisitor().Visit(expression.Body);
+
+        var call = visited.Should().BeAssignableTo<MethodCallExpression>().Subject;
+        var pattern = Expression.Lambda<Func<string>>(call.Arguments[1]).Compile()();
+
+        pattern.Should().Be("\\mC\\+\\+\\ \\(beta\\)\\M");
+    }
 }
 
 public class GenericRepositoryTests : IDisposable
@@ -233,7 +259,7 @@ public class NetworkDeviceRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteOneWithChildren_RemovesDevicePortsAndAllChildEntities()
+    public async Task DeleteOneWithChildren_RemovesDevicePortsAndOwnedChildEntities()
     {
         var (device, parent, child) = BuildDeviceGraph();
         var arp = new ARPEntity { Id = Guid.NewGuid(), PortId = child.Id, MAC = "m", IPAddress = "1.2.3.4" };
@@ -255,7 +281,59 @@ public class NetworkDeviceRepositoryTests : IDisposable
         _context.ARPEntities.Should().BeEmpty();
         _context.MACEntities.Should().BeEmpty();
         _context.TerminatedNetworkEntities.Should().BeEmpty();
-        _context.VLANs.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task DeleteOneWithChildren_DoesNotDeleteVlanSharedWithAnotherDevice()
+    {
+        var (device, parent, child) = BuildDeviceGraph();
+        var otherDevice = new NetworkDevice { Id = Guid.NewGuid(), Host = 2, NetworkDeviceName = "other-gw" };
+        var otherPort = new Port { Id = Guid.NewGuid(), NetworkDeviceId = otherDevice.Id, InterfaceName = "ge-0/0/1" };
+        var sharedVlan = new VLAN { Id = Guid.NewGuid(), VLANTag = 100, VLANName = "SHARED" };
+
+        parent.VLANs.Add(sharedVlan);
+        otherPort.VLANs.Add(sharedVlan);
+        sharedVlan.Ports.Add(parent);
+        sharedVlan.Ports.Add(otherPort);
+
+        _context.AddRange(device, parent, child, otherDevice, otherPort, sharedVlan);
+        await _context.SaveChangesAsync();
+
+        var repo = CreateRepository();
+        ((INetworkDeviceRepository)repo).DeleteOneWithChildren(device);
+        await _context.SaveChangesAsync();
+
+        // The VLAN itself must survive since it is still referenced by the other device's port.
+        _context.VLANs.Should().ContainSingle(v => v.Id == sharedVlan.Id);
+        _context.NetworkDevices.Should().ContainSingle(d => d.Id == otherDevice.Id);
+        _context.Ports.Should().ContainSingle(p => p.Id == otherPort.Id);
+    }
+
+    [Fact]
+    public async Task DeleteOneWithChildren_RemovesMultiLevelAggregatedPortChain()
+    {
+        var device = new NetworkDevice { Id = Guid.NewGuid(), Host = 3, NetworkDeviceName = "chain-gw" };
+        var grandparent = new Port { Id = Guid.NewGuid(), NetworkDeviceId = device.Id, InterfaceName = "ae0" };
+        var parent = new Port { Id = Guid.NewGuid(), NetworkDeviceId = device.Id, InterfaceName = "ae0.1", ParentId = grandparent.Id };
+        var grandchild = new Port { Id = Guid.NewGuid(), NetworkDeviceId = device.Id, InterfaceName = "xe-0/0/0.0", ParentId = parent.Id };
+        grandparent.AggregatedPorts.Add(parent);
+        parent.AggregatedPorts.Add(grandchild);
+
+        _context.AddRange(device, grandparent, parent, grandchild);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        var repo = CreateRepository();
+        var trackedDevice = await _context.NetworkDevices.SingleAsync(d => d.Id == device.Id);
+
+        var act = () =>
+        {
+            ((INetworkDeviceRepository)repo).DeleteOneWithChildren(trackedDevice);
+            return _context.SaveChangesAsync();
+        };
+
+        await act.Should().NotThrowAsync();
+        _context.Ports.Should().BeEmpty();
     }
 
     [Fact]

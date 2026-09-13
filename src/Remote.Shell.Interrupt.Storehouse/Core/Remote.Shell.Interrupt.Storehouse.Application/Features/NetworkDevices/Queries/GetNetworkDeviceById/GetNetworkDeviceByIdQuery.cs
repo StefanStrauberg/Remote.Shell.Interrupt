@@ -105,7 +105,8 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   }
 
   ISpecification<NetworkDevice> BuildBaseSpecification()
-    => specification.AddInclude(x => x.PortsOfNetworkDevice)
+    => specification.Clone()
+                    .AddInclude(x => x.PortsOfNetworkDevice)
                     .AddThenInclude<Port, IEnumerable<TerminatedNetworkEntity>>(x => x.NetworkTableOfInterface)
                     .AddInclude(x => x.PortsOfNetworkDevice)
                     .AddThenInclude<Port, IEnumerable<ARPEntity>>(x => x.ARPTableOfInterface)

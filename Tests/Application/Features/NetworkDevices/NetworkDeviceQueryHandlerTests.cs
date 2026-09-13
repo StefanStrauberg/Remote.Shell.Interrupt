@@ -285,6 +285,38 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
         ports[0].VLANs.Should().ContainSingle(v => v.VLANTag == 100);
         ports[0].AggregatedPorts.Should().ContainSingle(p => p.InterfaceName == "xe-0/0/0.0");
     }
+
+    [Fact]
+    public async Task Handle_QueryingVlanTag101_IsNotExcludedFromResults()
+    {
+        var detailClient = new DetailClientDTO
+        {
+            Name = "Alpha",
+            SPRVlans = [new SPRVlanDTO { IdVlan = 101 }]
+        };
+        _clientsHandler.Handle(Arg.Any<GetClientsByVlanTagQuery>(), Arg.Any<CancellationToken>())
+                       .Returns((IEnumerable<DetailClientDTO>)[detailClient]);
+
+        var vlan101 = new VLAN { Id = Guid.NewGuid(), VLANTag = 101, VLANName = "RESERVED" };
+        var matchingPort = new Port { Id = Guid.NewGuid(), InterfaceName = "xe-0/0/2" };
+        matchingPort.VLANs.Add(vlan101);
+
+        var device = new NetworkDevice
+        {
+            Id = Guid.NewGuid(),
+            NetworkDeviceName = "gw-1",
+            PortsOfNetworkDevice = [matchingPort]
+        };
+        _devices.GetManyWithChildrenAsync(Arg.Any<ISpecification<NetworkDevice>>(), Arg.Any<CancellationToken>())
+                .Returns([device]);
+
+        var result = await ((IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
+            .Handle(new GetCompoundDataByVlanTagQuery(101), CancellationToken.None);
+
+        var devices = result.NetworkDevices.ToList();
+        devices.Should().ContainSingle(d => d.NetworkDeviceName == "gw-1");
+        devices[0].PortsOfNetworkDevice.Should().ContainSingle(p => p.InterfaceName == "xe-0/0/2");
+    }
 }
 
 public class SnmpExecutorHandlerTests

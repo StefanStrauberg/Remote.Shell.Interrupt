@@ -40,7 +40,7 @@ public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRe
     {
       stopwatch.Stop();
       var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
-      logger.LogError("[ERROR] Request {RequestName} failed after {ElapsedSeconds:F2} seconds: {ErrorMessage}", requestName, elapsedSeconds, ex.Message);
+      logger.LogError(ex, "[ERROR] Request {RequestName} failed after {ElapsedSeconds:F2} seconds", requestName, elapsedSeconds);
       throw;
     }
   }

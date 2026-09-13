@@ -51,6 +51,32 @@ public class SNMPCommandExecutorHexConversionTests
     }
 }
 
+public class SNMPCommandExecutorHostValidationTests
+{
+    readonly SNMPCommandExecutor _executor = new();
+
+    [Theory]
+    [InlineData("not-an-ip")]
+    [InlineData("")]
+    [InlineData("999.999.999.999")]
+    public async Task GetCommand_InvalidHost_ThrowsSNMPBadRequestExceptionWithoutNetworkCall(string host)
+    {
+        var act = async () => await _executor.GetCommand(host, "public", "1.3.6.1.2.1.1.1.0", CancellationToken.None);
+
+        await act.Should().ThrowAsync<SNMPBadRequestException>();
+    }
+
+    [Theory]
+    [InlineData("not-an-ip")]
+    [InlineData("")]
+    public async Task WalkCommand_InvalidHost_ThrowsSNMPBadRequestExceptionWithoutNetworkCall(string host)
+    {
+        var act = async () => await _executor.WalkCommand(host, "public", "1.3.6.1.2.1.1", CancellationToken.None);
+
+        await act.Should().ThrowAsync<SNMPBadRequestException>();
+    }
+}
+
 /// <summary>
 /// Minimal ILogger implementation capturing emitted log levels,
 /// used because ILogger.Log is generic and awkward to verify with NSubstitute matchers.
@@ -59,6 +85,7 @@ internal sealed class RecordingLogger : ILogger
 {
     public string Category { get; init; } = string.Empty;
     public List<(LogLevel Level, string Category)> Entries { get; } = [];
+    public List<Exception> CapturedExceptions { get; } = [];
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
@@ -69,7 +96,12 @@ internal sealed class RecordingLogger : ILogger
                             TState state,
                             Exception? exception,
                             Func<TState, Exception?, string> formatter)
-        => Entries.Add((logLevel, Category));
+    {
+        Entries.Add((logLevel, Category));
+
+        if (exception is not null)
+            CapturedExceptions.Add(exception);
+    }
 }
 
 public class GenericAppLoggerTests
@@ -91,6 +123,29 @@ public class GenericAppLoggerTests
 
         inner.Entries.Select(e => e.Level)
                      .Should().ContainInOrder(LogLevel.Information, LogLevel.Warning, LogLevel.Error);
+    }
+
+    [Fact]
+    public void LogError_WithException_ForwardsExceptionToUnderlyingLogger()
+    {
+        var factory = Substitute.For<ILoggerFactory>();
+        var inner = new RecordingLogger();
+        factory.CreateLogger(typeof(Marker)).Returns(inner);
+        var logger = (IAppLogger<Marker>)new AppLogger<Marker>(factory);
+        var exception = new InvalidOperationException("boom");
+
+        logger.LogError(exception, "failed {Value}", 1);
+
+        inner.Entries.Should().ContainSingle(e => e.Level == LogLevel.Error);
+        inner.CapturedExceptions.Should().ContainSingle().Which.Should().BeSameAs(exception);
+    }
+
+    [Fact]
+    public void Constructor_NullLoggerFactory_ThrowsArgumentNullException()
+    {
+        var act = () => new AppLogger<Marker>(null!);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 }
 
@@ -124,5 +179,28 @@ public class NonGenericAppLoggerTests
         logger.LogInformation("CategoryA", "message");
 
         factory.Received().CreateLogger("CategoryA");
+    }
+
+    [Fact]
+    public void LogError_WithException_ForwardsExceptionToUnderlyingLogger()
+    {
+        var factory = Substitute.For<ILoggerFactory>();
+        var inner = new RecordingLogger { Category = "MyClass" };
+        factory.CreateLogger("MyClass").Returns(inner);
+        var logger = new AppLogger(factory);
+        var exception = new InvalidOperationException("boom");
+
+        logger.LogError("MyClass", exception, "failed {Value}", 1);
+
+        inner.Entries.Should().ContainSingle(e => e.Level == LogLevel.Error);
+        inner.CapturedExceptions.Should().ContainSingle().Which.Should().BeSameAs(exception);
+    }
+
+    [Fact]
+    public void Constructor_NullLoggerFactory_ThrowsArgumentNullException()
+    {
+        var act = () => new AppLogger(null!);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 }

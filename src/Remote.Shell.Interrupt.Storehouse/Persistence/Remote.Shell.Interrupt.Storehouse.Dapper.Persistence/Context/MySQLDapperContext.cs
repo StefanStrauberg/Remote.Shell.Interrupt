@@ -4,22 +4,32 @@ internal class MySQLDapperContext(IConfiguration configuration) : IDisposable
 {
   readonly string _connectionString = configuration.GetConnectionString("DefaultConnection2")
     ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection2' in configuration.");
+  readonly SemaphoreSlim _connectionLock = new(1, 1);
   MySqlConnection? _dbConnection;
 
   public async Task<MySqlConnection> CreateConnectionAsync(CancellationToken cancellationToken)
   {
-    if (_dbConnection is null)
+    if (_dbConnection is not null && _dbConnection.State is ConnectionState.Open)
+      return _dbConnection;
+
+    // Guard creation/reopen: this context is shared by every repository resolved within
+    // the same scope, so concurrent calls (e.g. via Task.WhenAll) could otherwise race
+    // into opening the same non-thread-safe MySqlConnection instance concurrently.
+    await _connectionLock.WaitAsync(cancellationToken);
+    try
     {
-      _dbConnection = new MySqlConnection(_connectionString);
-      await _dbConnection.OpenAsync(cancellationToken);
+      if (_dbConnection is null)
+        _dbConnection = new MySqlConnection(_connectionString);
+
+      if (_dbConnection.State is not ConnectionState.Open)
+        await _dbConnection.OpenAsync(cancellationToken);
+
       return _dbConnection;
     }
-    else if (_dbConnection.State is not ConnectionState.Open)
+    finally
     {
-      await _dbConnection.OpenAsync(cancellationToken);
-      return _dbConnection;
+      _connectionLock.Release();
     }
-    return _dbConnection;
   }
 
   void IDisposable.Dispose()
@@ -41,6 +51,8 @@ internal class MySQLDapperContext(IConfiguration configuration) : IDisposable
         _dbConnection.Dispose(); // Release the connection resources
         _dbConnection = null; // Drop the connection reference
       }
+
+      _connectionLock.Dispose();
     }
   }
 }

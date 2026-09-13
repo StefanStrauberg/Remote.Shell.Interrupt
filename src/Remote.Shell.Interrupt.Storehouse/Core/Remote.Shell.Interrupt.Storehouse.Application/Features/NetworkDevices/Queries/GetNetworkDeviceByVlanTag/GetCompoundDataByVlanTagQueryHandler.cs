@@ -121,7 +121,6 @@ internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork
 
     foreach (var device in networkDevices)
       device.PortsOfNetworkDevice = [.. device.PortsOfNetworkDevice.Where(port => port.VLANs.Any(vl => vlanTagSet.Contains(vl.VLANTag)))
-                                                                   .Where(port => !port.VLANs.Any(vl => vl.VLANTag == 101))
                                                                    .OrderBy(port => port.InterfaceName)];
   }
 

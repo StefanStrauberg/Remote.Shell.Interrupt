@@ -116,6 +116,35 @@ public class FilterDescriptorExtensionsTests
     }
 
     [Fact]
+    public void ToExpression_NullableIntProperty_ConvertsValueWithoutThrowing()
+    {
+        var func = Build<Client>(nameof(Client.Id_TfPlan), FilterOperator.Equals, "22").Compile();
+
+        func(new Client { Id_TfPlan = 22 }).Should().BeTrue();
+        func(new Client { Id_TfPlan = 5 }).Should().BeFalse();
+        func(new Client { Id_TfPlan = null }).Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToExpression_NullableDateTimeProperty_ConvertsValueWithoutThrowing()
+    {
+        var func = Build<Client>(nameof(Client.UpdatedAt), FilterOperator.Equals, "2024-01-02T03:04:05").Compile();
+
+        func(new Client { UpdatedAt = new DateTime(2024, 1, 2, 3, 4, 5) }).Should().BeTrue();
+        func(new Client { UpdatedAt = new DateTime(2024, 1, 2, 3, 4, 6) }).Should().BeFalse();
+        func(new Client { UpdatedAt = null }).Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToExpression_NullableIntProperty_GreaterThanCompares()
+    {
+        var func = Build<Client>(nameof(Client.Id_TfPlan), FilterOperator.GreaterThan, "10").Compile();
+
+        func(new Client { Id_TfPlan = 20 }).Should().BeTrue();
+        func(new Client { Id_TfPlan = 5 }).Should().BeFalse();
+    }
+
+    [Fact]
     public void ToExpression_NotEqualsOperator_NegatesMatch()
     {
         var func = Build<Gate>(nameof(Gate.Name), FilterOperator.NotEquals, "gw").Compile();

@@ -32,10 +32,10 @@ internal class GetClientByIdQueryHandler(ILocBillUnitOfWork locBillUnitOfWork,
   protected override ISpecification<Client> BuildSpecification(Guid clientId)
   {
     var filterExpr = _queryFilterParser.ParseFilters<Client>(RequestParametersFactory.ForId(clientId).Filters);
-    var spec = specification.AddInclude(c => c.COD)
+    var spec = specification.Clone()
+                            .AddInclude(c => c.COD)
                             .AddInclude(c => c.TfPlan!)
-                            .AddInclude(c => c.SPRVlans)
-                            .Clone();
+                            .AddInclude(c => c.SPRVlans);
 
     if (filterExpr is not null)
       spec.AddFilter(filterExpr);
