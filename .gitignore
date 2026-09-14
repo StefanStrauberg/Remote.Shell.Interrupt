@@ -345,9 +345,9 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-# Migrations
+# EF Core migration backups only (the Migrations/ folder itself is committed
+# source code: it's the schema history, not a generated artifact)
 MigrationBackup/
-Migrations/
 
 # Local logs
 *.txt

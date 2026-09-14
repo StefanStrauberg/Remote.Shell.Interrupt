@@ -273,15 +273,20 @@ public static class ServiceRegistration
 
     app.UseRateLimiter();
 
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    // Development-specific middleware
+    // Registered before authentication/authorization: Swagger has no [AllowAnonymous]
+    // metadata to opt out with, and the global fallback policy below requires an
+    // authenticated user for every request that isn't explicitly exempted — including
+    // ones that never mapped to a controller endpoint. Placed here, this middleware
+    // fully handles and terminates matching /swagger/* requests itself, so they never
+    // reach the authorization check at all.
     if (app.Environment.IsDevelopment())
     {
       app.UseSwagger();
       app.UseSwaggerUI();
     }
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapControllers();
   }

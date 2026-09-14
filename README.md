@@ -68,7 +68,7 @@ Remote.Shell.Interrupt/
 dotnet run --project src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API
 ```
 
-On startup the API **automatically** syncs the database schema (idempotent script) and creates the roles and the administrator account.
+On startup the API **automatically** applies pending EF Core migrations (creating the full schema from scratch on a fresh/empty database, e.g. a newly deployed container) and creates the roles and the administrator account.
 
 ### 2. Frontend
 
@@ -167,16 +167,29 @@ VITE_API_URL=http://localhost:5000
 
 ## 🗄️ Database
 
-On startup the API executes an **idempotent SQL script** (`Scripts/InitialDatabaseSync.sql`): it creates missing tables, indexes and foreign keys, skips objects that already exist, and stamps `__EFMigrationsHistory`.
+PostgreSQL schema is managed with real **EF Core Migrations**, stored in `Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence/Migrations/`. On startup the API calls `Database.MigrateAsync()`, which:
 
-Regenerate the script after model changes:
+- creates the entire schema on a fresh/empty database (a newly deployed container needs no manual setup), and
+- applies only the migrations not yet recorded in `__EFMigrationsHistory` on an existing one.
+
+MySQL (`ConnectionStrings__DefaultConnection2`) is an externally-owned, read-only billing database — it is never migrated by this application.
+
+This repo pins the [`dotnet-ef`](https://www.nuget.org/packages/dotnet-ef) CLI as a local tool (`.config/dotnet-tools.json`), so no global install is needed:
 
 ```bash
-dotnet ef migrations script --idempotent \
-  --project src/Remote.Shell.Interrupt.Storehouse/Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence \
-  --startup-project src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API \
-  -o src/Remote.Shell.Interrupt.Storehouse/Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence/Scripts/InitialDatabaseSync.sql
+dotnet tool restore
 ```
+
+After changing an entity or its `IEntityTypeConfiguration<T>`, add a migration:
+
+```bash
+dotnet ef migrations add <DescriptiveName> \
+  --project src/Remote.Shell.Interrupt.Storehouse/Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence \
+  --startup-project src/Remote.Shell.Interrupt.Storehouse/Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence \
+  --output-dir Migrations
+```
+
+The Persistence project doubles as its own startup project via `ApplicationDbContextFactory` (an `IDesignTimeDbContextFactory<ApplicationDbContext>`), so `migrations add` needs no database connection and no runtime secrets (JWT key, etc.) — those only matter for actually running the API. Commit the generated migration, and the next application start (or a manual `dotnet ef database update` with `ConnectionStrings__DefaultConnection` set) applies it.
 
 ---
 

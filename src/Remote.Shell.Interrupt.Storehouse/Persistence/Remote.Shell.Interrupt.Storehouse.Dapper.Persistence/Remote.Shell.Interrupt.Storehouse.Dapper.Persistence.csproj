@@ -8,19 +8,13 @@
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.14.0" />
     <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!--
-      Idempotent schema-sync script generated with:
-        dotnet ef migrations script -idempotent -o Scripts/InitialDatabaseSync.sql ...
-      Embedded into the assembly so the API host can apply it at startup
-      without any file-system dependency.
-    -->
-    <EmbeddedResource Include="Scripts\InitialDatabaseSync.sql" LogicalName="InitialDatabaseSync.sql" />
   </ItemGroup>
 
   <ItemGroup>

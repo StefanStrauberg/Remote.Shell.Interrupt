@@ -19,14 +19,13 @@ try
   // Register Middlewares
   app.ConfigurePipeline();
 
-  // Idempotent schema sync: executes the embedded idempotent SQL script that
-  // creates missing tables/indices/constraints, skips everything that already
-  // exists, and stamps "__EFMigrationsHistory" so future migrations stay
-  // consistent with the deployed schema.
+  // Applies pending EF Core migrations: creates the full schema on a fresh/empty
+  // database (e.g. a newly deployed container) and applies only what's new on
+  // an existing one.
   try
   {
     await app.Services.SyncDatabaseAsync();
-    Log.Information("Idempotent database schema sync completed successfully.");
+    Log.Information("Database migration completed successfully.");
   }
   catch (Exception ex)
   {
