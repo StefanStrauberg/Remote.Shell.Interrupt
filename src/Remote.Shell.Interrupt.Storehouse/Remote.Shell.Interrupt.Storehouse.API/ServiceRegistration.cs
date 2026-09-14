@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.API.Services;
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
@@ -50,7 +51,7 @@ public static class ServiceRegistration
     // API Infrastructure
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGenWithBearerAuth();
 
     // Cross-cutting concerns
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -74,6 +75,49 @@ public static class ServiceRegistration
                     });
 
     builder.Services.AddAuthRateLimiting();
+  }
+
+  /// <summary>
+  /// Registers Swagger generation with a JWT bearer security scheme, so the "Authorize"
+  /// button in Swagger UI can attach an access token (obtained from /api/Auth/Login or
+  /// /api/Auth/RefreshToken) to every "Try it out" request. Without this, Swagger has no
+  /// notion of authentication and every protected endpoint can only be exercised with
+  /// hand-crafted requests outside the UI.
+  /// </summary>
+  static IServiceCollection AddSwaggerGenWithBearerAuth(this IServiceCollection services)
+  {
+    services.AddSwaggerGen(options =>
+    {
+      const string schemeId = "Bearer";
+
+      options.AddSecurityDefinition(schemeId, new OpenApiSecurityScheme
+      {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Paste the access token from POST /api/Auth/Login or /api/Auth/RefreshToken. " +
+                      "Swagger adds the \"Bearer \" prefix automatically."
+      });
+
+      options.AddSecurityRequirement(new OpenApiSecurityRequirement
+      {
+        {
+          new OpenApiSecurityScheme
+          {
+            Reference = new OpenApiReference
+            {
+              Type = ReferenceType.SecurityScheme,
+              Id = schemeId
+            }
+          },
+          []
+        }
+      });
+    });
+
+    return services;
   }
 
   /// <summary>

@@ -80,6 +80,12 @@ internal sealed class IdentityService(
         {
             UserName = email,
             Email = email,
+            // Accounts are created exclusively by an Administrator (this method requires
+            // the Admin role at the API layer) rather than via self-service sign-up, so
+            // there is no untrusted party to verify an email address against and no
+            // confirmation email to send. EmailConfirmed is set true by design here, not
+            // left over from an unfinished flow. (RequireConfirmedEmail/-Account are also
+            // left at their default of false, so this flag does not gate sign-in anyway.)
             EmailConfirmed = true,
             CreatedAtUtc = DateTime.UtcNow
         };

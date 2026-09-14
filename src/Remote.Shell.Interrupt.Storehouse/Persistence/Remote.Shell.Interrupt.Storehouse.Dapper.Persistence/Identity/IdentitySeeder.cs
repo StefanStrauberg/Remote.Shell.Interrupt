@@ -64,6 +64,9 @@ public sealed class IdentitySeeder
         {
             UserName = adminEmail,
             Email = adminEmail,
+            // See the matching comment in IdentityService.RegisterAsync: accounts in this
+            // system are provisioned by an operator (here, at startup from configuration),
+            // never via self-service sign-up, so there is no confirmation email to send.
             EmailConfirmed = true,
             FullName = "System Administrator",
             CreatedAtUtc = DateTime.UtcNow
