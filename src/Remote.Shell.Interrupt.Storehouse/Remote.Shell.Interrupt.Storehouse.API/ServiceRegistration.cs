@@ -75,6 +75,8 @@ public static class ServiceRegistration
                     });
 
     builder.Services.AddAuthRateLimiting();
+
+    builder.Services.AddScoped<CorrelationIdMiddleware>();
   }
 
   /// <summary>
@@ -263,7 +265,13 @@ public static class ServiceRegistration
   /// <param name="app">The web application instance to configure.</param>
   public static void ConfigurePipeline(this WebApplication app)
   {
-    // Registered first so the logged duration and status code cover the entire
+    // Registered first so the correlation ID it pushes onto Serilog's log context covers
+    // every log line written further down the pipeline - including the request-logging
+    // summary below and everything ExceptionHandlingMiddleware or a handler logs - letting
+    // them all be tied back to the same request when investigating an incident.
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
+    // Registered next so the logged duration and status code cover the entire
     // downstream pipeline, including exceptions turned into error responses by
     // ExceptionHandlingMiddleware and 429s from the rate limiter.
     app.UseSerilogRequestLogging();

@@ -39,3 +39,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevic
 global using Remote.Shell.Interrupt.Storehouse.Specification;
 global using Remote.Shell.Interrupt.Storehouse.QueryFilterParser;
 global using Remote.Shell.Interrupt.Storehouse.API.Entities;
+global using Remote.Shell.Interrupt.Storehouse.API.Middleware;
+global using Serilog.Context;

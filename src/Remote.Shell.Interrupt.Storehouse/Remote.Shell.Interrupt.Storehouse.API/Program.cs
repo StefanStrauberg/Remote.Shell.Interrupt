@@ -1,10 +1,13 @@
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 
+const string outputTemplate =
+  "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}";
+
 Log.Logger = new LoggerConfiguration().Filter.ByExcluding(e => e.Exception is HostAbortedException)
                                       .MinimumLevel.Information()
                                       .Enrich.FromLogContext()
-                                      .WriteTo.Console()
-                                      .WriteTo.File(DefaultEntities.LoggingTo, rollingInterval: RollingInterval.Day)
+                                      .WriteTo.Console(outputTemplate: outputTemplate)
+                                      .WriteTo.File(DefaultEntities.LoggingTo, rollingInterval: RollingInterval.Day, outputTemplate: outputTemplate)
                                       .CreateLogger();
 
 try
