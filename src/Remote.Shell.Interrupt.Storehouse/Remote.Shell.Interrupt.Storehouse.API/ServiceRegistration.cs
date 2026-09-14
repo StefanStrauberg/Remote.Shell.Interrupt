@@ -263,6 +263,11 @@ public static class ServiceRegistration
   /// <param name="app">The web application instance to configure.</param>
   public static void ConfigurePipeline(this WebApplication app)
   {
+    // Registered first so the logged duration and status code cover the entire
+    // downstream pipeline, including exceptions turned into error responses by
+    // ExceptionHandlingMiddleware and 429s from the rate limiter.
+    app.UseSerilogRequestLogging();
+
     // Registered first so it also catches exceptions thrown by CORS/authentication/
     // authorization middleware further down the pipeline, not just controller actions.
     app.UseMiddleware<ExceptionHandlingMiddleware>();
