@@ -37,8 +37,28 @@ public class TerminatedNetworkEntity : BaseEntity
     if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
       throw new ArgumentException("Only IPv4 addresses are supported.", nameof(ipAddress));
 
+    if (mask.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+      throw new ArgumentException("Only IPv4 netmasks are supported.", nameof(netmask));
+
+    var maskValue = ConvertToLong(mask);
+
+    if (!IsContiguousMask(maskValue))
+      throw new ArgumentException($"Invalid netmask: {netmask} is not a contiguous subnet mask.", nameof(netmask));
+
     NetworkAddress = ConvertToLong(ip);
-    Netmask = ConvertToLong(mask);
+    Netmask = maskValue;
+  }
+
+  /// <summary>
+  /// Determines whether a 32-bit value represents a valid subnet mask,
+  /// i.e. a contiguous run of one-bits followed by a contiguous run of zero-bits.
+  /// </summary>
+  /// <param name="mask">The mask value to validate.</param>
+  /// <returns><see langword="true"/> if the mask consists of contiguous one-bits from the most significant bit; otherwise, <see langword="false"/>.</returns>
+  static bool IsContiguousMask(long mask)
+  {
+    var inverted = ~(uint)mask;
+    return (inverted & (inverted + 1)) == 0;
   }
 
   /// <summary>
