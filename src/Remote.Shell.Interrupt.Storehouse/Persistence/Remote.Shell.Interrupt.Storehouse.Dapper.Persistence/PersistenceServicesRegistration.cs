@@ -18,6 +18,7 @@ public static class PersistenceServicesRegistration
   {
     // Database contexts
     services.AddScoped<MySQLDapperContext>();
+    services.AddScoped<IMySqlConnectionFactory>(sp => sp.GetRequiredService<MySQLDapperContext>());
 
     // Target database: PostgreSQL ("DefaultConnection"). The connection string
     // is resolved via IConfiguration; migrations are kept in this assembly,

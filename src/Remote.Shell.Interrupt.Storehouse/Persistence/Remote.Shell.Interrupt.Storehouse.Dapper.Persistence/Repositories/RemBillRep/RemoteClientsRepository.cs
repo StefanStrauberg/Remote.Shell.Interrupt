@@ -1,7 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.RemBillRep;
 
-internal class RemoteClientsRepository(MySQLDapperContext context,
-                                       IAppLogger<RemoteClientsRepository> logger) 
+internal class RemoteClientsRepository(IMySqlConnectionFactory context,
+                                       IAppLogger<RemoteClientsRepository> logger)
   : IRemoteClientsRepository
 {
   async Task<IEnumerable<RemoteClient>> IRemoteGenericRepository<RemoteClient>.GetAllAsync(CancellationToken cancellationToken)

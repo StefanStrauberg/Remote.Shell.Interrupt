@@ -39,7 +39,9 @@ Remote.Shell.Interrupt/
 - **FluentValidation** — command validation
 - **Serilog** — structured logging (console + files)
 - **SharpSnmpLib** — SNMP v2c
-- **Dapper + MySql.Data** — gateway to the remote billing database
+- **Dapper + MySql.Data** — read-only gateway to the remote billing database
+
+> **Why two data-access technologies?** PostgreSQL is owned by this application (full schema knowledge, EF Core migrations). The MySQL billing database is owned by a third party: its full schema is unknown, this app is only permitted to read specific columns from specific tables, and it must never write to it. EF Core wants to fully model and evolve a schema it owns, which doesn't fit that constraint — Dapper's "run this SQL, map these columns" model does. The MySQL connection additionally issues `SET SESSION TRANSACTION READ ONLY` on open, so even a future coding mistake that tried to write would be rejected by the database itself, not just by code review.
 
 ### Frontend
 

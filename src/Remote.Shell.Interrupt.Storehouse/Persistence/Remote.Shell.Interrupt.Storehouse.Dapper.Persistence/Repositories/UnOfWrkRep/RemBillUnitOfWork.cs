@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Repositories.UnOfWrkRep;
 
-internal class RemBillUnitOfWork(MySQLDapperContext context,
+internal class RemBillUnitOfWork(IMySqlConnectionFactory context,
                                  IAppLogger<RemoteClientsRepository> remoteClientsRepositoryAppLogger,
                                  IAppLogger<RemoteCODRepository> remoteCODRepositoryAppLogger,
                                  IAppLogger<RemoteTfPlanRepository> remoteTfPlanRepositoryAppLogger,
