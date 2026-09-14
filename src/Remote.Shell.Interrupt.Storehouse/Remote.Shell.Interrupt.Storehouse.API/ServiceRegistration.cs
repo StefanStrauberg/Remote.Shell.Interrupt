@@ -1,8 +1,10 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
@@ -70,6 +72,48 @@ public static class ServiceRegistration
                                   .WithExposedHeaders(DefaultEntities.ExposedHeaders);
                       });
                     });
+
+    builder.Services.AddAuthRateLimiting();
+  }
+
+  /// <summary>
+  /// Registers a rate-limiting policy for credential-checking auth endpoints
+  /// (login, cookie login), partitioned per client IP address, to slow down
+  /// brute-force/credential-stuffing attempts against those endpoints.
+  /// </summary>
+  static IServiceCollection AddAuthRateLimiting(this IServiceCollection services)
+  {
+    services.AddRateLimiter(options =>
+    {
+      options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+      options.OnRejected = async (context, cancellationToken) =>
+      {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+          context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var response = ApiErrorResponse.CreateGenericError(
+          StatusCodes.Status429TooManyRequests,
+          "Too many attempts. Please try again later.");
+
+        await context.HttpContext.Response.WriteAsync(JsonSerializer.Serialize(response), cancellationToken);
+      };
+
+      options.AddPolicy(DefaultEntities.AuthRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+          partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+          factory: _ => new SlidingWindowRateLimiterOptions
+          {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 4,
+            QueueLimit = 0
+          }));
+    });
+
+    return services;
   }
 
   /// <summary>
@@ -182,6 +226,8 @@ public static class ServiceRegistration
     app.UseHttpsRedirection();
 
     app.UseCors(DefaultEntities.CorsPolicyName);
+
+    app.UseRateLimiter();
 
     app.UseAuthentication();
     app.UseAuthorization();

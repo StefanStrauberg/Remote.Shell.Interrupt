@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MediatR;
+using Remote.Shell.Interrupt.Storehouse.API.Entities;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Register;
@@ -20,6 +22,7 @@ public class AuthController(ISender sender, IIdentityService identityService)
     /// </summary>
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting(DefaultEntities.AuthRateLimitPolicy)]
     [ProducesResponseType(typeof(AuthenticationResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginCommand loginCommand,
@@ -51,6 +54,7 @@ public class AuthController(ISender sender, IIdentityService identityService)
     /// </summary>
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting(DefaultEntities.AuthRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CookieLogin([FromBody] CookieLoginRequest cookieLoginRequest,
