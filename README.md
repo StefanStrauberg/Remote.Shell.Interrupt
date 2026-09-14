@@ -98,12 +98,12 @@ npm run dev
 
 ### Authorization API
 
-| Method | Route                    | Access        |
-| ------ | ------------------------ | ------------- |
-| POST   | `/api/Auth/Login`        | anonymous     |
-| POST   | `/api/Auth/Register`     | Admin         |
-| POST   | `/api/Auth/CookieLogin`  | anonymous     |
-| POST   | `/api/Auth/CookieLogout` | authenticated |
+| Method | Route                        | Access        |
+| ------ | ----------------------------- | ------------- |
+| POST   | `/api/v1/Auth/Login`          | anonymous     |
+| POST   | `/api/v1/Auth/Register`       | Admin         |
+| POST   | `/api/v1/Auth/CookieLogin`    | anonymous     |
+| POST   | `/api/v1/Auth/CookieLogout`   | authenticated |
 
 ### Access Matrix
 

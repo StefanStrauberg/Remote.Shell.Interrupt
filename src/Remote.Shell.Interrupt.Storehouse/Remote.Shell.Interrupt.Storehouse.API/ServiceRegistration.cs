@@ -81,8 +81,8 @@ public static class ServiceRegistration
 
   /// <summary>
   /// Registers Swagger generation with a JWT bearer security scheme, so the "Authorize"
-  /// button in Swagger UI can attach an access token (obtained from /api/Auth/Login or
-  /// /api/Auth/RefreshToken) to every "Try it out" request. Without this, Swagger has no
+  /// button in Swagger UI can attach an access token (obtained from /api/v1/Auth/Login or
+  /// /api/v1/Auth/RefreshToken) to every "Try it out" request. Without this, Swagger has no
   /// notion of authentication and every protected endpoint can only be exercised with
   /// hand-crafted requests outside the UI.
   /// </summary>
@@ -99,7 +99,7 @@ public static class ServiceRegistration
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Paste the access token from POST /api/Auth/Login or /api/Auth/RefreshToken. " +
+        Description = "Paste the access token from POST /api/v1/Auth/Login or /api/v1/Auth/RefreshToken. " +
                       "Swagger adds the \"Bearer \" prefix automatically."
       });
 
