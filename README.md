@@ -1,11 +1,11 @@
 # 🌐 Remote.Shell.Interrupt
 
-**A comprehensive network infrastructure monitoring platform:** SNMP-based data collection from routers, billing system synchronization, and a role-based React web interface.
+**A network infrastructure monitoring platform:** SNMP-based data collection from routers, and billing system synchronization, exposed as a role-based REST API.
 
 - **Backend** — .NET 9, Clean Architecture, CQRS
-- **Frontend** — React 19 + TypeScript + Vite
-- **Databases** — PostgreSQL (primary) + MySQL (billing gateway)
-- **Tests** — xUnit, 304 tests
+- **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
+- **Tests** — xUnit, 475 tests
+- **Frontend** — not currently in this repository (see [Frontend](#frontend) below)
 
 ---
 
@@ -21,8 +21,8 @@ Remote.Shell.Interrupt/
 │   ├── Infrastructure/                 # SNMP, logger, specifications, filter parser
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
-├── client/                             # React 19 + Vite — web interface (see client/README.md)
-└── Tests/                              # xUnit — 304 tests
+├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SnmpSimulator/README.md)
+└── Tests/                              # xUnit — 475 tests
 ```
 
 ---
@@ -31,27 +31,22 @@ Remote.Shell.Interrupt/
 
 ### Backend
 
-- **ASP.NET Core 9** — REST API
+- **ASP.NET Core 9** — REST API, versioned under `/api/v1`
 - **EF Core 9 + Npgsql** — PostgreSQL data access
 - **ASP.NET Core Identity** — authentication (JWT + Cookie), roles
 - **MediatR** — CQRS pipeline (validation + logging)
 - **AutoMapper** — DTO mapping
 - **FluentValidation** — command validation
-- **Serilog** — structured logging (console + files)
+- **Serilog** — structured request logging (console + files), correlation ID per request
 - **SharpSnmpLib** — SNMP v2c
 - **Dapper + MySql.Data** — read-only gateway to the remote billing database
+- **Microsoft.Extensions.Diagnostics.HealthChecks** — liveness/readiness probes for PostgreSQL and the MySQL billing connection
 
 > **Why two data-access technologies?** PostgreSQL is owned by this application (full schema knowledge, EF Core migrations). The MySQL billing database is owned by a third party: its full schema is unknown, this app is only permitted to read specific columns from specific tables, and it must never write to it. EF Core wants to fully model and evolve a schema it owns, which doesn't fit that constraint — Dapper's "run this SQL, map these columns" model does. The MySQL connection additionally issues `SET SESSION TRANSACTION READ ONLY` on open, so even a future coding mistake that tried to write would be rejected by the database itself, not just by code review.
 
 ### Frontend
 
-- **React 19 + TypeScript** — SPA
-- **Vite 6** — build tooling and dev server
-- **MUI 6** — UI components
-- **TanStack Query 5** — server state
-- **Zustand 5** — global auth state
-- **React Hook Form + Zod** — validated forms
-- **Axios** — HTTP client with interceptors
+A React 19 + TypeScript + Vite SPA (MUI, TanStack Query, Zustand, React Hook Form + Zod) previously lived under `client/` but has been removed from this repository. The API has no bundled UI at the moment — interact with it via Swagger (see below) or any HTTP client.
 
 ---
 
@@ -60,31 +55,29 @@ Remote.Shell.Interrupt/
 ### Requirements
 
 - **.NET 9 SDK**
-- **Node.js 20+** and npm
 - **PostgreSQL 14+**
 - MySQL — only for billing synchronization
 
-### 1. Backend
+### Run the API
 
 ```bash
 dotnet run --project src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API
 ```
 
-On startup the API **automatically** applies pending EF Core migrations (creating the full schema from scratch on a fresh/empty database, e.g. a newly deployed container) and creates the roles and the administrator account.
+On startup the API **automatically** applies pending EF Core migrations (creating the full schema from scratch on a fresh/empty database, e.g. a newly deployed container) and creates the roles and the administrator account. By default it listens on `http://localhost:5000`.
 
-### 2. Frontend
+In Development, Swagger UI is available at `http://localhost:5000/swagger` — use it to call `POST /api/v1/Auth/Login` (see below) and then "Authorize" with the returned token to exercise protected endpoints from the browser.
+
+### Sign in (Development configuration)
 
 ```bash
-cd client
-npm install
-npm run dev
+curl -X POST http://localhost:5000/api/v1/Auth/Login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@localhost.local","password":"Admin#Dev-Only-2025"}'
 ```
-
-### 3. Sign in (Development configuration)
 
 | Parameter | Value                   |
 | --------- | ----------------------- |
-| URL       | http://localhost:3000   |
 | Email     | `admin@localhost.local` |
 | Password  | `Admin#Dev-Only-2025`   |
 
@@ -111,11 +104,23 @@ npm run dev
 | ---------------------------------------------- | :---: | :--: |
 | Dashboards, VLAN search, clients, tariff plans |  ✅   |  ✅  |
 | Viewing network devices                        |  ✅   |  ✅  |
-| Gates: create / update / delete                |  ✅   |  ❌  |
+| Creating / deleting network devices            |  ✅   |  ❌  |
+| Gates: view / create / update / delete         |  ✅   |  ❌  |
 | Billing sync and cleanup                       |  ✅   |  ❌  |
-| Deleting network devices                       |  ✅   |  ❌  |
 | Registering users                              |  ✅   |  ❌  |
 | SNMP Get / Walk                                |  ✅   |  ❌  |
+
+---
+
+## 🏥 Health Checks
+
+For use as liveness/readiness probes behind a load balancer or orchestrator. All three are anonymous.
+
+| Route            | Checks                              | Use as             |
+| ----------------- | ------------------------------------ | ------------------- |
+| `/health/live`    | none — process is responding         | liveness probe       |
+| `/health/ready`   | PostgreSQL + MySQL billing connection | readiness probe     |
+| `/health`         | everything                           | manual check         |
 
 ---
 
@@ -130,10 +135,13 @@ npm run dev
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
 - 🔐 **Role-based access** — Admin / User with protected routes and API
-- 🏥 **Health checks** — `/health/live` (process only), `/health/ready` and `/health` (PostgreSQL + MySQL billing connectivity), for use as liveness/readiness probes
+- 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
+- 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
+- 🔢 **API versioning** — all routes under `/api/v1`
 
 ### Planned
 
+- 🖥️ Web frontend (previously part of this repo under `client/`, removed for now — see [Frontend](#frontend))
 - 🐳 Docker Compose for local deployment
 - 🧪 CI/CD
 - 🧩 Refactoring the SNMP import into vendor-specific strategies
@@ -149,7 +157,6 @@ npm run dev
 | `JwtSettings__Key`                      | JWT signing key (min. 32 characters, required) |
 | `IdentitySeed__AdminEmail`              | default administrator email                    |
 | `IdentitySeed__AdminPassword`           | administrator password (empty — do not create) |
-| `VITE_API_URL`                          | API base URL for the client (`client/.env`)    |
 
 Secrets are provided via user-secrets or environment variables:
 
@@ -160,17 +167,11 @@ dotnet user-secrets set "JwtSettings:Key" "signing-key-min-32-characters"
 dotnet user-secrets set "IdentitySeed:AdminPassword" "a-strong-password"
 ```
 
-The client reads `VITE_API_URL` from `client/.env`:
-
-```env
-VITE_API_URL=http://localhost:5000
-```
-
 ---
 
 ## 🗄️ Database
 
-PostgreSQL schema is managed with real **EF Core Migrations**, stored in `Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence/Migrations/`. On startup the API calls `Database.MigrateAsync()`, which:
+PostgreSQL schema is managed with real **EF Core Migrations**, stored in `src/Remote.Shell.Interrupt.Storehouse/Persistence/Remote.Shell.Interrupt.Storehouse.Dapper.Persistence/Migrations/`. On startup the API calls `Database.MigrateAsync()`, which:
 
 - creates the entire schema on a fresh/empty database (a newly deployed container needs no manual setup), and
 - applies only the migrations not yet recorded in `__EFMigrationsHistory` on an existing one.
@@ -202,8 +203,10 @@ The Persistence project doubles as its own startup project via `ApplicationDbCon
 dotnet test
 ```
 
+475 xUnit tests across Domain, Application, Infrastructure, Persistence, and API.
+
 ---
 
 ## 📄 License
 
-See [LICENSE.md](LICENSE.md). Frontend details — [client/README.md](client/README.md).
+See [LICENSE.md](LICENSE.md).
