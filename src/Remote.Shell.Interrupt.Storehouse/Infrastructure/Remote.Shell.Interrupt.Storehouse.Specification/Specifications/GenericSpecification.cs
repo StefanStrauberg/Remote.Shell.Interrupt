@@ -137,20 +137,7 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     };
 
     foreach (var chain in _includeChains)
-    {
-      var newChain = new IncludeChain<TBase>();
-
-      foreach (var include in chain.Includes)
-      {
-        var method = typeof(IncludeChain<TBase>).GetMethod(nameof(IncludeChain<TBase>.AddTypedInclude))!
-                                                .MakeGenericMethod(include.EntityType,
-                                                                   include.PropertyType);
-
-        method.Invoke(newChain, [include.Expression]);
-      }
-
-      clone._includeChains.Add(newChain);
-    }
+      clone._includeChains.Add(((IncludeChain<TBase>)chain).Clone());
 
     clone._filteredIncludeChains.AddRange(_filteredIncludeChains);
 

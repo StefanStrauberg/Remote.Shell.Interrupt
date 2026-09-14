@@ -25,13 +25,10 @@ internal class IncludeChain<TBase> : IIncludeChain<TBase> where TBase : BaseEnti
   public void AddTypedInclude<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> include)
     => _includes.Add(new IncludeChainItem(typeof(TEntity), typeof(TProperty), include));
 
-  public object Clone()
+  public IncludeChain<TBase> Clone()
   {
     var clone = new IncludeChain<TBase>();
-
-    foreach (var item in _includes)
-      clone._includes.Add(new IncludeChainItem(item.EntityType, item.PropertyType, item.Expression));
-
+    clone._includes.AddRange(_includes);
     return clone;
   }
 
