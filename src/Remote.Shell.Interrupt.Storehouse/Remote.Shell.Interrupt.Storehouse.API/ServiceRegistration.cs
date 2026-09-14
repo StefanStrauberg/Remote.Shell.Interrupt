@@ -274,7 +274,20 @@ public static class ServiceRegistration
     // Registered next so the logged duration and status code cover the entire
     // downstream pipeline, including exceptions turned into error responses by
     // ExceptionHandlingMiddleware and 429s from the rate limiter.
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options =>
+    {
+      // An orchestrator polls /health/live and /health/ready every few seconds; logging
+      // each of those at Information would drown out everything else. They still show up
+      // if they ever fail (Warning), or error (Error) - only the routine "still healthy"
+      // case is quieted down, and only below the configured Information minimum level.
+      options.GetLevel = (httpContext, elapsedMs, ex) => ex is not null
+        ? Serilog.Events.LogEventLevel.Error
+        : httpContext.Response.StatusCode > 499
+          ? Serilog.Events.LogEventLevel.Error
+          : httpContext.Request.Path.StartsWithSegments("/health") && httpContext.Response.StatusCode < 400
+            ? Serilog.Events.LogEventLevel.Verbose
+            : Serilog.Events.LogEventLevel.Information;
+    });
 
     // Registered first so it also catches exceptions thrown by CORS/authentication/
     // authorization middleware further down the pipeline, not just controller actions.
@@ -302,5 +315,37 @@ public static class ServiceRegistration
     app.UseAuthorization();
 
     app.MapControllers();
+
+    app.MapHealthChecksEndpoints();
+  }
+
+  /// <summary>
+  /// Maps liveness/readiness endpoints for deployment behind a load balancer or
+  /// orchestrator (e.g. Kubernetes): "/health/live" only confirms the process itself is
+  /// responding - it never depends on PostgreSQL or the remote MySQL billing database,
+  /// so a transient database outage doesn't make an orchestrator kill and restart a
+  /// perfectly healthy instance. "/health/ready" runs both database checks and is what
+  /// should gate whether traffic gets routed to this instance. "/health" runs everything,
+  /// for a quick manual check. All three are anonymous: the caller is a load balancer or
+  /// orchestrator, not an authenticated user.
+  /// </summary>
+  static void MapHealthChecksEndpoints(this WebApplication app)
+  {
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+      ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    }).AllowAnonymous();
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+      Predicate = check => check.Tags.Contains("ready"),
+      ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    }).AllowAnonymous();
+
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+      Predicate = _ => false,
+      ResponseWriter = HealthCheckResponseWriter.WriteAsync
+    }).AllowAnonymous();
   }
 }

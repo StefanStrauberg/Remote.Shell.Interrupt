@@ -130,11 +130,12 @@ npm run dev
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
 - 🔐 **Role-based access** — Admin / User with protected routes and API
+- 🏥 **Health checks** — `/health/live` (process only), `/health/ready` and `/health` (PostgreSQL + MySQL billing connectivity), for use as liveness/readiness probes
 
 ### Planned
 
 - 🐳 Docker Compose for local deployment
-- 🏥 Health checks and CI/CD
+- 🧪 CI/CD
 - 🧩 Refactoring the SNMP import into vendor-specific strategies
 
 ---

@@ -34,3 +34,5 @@ global using Microsoft.EntityFrameworkCore.Query;
 global using System.Reflection;
 global using System.Text.RegularExpressions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.HealthChecks;

@@ -36,6 +36,13 @@ public static class PersistenceServicesRegistration
       });
     });
 
+    // Health checks: both data sources this application depends on. Tagged "ready" so
+    // the API's readiness probe (unlike its liveness probe) fails when either is down,
+    // which is exactly when an orchestrator/load balancer should stop routing traffic here.
+    services.AddHealthChecks()
+      .AddCheck<PostgresHealthCheck>("postgresql", tags: ["ready"])
+      .AddCheck<MySqlHealthCheck>("mysql-billing", tags: ["ready"]);
+
     // Generic query repositories
     services.AddScoped(typeof(ICountRepository<>), typeof(CountRepository<>));
     services.AddScoped(typeof(IExistenceQueryRepository<>), typeof(ExistenceQueryRepository<>));
