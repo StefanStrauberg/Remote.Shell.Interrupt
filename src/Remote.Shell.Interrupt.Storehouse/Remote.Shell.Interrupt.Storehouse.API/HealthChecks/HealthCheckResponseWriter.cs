@@ -7,7 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.HealthChecks;
 /// "mysql-billing") and its status, so a caller can tell which dependency is down
 /// instead of just "unhealthy".
 /// </summary>
-internal static class HealthCheckResponseWriter
+public static class HealthCheckResponseWriter
 {
   public static Task WriteAsync(HttpContext context, HealthReport report)
   {
