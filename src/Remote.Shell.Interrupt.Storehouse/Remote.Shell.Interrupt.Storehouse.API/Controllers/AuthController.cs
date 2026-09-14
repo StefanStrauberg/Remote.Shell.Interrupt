@@ -5,6 +5,7 @@ using MediatR;
 using Remote.Shell.Interrupt.Storehouse.API.Entities;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.RefreshToken;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Register;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
 
@@ -31,6 +32,39 @@ public class AuthController(ISender sender, IIdentityService identityService)
         var result = await Sender.Send(loginCommand, cancellationToken);
 
         return result.Success ? Ok(result) : Unauthorized(new { result.Error });
+    }
+
+    /// <summary>
+    /// Exchanges a refresh token for a new access token and a new (rotated)
+    /// refresh token, without re-entering credentials.
+    /// </summary>
+    [HttpPost]
+    [AllowAnonymous]
+    [EnableRateLimiting(DefaultEntities.AuthRateLimitPolicy)]
+    [ProducesResponseType(typeof(AuthenticationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand refreshTokenCommand,
+                                                   CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(refreshTokenCommand, cancellationToken);
+
+        return result.Success ? Ok(result) : Unauthorized(new { result.Error });
+    }
+
+    /// <summary>
+    /// Revokes a refresh token immediately (JWT-flow equivalent of logout).
+    /// Always returns 200, whether or not the token existed, so callers cannot
+    /// probe which refresh tokens are valid.
+    /// </summary>
+    [HttpPost]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequest revokeTokenRequest,
+                                                 CancellationToken cancellationToken)
+    {
+        await identityService.RevokeRefreshTokenAsync(revokeTokenRequest.RefreshToken, cancellationToken);
+
+        return Ok();
     }
 
     /// <summary>

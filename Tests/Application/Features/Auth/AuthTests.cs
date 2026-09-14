@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Remote.Shell.Interrupt.Storehouse.API.Controllers;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.RefreshToken;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Register;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
+using Remote.Shell.Interrupt.Storehouse.Application.Validations.Auth;
 
 namespace Tests.Application.Features.Auth;
 
@@ -61,6 +63,55 @@ public class RegisterCommandHandlerTests
         command.ToString().Should().NotContain("super-secret");
         command.ToString().Should().Contain("a@test.com");
         command.ToString().Should().Contain("Admin");
+    }
+}
+
+public class RefreshTokenCommandHandlerTests
+{
+    readonly IIdentityService _identityService = Substitute.For<IIdentityService>();
+
+    [Fact]
+    public async Task Handle_DelegatesToIdentityServiceRefreshTokenAsync()
+    {
+        var expected = new AuthenticationResult { Success = true, Token = "jwt", RefreshToken = "new-refresh" };
+        _identityService.RefreshTokenAsync("old-refresh", Arg.Any<CancellationToken>()).Returns(expected);
+        var handler = new RefreshTokenCommandHandler(_identityService);
+
+        var result = await ((IRequestHandler<RefreshTokenCommand, AuthenticationResult>)handler)
+            .Handle(new RefreshTokenCommand("old-refresh"), CancellationToken.None);
+
+        result.Should().BeSameAs(expected);
+    }
+
+    [Fact]
+    public void ToString_NeverIncludesRawToken()
+    {
+        var command = new RefreshTokenCommand("super-secret-token");
+
+        command.ToString().Should().NotContain("super-secret-token");
+    }
+}
+
+public class RefreshTokenCommandValidatorTests
+{
+    readonly RefreshTokenCommandValidator _validator = new();
+
+    [Fact]
+    public void ValidToken_PassesValidation()
+    {
+        var result = _validator.Validate(new RefreshTokenCommand("some-token"));
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void MissingToken_FailsValidation(string? token)
+    {
+        var result = _validator.Validate(new RefreshTokenCommand(token!));
+
+        result.IsValid.Should().BeFalse();
     }
 }
 
@@ -157,5 +208,37 @@ public class AuthControllerTests
 
         response.Should().BeOfType<OkResult>();
         await _identityService.Received().SignOutCookieAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RefreshToken_SuccessfulResult_ReturnsOkWithResult()
+    {
+        var result = new AuthenticationResult { Success = true, Token = "jwt", RefreshToken = "new-refresh" };
+        _sender.Send(Arg.Any<RefreshTokenCommand>(), Arg.Any<CancellationToken>()).Returns(result);
+
+        var response = await _controller.RefreshToken(new RefreshTokenCommand("old-refresh"), CancellationToken.None);
+
+        var ok = response.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().BeSameAs(result);
+    }
+
+    [Fact]
+    public async Task RefreshToken_FailedResult_ReturnsUnauthorizedWithError()
+    {
+        var result = AuthenticationResult.Failed("Invalid refresh token.");
+        _sender.Send(Arg.Any<RefreshTokenCommand>(), Arg.Any<CancellationToken>()).Returns(result);
+
+        var response = await _controller.RefreshToken(new RefreshTokenCommand("bad-refresh"), CancellationToken.None);
+
+        response.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Fact]
+    public async Task RevokeToken_CallsIdentityServiceAndReturnsOkRegardlessOfOutcome()
+    {
+        var response = await _controller.RevokeToken(new RevokeTokenRequest("some-refresh"), CancellationToken.None);
+
+        response.Should().BeOfType<OkResult>();
+        await _identityService.Received().RevokeRefreshTokenAsync("some-refresh", Arg.Any<CancellationToken>());
     }
 }

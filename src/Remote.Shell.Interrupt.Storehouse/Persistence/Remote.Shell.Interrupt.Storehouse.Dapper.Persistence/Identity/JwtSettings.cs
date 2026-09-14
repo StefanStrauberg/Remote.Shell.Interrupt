@@ -37,4 +37,12 @@ public sealed class JwtSettings
     /// Authentication-cookie lifetime in days (browser sessions).
     /// </summary>
     public int CookieExpiryDays { get; init; } = 7;
+
+    /// <summary>
+    /// Refresh-token lifetime in days for the JWT bearer flow. Refresh tokens
+    /// are rotated on every use (a new one is issued and the presented one is
+    /// revoked), so this bounds how long a client can stay signed in without
+    /// re-entering credentials, not the lifetime of any single token value.
+    /// </summary>
+    public int RefreshTokenExpiryDays { get; init; } = 14;
 }

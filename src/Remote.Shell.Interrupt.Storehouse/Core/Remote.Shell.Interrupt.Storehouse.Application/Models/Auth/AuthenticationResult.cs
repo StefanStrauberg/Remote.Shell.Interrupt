@@ -11,6 +11,13 @@ public sealed record AuthenticationResult
 
     public string? Token { get; init; }
 
+    /// <summary>
+    /// Opaque, single-use refresh token. Present only on success. Exchange it via
+    /// <see cref="Contracts.Identity.IIdentityService.RefreshTokenAsync"/> for a new
+    /// access/refresh token pair once <see cref="Token"/> expires, without re-entering credentials.
+    /// </summary>
+    public string? RefreshToken { get; init; }
+
     public DateTime? ExpiresAtUtc { get; init; }
 
     public Guid? UserId { get; init; }

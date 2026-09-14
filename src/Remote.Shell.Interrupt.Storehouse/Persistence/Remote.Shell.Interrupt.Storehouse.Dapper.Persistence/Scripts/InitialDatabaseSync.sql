@@ -493,5 +493,44 @@ BEGIN
     VALUES ('20260906215217_InitialIdentitySetup', '9.0.4');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260914120000_AddRefreshTokens') THEN
+    CREATE TABLE "RefreshTokens" (
+        "Id" uuid NOT NULL DEFAULT (gen_random_uuid()),
+        "UserId" uuid NOT NULL,
+        "TokenHash" text NOT NULL,
+        "CreatedAtUtc" timestamp with time zone NOT NULL,
+        "ExpiresAtUtc" timestamp with time zone NOT NULL,
+        "RevokedAtUtc" timestamp with time zone,
+        "ReplacedByTokenHash" text,
+        CONSTRAINT "PK_RefreshTokens" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_RefreshTokens_AspNetUsers_UserId" FOREIGN KEY ("UserId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260914120000_AddRefreshTokens') THEN
+    CREATE UNIQUE INDEX "IX_RefreshTokens_TokenHash" ON "RefreshTokens" ("TokenHash");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260914120000_AddRefreshTokens') THEN
+    CREATE INDEX "IX_RefreshTokens_UserId" ON "RefreshTokens" ("UserId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260914120000_AddRefreshTokens') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260914120000_AddRefreshTokens', '9.0.4');
+    END IF;
+END $EF$;
 COMMIT;
 

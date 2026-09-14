@@ -43,4 +43,22 @@ public interface IIdentityService
     /// Signs the user out of the cookie authentication scheme.
     /// </summary>
     Task SignOutCookieAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exchanges a valid, unexpired, unrevoked refresh token for a new access
+    /// token and a new refresh token (rotation): the presented token is revoked
+    /// as part of the exchange so it cannot be used again. Presenting a token
+    /// that has already been rotated or revoked is treated as a compromise
+    /// signal and revokes every other active refresh token for that user.
+    /// </summary>
+    Task<AuthenticationResult> RefreshTokenAsync(string refreshToken,
+                                                 CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revokes a refresh token immediately (JWT-flow equivalent of logout),
+    /// without waiting for its natural expiry. A no-op if the token does not
+    /// exist or is already revoked.
+    /// </summary>
+    Task RevokeRefreshTokenAsync(string refreshToken,
+                                 CancellationToken cancellationToken = default);
 }

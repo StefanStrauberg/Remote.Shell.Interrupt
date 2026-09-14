@@ -19,6 +19,7 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
   public DbSet<MACEntity> MACEntities { get; set; }
   public DbSet<TerminatedNetworkEntity> TerminatedNetworkEntities { get; set; }
   public DbSet<VLAN> VLANs { get; set; }
+  public DbSet<RefreshToken> RefreshTokens { get; set; }
 
   protected override void OnModelCreating(ModelBuilder builder)
   {
@@ -37,5 +38,6 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
     builder.ApplyConfiguration(new MACEntityConfiguration());
     builder.ApplyConfiguration(new TerminatedNetworkEntityConfiguration());
     builder.ApplyConfiguration(new VLANConfiguration());
+    builder.ApplyConfiguration(new RefreshTokenConfiguration());
   }
 }

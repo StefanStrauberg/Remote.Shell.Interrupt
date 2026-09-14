@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -14,11 +15,13 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 /// Uses <see cref="UserManager{TUser}"/>/<see cref="RoleManager{TRole}"/> for
 /// account and role management, <see cref="SignInManager{TUser}"/> for cookie
 /// sessions and lockout handling, and JsonWebTokenHandler for JWT issuance.
+/// Refresh tokens are persisted (hashed) via <see cref="ApplicationDbContext"/>.
 /// </summary>
 internal sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
     RoleManager<IdentityRole<Guid>> roleManager,
     SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext dbContext,
     IOptions<JwtSettings> jwtOptions)
     : IIdentityService
 {
@@ -48,11 +51,13 @@ internal sealed class IdentityService(
 
         var roles = await userManager.GetRolesAsync(user);
         var token = await GenerateJwtTokenAsync(user.Id, user.Email!, roles);
+        var refreshToken = await IssueRefreshTokenAsync(user.Id, cancellationToken);
 
         return new AuthenticationResult
         {
             Success = true,
             Token = token,
+            RefreshToken = refreshToken,
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
             UserId = user.Id,
             Email = user.Email,
@@ -134,4 +139,111 @@ internal sealed class IdentityService(
 
     public async Task SignOutCookieAsync(CancellationToken cancellationToken = default)
         => await signInManager.SignOutAsync();
+
+    public async Task<AuthenticationResult> RefreshTokenAsync(string refreshToken,
+                                                               CancellationToken cancellationToken = default)
+    {
+        var tokenHash = HashToken(refreshToken);
+        var existing = await dbContext.RefreshTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
+
+        if (existing is null)
+            return AuthenticationResult.Failed("Invalid refresh token.");
+
+        if (existing.RevokedAtUtc is not null)
+        {
+            // The token was already rotated or revoked, yet it is being presented
+            // again: someone else may hold a copy of it. Treat the whole session
+            // as compromised and revoke every other active token for this user.
+            await RevokeAllActiveTokensAsync(existing.UserId, cancellationToken);
+            return AuthenticationResult.Failed("Invalid refresh token.");
+        }
+
+        if (existing.ExpiresAtUtc <= DateTime.UtcNow)
+            return AuthenticationResult.Failed("Invalid refresh token.");
+
+        var user = await userManager.FindByIdAsync(existing.UserId.ToString());
+
+        if (user is null || !user.IsActive)
+            return AuthenticationResult.Failed("Invalid refresh token.");
+
+        var roles = await userManager.GetRolesAsync(user);
+        var accessToken = await GenerateJwtTokenAsync(user.Id, user.Email!, roles);
+        var newRefreshToken = await IssueRefreshTokenAsync(user.Id, cancellationToken, existing);
+
+        return new AuthenticationResult
+        {
+            Success = true,
+            Token = accessToken,
+            RefreshToken = newRefreshToken,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+            UserId = user.Id,
+            Email = user.Email,
+            Roles = [.. roles]
+        };
+    }
+
+    public async Task RevokeRefreshTokenAsync(string refreshToken,
+                                              CancellationToken cancellationToken = default)
+    {
+        var tokenHash = HashToken(refreshToken);
+        var existing = await dbContext.RefreshTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
+
+        if (existing is null || existing.RevokedAtUtc is not null)
+            return;
+
+        existing.RevokedAtUtc = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Mints a new refresh token for <paramref name="userId"/> and persists its
+    /// hash. When <paramref name="tokenBeingRotated"/> is supplied (the refresh
+    /// flow), that token is revoked in the same save so the exchange is atomic:
+    /// a caller can never observe both tokens active at once.
+    /// </summary>
+    async Task<string> IssueRefreshTokenAsync(Guid userId,
+                                              CancellationToken cancellationToken,
+                                              RefreshToken? tokenBeingRotated = null)
+    {
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var tokenHash = HashToken(rawToken);
+
+        dbContext.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = userId,
+            TokenHash = tokenHash,
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays)
+        });
+
+        if (tokenBeingRotated is not null)
+        {
+            tokenBeingRotated.RevokedAtUtc = DateTime.UtcNow;
+            tokenBeingRotated.ReplacedByTokenHash = tokenHash;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return rawToken;
+    }
+
+    async Task RevokeAllActiveTokensAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var activeTokens = await dbContext.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        var now = DateTime.UtcNow;
+
+        foreach (var token in activeTokens)
+            token.RevokedAtUtc = now;
+
+        if (activeTokens.Count > 0)
+            await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    static string HashToken(string rawToken)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
 }

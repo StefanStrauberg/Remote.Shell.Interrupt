@@ -1,22 +1,25 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 
 namespace Tests.Persistence;
 
-public class IdentityServiceTests
+public class IdentityServiceTests : IDisposable
 {
     readonly UserManager<ApplicationUser> _userManager;
     readonly RoleManager<IdentityRole<Guid>> _roleManager;
     readonly SignInManager<ApplicationUser> _signInManager;
+    readonly ApplicationDbContext _dbContext = TestDbContextFactory.CreateContext();
     readonly JwtSettings _jwtSettings = new()
     {
         Issuer = "test-issuer",
         Audience = "test-audience",
         Key = "0123456789abcdef0123456789abcdef",
         ExpiryMinutes = 60,
-        CookieExpiryDays = 7
+        CookieExpiryDays = 7,
+        RefreshTokenExpiryDays = 14
     };
     readonly IdentityService _service;
 
@@ -32,8 +35,10 @@ public class IdentityServiceTests
             Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>(),
             null, null, null, null);
 
-        _service = new IdentityService(_userManager, _roleManager, _signInManager, Options.Create(_jwtSettings));
+        _service = new IdentityService(_userManager, _roleManager, _signInManager, _dbContext, Options.Create(_jwtSettings));
     }
+
+    public void Dispose() => _dbContext.Dispose();
 
     [Fact]
     public async Task LoginAsync_UserNotFound_ReturnsGenericFailure()
@@ -96,10 +101,13 @@ public class IdentityServiceTests
 
         result.Success.Should().BeTrue();
         result.Token.Should().NotBeNullOrEmpty();
+        result.RefreshToken.Should().NotBeNullOrEmpty();
         result.UserId.Should().Be(user.Id);
         result.Email.Should().Be("a@test.com");
         result.Roles.Should().Contain("Admin");
         result.ExpiresAtUtc.Should().NotBeNull();
+
+        _dbContext.RefreshTokens.Should().ContainSingle(t => t.UserId == user.Id && t.RevokedAtUtc == null);
     }
 
     [Fact]
@@ -213,4 +221,141 @@ public class IdentityServiceTests
 
         await _signInManager.Received().SignOutAsync();
     }
+
+    [Fact]
+    public async Task RefreshTokenAsync_UnknownToken_ReturnsGenericFailure()
+    {
+        var result = await _service.RefreshTokenAsync("does-not-exist");
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Invalid refresh token.");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_ExpiredToken_ReturnsGenericFailure()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com", IsActive = true };
+        var rawToken = await SeedRefreshTokenAsync(user.Id, expiresAtUtc: DateTime.UtcNow.AddMinutes(-1));
+
+        var result = await _service.RefreshTokenAsync(rawToken);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Invalid refresh token.");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_UserNoLongerActive_ReturnsGenericFailure()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com", IsActive = false };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        var rawToken = await SeedRefreshTokenAsync(user.Id);
+
+        var result = await _service.RefreshTokenAsync(rawToken);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Invalid refresh token.");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_ValidToken_RotatesAndReturnsNewTokenPair()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com", IsActive = true };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.GetRolesAsync(user).Returns((IList<string>)["Admin"]);
+        var rawToken = await SeedRefreshTokenAsync(user.Id);
+
+        var result = await _service.RefreshTokenAsync(rawToken);
+
+        result.Success.Should().BeTrue();
+        result.Token.Should().NotBeNullOrEmpty();
+        result.RefreshToken.Should().NotBeNullOrEmpty();
+        result.RefreshToken.Should().NotBe(rawToken);
+        result.UserId.Should().Be(user.Id);
+        result.Roles.Should().Contain("Admin");
+
+        var oldEntity = _dbContext.RefreshTokens.Single(t => t.TokenHash == HashForTest(rawToken));
+        oldEntity.RevokedAtUtc.Should().NotBeNull();
+        oldEntity.ReplacedByTokenHash.Should().Be(HashForTest(result.RefreshToken!));
+
+        _dbContext.RefreshTokens.Should().ContainSingle(t => t.TokenHash == HashForTest(result.RefreshToken!)
+                                                              && t.RevokedAtUtc == null);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_AlreadyRotatedToken_IsRejectedAndRevokesAllActiveTokensForUser()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com", IsActive = true };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.GetRolesAsync(user).Returns((IList<string>)[]);
+
+        var firstRawToken = await SeedRefreshTokenAsync(user.Id);
+        var secondRawToken = await SeedRefreshTokenAsync(user.Id);
+
+        // Legitimately rotate the first token once (as a real client would).
+        var rotated = await _service.RefreshTokenAsync(firstRawToken);
+        rotated.Success.Should().BeTrue();
+
+        // An attacker (or the original client after losing a race) replays the
+        // now-rotated token: this must fail and burn every other active token,
+        // including the unrelated second token and the newly-rotated one.
+        var reuseResult = await _service.RefreshTokenAsync(firstRawToken);
+
+        reuseResult.Success.Should().BeFalse();
+        reuseResult.Error.Should().Be("Invalid refresh token.");
+        _dbContext.RefreshTokens.Where(t => t.UserId == user.Id)
+                                .Should().OnlyContain(t => t.RevokedAtUtc != null);
+    }
+
+    [Fact]
+    public async Task RevokeRefreshTokenAsync_UnknownToken_DoesNotThrow()
+    {
+        var act = async () => await _service.RevokeRefreshTokenAsync("does-not-exist");
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task RevokeRefreshTokenAsync_ActiveToken_MarksItRevoked()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid() };
+        var rawToken = await SeedRefreshTokenAsync(user.Id);
+
+        await _service.RevokeRefreshTokenAsync(rawToken);
+
+        _dbContext.RefreshTokens.Single(t => t.TokenHash == HashForTest(rawToken))
+                  .RevokedAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task RevokeRefreshTokenAsync_RevokedToken_IsIdempotent()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid() };
+        var rawToken = await SeedRefreshTokenAsync(user.Id);
+        await _service.RevokeRefreshTokenAsync(rawToken);
+        var firstRevocation = _dbContext.RefreshTokens.Single(t => t.TokenHash == HashForTest(rawToken)).RevokedAtUtc;
+
+        await _service.RevokeRefreshTokenAsync(rawToken);
+
+        _dbContext.RefreshTokens.Single(t => t.TokenHash == HashForTest(rawToken))
+                  .RevokedAtUtc.Should().Be(firstRevocation);
+    }
+
+    async Task<string> SeedRefreshTokenAsync(Guid userId, DateTime? expiresAtUtc = null)
+    {
+        var rawToken = Guid.NewGuid().ToString("N");
+
+        _dbContext.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = userId,
+            TokenHash = HashForTest(rawToken),
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = expiresAtUtc ?? DateTime.UtcNow.AddDays(14)
+        });
+        await _dbContext.SaveChangesAsync();
+
+        return rawToken;
+    }
+
+    static string HashForTest(string rawToken)
+        => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawToken)));
 }
