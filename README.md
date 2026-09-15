@@ -4,7 +4,7 @@
 
 - **Backend** — .NET 9, Clean Architecture, CQRS
 - **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
-- **Tests** — xUnit, 582 unit tests + 20 integration tests (real PostgreSQL/MySQL via Testcontainers); Vitest, 11 frontend tests
+- **Tests** — xUnit, 582 unit tests + 21 integration tests (real PostgreSQL/MySQL via Testcontainers); Vitest, 21 frontend tests
 - **Frontend** — React 19 + TypeScript + Vite SPA (see [Frontend](#frontend) below)
 
 ---
@@ -27,7 +27,7 @@ Remote.Shell.Interrupt/
 ├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
 ├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SNMP Simulator, SnmpSimulator/README.md)
 ├── Tests/                              # xUnit — 582 unit tests (mocks/InMemory/SQLite, no external services)
-└── Tests.Integration/                  # xUnit — 20 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
+└── Tests.Integration/                  # xUnit — 21 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
 
 ---
@@ -64,7 +64,7 @@ npm run check    # formatting, ESLint, Vitest, TypeScript and production build
 
 Or let Docker Compose build and serve it (see below) — no Node install needed.
 
-The UI includes clients, network devices, VLAN search, tariff plans, gates, billing administration, and user management. Workflow CRUD and execution are currently available through the API; the SPA does not yet include a workflow editor. The API supports refresh-token rotation and revocation, but the SPA currently uses only the access token and requires signing in again after it expires.
+The UI includes clients, network devices, VLAN search, tariff plans, gates, billing administration, user management, and a visual workflow designer (Admin → Workflows) — a canvas editor for the node/edge graphs described below, with drag/drop, undo/redo, JSON import/export, and a run panel that executes the saved graph against a live device and renders the step-by-step trace. The API supports refresh-token rotation and revocation, but the SPA currently uses only the access token and requires signing in again after it expires.
 
 ---
 
@@ -180,9 +180,9 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🖥️ **Dashboards** — filters, sorting, server-side pagination
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
-- 🖥️ **Web frontend** — React SPA with protected routes, dashboards, detail pages, gate forms, and user management
+- 🖥️ **Web frontend** — React SPA with protected routes, dashboards, detail pages, gate forms, user management, and a visual workflow designer
 - 🔐 **Role-based access** — Admin / User with protected routes and API
-- 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`. The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
+- 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`, editable end-to-end from the SPA's canvas designer (Admin → Workflows). The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`
@@ -259,7 +259,7 @@ npm ci
 npm run check
 ```
 
-Runs Prettier, ESLint, 11 Vitest regression tests, TypeScript checking, and the Vite production build. The command stops at the first failing stage. Run `npm run format` to apply formatting fixes, then rerun `npm run check`.
+Runs Prettier, ESLint, 21 Vitest regression tests, TypeScript checking, and the Vite production build. The command stops at the first failing stage. Run `npm run format` to apply formatting fixes, then rerun `npm run check`.
 
 ### Integration tests
 
@@ -267,9 +267,9 @@ Runs Prettier, ESLint, 11 Vitest regression tests, TypeScript checking, and the 
 dotnet test Tests.Integration/Tests.Integration.csproj
 ```
 
-20 tests that boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
+21 tests that boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
 
-Covers what the unit suite structurally cannot: real EF Core migrations actually applying to Postgres, `ILIKE` filtering executing against a real Npgsql provider, the JWT/cookie/role-authorization pipeline end-to-end over real HTTP, health checks against live dependencies, and `SET SESSION TRANSACTION READ ONLY` genuinely rejecting a write on the MySQL connection.
+Covers what the unit suite structurally cannot: real EF Core migrations actually applying to Postgres, `ILIKE` filtering executing against a real Npgsql provider, the JWT/cookie/role-authorization pipeline end-to-end over real HTTP, health checks against live dependencies, `SET SESSION TRANSACTION READ ONLY` genuinely rejecting a write on the MySQL connection, and a full workflow round-trip (create → update → execute with a real Jint script → publish → archive → delete).
 
 ---
 

@@ -47,10 +47,13 @@ src/
 │   └── shared/           # Cross-feature presentational components
 ├── config/               # Validated environment and backend route config
 ├── features/             # Feature-sliced domain modules
-│   └── <Area>/
-│       ├── api/          # Domain API, query keys and TanStack Query hooks
-│       ├── List/         # List UI and local page state
-│       └── Detail/       # Detail UI
+│   ├── <Area>/
+│   │   ├── api/          # Domain API, query keys and TanStack Query hooks
+│   │   ├── List/         # List UI and local page state
+│   │   └── Detail/       # Detail UI
+│   └── Workflows/        # Canvas editor for workflow graphs (larger feature:
+│                         # api/, domain/workflow/ model + graph helpers,
+│                         # designer/{components,state}/ for the canvas)
 └── lib/
     ├── api/              # HTTP transport, normalized errors, shared API helpers
     ├── auth/             # Session store, JWT parsing and authentication API

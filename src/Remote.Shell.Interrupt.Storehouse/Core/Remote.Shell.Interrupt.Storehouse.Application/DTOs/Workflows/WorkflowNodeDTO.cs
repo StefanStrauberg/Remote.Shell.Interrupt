@@ -15,6 +15,7 @@ public class WorkflowNodeDTO : IMapWith<NodeDefinition>
 
   public string? Key { get; set; }
 
+  [System.Text.Json.Serialization.JsonConverter(typeof(WorkflowDictionaryJsonConverter))]
   public Dictionary<string, object?> Config { get; set; } = [];
 
   public double PositionX { get; set; }

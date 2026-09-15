@@ -14,5 +14,6 @@ public class ExecuteWorkflowRequestDTO
   /// Optional context variables seeded before the run starts (e.g. a caller-supplied
   /// vendor a Decision node reads, rather than something detected via SNMP).
   /// </summary>
+  [System.Text.Json.Serialization.JsonConverter(typeof(WorkflowDictionaryJsonConverter))]
   public Dictionary<string, object?> Input { get; set; } = [];
 }

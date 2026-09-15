@@ -1,0 +1,254 @@
+.workflow-designer .canvas-wrap {
+  position: relative;
+  min-width: 0;
+  height: 680px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background-color: var(--wf-bg);
+  background-image: radial-gradient(var(--wf-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.workflow-designer .world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4200px;
+  height: 2600px;
+  transform-origin: 0 0;
+}
+.workflow-designer .edge-layer {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.workflow-designer .edge-path {
+  fill: none;
+  stroke: var(--wf-muted);
+  stroke-width: 2;
+}
+.workflow-designer .edge-layer marker path {
+  fill: var(--wf-muted);
+}
+.workflow-designer .edge-group.selected .edge-path {
+  stroke: var(--wf-accent);
+  stroke-width: 3;
+}
+.workflow-designer .edge-label-svg {
+  cursor: pointer;
+  pointer-events: all;
+}
+.workflow-designer .edge-label-svg rect {
+  fill: var(--wf-paper);
+  stroke: var(--wf-line);
+}
+.workflow-designer .edge-label-svg text {
+  fill: var(--wf-text);
+  font-size: 11px;
+  pointer-events: none;
+}
+.workflow-designer .edge-group.selected .edge-label-svg rect {
+  fill: var(--wf-accent-soft);
+  stroke: var(--wf-accent);
+}
+.workflow-designer .preview-edge {
+  fill: none;
+  stroke: var(--wf-accent);
+  stroke-width: 3;
+  stroke-dasharray: 7 6;
+}
+.workflow-designer .workflow-node {
+  position: absolute;
+  width: 220px;
+  height: 96px;
+  background: var(--wf-paper);
+  border: 2px solid var(--wf-line);
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgb(23 50 77 / 8%);
+  user-select: none;
+  cursor: grab;
+}
+.workflow-designer .workflow-node.selected {
+  border-color: var(--wf-accent);
+  box-shadow: 0 0 0 3px var(--wf-accent-soft);
+}
+.workflow-designer .node-decision {
+  background: var(--wf-accent-soft);
+}
+.workflow-designer .node-script {
+  background: var(--wf-warning-soft);
+}
+.workflow-designer .node-start,
+.workflow-designer .node-end,
+.workflow-designer .node-savenetworkdevice {
+  background: var(--wf-green-soft);
+}
+.workflow-designer .node-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--wf-line);
+}
+.workflow-designer .node-type {
+  color: var(--wf-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.workflow-designer .node-key {
+  max-width: 100px;
+  overflow: hidden;
+  color: var(--wf-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workflow-designer .node-body {
+  padding: 8px 10px;
+}
+.workflow-designer .node-body strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.workflow-designer .node-body small {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--wf-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workflow-designer .node-port {
+  position: absolute;
+  top: 39px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 2px solid var(--wf-accent);
+  border-radius: 50%;
+  background: var(--wf-paper);
+  cursor: crosshair;
+  z-index: 3;
+}
+.workflow-designer .input-port {
+  left: -8px;
+}
+.workflow-designer .output-port {
+  right: -8px;
+}
+.workflow-designer .input-port.available {
+  background: var(--wf-green);
+}
+.workflow-designer .canvas-controls {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--wf-line);
+  border-radius: 10px;
+  background: var(--wf-paper);
+}
+.workflow-designer .canvas-controls button,
+.workflow-designer .modal button {
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--wf-line);
+  background: var(--wf-paper);
+  color: var(--wf-accent);
+  border-radius: 7px;
+  padding: 7px 10px;
+}
+.workflow-designer .canvas-controls span {
+  min-width: 45px;
+  text-align: center;
+  color: var(--wf-muted);
+  font-size: 12px;
+}
+.workflow-designer .node-context-menu {
+  position: fixed;
+  z-index: 1250;
+  display: flex;
+  flex-direction: column;
+  width: 202px;
+  padding: 7px;
+  border: 1px solid var(--wf-line);
+  border-radius: 10px;
+  background: var(--wf-paper);
+  box-shadow: 0 18px 45px rgb(23 50 77 / 20%);
+}
+.workflow-designer .node-context-menu strong {
+  padding: 6px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workflow-designer .node-context-menu button {
+  font: inherit;
+  cursor: pointer;
+  padding: 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+  color: var(--wf-text);
+}
+.workflow-designer .node-context-menu button:hover {
+  background: var(--wf-accent-soft);
+}
+.workflow-designer .node-context-menu button.danger {
+  color: var(--wf-danger);
+}
+.workflow-designer .context-menu-separator {
+  height: 1px;
+  margin: 5px 2px;
+  background: var(--wf-line);
+}
+.workflow-designer .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgb(23 50 77 / 25%);
+  display: grid;
+  place-items: center;
+}
+.workflow-designer .modal {
+  width: min(360px, 90%);
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--wf-paper);
+}
+.workflow-designer .modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.workflow-designer .modal input {
+  font: inherit;
+  padding: 10px;
+  border: 1px solid var(--wf-line);
+  border-radius: 8px;
+}
+.workflow-designer .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 900px) {
+  .workflow-designer .canvas-wrap {
+    height: 460px;
+  }
+}

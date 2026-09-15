@@ -35,6 +35,12 @@ const GateForm = lazy(
   () => import("../../features/Gates/CreateUpdate/GateForm")
 );
 const AdminPage = lazy(() => import("../../features/Admin/AdminPage"));
+const WorkflowsPage = lazy(
+  () => import("../../features/Workflows/WorkflowsPage")
+);
+const WorkflowEditorPage = lazy(
+  () => import("../../features/Workflows/WorkflowEditorPage")
+);
 const UsersDashboard = lazy(
   () => import("../../features/Users/List/UsersDashboard")
 );
@@ -140,6 +146,30 @@ export const router = createBrowserRouter([
       },
 
       // Admin-only routes (mirrors the backend [Authorize(Roles = "Admin")])
+      {
+        path: routeSegments.adminWorkflows,
+        element: page(
+          <ProtectedRoute roles={["Admin"]}>
+            <WorkflowsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: `${routeSegments.adminWorkflows}/new`,
+        element: page(
+          <ProtectedRoute roles={["Admin"]}>
+            <WorkflowEditorPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: `${routeSegments.adminWorkflows}/:id`,
+        element: page(
+          <ProtectedRoute roles={["Admin"]}>
+            <WorkflowEditorPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: routeSegments.register,
         element: page(

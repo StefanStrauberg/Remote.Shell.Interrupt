@@ -10,6 +10,7 @@ export const routeSegments = {
   createGate: "createGate",
   admin: "admin",
   adminUsers: "admin/users",
+  adminWorkflows: "admin/workflows",
   errors: "errors",
   notFound: "not-found",
   serverError: "server-error",
@@ -37,6 +38,10 @@ export const routes = {
   createGate: path(routeSegments.createGate),
   admin: path(routeSegments.admin),
   adminUsers: path(routeSegments.adminUsers),
+  adminWorkflows: path(routeSegments.adminWorkflows),
+  createWorkflow: `${path(routeSegments.adminWorkflows)}/new`,
+  workflow: (id: string) =>
+    `${path(routeSegments.adminWorkflows)}/${encodeURIComponent(id)}`,
   errors: path(routeSegments.errors),
   notFound: path(routeSegments.notFound),
   serverError: path(routeSegments.serverError),

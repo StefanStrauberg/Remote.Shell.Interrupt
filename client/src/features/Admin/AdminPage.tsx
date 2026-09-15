@@ -41,6 +41,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import DevicesIcon from "@mui/icons-material/Devices";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { toast } from "react-toastify";
 import { routes } from "../../app/router/paths";
 import { DEFAULT_PAGINATION } from "../../lib/constants/pagination";
@@ -483,6 +484,22 @@ export default function AdminPage() {
       </Grid2>
 
       {/* Confirmation Dialog */}
+      <Card variant="outlined" sx={{ mt: 3, mb: 3 }}>
+        <ManagementCard
+          title="Workflows"
+          icon={AccountTreeIcon}
+          description="Design SNMP workflows, configure nodes and scripts, and run them against network devices."
+        >
+          <Button
+            component={Link}
+            to={routes.adminWorkflows}
+            variant="contained"
+            startIcon={<AccountTreeIcon />}
+          >
+            Manage workflows
+          </Button>
+        </ManagementCard>
+      </Card>
       <Dialog
         open={confirmDialog.open}
         onClose={handleCancel}
