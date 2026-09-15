@@ -31,6 +31,18 @@ export const usersApi = {
     await httpClient.put(apiPath("Users", "SetUserActive"), { userId, isActive });
   },
 
+  async updateProfile(
+    userId: string,
+    email: string,
+    fullName: string | null
+  ): Promise<void> {
+    await httpClient.put(apiPath("Users", "UpdateUserProfile"), {
+      userId,
+      email,
+      fullName,
+    });
+  },
+
   async remove(userId: string): Promise<void> {
     await httpClient.delete(apiPath("Users", "DeleteUser", userId));
   },

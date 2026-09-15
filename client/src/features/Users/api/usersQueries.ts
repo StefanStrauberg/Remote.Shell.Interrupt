@@ -35,6 +35,19 @@ export function useSetUserActiveMutation() {
   });
 }
 
+export function useUpdateUserProfileMutation() {
+  const invalidate = useInvalidateUsers();
+  return useMutation<
+    void,
+    Error,
+    { userId: string; email: string; fullName: string | null }
+  >({
+    mutationFn: ({ userId, email, fullName }) =>
+      usersApi.updateProfile(userId, email, fullName),
+    onSuccess: invalidate,
+  });
+}
+
 export function useDeleteUserMutation() {
   const invalidate = useInvalidateUsers();
   return useMutation<void, Error, string>({

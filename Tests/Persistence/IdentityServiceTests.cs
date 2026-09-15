@@ -464,6 +464,60 @@ public class IdentityServiceTests : IDisposable
         await _userManager.Received().DeleteAsync(user);
     }
 
+    [Fact]
+    public async Task UpdateUserProfileAsync_UnknownUser_ThrowsEntityNotFound()
+    {
+        var act = async () => await _service.UpdateUserProfileAsync(Guid.NewGuid(), "new@test.com", "Name");
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task UpdateUserProfileAsync_SameEmailDifferentCasing_OnlyUpdatesFullName()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com" };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.UpdateAsync(user).Returns(IdentityResult.Success);
+
+        await _service.UpdateUserProfileAsync(user.Id, "A@TEST.COM", "New Name");
+
+        user.FullName.Should().Be("New Name");
+        await _userManager.DidNotReceiveWithAnyArgs().SetEmailAsync(default!, default!);
+        await _userManager.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default!);
+        await _userManager.Received().UpdateAsync(user);
+    }
+
+    [Fact]
+    public async Task UpdateUserProfileAsync_NewUniqueEmail_UpdatesEmailUsernameAndFullName()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "old@test.com" };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.FindByEmailAsync("new@test.com").Returns((ApplicationUser?)null);
+        _userManager.SetEmailAsync(user, "new@test.com").Returns(IdentityResult.Success);
+        _userManager.SetUserNameAsync(user, "new@test.com").Returns(IdentityResult.Success);
+        _userManager.UpdateAsync(user).Returns(IdentityResult.Success);
+
+        await _service.UpdateUserProfileAsync(user.Id, "new@test.com", "New Name");
+
+        await _userManager.Received().SetEmailAsync(user, "new@test.com");
+        await _userManager.Received().SetUserNameAsync(user, "new@test.com");
+        user.FullName.Should().Be("New Name");
+    }
+
+    [Fact]
+    public async Task UpdateUserProfileAsync_EmailAlreadyTakenByAnotherUser_ThrowsBadRequest()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), Email = "old@test.com" };
+        var otherUser = new ApplicationUser { Id = Guid.NewGuid(), Email = "taken@test.com" };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.FindByEmailAsync("taken@test.com").Returns(otherUser);
+
+        var act = async () => await _service.UpdateUserProfileAsync(user.Id, "taken@test.com", null);
+
+        await act.Should().ThrowAsync<BadRequestException>();
+        await _userManager.DidNotReceiveWithAnyArgs().SetEmailAsync(default!, default!);
+    }
+
     async Task<string> SeedRefreshTokenAsync(Guid userId, DateTime? expiresAtUtc = null)
     {
         var rawToken = Guid.NewGuid().ToString("N");

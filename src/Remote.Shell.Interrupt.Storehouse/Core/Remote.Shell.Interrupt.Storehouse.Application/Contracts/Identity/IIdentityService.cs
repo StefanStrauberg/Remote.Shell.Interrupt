@@ -104,4 +104,15 @@ public interface IIdentityService
     /// </summary>
     Task DeleteUserAsync(Guid userId,
                         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an account's email (and, with it, its Identity username - the two are
+    /// kept identical, see <see cref="RegisterAsync"/>) and display name. Throws
+    /// <see cref="Exceptions.EntityNotFoundException"/> if the user does not exist, or
+    /// <see cref="Exceptions.BadRequestException"/> if another account already has that email.
+    /// </summary>
+    Task UpdateUserProfileAsync(Guid userId,
+                                string email,
+                                string? fullName,
+                                CancellationToken cancellationToken = default);
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PersonAddAlt as PersonAddAltIcon } from "@mui/icons-material";
 import { Alert, Box, Button, CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ import { useAuth } from "../../../lib/auth/useAuth";
 import { getAuthErrorMessage } from "../../../lib/auth/authApi";
 import { authRoles } from "../../../lib/schemas/AuthSchema";
 import { routes } from "../../../app/router/paths";
+import { userKeys } from "../../Users/api/usersQueries";
 import AuthLayout from "../components/AuthLayout";
 
 const roleOptions = authRoles.map((role) => ({
@@ -25,6 +26,7 @@ const roleOptions = authRoles.map((role) => ({
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAuthenticated, isAdmin, registerAsync } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -59,7 +61,8 @@ export default function RegisterPage() {
     },
     onSuccess: () => {
       toast.success("Account created successfully.");
-      navigate(routes.admin);
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      navigate(routes.adminUsers);
     },
     onError: (error) => setSubmitError(getAuthErrorMessage(error)),
   });

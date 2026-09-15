@@ -2,6 +2,7 @@ using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.DeleteUser;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.SetUserActive;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.UpdateUserProfile;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.UpdateUserRole;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Queries.GetUsersByFilter;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Users;
@@ -130,6 +131,24 @@ public class DeleteUserCommandHandlerTests
     }
 }
 
+public class UpdateUserProfileCommandHandlerTests
+{
+    readonly IIdentityService _identityService = Substitute.For<IIdentityService>();
+
+    [Fact]
+    public async Task Handle_DelegatesToIdentityServiceIncludingForSelf()
+    {
+        var userId = Guid.NewGuid();
+        var handler = new UpdateUserProfileCommandHandler(_identityService);
+
+        await ((IRequestHandler<UpdateUserProfileCommand, Unit>)handler)
+            .Handle(new UpdateUserProfileCommand(userId, "new@test.com", "New Name"), CancellationToken.None);
+
+        await _identityService.Received()
+            .UpdateUserProfileAsync(userId, "new@test.com", "New Name", Arg.Any<CancellationToken>());
+    }
+}
+
 public class UpdateUserRoleCommandValidatorTests
 {
     readonly UpdateUserRoleCommandValidator _validator = new();
@@ -156,6 +175,45 @@ public class UpdateUserRoleCommandValidatorTests
     public void InvalidRole_FailsValidation(string role)
     {
         var result = _validator.Validate(new UpdateUserRoleCommand(Guid.NewGuid(), role));
+
+        result.IsValid.Should().BeFalse();
+    }
+}
+
+public class UpdateUserProfileCommandValidatorTests
+{
+    readonly UpdateUserProfileCommandValidator _validator = new();
+
+    [Fact]
+    public void ValidCommand_PassesValidation()
+    {
+        var result = _validator.Validate(new UpdateUserProfileCommand(Guid.NewGuid(), "a@test.com", "Name"));
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void NullFullName_StillPassesValidation()
+    {
+        var result = _validator.Validate(new UpdateUserProfileCommand(Guid.NewGuid(), "a@test.com", null));
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void EmptyUserId_FailsValidation()
+    {
+        var result = _validator.Validate(new UpdateUserProfileCommand(Guid.Empty, "a@test.com", null));
+
+        result.IsValid.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-email")]
+    public void InvalidEmail_FailsValidation(string email)
+    {
+        var result = _validator.Validate(new UpdateUserProfileCommand(Guid.NewGuid(), email, null));
 
         result.IsValid.Should().BeFalse();
     }

@@ -347,6 +347,26 @@ internal sealed class IdentityService(
         await userManager.DeleteAsync(user);
     }
 
+    public async Task UpdateUserProfileAsync(Guid userId, string email, string? fullName,
+                                             CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await userManager.FindByEmailAsync(email);
+
+            if (existing is not null && existing.Id != userId)
+                throw new BadRequestException($"A user with email '{email}' already exists.");
+
+            await userManager.SetEmailAsync(user, email);
+            await userManager.SetUserNameAsync(user, email);
+        }
+
+        user.FullName = fullName;
+        await userManager.UpdateAsync(user);
+    }
+
     async Task<ApplicationUser> FindUserOrThrowAsync(Guid userId)
         => await userManager.FindByIdAsync(userId.ToString())
            ?? throw new EntityNotFoundException(typeof(ApplicationUser), nameof(ApplicationUser.Id));

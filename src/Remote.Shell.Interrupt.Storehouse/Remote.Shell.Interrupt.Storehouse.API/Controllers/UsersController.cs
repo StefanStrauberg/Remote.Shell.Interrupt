@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Users;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.DeleteUser;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.SetUserActive;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.UpdateUserProfile;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.UpdateUserRole;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Queries.GetUsersByFilter;
 
@@ -59,6 +60,17 @@ public class UsersController(ISender sender) : BaseAPIController(sender)
   public async Task<IActionResult> SetUserActive([FromBody] SetUserActiveCommand setUserActiveCommand,
                                                  CancellationToken cancellationToken)
     => Ok(await Sender.Send(setUserActiveCommand, cancellationToken));
+
+  /// <summary>
+  /// Updates an account's email and display name.
+  /// </summary>
+  [HttpPut]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand updateUserProfileCommand,
+                                                     CancellationToken cancellationToken)
+    => Ok(await Sender.Send(updateUserProfileCommand, cancellationToken));
 
   /// <summary>
   /// Permanently deletes an account.

@@ -1,4 +1,6 @@
-import { Grid2, Box } from "@mui/material";
+import { Grid2, Box, Button } from "@mui/material";
+import { Link } from "react-router";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { useState } from "react";
 import GroupIcon from "@mui/icons-material/Group";
 import UsersListPage from "./UsersListPage";
@@ -9,6 +11,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 import EmptyPage from "@/app/shared/components/EmptyPage";
 import { FilterDescriptor } from "@/lib/types/Common/FilterDescriptor";
 import { DEFAULT_PAGINATION } from "@/lib/constants/pagination";
+import { routes } from "@/app/router/paths";
 import PageHeader from "@/app/shared/components/PageHeader";
 import { PageError, PageLoading } from "@/app/shared/components/PageFeedback";
 
@@ -53,6 +56,16 @@ export default function UsersDashboard() {
         title="User management"
         description="Review accounts, change roles, and activate or deactivate access"
         icon={GroupIcon}
+        action={
+          <Button
+            component={Link}
+            to={routes.register}
+            variant="contained"
+            startIcon={<PersonAddAltIcon />}
+          >
+            Create user
+          </Button>
+        }
       />
 
       <Grid2 container spacing={3}>

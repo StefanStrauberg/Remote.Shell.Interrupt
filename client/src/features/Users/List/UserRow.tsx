@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Box,
   Chip,
   IconButton,
   MenuItem,
@@ -11,7 +12,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
+import { Delete, Edit } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { User } from "@/lib/types/Users/User";
@@ -21,6 +22,7 @@ import {
   useSetUserActiveMutation,
   useUpdateUserRoleMutation,
 } from "../api/usersQueries";
+import EditUserDialog from "./EditUserDialog";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
@@ -36,6 +38,7 @@ export default function UserRow({ user, isSelf }: Props) {
   const setActive = useSetUserActiveMutation();
   const deleteUser = useDeleteUserMutation();
   const [pendingActive, setPendingActive] = useState<boolean | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const primaryRole = user.roles[0] ?? ASSIGNABLE_ROLES[1];
   const isBusy = updateRole.isPending || setActive.isPending || deleteUser.isPending;
@@ -126,22 +129,38 @@ export default function UserRow({ user, isSelf }: Props) {
       </TableCell>
       <TableCell>{format(new Date(user.createdAtUtc), "PP")}</TableCell>
       <TableCell align="right">
-        {isSelf ? (
-          <Chip label="You" size="small" />
-        ) : (
-          <Tooltip title="Delete account">
+        <Box display="flex" justifyContent="flex-end" alignItems="center" gap={0.5}>
+          {isSelf && <Chip label="You" size="small" sx={{ mr: 0.5 }} />}
+
+          <Tooltip title="Edit account">
             <span>
-              <IconButton
-                color="error"
-                onClick={handleDelete}
-                disabled={isBusy}
-                size="small"
-              >
-                <Delete fontSize="small" />
+              <IconButton onClick={() => setEditOpen(true)} disabled={isBusy} size="small">
+                <Edit fontSize="small" />
               </IconButton>
             </span>
           </Tooltip>
-        )}
+
+          {!isSelf && (
+            <Tooltip title="Delete account">
+              <span>
+                <IconButton
+                  color="error"
+                  onClick={handleDelete}
+                  disabled={isBusy}
+                  size="small"
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+        </Box>
+
+        <EditUserDialog
+          user={user}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
       </TableCell>
     </TableRow>
   );
