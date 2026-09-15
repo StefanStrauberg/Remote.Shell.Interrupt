@@ -8,16 +8,30 @@ namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine;
 /// </summary>
 internal class WorkflowEngine(IWorkflowNodeResolver resolver) : IWorkflowEngine
 {
+  // Edge routing here is by priority/condition matching, not a DAG the designer enforces to be
+  // acyclic - nothing stops a saved graph (crafted by hand via CreateWorkflow's JSON import, or
+  // just a mistake in the visual designer) from looping a Decision node back on itself. Without
+  // a step cap, executing that graph would run this while(true) forever: cancellationToken is
+  // only the caller's HTTP RequestAborted, which never fires on its own unless the client
+  // disconnects. This bounds a run to something far past any legitimate graph's node count
+  // (the seeded network-device-discovery workflow, the largest shipped with this app, is under
+  // 20 nodes) while still catching a genuine cycle quickly.
+  const int MaxSteps = 1_000;
+
   public async Task<WorkflowExecutionResult> ExecuteAsync(WorkflowDefinition workflow,
                                                           WorkflowContext context,
                                                           CancellationToken cancellationToken)
   {
     var steps = new List<WorkflowExecutionStep>();
     var currentNodeId = workflow.StartNodeId;
+    var stepCount = 0;
 
     while (true)
     {
       cancellationToken.ThrowIfCancellationRequested();
+
+      if (++stepCount > MaxSteps)
+        return Failed(steps, $"Workflow '{workflow.Name}' exceeded the maximum of {MaxSteps} node executions - likely a cycle in the graph's edges.");
 
       var node = workflow.Nodes.SingleOrDefault(x => x.Id == currentNodeId);
 

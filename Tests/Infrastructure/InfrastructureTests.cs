@@ -75,6 +75,34 @@ public class SNMPCommandExecutorHostValidationTests
 
         await act.Should().ThrowAsync<SNMPBadRequestException>();
     }
+
+    // GetCommand/WalkCommand talk real UDP sockets, so exercising the actual 5s/30s timeouts
+    // end to end belongs in a slower, network-capable suite, not here. What's fast and
+    // deterministic to cover in this unit suite is that a token already canceled by the time
+    // the call starts - the same state either the caller's own cancellation or the internal
+    // timeout linked into it would produce - is translated into SNMPBadRequestException rather
+    // than left as a raw OperationCanceledException or hanging.
+    [Fact]
+    public async Task GetCommand_AlreadyCanceledToken_ThrowsSNMPBadRequestException()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var act = async () => await _executor.GetCommand("192.0.2.1", "public", "1.3.6.1.2.1.1.1.0", cts.Token);
+
+        await act.Should().ThrowAsync<SNMPBadRequestException>();
+    }
+
+    [Fact]
+    public async Task WalkCommand_AlreadyCanceledToken_ThrowsSNMPBadRequestException()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var act = async () => await _executor.WalkCommand("192.0.2.1", "public", "1.3.6.1.2.1.1", cts.Token);
+
+        await act.Should().ThrowAsync<SNMPBadRequestException>();
+    }
 }
 
 /// <summary>

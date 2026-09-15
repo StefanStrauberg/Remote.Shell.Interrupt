@@ -115,6 +115,38 @@ public class WorkflowEngineTests
         result.Steps.Last().NodeName.Should().Be("Default End");
     }
 
+    /// <summary>
+    /// Nothing about edge resolution requires the graph to be acyclic - a hand-crafted JSON
+    /// import, or a mistake in the visual designer, could route a node's edge back to an
+    /// earlier node. Without WorkflowEngine's step cap this would spin the while(true) loop
+    /// forever; this locks in that it instead fails cleanly with a bounded trace.
+    /// </summary>
+    [Fact]
+    public async Task Execute_CyclicGraph_StopsAtStepLimitWithFailure()
+    {
+        const int expectedMaxSteps = 1_000;
+
+        var a = Node("SetVariable", "A", new() { ["name"] = "x", ["value"] = 1 });
+        var b = Node("SetVariable", "B", new() { ["name"] = "y", ["value"] = 2 });
+        var workflow = new WorkflowDefinition
+        {
+            Id = Guid.NewGuid(),
+            Name = "cyclic",
+            StartNodeId = a.Id,
+            Nodes = [a, b],
+            Edges = [Edge(a, b), Edge(b, a)]
+        };
+        var context = new WorkflowContext("host", "public", workflow);
+        var resolver = new WorkflowNodeResolver([new SetVariableNodeExecutor()]);
+        var engine = new Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine.WorkflowEngine(resolver);
+
+        var result = await engine.ExecuteAsync(workflow, context, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("exceeded").And.Contain("cycle");
+        result.Steps.Should().HaveCount(expectedMaxSteps);
+    }
+
     [Fact]
     public async Task Execute_NodeWithNoOutgoingEdges_ReturnsFailureWithPartialTrace()
     {
