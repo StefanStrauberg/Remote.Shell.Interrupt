@@ -1,0 +1,138 @@
+namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine;
+
+/// <summary>
+/// Runs a <see cref="WorkflowDefinition"/> from its start node to an End node, routing
+/// between nodes via <see cref="EdgeDefinition"/> priority/condition matching. Has no
+/// vendor-specific knowledge - ported from the WorkflowExample prototype's engine, which
+/// already proved this edge-resolution algorithm against Huawei/Juniper/DEFAULT scenarios.
+/// </summary>
+internal class WorkflowEngine(IWorkflowNodeResolver resolver) : IWorkflowEngine
+{
+  public async Task<WorkflowExecutionResult> ExecuteAsync(WorkflowDefinition workflow,
+                                                          WorkflowContext context,
+                                                          CancellationToken cancellationToken)
+  {
+    var steps = new List<WorkflowExecutionStep>();
+    var currentNodeId = workflow.StartNodeId;
+
+    while (true)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+
+      var node = workflow.Nodes.SingleOrDefault(x => x.Id == currentNodeId);
+
+      if (node is null)
+        return Failed(steps, $"Node '{currentNodeId}' does not exist in workflow '{workflow.Name}'.");
+
+      context.CurrentNodeId = node.Id;
+
+      var executor = resolver.Resolve(node.Type);
+      var result = await executor.ExecuteAsync(node, context, cancellationToken);
+
+      if (!result.Success)
+        return Failed(steps, $"Node '{node.Name}' failed: {result.Error}");
+
+      foreach (var (key, value) in result.Outputs)
+        context.Set(key, value);
+
+      if (string.Equals(node.Type, WorkflowNodeTypes.End, StringComparison.OrdinalIgnoreCase))
+      {
+        steps.Add(new WorkflowExecutionStep
+        {
+          NodeName = node.Name,
+          NodeType = node.Type,
+          Outputs = result.Outputs,
+          Decision = result.Decision,
+          Why = "End node reached.",
+          Logs = result.Logs
+        });
+
+        return new WorkflowExecutionResult
+        {
+          Success = true,
+          Steps = steps,
+          FinalVariables = context.Variables
+        };
+      }
+
+      var (next, candidates, why) = ResolveNextEdge(workflow, node, result.Decision);
+
+      if (next is null)
+      {
+        steps.Add(new WorkflowExecutionStep
+        {
+          NodeName = node.Name,
+          NodeType = node.Type,
+          Outputs = result.Outputs,
+          Decision = result.Decision,
+          CandidateEdges = candidates,
+          Why = why,
+          Logs = result.Logs
+        });
+
+        return Failed(steps, why);
+      }
+
+      var nextNode = workflow.Nodes.Single(x => x.Id == next.ToNodeId);
+
+      steps.Add(new WorkflowExecutionStep
+      {
+        NodeName = node.Name,
+        NodeType = node.Type,
+        Outputs = result.Outputs,
+        Decision = result.Decision,
+        CandidateEdges = candidates,
+        Why = why,
+        NextNodeName = nextNode.Name,
+        Logs = result.Logs
+      });
+
+      currentNodeId = next.ToNodeId;
+    }
+  }
+
+  static WorkflowExecutionResult Failed(List<WorkflowExecutionStep> steps, string error)
+    => new()
+    {
+      Success = false,
+      Error = error,
+      Steps = steps
+    };
+
+  static (EdgeDefinition? Edge, List<CandidateEdge> Candidates, string Why) ResolveNextEdge(WorkflowDefinition workflow,
+                                                                                            NodeDefinition node,
+                                                                                            string? decision)
+  {
+    var edges = workflow.Edges
+                        .Where(x => x.FromNodeId == node.Id)
+                        .OrderBy(x => x.Priority)
+                        .ToList();
+
+    var candidates = edges.Select(e => new CandidateEdge { Condition = e.Condition, Priority = e.Priority })
+                          .ToList();
+
+    if (edges.Count == 0)
+      return (null, candidates, $"Node '{node.Name}' has no outgoing edges.");
+
+    if (decision is not null)
+    {
+      var exact = edges.FirstOrDefault(x =>
+        string.Equals(x.Condition, decision, StringComparison.OrdinalIgnoreCase));
+
+      if (exact is not null)
+        return (exact, candidates, $"Exact edge condition '{exact.Condition}' matches decision '{decision}'.");
+    }
+
+    var fallback = edges.FirstOrDefault(x =>
+                       string.Equals(x.Condition, "DEFAULT", StringComparison.OrdinalIgnoreCase))
+                   ?? edges.FirstOrDefault(x => x.Condition is null);
+
+    if (fallback is not null)
+      return (fallback, candidates, $"No exact match; fallback edge {DescribeCondition(fallback.Condition)} selected.");
+
+    return (null, candidates, $"Cannot resolve next edge for node '{node.Name}', decision='{decision ?? "<null>"}'.");
+  }
+
+  static string DescribeCondition(string? condition) =>
+    condition is null ? "<unconditional>" : $"'{condition}'";
+}

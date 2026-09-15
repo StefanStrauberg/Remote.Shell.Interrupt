@@ -77,12 +77,14 @@ public static class PersistenceServicesRegistration
     services.AddScoped<IMACEntityRepository, MACEntityRepository>();
     services.AddScoped<IVLANRepository, VLANRepository>();
     services.AddScoped<ITerminatedNetworkEntityRepository, TerminatedNetworkEntityRepository>();
+    services.AddScoped<IWorkflowDefinitionRepository, WorkflowDefinitionRepository>();
 
     // Unit of work abstractions
     services.AddScoped<IGateUnitOfWork, GateUnitOfWork>();
     services.AddScoped<ILocBillUnitOfWork, LocBillUnitOfWork>();
     services.AddScoped<INetDevUnitOfWork, NetDevUnitOfWork>();
     services.AddScoped<IRemBillUnitOfWork, RemBillUnitOfWork>();
+    services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
 
     return services;
   }

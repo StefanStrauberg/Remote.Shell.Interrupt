@@ -1,9 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Domain.Workflow;
-public class WorkflowContext(NetworkDevice device, WorkflowDefinition workflow)
+public class WorkflowContext(string host, string community, WorkflowDefinition workflow)
 {
   private readonly Dictionary<string, object?> _variables = [];
 
-  public NetworkDevice Device { get; } = device;
+  public string Host { get; } = host;
+
+  public string Community { get; } = community;
 
   public WorkflowDefinition Workflow { get; } = workflow;
 

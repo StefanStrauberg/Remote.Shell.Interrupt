@@ -33,6 +33,7 @@
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.QueryFilterParser\Remote.Shell.Interrupt.Storehouse.QueryFilterParser.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.Specification\Remote.Shell.Interrupt.Storehouse.Specification.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor\Remote.Shell.Interrupt.Storehouse.SNMPCommandExecutor.csproj" />
+    <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.WorkflowEngine\Remote.Shell.Interrupt.Storehouse.WorkflowEngine.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Infrastructure\Remote.Shell.Interrupt.Storehouse.AppLogger\Remote.Shell.Interrupt.Storehouse.AppLogger.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence\Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.csproj" />
     <ProjectReference Include="..\src\Remote.Shell.Interrupt.Storehouse\Remote.Shell.Interrupt.Storehouse.API\Remote.Shell.Interrupt.Storehouse.API.csproj" />

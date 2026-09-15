@@ -2,13 +2,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Domain.Workflow;
 public class WorkflowDefinition : BaseEntity
 {
 
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
-    public int Version { get; init; }
+    public int Version { get; set; }
 
-    public Guid StartNodeId { get; init; }
+    public WorkflowStatus Status { get; set; } = WorkflowStatus.Draft;
 
-    public List<NodeDefinition> Nodes { get; init; } = [];
+    public Guid StartNodeId { get; set; }
 
-    public List<EdgeDefinition> Edges { get; init; } = [];
+    public List<NodeDefinition> Nodes { get; set; } = [];
+
+    public List<EdgeDefinition> Edges { get; set; } = [];
   }

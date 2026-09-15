@@ -57,3 +57,14 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Command
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Factories;
 global using System.Text.RegularExpressions;
 global using Remote.Shell.Interrupt.Storehouse.Domain.Workflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Workflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IWorkflowRep;
+global using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.CreateWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.UpdateWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.DeleteWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.ExecuteWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Queries.GetWorkflowsByFilter;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Queries.GetWorkflowById;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.PublishWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.ArchiveWorkflow;

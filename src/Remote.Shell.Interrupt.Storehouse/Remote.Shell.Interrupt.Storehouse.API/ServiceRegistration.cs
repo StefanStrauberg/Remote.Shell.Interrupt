@@ -48,6 +48,7 @@ public static class ServiceRegistration
     // Application Layers
     builder.Services.AddApplicationServices();
     builder.Services.AddSNMPCommandExecutorServices();
+    builder.Services.AddWorkflowEngineServices();
     builder.Services.AddSpecificationServices();
     builder.Services.AddQueryFilterParserServices();
     builder.Services.AddPersistenceServices(builder.Configuration);

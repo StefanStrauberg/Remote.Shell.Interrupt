@@ -21,7 +21,7 @@ Remote.Shell.Interrupt/
 │   ├── Core/
 │   │   ├── ...Storehouse.Domain        # Domain entities
 │   │   └── ...Storehouse.Application   # CQRS, DTOs, validation, contracts
-│   ├── Infrastructure/                 # SNMP, logger, specifications, filter parser
+│   ├── Infrastructure/                 # SNMP, workflow engine, logger, specifications, filter parser
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
 ├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
@@ -148,6 +148,7 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 | Billing sync and cleanup                       |  ✅   |  ❌  |
 | Registering users                              |  ✅   |  ❌  |
 | SNMP Get / Walk                                |  ✅   |  ❌  |
+| Workflow graphs: create / update / delete / run |  ✅   |  ❌  |
 
 ---
 
@@ -174,6 +175,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
 - 🔐 **Role-based access** — Admin / User with protected routes and API
+- 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`

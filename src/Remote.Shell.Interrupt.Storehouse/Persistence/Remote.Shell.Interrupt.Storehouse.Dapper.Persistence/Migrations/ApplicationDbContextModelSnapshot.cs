@@ -829,6 +829,148 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Migrations
                     b.ToTable("VLANs", (string)null);
                 });
 
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.EdgeDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("Condition")
+                        .HasColumnType("text")
+                        .HasColumnName("Condition");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("FromNodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("FromNodeId");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("Priority");
+
+                    b.Property<Guid>("ToNodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ToNodeId");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("UpdatedAt");
+
+                    b.Property<Guid>("WorkflowDefinitionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("WorkflowDefinitionId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkflowDefinitionId");
+
+                    b.ToTable("WorkflowEdges", (string)null);
+                });
+
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.NodeDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Config");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Key")
+                        .HasColumnType("text")
+                        .HasColumnName("Key");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Name");
+
+                    b.Property<double>("PositionX")
+                        .HasColumnType("double precision")
+                        .HasColumnName("PositionX");
+
+                    b.Property<double>("PositionY")
+                        .HasColumnType("double precision")
+                        .HasColumnName("PositionY");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("UpdatedAt");
+
+                    b.Property<Guid>("WorkflowDefinitionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("WorkflowDefinitionId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkflowDefinitionId");
+
+                    b.ToTable("WorkflowNodes", (string)null);
+                });
+
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.WorkflowDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Name");
+
+                    b.Property<Guid>("StartNodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("StartNodeId");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("Status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("UpdatedAt");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("Version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("WorkflowDefinitions", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -973,6 +1115,24 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.EdgeDefinition", b =>
+                {
+                    b.HasOne("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.WorkflowDefinition", null)
+                        .WithMany("Edges")
+                        .HasForeignKey("WorkflowDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.NodeDefinition", b =>
+                {
+                    b.HasOne("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.WorkflowDefinition", null)
+                        .WithMany("Nodes")
+                        .HasForeignKey("WorkflowDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Gateway.NetworkDevice", b =>
                 {
                     b.Navigation("PortsOfNetworkDevice");
@@ -992,6 +1152,13 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Migrations
             modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Organization.Client", b =>
                 {
                     b.Navigation("SPRVlans");
+                });
+
+            modelBuilder.Entity("Remote.Shell.Interrupt.Storehouse.Domain.Workflow.WorkflowDefinition", b =>
+                {
+                    b.Navigation("Edges");
+
+                    b.Navigation("Nodes");
                 });
 #pragma warning restore 612, 618
         }

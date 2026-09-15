@@ -506,6 +506,142 @@
       ]
     },
     {
+      "name": "Workflows",
+      "item": [
+        {
+          "name": "GetWorkflowsByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/GetWorkflowsByFilter?pageNumber=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "GetWorkflowsByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            },
+            "description": "Admin only (whole controller). Paginated; returns node/edge counts, not the full graph."
+          },
+          "response": []
+        },
+        {
+          "name": "GetWorkflowById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/GetWorkflowById/bacd5101-6239-4a62-84f5-9fda85570811",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "GetWorkflowById", "bacd5101-6239-4a62-84f5-9fda85570811"]
+            },
+            "description": "Admin only. Returns the full node/edge graph. 404 if the workflow doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "CreateWorkflow",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"SysDescr poll\",\n    \"version\": 1,\n    \"startNodeId\": \"aaaaaaaa-0000-0000-0000-000000000001\",\n    \"nodes\": [\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000001\", \"type\": \"Start\", \"name\": \"Start\" },\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000002\", \"type\": \"SnmpWalk\", \"name\": \"Read interfaces\", \"key\": \"read-interfaces\", \"config\": { \"oid\": \"1.3.6.1.2.1.2.2.1.2\", \"output\": \"raw.interfaces\" } },\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000003\", \"type\": \"Script\", \"name\": \"Normalize interfaces\", \"key\": \"normalize-interfaces\", \"config\": { \"input\": \"raw.interfaces\", \"output\": \"normalized.ports\", \"timeoutMs\": 1500, \"scriptSource\": \"function execute(input, context) {\\n  return input.map((name, index) => ({ index: index + 1, name }));\\n}\" } },\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000004\", \"type\": \"End\", \"name\": \"End\" }\n    ],\n    \"edges\": [\n        { \"id\": \"bbbbbbbb-0000-0000-0000-000000000001\", \"fromNodeId\": \"aaaaaaaa-0000-0000-0000-000000000001\", \"toNodeId\": \"aaaaaaaa-0000-0000-0000-000000000002\" },\n        { \"id\": \"bbbbbbbb-0000-0000-0000-000000000002\", \"fromNodeId\": \"aaaaaaaa-0000-0000-0000-000000000002\", \"toNodeId\": \"aaaaaaaa-0000-0000-0000-000000000003\" },\n        { \"id\": \"bbbbbbbb-0000-0000-0000-000000000003\", \"fromNodeId\": \"aaaaaaaa-0000-0000-0000-000000000003\", \"toNodeId\": \"aaaaaaaa-0000-0000-0000-000000000004\" }\n    ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/CreateWorkflow",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "CreateWorkflow"]
+            },
+            "description": "Admin only. Node/edge `id`s are caller-assigned (uuid) so edges in the same payload can reference their nodes. Node `type`: Start, End, Decision, Join, SetVariable, SnmpGet, SnmpWalk, or Script. A Script node's `config.scriptSource` defines `function execute(input, context) {...}` - `input` is read from `config.input` (a context key; empty means \"pass the whole context\"), a plain return value is written to `config.output`, or return `{success, decision, outputs, error}` directly. Rejects a duplicate `name`. New workflows start as `Draft`."
+          },
+          "response": []
+        },
+        {
+          "name": "UpdateWorkflow",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"bacd5101-6239-4a62-84f5-9fda85570811\",\n    \"name\": \"SysDescr poll\",\n    \"version\": 2,\n    \"startNodeId\": \"aaaaaaaa-0000-0000-0000-000000000001\",\n    \"nodes\": [\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000001\", \"type\": \"Start\", \"name\": \"Start\" },\n        { \"id\": \"aaaaaaaa-0000-0000-0000-000000000003\", \"type\": \"End\", \"name\": \"End\" }\n    ],\n    \"edges\": [\n        { \"fromNodeId\": \"aaaaaaaa-0000-0000-0000-000000000001\", \"toNodeId\": \"aaaaaaaa-0000-0000-0000-000000000003\" }\n    ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/UpdateWorkflow",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "UpdateWorkflow"]
+            },
+            "description": "Admin only. `id` must reference an existing workflow; 404 otherwise. Replaces the entire node/edge graph - nodes/edges omitted from the payload are deleted. 400 if the workflow isn't currently Draft (Published/Archived graphs are immutable - see PublishWorkflow/ArchiveWorkflow)."
+          },
+          "response": []
+        },
+        {
+          "name": "PublishWorkflow",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/PublishWorkflow/bacd5101-6239-4a62-84f5-9fda85570811",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "PublishWorkflow", "bacd5101-6239-4a62-84f5-9fda85570811"]
+            },
+            "description": "Admin only. Draft -> Published; the graph becomes immutable. 404 if not found, 400 if the workflow isn't currently Draft."
+          },
+          "response": []
+        },
+        {
+          "name": "ArchiveWorkflow",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/ArchiveWorkflow/bacd5101-6239-4a62-84f5-9fda85570811",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "ArchiveWorkflow", "bacd5101-6239-4a62-84f5-9fda85570811"]
+            },
+            "description": "Admin only. Draft or Published -> Archived. 404 if not found, 400 if already Archived."
+          },
+          "response": []
+        },
+        {
+          "name": "ExecuteWorkflow",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"192.168.101.8\",\n    \"community\": \"public\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/ExecuteWorkflow/bacd5101-6239-4a62-84f5-9fda85570811",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "ExecuteWorkflow", "bacd5101-6239-4a62-84f5-9fda85570811"]
+            },
+            "description": "Admin only. Runs the workflow against the given Host/Community over SNMP (see SnmpSimulator for a device to point this at without real hardware). A workflow-level failure (bad OID, unreachable device, unresolved decision) comes back as `success:false` in a 200 body with the step trail up to the failing node, not as an HTTP error. 404 if the workflow doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteWorkflowById",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Workflows/DeleteWorkflowById/bacd5101-6239-4a62-84f5-9fda85570811",
+              "host": ["{{baseUrl}}"],
+              "path": ["Workflows", "DeleteWorkflowById", "bacd5101-6239-4a62-84f5-9fda85570811"]
+            },
+            "description": "Admin only. Cascades to the workflow's nodes/edges. 404 if the workflow doesn't exist."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "SNMPExecutor",
       "item": [
         {

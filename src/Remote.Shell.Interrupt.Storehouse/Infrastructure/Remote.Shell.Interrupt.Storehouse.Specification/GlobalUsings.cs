@@ -6,3 +6,4 @@ global using Remote.Shell.Interrupt.Storehouse.Domain.Common;
 global using System.Linq.Expressions;
 global using Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
+global using Remote.Shell.Interrupt.Storehouse.Domain.Workflow;

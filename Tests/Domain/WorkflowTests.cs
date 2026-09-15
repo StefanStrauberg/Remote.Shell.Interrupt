@@ -6,7 +6,8 @@ namespace Tests.Domain;
 public class WorkflowContextTests
 {
     static WorkflowContext CreateContext()
-        => new(new NetworkDevice { Id = Guid.NewGuid(), NetworkDeviceName = "gw" },
+        => new("192.168.1.1",
+               "public",
                new WorkflowDefinition { Id = Guid.NewGuid(), Name = "wf" });
 
     [Fact]
@@ -109,14 +110,14 @@ public class WorkflowContextTests
     }
 
     [Fact]
-    public void Device_And_Workflow_AreExposedFromConstructor()
+    public void HostCommunityAndWorkflow_AreExposedFromConstructor()
     {
-        var device = new NetworkDevice { Id = Guid.NewGuid(), NetworkDeviceName = "gw-1" };
         var workflow = new WorkflowDefinition { Id = Guid.NewGuid(), Name = "wf-1" };
 
-        var context = new WorkflowContext(device, workflow);
+        var context = new WorkflowContext("10.0.0.1", "public", workflow);
 
-        context.Device.Should().BeSameAs(device);
+        context.Host.Should().Be("10.0.0.1");
+        context.Community.Should().Be("public");
         context.Workflow.Should().BeSameAs(workflow);
     }
 }

@@ -20,6 +20,9 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
   public DbSet<TerminatedNetworkEntity> TerminatedNetworkEntities { get; set; }
   public DbSet<VLAN> VLANs { get; set; }
   public DbSet<RefreshToken> RefreshTokens { get; set; }
+  public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
+  public DbSet<NodeDefinition> WorkflowNodes { get; set; }
+  public DbSet<EdgeDefinition> WorkflowEdges { get; set; }
 
   protected override void OnModelCreating(ModelBuilder builder)
   {
@@ -39,5 +42,8 @@ internal class ApplicationDbContext(DbContextOptions<ApplicationDbContext> optio
     builder.ApplyConfiguration(new TerminatedNetworkEntityConfiguration());
     builder.ApplyConfiguration(new VLANConfiguration());
     builder.ApplyConfiguration(new RefreshTokenConfiguration());
+    builder.ApplyConfiguration(new WorkflowDefinitionConfiguration());
+    builder.ApplyConfiguration(new NodeDefinitionConfiguration());
+    builder.ApplyConfiguration(new EdgeDefinitionConfiguration());
   }
 }
