@@ -354,3 +354,6 @@ MigrationBackup/
 
 # Local Appsettings
 # appsettings.json
+
+bin/
+obj/

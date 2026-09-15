@@ -61,4 +61,13 @@ public interface IIdentityService
     /// </summary>
     Task RevokeRefreshTokenAsync(string refreshToken,
                                  CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revokes every active refresh token for a user ("logout everywhere").
+    /// Used alongside cookie sign-out so ending the browser session also
+    /// invalidates any refresh token obtained through the JWT flow.
+    /// A no-op if the user has no active refresh tokens.
+    /// </summary>
+    Task RevokeAllRefreshTokensAsync(Guid userId,
+                                     CancellationToken cancellationToken = default);
 }

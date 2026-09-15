@@ -119,11 +119,12 @@ public class AuthControllerTests
 {
     readonly ISender _sender = Substitute.For<ISender>();
     readonly IIdentityService _identityService = Substitute.For<IIdentityService>();
+    readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
     readonly AuthController _controller;
 
     public AuthControllerTests()
     {
-        _controller = new AuthController(_sender, _identityService)
+        _controller = new AuthController(_sender, _identityService, _currentUserService)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -208,6 +209,30 @@ public class AuthControllerTests
 
         response.Should().BeOfType<OkResult>();
         await _identityService.Received().SignOutCookieAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CookieLogout_AuthenticatedUser_RevokesAllRefreshTokens()
+    {
+        var userId = Guid.NewGuid();
+        _currentUserService.UserId.Returns(userId);
+
+        var response = await _controller.CookieLogout(CancellationToken.None);
+
+        response.Should().BeOfType<OkResult>();
+        await _identityService.Received().RevokeAllRefreshTokensAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CookieLogout_NoAuthenticatedUser_DoesNotAttemptToRevokeTokens()
+    {
+        _currentUserService.UserId.Returns((Guid?)null);
+
+        var response = await _controller.CookieLogout(CancellationToken.None);
+
+        response.Should().BeOfType<OkResult>();
+        await _identityService.DidNotReceiveWithAnyArgs()
+            .RevokeAllRefreshTokensAsync(default, default);
     }
 
     [Fact]

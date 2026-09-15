@@ -15,7 +15,9 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Controllers;
 /// Provides endpoints for authentication: JWT issuance, browser cookie
 /// sessions, and administrator-driven user registration.
 /// </summary>
-public class AuthController(ISender sender, IIdentityService identityService)
+public class AuthController(ISender sender,
+                            IIdentityService identityService,
+                            ICurrentUserService currentUserService)
     : BaseAPIController(sender)
 {
     /// <summary>
@@ -109,12 +111,17 @@ public class AuthController(ISender sender, IIdentityService identityService)
     }
 
     /// <summary>
-    /// Terminates the current browser authentication cookie session.
+    /// Terminates the current browser authentication cookie session and
+    /// revokes every active refresh token for the user, so a JWT-flow
+    /// session obtained earlier cannot outlive this logout.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CookieLogout(CancellationToken cancellationToken)
     {
+        if (currentUserService.UserId is Guid userId)
+            await identityService.RevokeAllRefreshTokensAsync(userId, cancellationToken);
+
         await identityService.SignOutCookieAsync(cancellationToken);
 
         return Ok();

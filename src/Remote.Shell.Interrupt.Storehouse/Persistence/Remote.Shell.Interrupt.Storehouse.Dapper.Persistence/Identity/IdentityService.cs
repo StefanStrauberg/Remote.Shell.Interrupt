@@ -203,6 +203,10 @@ internal sealed class IdentityService(
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public Task RevokeAllRefreshTokensAsync(Guid userId,
+                                            CancellationToken cancellationToken = default)
+        => RevokeAllActiveTokensAsync(userId, cancellationToken);
+
     /// <summary>
     /// Mints a new refresh token for <paramref name="userId"/> and persists its
     /// hash. When <paramref name="tokenBeingRotated"/> is supplied (the refresh
