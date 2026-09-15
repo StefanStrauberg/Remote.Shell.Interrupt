@@ -1,0 +1,20 @@
+**/bin/
+**/obj/
+**/logs/
+.git/
+.vs/
+.vscode/
+.claude/
+.claudeignore
+
+# Not needed to build/run the API image - keeps the build context small.
+Tests/
+Tests.Integration/
+SnmpSimulator/
+README.md
+LICENSE.md
+docker-compose.yml
+Dockerfile
+.dockerignore
+.env
+.env.example

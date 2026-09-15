@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-remote_shell_interrupt}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-remote_shell_interrupt}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-remote_shell_interrupt};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres};Timeout=30;CommandTimeout=60;"
+      JwtSettings__Key: ${JWT_KEY:-dev-only-signing-key-change-me-0123456789-abcdefgh}
+      IdentitySeed__AdminEmail: ${ADMIN_EMAIL:-admin@localhost.local}
+      IdentitySeed__AdminPassword: ${ADMIN_PASSWORD:-Admin#Dev-Only-2025}
+    ports:
+      - "${API_PORT:-5000}:8080"
+    networks:
+      - app-net
+
+volumes:
+  postgres_data:
+
+# Shared with docker-compose.snmp.yml (attached there as `external`), which runs
+# SnmpSimulator containers on this same subnet, each pinned to the IP of a real
+# device it stands in for (see SnmpSimulator/README.md). The subnet matches the
+# real 192.168.101.0/24 router network on purpose, so the API talks to a simulated
+# router exactly the way it would talk to the real one - no config difference
+# between "test" and "production" targets. Only safe because this Compose stack
+# runs on a machine that is never simultaneously connected to that real network;
+# don't reuse this subnet if that stops being true.
+networks:
+  app-net:
+    name: remote-shell-interrupt-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.101.0/24

@@ -14,6 +14,8 @@
 ```text
 Remote.Shell.Interrupt/
 ├── Remote.Shell.Interrupt.sln
+├── docker-compose.yml                  # API + PostgreSQL, auto-migrates on startup (see Quick Start)
+├── Dockerfile                          # Builds the API image (used by docker-compose.yml)
 ├── src/Remote.Shell.Interrupt.Storehouse/
 │   ├── Core/
 │   │   ├── ...Storehouse.Domain        # Domain entities
@@ -66,6 +68,18 @@ dotnet run --project src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrup
 ```
 
 On startup the API **automatically** applies pending EF Core migrations (creating the full schema from scratch on a fresh/empty database, e.g. a newly deployed container) and creates the roles and the administrator account. By default it listens on `http://localhost:5000`.
+
+### Or with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Builds the API image and starts it alongside a PostgreSQL container. The API waits for Postgres to become healthy, then applies migrations and seeds identity on startup exactly as above — no manual setup needed. Also listens on `http://localhost:5000` by default.
+
+Works out of the box with the same dev credentials as above (`JwtSettings:Key`, `IdentitySeed:AdminPassword`, etc. all have defaults baked into `docker-compose.yml`). To override them — e.g. a real JWT key and admin password for anything beyond local/dev use — copy [`.env.example`](.env.example) to `.env` and edit it; `docker compose` picks it up automatically.
+
+The MySQL billing connection (`ConnectionStrings__DefaultConnection2`) is **not** part of this Compose setup — it stays unset, so `/health/ready` reports the `mysql-billing` check unhealthy and billing-sync endpoints won't work until you set that connection string yourself (e.g. via `.env`, pointing at your own MySQL instance). Everything else (auth, gates, network devices, dashboards) works fully against just Postgres.
 
 In Development, Swagger UI is available at `http://localhost:5000/swagger` — use it to call `POST /api/v1/Auth/Login` (see below) and then "Authorize" with the returned token to exercise protected endpoints from the browser.
 
@@ -139,11 +153,11 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`
+- 🐳 **Docker Compose** — API + PostgreSQL, migrations and identity seeding run automatically on startup (see [Quick Start](#-quick-start))
 
 ### Planned
 
 - 🖥️ Web frontend (previously part of this repo under `client/`, removed for now — see [Frontend](#frontend))
-- 🐳 Docker Compose for local deployment
 - 🧪 CI/CD
 - 🧩 Refactoring the SNMP import into vendor-specific strategies
 
