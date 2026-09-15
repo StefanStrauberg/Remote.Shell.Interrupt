@@ -1,3 +1,5 @@
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.DeleteNetworkDevices;
 
 /// <summary>
@@ -9,15 +11,19 @@ public record DeleteAllNetworkDevicesCommand : ICommand<Unit>;
 /// Handles the DeleteNetworkDevicesCommand and removes all network devices.
 /// </summary>
 /// <remarks>
-/// This handler retrieves all network devices, iterates through them, 
+/// This handler retrieves all network devices, iterates through them,
 /// and executes individual deletion commands for each device.
 /// </remarks>
 /// <param name="netDevUnitOfWork">Unit of work for network device-related operations.</param>
 /// <param name="specification">Specification used for filtering network devices.</param>
 /// <param name="queryFilterParser">Parser for processing filter expressions.</param>
+/// <param name="currentUserService">Identifies the caller for the audit trail of this destructive operation.</param>
+/// <param name="logger">Records who wiped the device inventory and how many devices were removed.</param>
 internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUnitOfWork,
                                                      INetworkDeviceSpecification specification,
-                                                     IQueryFilterParser queryFilterParser)
+                                                     IQueryFilterParser queryFilterParser,
+                                                     ICurrentUserService currentUserService,
+                                                     IAppLogger<DeleteAllNetworkDevicesCommandHandler> logger)
   : ICommandHandler<DeleteAllNetworkDevicesCommand, Unit>
 {
   /// <summary>
@@ -30,8 +36,13 @@ internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUni
                                                                              CancellationToken cancellationToken)
   {
     // Retrieve all network devices
-    var networkDevices = await netDevUnitOfWork.NetworkDevices
-                                               .GetAllAsync(cancellationToken);
+    var networkDevices = (await netDevUnitOfWork.NetworkDevices
+                                                .GetAllAsync(cancellationToken)).ToList();
+
+    logger.LogWarning("User {UserId} ({Email}) is deleting all {DeviceCount} network device(s).",
+                      currentUserService.UserId?.ToString() ?? "unknown",
+                      currentUserService.Email ?? "unknown",
+                      networkDevices.Count);
 
     // Instantiate command handler for deleting a single device
     var deleteNetworkDeviceByIdCommandHandler = new DeleteNetworkDeviceByIdCommandHandler(netDevUnitOfWork,
@@ -46,6 +57,11 @@ internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUni
       await ((IRequestHandler<DeleteNetworkDeviceByIdCommand, Unit>)deleteNetworkDeviceByIdCommandHandler).Handle(deleteNetworkDeviceByIdCommand,
                                                                                                                   cancellationToken);
     }
+
+    logger.LogWarning("User {UserId} ({Email}) deleted all {DeviceCount} network device(s).",
+                      currentUserService.UserId?.ToString() ?? "unknown",
+                      currentUserService.Email ?? "unknown",
+                      networkDevices.Count);
 
     // Return successful execution result
     return Unit.Value;

@@ -315,14 +315,24 @@ public class NetworkDevicesControllerTests
     }
 
     [Fact]
-    public async Task DeleteNetworkDevices_DispatchesCommandAndReturnsOk()
+    public async Task DeleteNetworkDevices_Confirmed_DispatchesCommandAndReturnsOk()
     {
         _sender.Send(Arg.Any<DeleteAllNetworkDevicesCommand>(), Arg.Any<CancellationToken>()).Returns(Unit.Value);
 
-        var result = await _controller.DeleteNetworkDevices(CancellationToken.None);
+        var result = await _controller.DeleteNetworkDevices(confirm: true, CancellationToken.None);
 
         result.Should().BeOfType<OkObjectResult>();
         await _sender.Received().Send(Arg.Any<DeleteAllNetworkDevicesCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteNetworkDevices_NotConfirmed_ReturnsBadRequestWithoutDispatchingCommand()
+    {
+        var result = await _controller.DeleteNetworkDevices(confirm: false, CancellationToken.None);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        await _sender.DidNotReceiveWithAnyArgs()
+            .Send(Arg.Any<DeleteAllNetworkDevicesCommand>(), Arg.Any<CancellationToken>());
     }
 }
 

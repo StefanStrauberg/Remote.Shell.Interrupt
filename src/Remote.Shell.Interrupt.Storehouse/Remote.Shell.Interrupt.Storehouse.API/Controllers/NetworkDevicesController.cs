@@ -94,12 +94,27 @@ public class NetworkDevicesController(ISender sender) : BaseAPIController(sender
   /// <summary>
   /// Deletes all existing network device records from the system.
   /// </summary>
+  /// <param name="confirm">
+  /// Must be explicitly set to <c>true</c> to proceed. Guards against wiping the
+  /// entire device inventory (rebuilt only by re-running SNMP discovery) via a
+  /// stray or scripted call to this destructive, filter-less endpoint.
+  /// </param>
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
-  /// <returns><see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> if deletion fails.</returns>
+  /// <returns>
+  /// <see cref="StatusCodes.Status200OK"/> on success, or <see cref="ApiErrorResponse"/> with
+  /// <c>400 Bad Request</c> if <paramref name="confirm"/> was not set to <c>true</c>.
+  /// </returns>
   [HttpDelete]
   [Authorize(Roles = "Admin")]
   [ProducesResponseType(StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-  public async Task<IActionResult> DeleteNetworkDevices(CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new DeleteAllNetworkDevicesCommand(), cancellationToken));
+  [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+  public async Task<IActionResult> DeleteNetworkDevices([FromQuery] bool confirm,
+                                                        CancellationToken cancellationToken)
+  {
+    if (!confirm)
+      return BadRequest(ApiErrorResponse.CreateGenericError(StatusCodes.Status400BadRequest,
+        "This deletes every network device in the system. Resend with '?confirm=true' to proceed."));
+
+    return Ok(await Sender.Send(new DeleteAllNetworkDevicesCommand(), cancellationToken));
+  }
 }

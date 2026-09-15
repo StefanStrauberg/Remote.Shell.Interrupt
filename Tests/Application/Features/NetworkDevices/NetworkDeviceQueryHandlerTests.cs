@@ -1,6 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.SNMPRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
@@ -64,16 +65,35 @@ public class DeleteNetworkDeviceByIdCommandHandlerTests
 
 public class DeleteAllNetworkDevicesCommandHandlerTests
 {
+    // DeleteAllNetworkDevicesCommandHandler is internal to the Application assembly. NSubstitute
+    // proxies are emitted into a separate dynamic assembly that has no InternalsVisibleTo grant
+    // from Application, so Substitute.For<IAppLogger<TInternal>>() fails with "type is not
+    // accessible" (see the identical workaround in Tests/Persistence/UnitOfWorkTests.cs). A
+    // recording no-op implementation avoids dynamic proxying while still observing calls.
+    class RecordingAppLogger<T> : IAppLogger<T>
+    {
+        public List<(string Message, object[] Args)> WarningCalls { get; } = [];
+        public void LogInformation(string message, params object[] args) { }
+        public void LogWarning(string message, params object[] args) => WarningCalls.Add((message, args));
+        public void LogError(string message, params object[] args) { }
+        public void LogError(Exception exception, string message, params object[] args) { }
+    }
+
     readonly INetDevUnitOfWork _unitOfWork = Substitute.For<INetDevUnitOfWork>();
     readonly INetworkDeviceRepository _devices = Substitute.For<INetworkDeviceRepository>();
     readonly INetworkDeviceSpecification _specification = Substitute.For<INetworkDeviceSpecification>();
     readonly IQueryFilterParser _parser = new CommonQueryFilterParser();
+    readonly ICurrentUserService _currentUserService = Substitute.For<ICurrentUserService>();
+    readonly RecordingAppLogger<DeleteAllNetworkDevicesCommandHandler> _logger = new();
 
     public DeleteAllNetworkDevicesCommandHandlerTests()
     {
         _unitOfWork.NetworkDevices.Returns(_devices);
         _specification.Clone().Returns(_specification);
     }
+
+    DeleteAllNetworkDevicesCommandHandler CreateHandler()
+        => new(_unitOfWork, _specification, _parser, _currentUserService, _logger);
 
     [Fact]
     public async Task Handle_MultipleDevices_DeletesEachIndividually()
@@ -89,7 +109,7 @@ public class DeleteAllNetworkDevicesCommandHandlerTests
         var deleted = new List<NetworkDevice>();
         _devices.DeleteOneWithChildren(Arg.Do<NetworkDevice>(d => deleted.Add(d)));
 
-        var handler = new DeleteAllNetworkDevicesCommandHandler(_unitOfWork, _specification, _parser);
+        var handler = CreateHandler();
         await ((IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>)handler)
             .Handle(new DeleteAllNetworkDevicesCommand(), CancellationToken.None);
 
@@ -102,12 +122,34 @@ public class DeleteAllNetworkDevicesCommandHandlerTests
     {
         _devices.GetAllAsync(Arg.Any<CancellationToken>()).Returns([]);
 
-        var handler = new DeleteAllNetworkDevicesCommandHandler(_unitOfWork, _specification, _parser);
+        var handler = CreateHandler();
         await ((IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>)handler)
             .Handle(new DeleteAllNetworkDevicesCommand(), CancellationToken.None);
 
         _devices.DidNotReceiveWithAnyArgs().DeleteOneWithChildren(default!);
         _unitOfWork.DidNotReceive().Complete();
+    }
+
+    [Fact]
+    public async Task Handle_LogsCallerIdentityAndDeviceCountAsAuditTrail()
+    {
+        var device = new NetworkDevice { Id = Guid.NewGuid() };
+        var userId = Guid.NewGuid();
+        _devices.GetAllAsync(Arg.Any<CancellationToken>()).Returns([device]);
+        _devices.AnyByQueryAsync(Arg.Any<ISpecification<NetworkDevice>>(), Arg.Any<CancellationToken>())
+                .Returns(true);
+        _devices.GetOneWithChildrenAsync(Arg.Any<ISpecification<NetworkDevice>>(), Arg.Any<CancellationToken>())
+                .Returns(device);
+        _currentUserService.UserId.Returns(userId);
+        _currentUserService.Email.Returns("admin@localhost.local");
+
+        var handler = CreateHandler();
+        await ((IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>)handler)
+            .Handle(new DeleteAllNetworkDevicesCommand(), CancellationToken.None);
+
+        object[] expectedArgs = [userId.ToString(), "admin@localhost.local", 1];
+        _logger.WarningCalls.Should().HaveCount(2)
+            .And.OnlyContain(call => call.Args.SequenceEqual(expectedArgs));
     }
 }
 
