@@ -97,6 +97,10 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 | Email     | `admin@localhost.local` |
 | Password  | `Admin#Dev-Only-2025`   |
 
+### Postman collection
+
+[`Remote.Shell.postman_collection.json`](Remote.Shell.postman_collection.json) covers every endpoint. Import it, run **Auth > Login** once — its test script saves the token into a collection variable, so every other request authenticates automatically. See the collection's own description (visible in Postman) for details on filter query parameters and the SNMP simulator variables.
+
 ---
 
 ## 🔐 Authentication & Roles

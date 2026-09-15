@@ -1,0 +1,660 @@
+{
+  "info": {
+    "_postman_id": "6f3a2e2a-2f3b-4b0a-9a1a-6c1e2b7d0f11",
+    "name": "Remote.Shell.Interrupt",
+    "description": "REST API for the Remote.Shell.Interrupt network monitoring platform (SNMP polling + billing sync). Covers every controller/action in the API as of the current codebase.\n\n## Getting started\n\n1. Run the API — either `dotnet run --project src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API` or `docker compose up -d` (see the repo README). Default: `http://localhost:5000`.\n2. Set the `baseUrl` collection variable if you're not using the default (it already points at `http://localhost:5000/api/v1`).\n3. Run **Auth > Login** with the seeded dev admin (`admin@localhost.local` / `Admin#Dev-Only-2025`, see README). Its test script auto-saves the returned `token`/`refreshToken` into the `accessToken`/`refreshToken` collection variables.\n4. Every other request inherits Bearer auth from the collection using `{{accessToken}}` — nothing else to configure. Endpoints marked (anonymous) below opt out of that via their own `noauth` setting.\n\n## Notes\n\n- Every endpoint requires authentication by default (global fallback policy) except the ones explicitly marked `[AllowAnonymous]` in code — these are called out per-request below.\n- Routes follow `api/v1/{controller}/{action}` (see `BaseAPIController`), not the REST-conventional `{controller}/{id}` shape.\n- `GetXByFilter` endpoints share the same `RequestParameters` query shape: `pageNumber`, `pageSize`, `orderBy`, `orderByDescending`, and repeatable `Filters[n].PropertyPath` / `Filters[n].Operator` / `Filters[n].Value` triples. Valid operators: Equals, NotEquals, GreaterThan, LessThan, Contains, Word, StartsWith, EndsWith, In.\n- The `SNMPExecutor` and `NetworkDevices > CreateNetworkDevice` examples target `192.168.101.8` with community `public` — that's the simulated router from `docker-compose.snmp.yml` (see `SnmpSimulator/README.md`). Point them at a real device instead if you're not using the simulator.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{accessToken}}", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": { "type": "text/javascript", "packages": {}, "exec": [""] }
+    },
+    {
+      "listen": "test",
+      "script": { "type": "text/javascript", "packages": {}, "exec": [""] }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "rootUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "adminEmail", "value": "admin@localhost.local", "type": "string" },
+    { "key": "adminPassword", "value": "Admin#Dev-Only-2025", "type": "string" },
+    { "key": "simulatorHost", "value": "192.168.101.8", "type": "string" },
+    { "key": "simulatorCommunity", "value": "public", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Auth/Login",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "Login"]
+            },
+            "description": "Anonymous. Returns a JWT access token + refresh token. On success, saves both into collection variables so every other request in this collection is authenticated automatically."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) pm.collectionVariables.set('accessToken', body.token);",
+                  "    if (body.refreshToken) pm.collectionVariables.set('refreshToken', body.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "RefreshToken",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Auth/RefreshToken",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "RefreshToken"]
+            },
+            "description": "Anonymous. Exchanges the refresh token for a new access token + a new (rotated) refresh token; the old refresh token stops working. Updates the collection variables on success."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) pm.collectionVariables.set('accessToken', body.token);",
+                  "    if (body.refreshToken) pm.collectionVariables.set('refreshToken', body.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "RevokeToken",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Auth/RevokeToken",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "RevokeToken"]
+            },
+            "description": "Anonymous. Revokes a refresh token immediately (JWT-flow logout). Always returns 200 whether or not the token existed."
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"new.user@example.com\",\n    \"password\": \"ChangeMe#123\",\n    \"role\": \"User\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Auth/Register",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "Register"]
+            },
+            "description": "Admin only. `role` must be \"Admin\" or \"User\"."
+          },
+          "response": []
+        },
+        {
+          "name": "CookieLogin",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\",\n    \"isPersistent\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Auth/CookieLogin",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "CookieLogin"]
+            },
+            "description": "Anonymous. Establishes an HttpOnly cookie session (browser-style auth) instead of a Bearer token; Postman's cookie jar handles it automatically for subsequent requests to the same host."
+          },
+          "response": []
+        },
+        {
+          "name": "CookieLogout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Auth/CookieLogout",
+              "host": ["{{baseUrl}}"],
+              "path": ["Auth", "CookieLogout"]
+            },
+            "description": "Requires authentication (cookie or bearer). Ends the cookie session and revokes every active refresh token for the caller."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "NetworkDevices",
+      "item": [
+        {
+          "name": "GetNetworkDevicesByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/GetNetworkDevicesByFilter?pageNumber=1&pageSize=10&orderBy=host&Filters[0].PropertyPath=typeOfNetworkDevice&Filters[0].Operator=Equals&Filters[0].Value=Juniper",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "GetNetworkDevicesByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "orderBy", "value": "host" },
+                { "key": "Filters[0].PropertyPath", "value": "typeOfNetworkDevice" },
+                { "key": "Filters[0].Operator", "value": "Equals" },
+                { "key": "Filters[0].Value", "value": "Juniper" }
+              ]
+            },
+            "description": "Any authenticated user. Paginated; pagination metadata comes back in the X-Pagination response header."
+          },
+          "response": []
+        },
+        {
+          "name": "GetNetworkDeviceById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/GetNetworkDeviceById/e0bb1d20-b28a-4acb-98e5-3e6f2446b529",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "GetNetworkDeviceById", "e0bb1d20-b28a-4acb-98e5-3e6f2446b529"]
+            },
+            "description": "Any authenticated user. 404 if the device doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "GetNetworkDevicesByVlanTag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/GetNetworkDevicesByVlanTag/253",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "GetNetworkDevicesByVlanTag", "253"]
+            },
+            "description": "Any authenticated user. Compound network-device data for a VLAN tag."
+          },
+          "response": []
+        },
+        {
+          "name": "CreateNetworkDevice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"{{simulatorHost}}\",\n    \"community\": \"{{simulatorCommunity}}\",\n    \"typeOfNetworkDevice\": \"Juniper\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/CreateNetworkDevice",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "CreateNetworkDevice"]
+            },
+            "description": "Admin only. Polls the device over SNMP (port 161) and persists it. `typeOfNetworkDevice`: Huawei, Juniper, Extreme, Cisco, or FortiGate — full VLAN/port/ARP import currently only fully supports Juniper/Huawei/Extreme. Point `host` at a real router, or at a simulated one from docker-compose.snmp.yml — note the bundled `router-8.example.txt` dump only has a handful of system OIDs (enough for SNMPExecutor Get/Walk), so this request will 500 (\"empty results for ARP data\") against it; capture a full real dump (see SnmpSimulator/README.md) to actually exercise this endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteNetworkDeviceById",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/DeleteNetworkDeviceById/6eb09966-0836-445d-80e9-b01d071ef41b",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "DeleteNetworkDeviceById", "6eb09966-0836-445d-80e9-b01d071ef41b"]
+            },
+            "description": "Admin only. 404 if the device doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteNetworkDevices (ALL)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/NetworkDevices/DeleteNetworkDevices?confirm=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["NetworkDevices", "DeleteNetworkDevices"],
+              "query": [{ "key": "confirm", "value": "true" }]
+            },
+            "description": "Admin only. DESTRUCTIVE: deletes every network device in the system. `confirm=true` is required — omitting it returns 400 without deleting anything."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "GetClientsByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/GetClientsByFilter?pageNumber=1&pageSize=10&orderBy=name&Filters[0].PropertyPath=working&Filters[0].Operator=Equals&Filters[0].Value=true&Filters[1].PropertyPath=name&Filters[1].Operator=Word&Filters[1].Value=Acme",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "GetClientsByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "orderBy", "value": "name" },
+                { "key": "Filters[0].PropertyPath", "value": "working" },
+                { "key": "Filters[0].Operator", "value": "Equals" },
+                { "key": "Filters[0].Value", "value": "true" },
+                { "key": "Filters[1].PropertyPath", "value": "name" },
+                { "key": "Filters[1].Operator", "value": "Word" },
+                { "key": "Filters[1].Value", "value": "Acme" }
+              ]
+            },
+            "description": "Any authenticated user. Short client summaries; paginated (X-Pagination header)."
+          },
+          "response": []
+        },
+        {
+          "name": "GetClientsWithChildrenByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/GetClientsWithChildrenByFilter?pageNumber=1&pageSize=10&Filters[0].PropertyPath=name&Filters[0].Operator=Word&Filters[0].Value=Acme&Filters[1].PropertyPath=working&Filters[1].Operator=Equals&Filters[1].Value=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "GetClientsWithChildrenByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "Filters[0].PropertyPath", "value": "name" },
+                { "key": "Filters[0].Operator", "value": "Word" },
+                { "key": "Filters[0].Value", "value": "Acme" },
+                { "key": "Filters[1].PropertyPath", "value": "working" },
+                { "key": "Filters[1].Operator", "value": "Equals" },
+                { "key": "Filters[1].Value", "value": "true" }
+              ]
+            },
+            "description": "Any authenticated user. Detailed clients (with related entities); paginated."
+          },
+          "response": []
+        },
+        {
+          "name": "GetClientById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/GetClientById/3462c5a0-9989-423d-8468-f81b5d0d7a29",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "GetClientById", "3462c5a0-9989-423d-8468-f81b5d0d7a29"]
+            },
+            "description": "Any authenticated user. 404 if the client doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "GetClientsByVlanTag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/GetClientsByVlanTag/938",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "GetClientsByVlanTag", "938"]
+            },
+            "description": "Any authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "GetClientWithChildrenByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/GetClientWithChildrenByFilter?Filters[0].PropertyPath=IdClient&Filters[0].Operator=Equals&Filters[0].Value=778",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "GetClientWithChildrenByFilter"],
+              "query": [
+                { "key": "Filters[0].PropertyPath", "value": "IdClient" },
+                { "key": "Filters[0].Operator", "value": "Equals" },
+                { "key": "Filters[0].Value", "value": "778" }
+              ]
+            },
+            "description": "Any authenticated user. Returns a single detailed client matching the filter; 404 if none match."
+          },
+          "response": []
+        },
+        {
+          "name": "UpdateClientsLocalDb",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/UpdateClientsLocalDb",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "UpdateClientsLocalDb"]
+            },
+            "description": "Admin only. Synchronizes the local client mirror with the remote MySQL billing database (ConnectionStrings__DefaultConnection2 must be configured)."
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteClientsLocalDb (ALL)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Clients/DeleteClientsLocalDb",
+              "host": ["{{baseUrl}}"],
+              "path": ["Clients", "DeleteClientsLocalDb"]
+            },
+            "description": "Admin only. DESTRUCTIVE: deletes the local client mirror in its entirety."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gates",
+      "item": [
+        {
+          "name": "GetGatesByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Gates/GetGatesByFilter?pageNumber=1&pageSize=10&orderBy=ipAddress",
+              "host": ["{{baseUrl}}"],
+              "path": ["Gates", "GetGatesByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "orderBy", "value": "ipAddress" },
+                { "key": "Filters[0].PropertyPath", "value": "typeOfNetworkDevice", "disabled": true },
+                { "key": "Filters[0].Operator", "value": "Equals", "disabled": true },
+                { "key": "Filters[0].Value", "value": "Huawei", "disabled": true }
+              ]
+            },
+            "description": "Admin only (whole controller). Paginated."
+          },
+          "response": []
+        },
+        {
+          "name": "GetGateById",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Gates/GetGateById/bacd5101-6239-4a62-84f5-9fda85570810",
+              "host": ["{{baseUrl}}"],
+              "path": ["Gates", "GetGateById", "bacd5101-6239-4a62-84f5-9fda85570810"]
+            },
+            "description": "Admin only. 404 if the gate doesn't exist."
+          },
+          "response": []
+        },
+        {
+          "name": "CreateGate",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"x450_U20_Stack\",\n    \"ipAddress\": \"192.168.101.62\",\n    \"community\": \"ne_public\",\n    \"typeOfNetworkDevice\": \"Extreme\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Gates/CreateGate",
+              "host": ["{{baseUrl}}"],
+              "path": ["Gates", "CreateGate"]
+            },
+            "description": "Admin only. `typeOfNetworkDevice`: Huawei, Juniper, Extreme, Cisco, or FortiGate. Rejects duplicate IP/name."
+          },
+          "response": []
+        },
+        {
+          "name": "UpdateGate",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"bacd5101-6239-4a62-84f5-9fda85570810\",\n    \"name\": \"Hua_Z6.19\",\n    \"ipAddress\": \"192.168.101.22\",\n    \"community\": \"Huawei_Public\",\n    \"typeOfNetworkDevice\": \"Huawei\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Gates/UpdateGate",
+              "host": ["{{baseUrl}}"],
+              "path": ["Gates", "UpdateGate"]
+            },
+            "description": "Admin only. `id` must reference an existing gate; 404 otherwise."
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteGateById",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Gates/DeleteGateById/7009f92c-ccbf-4e35-9579-668617caf401",
+              "host": ["{{baseUrl}}"],
+              "path": ["Gates", "DeleteGateById", "7009f92c-ccbf-4e35-9579-668617caf401"]
+            },
+            "description": "Admin only. 404 if the gate doesn't exist."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SNMPExecutor",
+      "item": [
+        {
+          "name": "Get",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"{{simulatorHost}}\",\n    \"community\": \"{{simulatorCommunity}}\",\n    \"oid\": \"1.3.6.1.2.1.1.1.0\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/SNMPExecutor/Get",
+              "host": ["{{baseUrl}}"],
+              "path": ["SNMPExecutor", "Get"]
+            },
+            "description": "Admin only (whole controller). Raw SNMP GET for a single OID (default OID here is sysDescr). Always UDP port 161."
+          },
+          "response": []
+        },
+        {
+          "name": "Walk",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"host\": \"{{simulatorHost}}\",\n    \"community\": \"{{simulatorCommunity}}\",\n    \"oid\": \"1.3.6.1.2.1.1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/SNMPExecutor/Walk",
+              "host": ["{{baseUrl}}"],
+              "path": ["SNMPExecutor", "Walk"]
+            },
+            "description": "Admin only. Raw SNMP WALK over an OID subtree (default here: the system MIB-II subtree)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SPRVlans",
+      "item": [
+        {
+          "name": "GetSPRVlansByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/SPRVlans/GetSPRVlansByFilter?orderBy=idVlan&Filters[0].PropertyPath=IdClient&Filters[0].Operator=Equals&Filters[0].Value=776&Filters[1].PropertyPath=UseClient&Filters[1].Operator=Equals&Filters[1].Value=true&Filters[2].PropertyPath=UseCOD&Filters[2].Operator=Equals&Filters[2].Value=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["SPRVlans", "GetSPRVlansByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1", "disabled": true },
+                { "key": "pageSize", "value": "15", "disabled": true },
+                { "key": "orderBy", "value": "idVlan" },
+                { "key": "Filters[0].PropertyPath", "value": "IdClient" },
+                { "key": "Filters[0].Operator", "value": "Equals" },
+                { "key": "Filters[0].Value", "value": "776" },
+                { "key": "Filters[1].PropertyPath", "value": "UseClient" },
+                { "key": "Filters[1].Operator", "value": "Equals" },
+                { "key": "Filters[1].Value", "value": "true" },
+                { "key": "Filters[2].PropertyPath", "value": "UseCOD" },
+                { "key": "Filters[2].Operator", "value": "Equals" },
+                { "key": "Filters[2].Value", "value": "false" }
+              ]
+            },
+            "description": "Any authenticated user."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "TfPlans",
+      "item": [
+        {
+          "name": "GetTfPlansByFilter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/TfPlans/GetTfPlansByFilter?pageNumber=1&pageSize=15&orderBy=idTfPlan",
+              "host": ["{{baseUrl}}"],
+              "path": ["TfPlans", "GetTfPlansByFilter"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "15" },
+                { "key": "orderBy", "value": "idTfPlan" },
+                { "key": "orderByDescending", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Any authenticated user."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Live",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{rootUrl}}/health/live",
+              "host": ["{{rootUrl}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Anonymous. Liveness probe — no dependency checks, just \"is the process responding\"."
+          },
+          "response": []
+        },
+        {
+          "name": "Ready",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{rootUrl}}/health/ready",
+              "host": ["{{rootUrl}}"],
+              "path": ["health", "ready"]
+            },
+            "description": "Anonymous. Readiness probe — checks PostgreSQL and the MySQL billing connection."
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{rootUrl}}/health",
+              "host": ["{{rootUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Anonymous. Every health check, for manual inspection."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
