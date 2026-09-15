@@ -37,9 +37,28 @@ internal class ScriptNodeExecutor : IWorkflowNode
     // discovery data (an interface/ARP/MAC/VLAN table dump easily reaches tens of megabytes on
     // production hardware), not just the toy graphs used in tests. 64 MB still bounds a
     // malformed or runaway script well below what would threaten the host process.
-    var engine = new Engine(options => options.LimitRecursion(64)
-                                              .TimeoutInterval(TimeSpan.FromMilliseconds(timeoutMs))
-                                              .LimitMemory(64_000_000));
+    var engine = new Engine(options =>
+    {
+      options.LimitRecursion(64)
+             .TimeoutInterval(TimeSpan.FromMilliseconds(timeoutMs))
+             .LimitMemory(64_000_000);
+
+      // Interop must stay enabled - the script's `input`/`context` parameters and the
+      // `console` bridge are all wrapped CLR objects - but every option that would let a
+      // script walk from those wrapped objects into CLR reflection is pinned off explicitly
+      // rather than left to the library's current defaults, so a future Jint upgrade can't
+      // silently reopen this: AllowGetType blocks `context.GetType()` (the classic route from
+      // an ObjectWrapper to System.Type -> System.Reflection -> arbitrary CLR invocation),
+      // AllowSystemReflection blocks wrapping anything from System.Reflection even if reached
+      // another way, and an empty AllowedAssemblies means no CLR type is importable by name
+      // (no `System.IO.File`-style access) even though nothing here registers any.
+      options.Interop.AllowGetType = false;
+      options.Interop.AllowSystemReflection = false;
+      options.Interop.AllowedAssemblies = [];
+      // Keep CLR resolution failures terse so a probing script can't enumerate the host's
+      // wrapped types/members through the exception text.
+      options.Interop.ExposeDetailedResolutionErrors = false;
+    });
 
     engine.SetValue("console", new ConsoleBridge(logs));
 

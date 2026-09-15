@@ -155,4 +155,113 @@ public class ScriptNodeExecutorTests
 
         result.Success.Should().BeFalse();
     }
+
+    // Sandbox-escape regression coverage. A Script node's `input`/`context` parameters are
+    // wrapped CLR objects (WorkflowContext.Variables), so without an explicit interop lockdown
+    // a script could ride Object.GetType() from one of those wrappers into System.Reflection
+    // and from there into arbitrary CLR method invocation - the classic Jint embedding escape.
+    // These assert the engine actually refuses that path (and its neighbors), not just that the
+    // configuration line is present.
+
+    [Fact]
+    public async Task ExecuteAsync_ScriptCallsGetTypeOnContext_ReturnsFailedResult_NotTypeInfo()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function execute(input, context) { var t = context.GetType(); return t.FullName; }"
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ScriptCallsGetTypeOnInput_ReturnsFailedResult()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function execute(input, context) { return input.GetType().Assembly.FullName; }",
+            ["input"] = "raw.interfaces"
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ScriptCallsGetTypeOnConsole_ReturnsFailedResult()
+    {
+        // console is a plain C# object exposed via SetValue too - the lockdown has to hold for
+        // every wrapped CLR object reachable from script, not just input/context.
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function execute(input, context) { return console.GetType().Name; }"
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ScriptAttemptsToImportClrNamespace_ReturnsFailedResult()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function execute(input, context) { var File = importNamespace('System.IO').File; return File.Exists('C:\\\\'); }"
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_InfiniteLoop_TimesOutAndReturnsFailedResult()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function execute(input, context) { while (true) {} }",
+            ["timeoutMs"] = 50
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_UnboundedRecursion_HitsRecursionLimitAndReturnsFailedResult()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = "function recurse(n) { return recurse(n + 1); } function execute(input, context) { return recurse(0); }"
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_MemoryExhaustionAttempt_HitsMemoryLimitAndReturnsFailedResult()
+    {
+        var node = ScriptNode(new()
+        {
+            ["scriptSource"] = """
+                function execute(input, context) {
+                  var chunks = [];
+                  while (true) { chunks.push(new Array(1000000).join('x')); }
+                }
+                """,
+            ["timeoutMs"] = 5000
+        });
+
+        var result = await new ScriptNodeExecutor().ExecuteAsync(node, Context(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+    }
 }
