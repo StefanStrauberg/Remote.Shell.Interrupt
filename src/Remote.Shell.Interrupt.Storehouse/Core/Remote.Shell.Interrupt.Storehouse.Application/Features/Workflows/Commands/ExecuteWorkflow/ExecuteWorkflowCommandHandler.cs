@@ -6,7 +6,15 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Comma
 /// Gate/NetworkDevice - a workflow is reusable across any device with the same shape.
 /// </summary>
 public record ExecuteWorkflowCommand(Guid WorkflowId, string Host, string Community, Dictionary<string, object?>? Input = null)
-  : ICommand<WorkflowExecutionResultDTO>;
+  : ICommand<WorkflowExecutionResultDTO>
+{
+  // Prevents the LoggingBehavior pipeline from writing the community string - a shared
+  // read/write credential on the target device, not just an identifier - to the console/file
+  // log sinks in plain text on every run. Mirrors SNMPGetCommand/SNMPWalkCommand, which the
+  // engine's SnmpGet/SnmpWalk nodes end up calling with this same value.
+  public override string ToString()
+    => $"{nameof(ExecuteWorkflowCommand)} {{ {nameof(WorkflowId)} = {WorkflowId}, {nameof(Host)} = {Host}, {nameof(Community)} = *** }}";
+}
 
 /// <summary>
 /// Handles <see cref="ExecuteWorkflowCommand"/> by loading the graph, running it through the

@@ -8,7 +8,14 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Co
 /// <param name="OID">The object identifier (OID) specifying the data to retrieve.</param>
 public record SNMPGetCommand(string Host,
                              string Community,
-                             string OID) : ICommand<SNMPResponse>;
+                             string OID) : ICommand<SNMPResponse>
+{
+  // Prevents the LoggingBehavior pipeline from writing the community string - a shared
+  // read/write credential on the target device, not just an identifier - to the console/file
+  // log sinks in plain text on every call.
+  public override string ToString()
+    => $"{nameof(SNMPGetCommand)} {{ {nameof(Host)} = {Host}, {nameof(Community)} = ***, {nameof(OID)} = {OID} }}";
+}
 
 /// <summary>
 /// Handles the SNMPGetCommand and executes the SNMP GET operation.

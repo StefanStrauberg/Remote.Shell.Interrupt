@@ -344,6 +344,15 @@ public class ExecuteWorkflowCommandHandlerTests : WorkflowHandlerTestBase
         capturedContext!.Host.Should().Be("10.0.0.1");
         capturedContext.Community.Should().Be("public");
     }
+
+    [Fact]
+    public void ToString_NeverIncludesCommunityString()
+    {
+        var command = new ExecuteWorkflowCommand(_workflow.Id, "10.0.0.1", "super-secret-community");
+
+        command.ToString().Should().NotContain("super-secret-community");
+        command.ToString().Should().Contain("10.0.0.1");
+    }
 }
 
 public class PublishWorkflowCommandHandlerTests : WorkflowHandlerTestBase
