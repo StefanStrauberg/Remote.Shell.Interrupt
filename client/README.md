@@ -25,6 +25,16 @@ The API base URL is read from `VITE_API_URL`. Copy `.env.example` to `.env`
 port — see `../Remote.Shell.Interrupt/src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API/Properties/launchSettings.json`.
 The client calls the versioned backend routes under `/api/v1`.
 
+## Docker
+
+`docker compose up --build` from the repo root builds this client (see
+`Dockerfile`, `nginx.conf`) alongside the API and Postgres — no Node install
+needed. The image is a static production build (no `VITE_API_URL` baked in,
+so it defaults to same-origin) served by nginx, which reverse-proxies
+`/api/` and `/health` to the API container. That means the browser only ever
+talks to one origin; the backend's CORS policy is irrelevant to this
+deployment shape. See the root README's "Or with Docker Compose" section.
+
 ## Architecture
 
 ```

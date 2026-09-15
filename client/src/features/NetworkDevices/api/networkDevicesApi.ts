@@ -45,6 +45,12 @@ export const networkDevicesApi = {
   },
 
   async removeAll(): Promise<void> {
-    await httpClient.delete(apiPath("NetworkDevices", "DeleteNetworkDevices"));
+    // The backend requires an explicit confirmation flag on this destructive,
+    // filter-less endpoint (guards against wiping the whole device inventory
+    // via a stray call) — AdminPage already gates this behind its own confirm
+    // dialog before calling removeAll(), so it is safe to always pass it here.
+    await httpClient.delete(apiPath("NetworkDevices", "DeleteNetworkDevices"), {
+      params: { confirm: true },
+    });
   },
 };

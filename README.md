@@ -5,7 +5,7 @@
 - **Backend** — .NET 9, Clean Architecture, CQRS
 - **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
 - **Tests** — xUnit, 514 unit tests + 20 integration tests (real PostgreSQL/MySQL via Testcontainers)
-- **Frontend** — not currently in this repository (see [Frontend](#frontend) below)
+- **Frontend** — React 19 + TypeScript + Vite SPA (see [Frontend](#frontend) below)
 
 ---
 
@@ -14,7 +14,7 @@
 ```text
 Remote.Shell.Interrupt/
 ├── Remote.Shell.Interrupt.sln
-├── docker-compose.yml                  # API + PostgreSQL, auto-migrates on startup (see Quick Start)
+├── docker-compose.yml                  # API + PostgreSQL + web client, auto-migrates on startup (see Quick Start)
 ├── docker-compose.snmp.yml             # Simulated routers on the API's network (see SNMP Simulator)
 ├── Dockerfile                          # Builds the API image (used by docker-compose.yml)
 ├── src/Remote.Shell.Interrupt.Storehouse/
@@ -24,6 +24,7 @@ Remote.Shell.Interrupt/
 │   ├── Infrastructure/                 # SNMP, logger, specifications, filter parser
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
+├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
 ├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SNMP Simulator, SnmpSimulator/README.md)
 ├── Tests/                              # xUnit — 514 unit tests (mocks/InMemory/SQLite, no external services)
 └── Tests.Integration/                  # xUnit — 20 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
@@ -50,7 +51,17 @@ Remote.Shell.Interrupt/
 
 ### Frontend
 
-A React 19 + TypeScript + Vite SPA (MUI, TanStack Query, Zustand, React Hook Form + Zod) previously lived under `client/` but has been removed from this repository. The API has no bundled UI at the moment — interact with it via Swagger (see below) or any HTTP client.
+A React 19 + TypeScript + Vite SPA under [`client/`](client/) — MUI, TanStack Query, Zustand, React Hook Form + Zod, Axios, React Router. Feature-sliced (`src/features/<Area>/{api,List,Detail}`), with its own [README](client/README.md) covering architecture and conventions in depth. Talks to the backend's versioned `/api/v1` routes; JWT is kept in memory/localStorage (the alternative HttpOnly-cookie flow exists in the API client but isn't wired into any page yet).
+
+Run it standalone against a locally-running API:
+
+```bash
+cd client
+npm install
+npm run dev      # http://localhost:3000, VITE_API_URL from .env (copy .env.example)
+```
+
+Or let Docker Compose build and serve it (see below) — no Node install needed.
 
 ---
 
@@ -76,7 +87,15 @@ On startup the API **automatically** applies pending EF Core migrations (creatin
 docker compose up --build
 ```
 
-Builds the API image and starts it alongside a PostgreSQL container. The API waits for Postgres to become healthy, then applies migrations and seeds identity on startup exactly as above — no manual setup needed. Also listens on `http://localhost:5000` by default.
+Builds the API and web client images and starts them alongside a PostgreSQL container. The API waits for Postgres to become healthy, then applies migrations and seeds identity on startup exactly as above; the client waits for the API to become healthy. Once everything is up:
+
+| Service  | URL                                        |
+| -------- | ------------------------------------------- |
+| Web UI   | `http://localhost:3000`                     |
+| API      | `http://localhost:5000` (`/swagger` in Development) |
+| Postgres | `localhost:5432`                            |
+
+The client container is nginx serving the production build, reverse-proxying `/api/` and `/health` to the API container (see `client/nginx.conf`) — the browser only ever talks to one origin, so the backend's CORS policy never comes into play for this setup. If you instead run the client with `npm run dev` against a differently-hosted API, or serve it from a different origin than the API in a real deployment, set `Cors__AllowedOrigins__0` (etc.) on the API so the browser is actually allowed to call it cross-origin.
 
 Works out of the box with the same dev credentials as above (`JwtSettings:Key`, `IdentitySeed:AdminPassword`, etc. all have defaults baked into `docker-compose.yml`). To override them — e.g. a real JWT key and admin password for anything beyond local/dev use — copy [`.env.example`](.env.example) to `.env` and edit it; `docker compose` picks it up automatically.
 

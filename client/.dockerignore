@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+coverage
+
+# Local dev config — never bake a developer's own VITE_API_URL into the
+# image; the build must default to same-origin (see Dockerfile/nginx.conf).
+.env
+.env.*
+!.env.example
+
+.git
+.vscode
+.idea
+tests
+*.log

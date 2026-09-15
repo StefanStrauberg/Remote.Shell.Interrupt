@@ -11,6 +11,7 @@
 Tests/
 Tests.Integration/
 SnmpSimulator/
+client/
 README.md
 LICENSE.md
 docker-compose.yml
