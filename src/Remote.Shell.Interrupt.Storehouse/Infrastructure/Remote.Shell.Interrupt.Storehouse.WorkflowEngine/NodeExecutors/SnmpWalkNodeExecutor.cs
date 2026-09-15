@@ -2,9 +2,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine.NodeEx
 
 /// <summary>
 /// Walks an OID subtree on the device the workflow is running against and stores the
-/// resulting values (as a string array) in the context. <c>Config</c>: "oid" (required),
-/// "output" (required, context key to write), "toHex" (optional bool), "repetitions"
-/// (optional int).
+/// resulting entries in the context as an array of <c>{oid, data}</c> objects (the OID is
+/// kept, not just the value, because a lot of downstream transforms key off the walked OID's
+/// trailing numeric components - VLAN tags, MAC-table/ifStack correlation, etc.). <c>Config</c>:
+/// "oid" (required), "output" (required, context key to write), "toHex" (optional bool),
+/// "repetitions" (optional int).
 /// </summary>
 internal class SnmpWalkNodeExecutor(ISNMPCommandExecutor snmp) : IWorkflowNode
 {
@@ -30,7 +32,8 @@ internal class SnmpWalkNodeExecutor(ISNMPCommandExecutor snmp) : IWorkflowNode
 
     return NodeResult.Ok(new()
     {
-      [output] = responses.Select(r => r.Data).ToArray()
+      [output] = responses.Select(r => new Dictionary<string, object?> { ["oid"] = r.OID, ["data"] = r.Data })
+                          .ToList()
     });
   }
 }

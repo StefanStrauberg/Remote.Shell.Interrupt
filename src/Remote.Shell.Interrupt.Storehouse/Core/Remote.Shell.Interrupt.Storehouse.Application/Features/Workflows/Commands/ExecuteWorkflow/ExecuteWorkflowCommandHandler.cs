@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Comma
 /// Host/Community directly (mirrors <c>SNMPGetCommand</c>) rather than a persisted
 /// Gate/NetworkDevice - a workflow is reusable across any device with the same shape.
 /// </summary>
-public record ExecuteWorkflowCommand(Guid WorkflowId, string Host, string Community)
+public record ExecuteWorkflowCommand(Guid WorkflowId, string Host, string Community, Dictionary<string, object?>? Input = null)
   : ICommand<WorkflowExecutionResultDTO>;
 
 /// <summary>
@@ -41,6 +41,10 @@ internal class ExecuteWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfW
     var workflow = await workflowUnitOfWork.Workflows.GetOneWithChildrenAsync(spec, cancellationToken);
 
     var context = new WorkflowContext(request.Host, request.Community, workflow);
+
+    if (request.Input is not null)
+      foreach (var (key, value) in request.Input)
+        context.Set(key, value);
 
     var result = await engine.ExecuteAsync(workflow, context, cancellationToken);
 

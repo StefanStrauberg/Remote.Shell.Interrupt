@@ -27,7 +27,21 @@ internal class WorkflowEngine(IWorkflowNodeResolver resolver) : IWorkflowEngine
       context.CurrentNodeId = node.Id;
 
       var executor = resolver.Resolve(node.Type);
-      var result = await executor.ExecuteAsync(node, context, cancellationToken);
+      NodeResult result;
+
+      try
+      {
+        result = await executor.ExecuteAsync(node, context, cancellationToken);
+      }
+      catch (Exception ex) when (ex is not OperationCanceledException)
+      {
+        // Only ScriptNodeExecutor is internally exception-safe (a malformed script is
+        // expected, routine input). Every other executor throws plain C# exceptions for
+        // misconfiguration/invalid input (e.g. a missing config key, an unparsable value) -
+        // catching here means every node failure becomes part of the trace as Success:false,
+        // not an uncaught exception that skips the trace and surfaces as a raw 500.
+        return Failed(steps, $"Node '{node.Name}' threw {ex.GetType().Name}: {ex.Message}");
+      }
 
       if (!result.Success)
         return Failed(steps, $"Node '{node.Name}' failed: {result.Error}");

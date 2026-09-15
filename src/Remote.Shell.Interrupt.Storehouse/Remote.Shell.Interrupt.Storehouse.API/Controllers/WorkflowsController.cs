@@ -109,7 +109,7 @@ public class WorkflowsController(ISender sender) : BaseAPIController(sender)
   public async Task<IActionResult> ExecuteWorkflow(Guid id,
                                                     [FromBody] ExecuteWorkflowRequestDTO request,
                                                     CancellationToken cancellationToken)
-    => Ok(await Sender.Send(new ExecuteWorkflowCommand(id, request.Host, request.Community), cancellationToken));
+    => Ok(await Sender.Send(new ExecuteWorkflowCommand(id, request.Host, request.Community, request.Input), cancellationToken));
 
   /// <summary>
   /// Publishes a Draft workflow, freezing its graph. Once Published, <see cref="UpdateWorkflow"/> refuses it.

@@ -24,6 +24,7 @@ public static class WorkflowEngineServicesRegistration
     services.AddTransient<IWorkflowNode, SnmpGetNodeExecutor>();
     services.AddTransient<IWorkflowNode, SnmpWalkNodeExecutor>();
     services.AddTransient<IWorkflowNode, ScriptNodeExecutor>();
+    services.AddTransient<IWorkflowNode, SaveNetworkDeviceNodeExecutor>();
 
     return services;
   }

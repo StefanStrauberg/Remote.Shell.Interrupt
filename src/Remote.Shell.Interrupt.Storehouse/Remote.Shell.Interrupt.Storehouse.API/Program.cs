@@ -44,6 +44,9 @@ try
     await IdentitySeeder.SeedIdentityAsync(scope.ServiceProvider);
   }
 
+  // Seed built-in workflows (e.g. the default network device discovery graph).
+  await Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Workflow.WorkflowSeeder.SeedDefaultWorkflowsAsync(app.Services);
+
   app.Run();
 }
 // HostAbortedException is how WebApplicationFactory<Program>-style test hosts unwind out of

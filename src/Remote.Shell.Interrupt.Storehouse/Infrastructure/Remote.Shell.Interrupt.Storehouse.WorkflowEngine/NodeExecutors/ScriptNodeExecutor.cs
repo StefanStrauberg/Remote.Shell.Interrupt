@@ -40,10 +40,11 @@ internal class ScriptNodeExecutor : IWorkflowNode
 
     try
     {
+      engine.Execute(WorkflowScriptPrelude.Source);
       engine.Execute(source);
-      var returnValue = engine.Invoke("execute", input, new Dictionary<string, object?>(context.Variables));
+      var returnValue = engine.Invoke("execute", DeepNormalize(input), new Dictionary<string, object?>(context.Variables));
 
-      return Task.FromResult(ToNodeResult(returnValue.ToObject(), outputPath, logs));
+      return Task.FromResult(ToNodeResult(DeepNormalize(returnValue.ToObject()), outputPath, logs));
     }
     catch (Exception ex)
     {
@@ -59,10 +60,10 @@ internal class ScriptNodeExecutor : IWorkflowNode
 
   static NodeResult ToNodeResult(object? returnValue, string outputPath, List<string> logs)
   {
-    if (returnValue is IDictionary<string, object> obj && IsNodeResultShaped(obj))
+    if (returnValue is Dictionary<string, object?> obj && IsNodeResultShaped(obj))
     {
-      var outputs = obj.TryGetValue("outputs", out var rawOutputs) && rawOutputs is IDictionary<string, object> outputsDict
-        ? outputsDict.ToDictionary(kv => kv.Key, kv => (object?)kv.Value)
+      var outputs = obj.TryGetValue("outputs", out var rawOutputs) && rawOutputs is Dictionary<string, object?> outputsDict
+        ? outputsDict
         : [];
 
       var success = !(obj.TryGetValue("success", out var rawSuccess) && rawSuccess is false);
@@ -86,8 +87,25 @@ internal class ScriptNodeExecutor : IWorkflowNode
     };
   }
 
-  static bool IsNodeResultShaped(IDictionary<string, object> obj)
+  static bool IsNodeResultShaped(Dictionary<string, object?> obj)
     => obj.ContainsKey("outputs") || obj.ContainsKey("decision") || obj.ContainsKey("success") || obj.ContainsKey("error");
+
+  /// <summary>
+  /// Recursively converts a Jint <c>ToObject()</c> graph (or anything being fed back into
+  /// Jint as an argument) into plain, genuinely mutable <see cref="Dictionary{TKey,TValue}"/>/
+  /// <see cref="List{T}"/> structures. Jint's own conversion produces fixed-size CLR arrays
+  /// (<c>object[]</c>) for JS arrays; feeding one of those back into a later script and
+  /// calling <c>.push()</c> on it throws ("Cannot resize a fixed-size CLR array") - Script
+  /// nodes routinely do exactly that (e.g. accumulating a port's VLANs across several nodes).
+  /// </summary>
+  internal static object? DeepNormalize(object? value) => value switch
+  {
+    null => null,
+    string s => s,
+    IDictionary<string, object> dict => dict.ToDictionary(kv => kv.Key, kv => DeepNormalize(kv.Value)),
+    System.Collections.IEnumerable enumerable => enumerable.Cast<object?>().Select(DeepNormalize).ToList(),
+    _ => value
+  };
 
   /// <summary>
   /// Exposed to scripts as the global <c>console</c> - captures log/warn/error calls into the

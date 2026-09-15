@@ -1,14 +1,27 @@
 using MediatR;
-using Microsoft.Extensions.Configuration;
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IWorkflowRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.SNMPRep;
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.CreateNetworkDevice;
+using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Seed;
 using Remote.Shell.Interrupt.Storehouse.Domain.InterfacePort;
 using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;
+using Remote.Shell.Interrupt.Storehouse.Domain.Workflow;
+using Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine;
+using Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine.NodeExecutors;
+using Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
 
 namespace Tests.Application.Features.NetworkDevices;
 
+/// <summary>
+/// Drives CreateNetworkDeviceCommandHandler's new workflow-based implementation with the
+/// exact same per-vendor SNMP fixtures and NetworkDevice-graph assertions the old, ~900-line
+/// hand-coded handler was tested with. This is the migration's behavioral-parity oracle: the
+/// SNMP mocking and assertions are unchanged from before the migration - only the handler's
+/// internals (now: run the seeded default workflow) differ.
+/// </summary>
 public class CreateNetworkDeviceCommandHandlerTests
 {
     const string SystemDescriptionOid = "1.3.6.1.2.1.1.1.0";
@@ -41,23 +54,37 @@ public class CreateNetworkDeviceCommandHandlerTests
     const string ExtremePortsToVlansOid = "1.3.6.1.4.1.1916.1.4.17.1.2";
 
     readonly ISNMPCommandExecutor _executor = Substitute.For<ISNMPCommandExecutor>();
-    readonly INetDevUnitOfWork _unitOfWork = Substitute.For<INetDevUnitOfWork>();
+    readonly INetDevUnitOfWork _netDevUnitOfWork = Substitute.For<INetDevUnitOfWork>();
     readonly INetworkDeviceRepository _devices = Substitute.For<INetworkDeviceRepository>();
-    readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
+    readonly IWorkflowUnitOfWork _workflowUnitOfWork = Substitute.For<IWorkflowUnitOfWork>();
+    readonly IWorkflowDefinitionRepository _workflows = Substitute.For<IWorkflowDefinitionRepository>();
+    readonly IWorkflowSpecification _specification = new WorkflowSpecification();
     readonly List<NetworkDevice> _inserted = [];
 
     CreateNetworkDeviceCommandHandler CreateHandler()
     {
-        _unitOfWork.NetworkDevices.Returns(_devices);
+        _netDevUnitOfWork.NetworkDevices.Returns(_devices);
         _devices.InsertOne(Arg.Do<NetworkDevice>(d => _inserted.Add(d)));
-        return new CreateNetworkDeviceCommandHandler(_executor, _unitOfWork, _configuration);
-    }
 
-    void SetupRepetitions(string key, string value)
-    {
-        var section = Substitute.For<IConfigurationSection>();
-        section.Value.Returns(value);
-        _configuration.GetSection(key).Returns(section);
+        _workflowUnitOfWork.Workflows.Returns(_workflows);
+        _workflows.GetOneWithChildrenAsync(Arg.Any<ISpecification<WorkflowDefinition>>(), Arg.Any<CancellationToken>())
+                  .Returns(DefaultNetworkDeviceWorkflowFactory.Create());
+
+        var resolver = new WorkflowNodeResolver(
+        [
+            new StartNodeExecutor(),
+            new EndNodeExecutor(),
+            new DecisionNodeExecutor(),
+            new JoinNodeExecutor(),
+            new SetVariableNodeExecutor(),
+            new SnmpGetNodeExecutor(_executor),
+            new SnmpWalkNodeExecutor(_executor),
+            new ScriptNodeExecutor(),
+            new SaveNetworkDeviceNodeExecutor(_netDevUnitOfWork)
+        ]);
+        var engine = new WorkflowEngine(resolver);
+
+        return new CreateNetworkDeviceCommandHandler(_workflowUnitOfWork, _specification, engine);
     }
 
     void SetupSystemQueries()
@@ -89,7 +116,6 @@ public class CreateNetworkDeviceCommandHandlerTests
     public async Task Handle_UnknownDeviceType_ThrowsBadRequestWithoutSnmpCalls()
     {
         var handler = CreateHandler();
-        SetupRepetitions("Repetitions:Default", "5");
 
         var act = async () => await ((ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
             .Handle(new CreateNetworkDeviceCommand("10.0.0.1", "public", "NotAVendor"), CancellationToken.None);
@@ -102,7 +128,6 @@ public class CreateNetworkDeviceCommandHandlerTests
     [Fact]
     public async Task Handle_JuniperDevice_BuildsCompleteDeviceGraph()
     {
-        SetupRepetitions("Repetitions:Juniper", "50");
         SetupSystemQueries();
 
         // 4 interfaces: two member ports, one LAG, one logical
@@ -153,7 +178,7 @@ public class CreateNetworkDeviceCommandHandlerTests
                   Resp($"{ArpIpOid}.1", "192.168.1.10"),
                   Resp($"{ArpIpOid}.2", "192.168.1.11"));
 
-        // MAC table: virtual port 5 → ifIndex 1, virtual port 6 → ifIndex 2
+        // MAC table: virtual port 5 -> ifIndex 1, virtual port 6 -> ifIndex 2
         SetupWalk(MacToVirtualPortOid,
                   Resp($"{MacToVirtualPortOid}.0.26.43.60.77.94", "5"),
                   Resp($"{MacToVirtualPortOid}.0.26.43.60.77.95", "5"),
@@ -211,14 +236,13 @@ public class CreateNetworkDeviceCommandHandlerTests
         xe0.ParentId.Should().Be(ae0.Id);
         ae0.AggregatedPorts.Should().NotContain(device.PortsOfNetworkDevice.Single(p => p.InterfaceName == "xe-0/0/1"));
 
-        _unitOfWork.Received().Complete();
+        _netDevUnitOfWork.Received().Complete();
         _devices.Received().InsertOne(device);
     }
 
     [Fact]
     public async Task Handle_HuaweiDevice_AssignsVlansAndLinksAggregationFromHexTables()
     {
-        SetupRepetitions("Repetitions:Huawei", "15");
         SetupSystemQueries();
 
         SetupWalk(InterfaceIndexOid,
@@ -272,7 +296,7 @@ public class CreateNetworkDeviceCommandHandlerTests
         SetupWalk(VlanStaticNameOid, Resp($"{VlanStaticNameOid}.100", "VLAN100"));
         SetupWalk(HuaweiEgressOid, Resp($"{HuaweiEgressOid}.100", "C0"));
 
-        // Standard ifStack empty → Huawei private if-stack table is queried.
+        // Standard ifStack empty -> Huawei private if-stack table is queried.
         SetupWalk(IfStackOid);
         SetupWalk(HuaweiIfStackOid, Resp($"{HuaweiIfStackOid}.52", "C0"));
 
@@ -298,7 +322,6 @@ public class CreateNetworkDeviceCommandHandlerTests
     [Fact]
     public async Task Handle_ExtremeDevice_AssignsVlansFromOidTableAndRemovesManagementPorts()
     {
-        SetupRepetitions("Repetitions:Extreme", "15");
         SetupSystemQueries();
 
         SetupWalk(InterfaceIndexOid,
@@ -369,7 +392,6 @@ public class CreateNetworkDeviceCommandHandlerTests
     [Fact]
     public async Task Handle_ArpCountMismatch_ThrowsInvalidOperationException()
     {
-        SetupRepetitions("Repetitions:Default", "5");
         SetupSystemQueries();
 
         SetupWalk(InterfaceIndexOid, Resp($"{InterfaceIndexOid}.1", "1"));
@@ -401,7 +423,6 @@ public class CreateNetworkDeviceCommandHandlerTests
     [Fact]
     public async Task Handle_EmptyArpResponse_ThrowsInvalidOperationException()
     {
-        SetupRepetitions("Repetitions:Default", "5");
         SetupSystemQueries();
 
         SetupWalk(InterfaceIndexOid, Resp($"{InterfaceIndexOid}.1", "1"));

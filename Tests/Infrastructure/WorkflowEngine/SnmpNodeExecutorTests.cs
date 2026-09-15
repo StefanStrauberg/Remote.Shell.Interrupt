@@ -65,6 +65,11 @@ public class SnmpWalkNodeExecutorTests
 
         var result = await new SnmpWalkNodeExecutor(_snmp).ExecuteAsync(node, context, CancellationToken.None);
 
-        result.Outputs["raw.interfaces"].Should().BeEquivalentTo(new[] { "GE0/0/1", "GE0/0/2" });
+        var entries = result.Outputs["raw.interfaces"].Should().BeAssignableTo<List<Dictionary<string, object?>>>().Subject;
+        entries.Should().HaveCount(2);
+        entries[0]["oid"].Should().Be("1.3.6.1.2.1.2.2.1.2.1");
+        entries[0]["data"].Should().Be("GE0/0/1");
+        entries[1]["oid"].Should().Be("1.3.6.1.2.1.2.2.1.2.2");
+        entries[1]["data"].Should().Be("GE0/0/2");
     }
 }

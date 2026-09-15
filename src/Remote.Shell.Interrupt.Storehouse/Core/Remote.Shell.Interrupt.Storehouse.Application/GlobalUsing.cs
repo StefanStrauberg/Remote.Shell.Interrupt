@@ -67,4 +67,5 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Co
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Queries.GetWorkflowsByFilter;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Queries.GetWorkflowById;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.PublishWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Seed;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.ArchiveWorkflow;

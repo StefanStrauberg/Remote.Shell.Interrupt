@@ -16,8 +16,9 @@ public static class WorkflowNodeTypes
   public const string SnmpGet = "SnmpGet";
   public const string SnmpWalk = "SnmpWalk";
   public const string Script = "Script";
+  public const string SaveNetworkDevice = "SaveNetworkDevice";
 
   public static readonly IReadOnlySet<string> All = new HashSet<string>(
-    [Start, End, Decision, Join, SetVariable, SnmpGet, SnmpWalk, Script],
+    [Start, End, Decision, Join, SetVariable, SnmpGet, SnmpWalk, Script, SaveNetworkDevice],
     StringComparer.OrdinalIgnoreCase);
 }

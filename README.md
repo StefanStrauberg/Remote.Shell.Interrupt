@@ -175,7 +175,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
 - 🔐 **Role-based access** — Admin / User with protected routes and API
-- 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`
+- 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`. The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`
@@ -185,7 +185,6 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 
 - 🖥️ Web frontend (previously part of this repo under `client/`, removed for now — see [Frontend](#frontend))
 - 🧪 CI/CD
-- 🧩 Refactoring the SNMP import into vendor-specific strategies
 
 ---
 
