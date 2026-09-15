@@ -33,7 +33,11 @@ public static class ServiceRegistration
   {
     // Logging
     builder.Services.AddLoggerServices();
-    builder.Logging.AddSerilog(Log.Logger);
+    // UseSerilog (not the narrower Logging.AddSerilog) also registers DiagnosticContext,
+    // which UseSerilogRequestLogging's middleware requires to construct at all - without it,
+    // the very first time the middleware pipeline is built (on host startup), DI throws and
+    // the app never starts serving requests.
+    builder.Host.UseSerilog(Log.Logger);
 
     // Identity & authentication
     builder.Services.AddIdentityServices(builder.Configuration);

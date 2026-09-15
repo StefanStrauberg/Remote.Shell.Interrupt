@@ -4,7 +4,7 @@
 
 - **Backend** — .NET 9, Clean Architecture, CQRS
 - **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
-- **Tests** — xUnit, 475 tests
+- **Tests** — xUnit, 514 unit tests + 20 integration tests (real PostgreSQL/MySQL via Testcontainers)
 - **Frontend** — not currently in this repository (see [Frontend](#frontend) below)
 
 ---
@@ -22,7 +22,8 @@ Remote.Shell.Interrupt/
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
 ├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SnmpSimulator/README.md)
-└── Tests/                              # xUnit — 475 tests
+├── Tests/                              # xUnit — 514 unit tests (mocks/InMemory/SQLite, no external services)
+└── Tests.Integration/                  # xUnit — 20 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
 
 ---
@@ -200,10 +201,20 @@ The Persistence project doubles as its own startup project via `ApplicationDbCon
 ## 🧪 Tests
 
 ```bash
-dotnet test
+dotnet test Tests/Tests.csproj
 ```
 
-475 xUnit tests across Domain, Application, Infrastructure, Persistence, and API.
+514 unit tests across Domain, Application, Infrastructure, Persistence, and API — mocks, EF Core InMemory, and SQLite standing in for MySQL. No external services required.
+
+### Integration tests
+
+```bash
+dotnet test Tests.Integration/Tests.Integration.csproj
+```
+
+20 tests that boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
+
+Covers what the unit suite structurally cannot: real EF Core migrations actually applying to Postgres, `ILIKE` filtering executing against a real Npgsql provider, the JWT/cookie/role-authorization pipeline end-to-end over real HTTP, health checks against live dependencies, and `SET SESSION TRANSACTION READ ONLY` genuinely rejecting a write on the MySQL connection.
 
 ---
 

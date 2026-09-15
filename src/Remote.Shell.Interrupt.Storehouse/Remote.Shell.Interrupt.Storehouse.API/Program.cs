@@ -46,12 +46,26 @@ try
 
   app.Run();
 }
-catch (Exception ex)
+// HostAbortedException is how WebApplicationFactory<Program>-style test hosts unwind out of
+// Run() once they've captured the built host - not a real startup failure. Excluding it here
+// keeps that signal free to propagate to whatever test infrastructure is watching for it,
+// rather than being swallowed and misreported as "the host terminated unexpectedly" below.
+catch (Exception ex) when (ex is not HostAbortedException)
 {
   Log.Fatal("An error occurred during application startup: {Message}", ex.Message);
   Log.Fatal(ex, "Host terminated unexpectedly");
+
+  // Without this, a real startup failure (e.g. Postgres unreachable) still exits the process
+  // with code 0: an orchestrator restarting on failed containers, or a deploy script checking
+  // the exit code, would see "succeeded" and never know the host never came up.
+  Environment.ExitCode = 1;
 }
 finally
 {
   Log.CloseAndFlush();
 }
+
+// Exposes the top-level Program as a type integration tests can target (e.g. as the
+// TEntryPoint generic argument of WebApplicationFactory<TEntryPoint>, or simply to reference
+// its assembly the way Tests.Integration's ApiFactory does to locate controllers).
+public partial class Program;
