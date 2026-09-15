@@ -32,9 +32,14 @@ internal class ScriptNodeExecutor : IWorkflowNode
       : context.Get(inputPath);
 
     var logs = new List<string>();
+    // Every Script node receives the whole accumulated context (raw SNMP walks, ports, etc.),
+    // not just its declared input - so the memory ceiling has to cover a real device's full
+    // discovery data (an interface/ARP/MAC/VLAN table dump easily reaches tens of megabytes on
+    // production hardware), not just the toy graphs used in tests. 64 MB still bounds a
+    // malformed or runaway script well below what would threaten the host process.
     var engine = new Engine(options => options.LimitRecursion(64)
                                               .TimeoutInterval(TimeSpan.FromMilliseconds(timeoutMs))
-                                              .LimitMemory(4_000_000));
+                                              .LimitMemory(64_000_000));
 
     engine.SetValue("console", new ConsoleBridge(logs));
 

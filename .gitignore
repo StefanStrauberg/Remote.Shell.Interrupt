@@ -352,12 +352,6 @@ MigrationBackup/
 # Local logs
 *.txt
 
-# SNMP dumps captured from real devices may reveal internal topology/ARP/MAC
-# data - keep them local by default. The bundled starter dump is the one
-# exception, tracked so `docker-compose.snmp.yml`'s example service works
-# out of the box.
-!SnmpSimulator/dumps/*.example.txt
-
 # Local Appsettings
 # appsettings.json
 

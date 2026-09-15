@@ -10,7 +10,6 @@
 # Not needed to build/run the API image - keeps the build context small.
 Tests/
 Tests.Integration/
-SnmpSimulator/
 client/
 README.md
 LICENSE.md

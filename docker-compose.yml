@@ -54,9 +54,9 @@ services:
 volumes:
   postgres_data:
 
-# Shared with docker-compose.snmp.yml (attached there as `external`), which runs
-# SnmpSimulator containers on this same subnet, each pinned to the IP of a real
-# device it stands in for (see SnmpSimulator/README.md). The subnet matches the
+# Named so a separately-cloned SnmpSimulator (https://github.com/StefanStrauberg/SnmpSimulator)
+# can attach to this same network as `external`, pinning each simulated router
+# container to the IP of a real device it stands in for. The subnet matches the
 # real 192.168.101.0/24 router network on purpose, so the API talks to a simulated
 # router exactly the way it would talk to the real one - no config difference
 # between "test" and "production" targets. Only safe because this Compose stack
