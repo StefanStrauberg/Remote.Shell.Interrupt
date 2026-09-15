@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -96,10 +96,6 @@ export default function LoginPage() {
           }
         >
           {loginMutation.isPending ? "Signing in..." : "Sign in"}
-        </Button>
-
-        <Button component={Link} to={routes.home} color="inherit">
-          Back to home
         </Button>
       </Box>
     </AuthLayout>

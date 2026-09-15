@@ -88,7 +88,14 @@ export default function MainPageListFilter({
       />
 
       <CardContent sx={{ p: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box
+          component="form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleApplyClick();
+          }}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
           <TextField
             label="VLAN ID"
             value={idVlan?.toString() || ""}
@@ -117,7 +124,7 @@ export default function MainPageListFilter({
 
             <Button
               variant="contained"
-              onClick={handleApplyClick}
+              type="submit"
               fullWidth
               disabled={!isValidVlanId(idVlan)}
             >

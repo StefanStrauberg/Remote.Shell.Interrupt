@@ -1,343 +1,280 @@
 import {
-  Storage,
-  Menu as MenuIcon,
-  Login as LoginIcon,
-  Logout as LogoutIcon,
+  AccountTreeOutlined,
+  AdminPanelSettingsOutlined,
+  ArrowOutward,
+  CreditCardOutlined,
+  DnsOutlined,
+  GroupOutlined,
+  HubOutlined,
+  Logout,
+  Menu,
+  Search,
+  Terminal,
+  Close,
 } from "@mui/icons-material";
 import {
-  AppBar,
+  Avatar,
   Box,
-  Container,
-  Toolbar,
-  Typography,
-  IconButton,
-  Menu,
-  MenuItem,
-  Badge,
-  Chip,
   Button,
   CircularProgress,
+  Divider,
+  Drawer,
+  IconButton,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
-import MenuItemLinks from "../shared/components/MenuItemLinks";
 import { useAuth } from "../../lib/auth/useAuth";
 import { routes } from "../router/paths";
-import { designTokens } from "../theme";
 
-type NavigationItem = {
-  to: string;
-  label: string;
-  badge: number;
-  adminOnly: boolean;
-};
+export const sidebarWidth = 248;
 
 export default function NavBar() {
-  const location = useLocation();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(
-    null
-  );
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-
-  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMobileMenuAnchor(event.currentTarget);
-  };
-
-  const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null);
-  };
-
+  const items = [
+    { to: routes.main, label: "Network search", icon: Search },
+    { to: routes.networkDevices, label: "Devices", icon: DnsOutlined },
+    { to: routes.clients, label: "Clients", icon: GroupOutlined },
+    { to: routes.sprVlans, label: "VLANs", icon: HubOutlined },
+    { to: routes.tariffPlans, label: "Tariff plans", icon: CreditCardOutlined },
+    { to: routes.gates, label: "Gates", icon: ArrowOutward, admin: true },
+    {
+      to: routes.adminWorkflows,
+      label: "Workflows",
+      icon: AccountTreeOutlined,
+      admin: true,
+    },
+    { to: routes.adminUsers, label: "Users", icon: GroupOutlined, admin: true },
+    {
+      to: routes.admin,
+      label: "Administration",
+      icon: AdminPanelSettingsOutlined,
+      admin: true,
+    },
+  ].filter((item) => isAuthenticated && (!item.admin || isAdmin));
+  const active = (to: string) =>
+    pathname === to ||
+    (to !== routes.admin && pathname.startsWith(`${to}/`)) ||
+    (to === routes.gates && pathname === routes.createGate);
+  const current = items.find((item) => active(item.to));
   const handleLogout = async () => {
     setIsSigningOut(true);
-    await logout();
-    setIsSigningOut(false);
-    navigate(routes.login, { replace: true });
+    try {
+      await logout();
+      navigate(routes.login, { replace: true });
+    } finally {
+      setIsSigningOut(false);
+    }
   };
-
-  const navigationItems: NavigationItem[] = [
-    { to: routes.main, label: "Search", badge: 0, adminOnly: false },
-    { to: routes.gates, label: "Gates", badge: 0, adminOnly: true },
-    { to: routes.clients, label: "Clients", badge: 0, adminOnly: false },
-    { to: routes.sprVlans, label: "VLANs", badge: 0, adminOnly: false },
-    { to: routes.tariffPlans, label: "Plans", badge: 0, adminOnly: false },
-    { to: routes.networkDevices, label: "Devices", badge: 0, adminOnly: false },
-    { to: routes.admin, label: "Admin", badge: 0, adminOnly: true },
-  ];
-
-  // Admin-only destinations are hidden from users without the role.
-  const visibleItems = isAuthenticated
-    ? navigationItems.filter((item) => !item.adminOnly || isAdmin)
-    : [];
-
-  const isActive = (path: string) => location.pathname === path;
-
-  return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar
-        position="static"
-        sx={{
-          backgroundImage: designTokens.gradients.appBar,
-          position: "relative",
-          padding: "0.5rem 0",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-        }}
+  const navigation = (
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        p: 2.5,
+        color: "#b6c4c8",
+      }}
+    >
+      <Stack
+        component={NavLink}
+        to={routes.home}
+        direction="row"
+        gap={1.5}
+        alignItems="center"
+        sx={{ textDecoration: "none", color: "white", py: 1, mb: 5 }}
       >
-        <Container maxWidth="xl">
-          <Toolbar
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              minHeight: { xs: "64px", md: "80px" },
-            }}
-          >
-            {/* Logo Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Box
-                component={NavLink}
-                to={routes.home}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  textDecoration: "none",
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                  },
-                  padding: "0.5rem",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <Storage
-                  fontSize="large"
-                  sx={{
-                    color: designTokens.brand.onDark,
-                    transition: "transform 0.3s ease",
-                    "&:hover": {
-                      transform: "rotate(15deg)",
-                    },
-                  }}
-                />
-                <Typography
-                  variant="h5"
-                  fontWeight="bold"
-                  sx={{
-                    color: designTokens.brand.onDark,
-                    ml: 1,
-                    display: { xs: "none", sm: "block" },
-                  }}
-                >
-                  Remote Shell Interrupt
-                </Typography>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{
-                    color: designTokens.brand.onDark,
-                    ml: 1,
-                    display: { xs: "block", sm: "none" },
-                  }}
-                >
-                  RSI
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Desktop Navigation Links */}
-            <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-              {visibleItems.map((item) => (
-                <Box key={item.to} position="relative">
-                  <MenuItemLinks to={item.to}>
-                    {item.label}
-                    {item.badge > 0 && (
-                      <Chip
-                        label={item.badge}
-                        size="small"
-                        color="error"
-                        sx={{
-                          ml: 1,
-                          height: "20px",
-                          minWidth: "20px",
-                          fontSize: "0.75rem",
-                        }}
-                      />
-                    )}
-                  </MenuItemLinks>
-                  {isActive(item.to) && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: -8,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: "80%",
-                        height: "3px",
-                        backgroundColor: designTokens.brand.onDark,
-                        borderRadius: "2px",
-                      }}
-                    />
-                  )}
-                </Box>
-              ))}
-            </Box>
-
-            {/* Auth Controls + Mobile Menu Button */}
-            <Box display="flex" alignItems="center" gap={1}>
-              {isAuthenticated ? (
-                <>
-                  <Chip
-                    label={user?.email ?? ""}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      color: designTokens.brand.onDark,
-                      borderColor: "rgba(241, 250, 238, 0.5)",
-                      display: { xs: "none", lg: "inline-flex" },
-                    }}
-                  />
-                  <Chip
-                    label={isAdmin ? "Admin" : "User"}
-                    size="small"
-                    color={isAdmin ? "warning" : "default"}
-                  />
-                  <IconButton
-                    aria-label="sign out"
-                    title="Sign out"
-                    onClick={handleLogout}
-                    disabled={isSigningOut}
-                    sx={{
-                      color: designTokens.brand.onDark,
-                      "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      },
-                    }}
-                  >
-                    {isSigningOut ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <LogoutIcon />
-                    )}
-                  </IconButton>
-                </>
-              ) : (
-                <Button
-                  component={NavLink}
-                  to={routes.login}
-                  variant="contained"
-                  size="small"
-                  startIcon={<LoginIcon />}
-                  sx={{
-                    backgroundColor: designTokens.brand.accent,
-                    color: designTokens.brand.navy,
-                    fontWeight: "bold",
-                    "&:hover": { backgroundColor: "#E8B942" },
-                  }}
-                >
-                  Sign in
-                </Button>
-              )}
-
-              {isAuthenticated && (
-                <Box sx={{ display: { xs: "block", md: "none" } }}>
-                  <IconButton
-                    size="large"
-                    edge="end"
-                    color="inherit"
-                    aria-label="open menu"
-                    onClick={handleMobileMenuOpen}
-                    sx={{
-                      color: designTokens.brand.onDark,
-                      "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      },
-                    }}
-                  >
-                    <MenuIcon />
-                  </IconButton>
-                </Box>
-              )}
-            </Box>
-          </Toolbar>
-        </Container>
-
-        {/* Mobile Menu */}
-        <Menu
-          anchorEl={mobileMenuAnchor}
-          open={Boolean(mobileMenuAnchor)}
-          onClose={handleMobileMenuClose}
-          PaperProps={{
-            sx: {
-              backgroundColor: "rgba(23, 50, 77, 0.97)",
-              backdropFilter: "blur(10px)",
-              color: designTokens.brand.onDark,
-              minWidth: "200px",
-            },
+        <Box
+          sx={{
+            display: "grid",
+            placeItems: "center",
+            width: 38,
+            height: 38,
+            bgcolor: "#45d6b0",
+            color: "#102c2c",
+            borderRadius: 2,
           }}
         >
-          {visibleItems.map((item) => (
-            <MenuItem
-              key={item.to}
-              component={NavLink}
-              to={item.to}
-              onClick={handleMobileMenuClose}
-              selected={isActive(item.to)}
+          <Terminal />
+        </Box>
+        <Box>
+          <Typography fontWeight={750} letterSpacing="-.03em">
+            Remote Shell
+          </Typography>
+          <Typography fontSize={10} letterSpacing=".19em" color="#8da6a8">
+            INTERRUPT
+          </Typography>
+        </Box>
+      </Stack>
+      <Typography
+        variant="overline"
+        sx={{
+          color: "#81999d",
+          fontSize: 10,
+          letterSpacing: ".16em",
+          mb: 1.5,
+          px: 1.5,
+        }}
+      >
+        Workspace
+      </Typography>
+      <Stack component="nav" aria-label="Main navigation" gap={0.6}>
+        {items.map(({ to, label, icon: Icon }) => (
+          <Button
+            key={to}
+            component={NavLink}
+            to={to}
+            onClick={() => setMobileOpen(false)}
+            aria-current={active(to) ? "page" : undefined}
+            startIcon={<Icon sx={{ fontSize: "20px !important" }} />}
+            sx={{
+              justifyContent: "flex-start",
+              px: 1.5,
+              minHeight: 44,
+              fontWeight: active(to) ? 650 : 450,
+              color: active(to) ? "#76edcb" : "#b6c4c8",
+              bgcolor: active(to) ? "#213e3e" : "transparent",
+              "&:hover": { bgcolor: "#253a3e", color: "white" },
+            }}
+          >
+            {label}
+          </Button>
+        ))}
+      </Stack>
+      <Box sx={{ mt: "auto", pt: 4 }}>
+        <Box
+          sx={{ border: "1px solid #30464a", borderRadius: 2.5, p: 2, mb: 2.5 }}
+        >
+          <HubOutlined sx={{ color: "#6dd8bb", mb: 1 }} />
+          <Typography color="#e2ebed" variant="body2" fontWeight={600}>
+            Your network. Connected.
+          </Typography>
+          <Typography
+            fontSize={12}
+            sx={{ mt: 0.75, lineHeight: 1.7, color: "#98acb0" }}
+          >
+            Infrastructure, customers and automation in one workspace.
+          </Typography>
+        </Box>
+        <Divider sx={{ borderColor: "#30464a", mb: 2 }} />
+        {isAuthenticated ? (
+          <Stack direction="row" gap={1} alignItems="center">
+            <Avatar
               sx={{
-                "&.Mui-selected": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                },
-                py: 2,
-                borderLeft: isActive(item.to)
-                  ? `4px solid ${designTokens.brand.onDark}`
-                  : "4px solid transparent",
+                width: 34,
+                height: 34,
+                bgcolor: "#304b50",
+                color: "#b8eadd",
+                fontSize: 14,
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body1">{item.label}</Typography>
-                {item.badge > 0 && (
-                  <Badge
-                    badgeContent={item.badge}
-                    color="error"
-                    sx={{
-                      "& .MuiBadge-badge": {
-                        fontSize: "0.6rem",
-                        height: "16px",
-                        minWidth: "16px",
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </MenuItem>
-          ))}
-
-          {isAuthenticated && (
-            <MenuItem
-              onClick={() => {
-                handleMobileMenuClose();
-                void handleLogout();
-              }}
-              sx={{ py: 2 }}
+              {user?.email?.[0]?.toUpperCase() ?? "U"}
+            </Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography noWrap fontSize={12} color="#e2ebed">
+                {user?.email}
+              </Typography>
+              <Typography fontSize={11} color="#98acb0">
+                {isAdmin ? "Administrator" : "User"}
+              </Typography>
+            </Box>
+            <IconButton
+              aria-label="Sign out"
+              disabled={isSigningOut}
+              onClick={() => void handleLogout()}
+              sx={{ color: "#b6c4c8" }}
             >
-              <Box display="flex" alignItems="center" gap={1}>
-                <LogoutIcon fontSize="small" />
-                <Typography variant="body1">Sign out</Typography>
-              </Box>
-            </MenuItem>
-          )}
-        </Menu>
-      </AppBar>
+              {isSigningOut ? (
+                <CircularProgress size={18} />
+              ) : (
+                <Logout fontSize="small" />
+              )}
+            </IconButton>
+          </Stack>
+        ) : (
+          <Button component={NavLink} to={routes.login}>
+            Sign in
+          </Button>
+        )}
+      </Box>
     </Box>
+  );
+  return (
+    <>
+      <Box
+        component="aside"
+        sx={{
+          display: { xs: "none", lg: "block" },
+          position: "fixed",
+          inset: "0 auto 0 0",
+          width: sidebarWidth,
+          bgcolor: "#14292e",
+          overflowY: "auto",
+        }}
+      >
+        {navigation}
+      </Box>
+      <Drawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        PaperProps={{ sx: { width: sidebarWidth + 24, bgcolor: "#14292e" } }}
+      >
+        <IconButton
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+          sx={{ position: "absolute", right: 6, top: 6, color: "#b6c4c8" }}
+        >
+          <Close fontSize="small" />
+        </IconButton>
+        {navigation}
+      </Drawer>
+      <Box
+        component="header"
+        sx={{
+          ml: { lg: `${sidebarWidth}px` },
+          px: { xs: 2, md: 4 },
+          height: 76,
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <IconButton
+          aria-label="Open menu"
+          onClick={() => setMobileOpen(true)}
+          sx={{ display: { lg: "none" } }}
+        >
+          <Menu />
+        </IconButton>
+        <Typography variant="body2" color="text.secondary">
+          Workspace{" "}
+          <Box component="span" sx={{ mx: 1.5, color: "#b4bfc2" }}>
+            /
+          </Box>
+          <Box component="span" sx={{ color: "text.primary", fontWeight: 550 }}>
+            {current?.label ?? "Overview"}
+          </Box>
+        </Typography>
+        <Box sx={{ flex: 1 }} />
+        <Typography
+          sx={{
+            display: { xs: "none", sm: "block" },
+            fontSize: 11,
+            letterSpacing: ".12em",
+            color: "text.secondary",
+          }}
+        >
+          NETWORK OPERATIONS
+        </Typography>
+      </Box>
+    </>
   );
 }

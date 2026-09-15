@@ -2,18 +2,18 @@ import { alpha, createTheme } from "@mui/material/styles";
 
 export const designTokens = Object.freeze({
   brand: {
-    navy: "#17324D",
-    blue: "#2F6B9A",
-    cyan: "#3A91A8",
-    accent: "#F4C95D",
+    navy: "#14292E",
+    blue: "#147D68",
+    cyan: "#238B86",
+    accent: "#74E6C3",
     onDark: "#F7FAFC",
   },
   gradients: {
-    brand: "linear-gradient(135deg, #17324D 0%, #2F6B9A 58%, #24506F 100%)",
-    appBar: "linear-gradient(110deg, #17324D 0%, #24506F 55%, #2F6B9A 100%)",
+    brand: "linear-gradient(135deg, #14292E 0%, #147D68 58%, #24506F 100%)",
+    appBar: "linear-gradient(110deg, #14292E 0%, #24506F 55%, #147D68 100%)",
   },
   shadows: {
-    surface: "0 8px 28px rgba(23, 50, 77, 0.08)",
+    surface: "0 2px 8px rgba(20, 41, 46, 0.025)",
     floating: "0 18px 50px rgba(23, 50, 77, 0.16)",
   },
 });
@@ -24,27 +24,27 @@ export const appTheme = createTheme({
     primary: {
       main: designTokens.brand.blue,
       dark: designTokens.brand.navy,
-      light: "#DCEAF3",
+      light: "#E0F2EC",
       contrastText: "#FFFFFF",
     },
     secondary: {
       main: designTokens.brand.cyan,
-      dark: "#256D80",
-      light: "#D9EEF2",
+      dark: "#176963",
+      light: "#E1F3EF",
     },
     success: { main: "#2F855A" },
     warning: { main: "#C47B16" },
     error: { main: "#C74343" },
     info: { main: "#3978A8" },
     background: {
-      default: "#F3F6F9",
+      default: "#F5F7F8",
       paper: "#FFFFFF",
     },
     text: {
-      primary: "#17283A",
-      secondary: "#607286",
+      primary: "#203438",
+      secondary: "#657A7F",
     },
-    divider: "#DCE4EC",
+    divider: "#E2E8EA",
   },
   shape: { borderRadius: 12 },
   spacing: 8,
@@ -53,7 +53,7 @@ export const appTheme = createTheme({
     h1: { fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.03em" },
     h2: { fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.025em" },
     h3: { fontSize: "1.75rem", fontWeight: 700, letterSpacing: "-0.02em" },
-    h4: { fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.015em" },
+    h4: { fontSize: "1.8rem", fontWeight: 700, letterSpacing: "-0.015em" },
     h5: { fontSize: "1.25rem", fontWeight: 700 },
     h6: { fontSize: "1rem", fontWeight: 700 },
     button: { fontWeight: 600, textTransform: "none", letterSpacing: 0 },
@@ -61,11 +61,11 @@ export const appTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        html: { minHeight: "100%", backgroundColor: "#F3F6F9" },
+        html: { minHeight: "100%", backgroundColor: "#F5F7F8" },
         body: {
           minHeight: "100%",
           margin: 0,
-          backgroundColor: "#F3F6F9",
+          backgroundColor: "#F5F7F8",
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",
         },
@@ -89,7 +89,7 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: { backgroundImage: "none" },
         outlined: {
-          borderColor: "#DCE4EC",
+          borderColor: "#E2E8EA",
           boxShadow: designTokens.shadows.surface,
         },
       },
@@ -98,8 +98,8 @@ export const appTheme = createTheme({
       defaultProps: { variant: "outlined" },
       styleOverrides: {
         root: {
-          borderColor: "#DCE4EC",
-          borderRadius: 14,
+          borderColor: "#E2E8EA",
+          borderRadius: 16,
           boxShadow: designTokens.shadows.surface,
           transition: "box-shadow 180ms ease, transform 180ms ease",
         },
@@ -107,8 +107,9 @@ export const appTheme = createTheme({
     },
     MuiCardHeader: {
       styleOverrides: {
-        root: { padding: "18px 20px", backgroundColor: "#F8FAFC" },
-        title: { fontWeight: 700 },
+        root: { padding: "18px 20px", backgroundColor: "#FFFFFF" },
+        title: { fontWeight: 650, fontSize: "0.95rem" },
+        content: { minWidth: 0 },
       },
     },
     MuiCardContent: {
@@ -128,7 +129,7 @@ export const appTheme = createTheme({
             boxShadow: `0 0 0 3px ${alpha(designTokens.brand.blue, 0.12)}`,
           },
         },
-        notchedOutline: { borderColor: "#C9D5E1" },
+        notchedOutline: { borderColor: "#D3DDDF" },
       },
     },
     MuiChip: {
@@ -148,14 +149,14 @@ export const appTheme = createTheme({
     },
     MuiTableContainer: {
       styleOverrides: {
-        root: { borderRadius: 12, border: "1px solid #DCE4EC" },
+        root: { borderRadius: 12, border: "1px solid #E2E8EA" },
       },
     },
     MuiTableCell: {
       styleOverrides: {
         head: {
-          backgroundColor: "#F4F7FA",
-          color: "#30475C",
+          backgroundColor: "#F6F8F9",
+          color: "#50686D",
           fontWeight: 700,
         },
       },

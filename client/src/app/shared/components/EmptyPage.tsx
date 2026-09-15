@@ -10,7 +10,14 @@ export default function EmptyPage({ input, description }: Props) {
   return (
     <Paper
       variant="outlined"
-      sx={{ minHeight: 320, display: "grid", placeItems: "center", p: 4 }}
+      sx={{
+        minHeight: 360,
+        display: "grid",
+        placeItems: "center",
+        p: 4,
+        backgroundImage:
+          "radial-gradient(ellipse at 50% 40%, #eef7f3 0%, transparent 65%)",
+      }}
     >
       <Box
         sx={{

@@ -1,294 +1,272 @@
 import {
-  Storage,
+  AccountTreeOutlined,
   ArrowForward,
-  Security,
-  Speed,
-  Dashboard,
+  DnsOutlined,
+  HubOutlined,
+  Search,
+  Terminal,
 } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Container,
-  Grid2,
-  Fade,
-  Zoom,
-} from "@mui/material";
+import { Box, Button, Container, Stack, Typography } from "@mui/material";
 import { Link } from "react-router";
-import { useState, useEffect } from "react";
 import { routes } from "../../app/router/paths";
-import { designTokens } from "../../app/theme";
 
 export default function HomePage() {
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowContent(true);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const features = [
-    {
-      icon: (
-        <Security sx={{ fontSize: 40, color: designTokens.brand.accent }} />
-      ),
-      title: "Secure Access",
-      description: "Optimized for retrieving network information over SNMP",
-    },
-    {
-      icon: <Speed sx={{ fontSize: 40, color: "#61D6B0" }} />,
-      title: "High Performance",
-      description: "Optimized for fast information search and filtering",
-    },
-    {
-      icon: <Dashboard sx={{ fontSize: 40, color: "#58B7D2" }} />,
-      title: "Dashboard",
-      description: "Optimized only for network infrastructure monitoring",
-    },
-  ];
-
   return (
-    <Paper
-      sx={{
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        backgroundImage: designTokens.gradients.brand,
-        backgroundSize: "400% 400%",
-        animation: "gradientShift 15s ease infinite",
-        boxShadow: "none",
-        borderRadius: 0,
-        overflow: "hidden",
-        position: "relative",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background:
-            "radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)",
-          pointerEvents: "none",
-        },
-        "@keyframes gradientShift": {
-          "0%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-          "100%": { backgroundPosition: "0% 50%" },
-        },
-      }}
-    >
-      {/* Animated background elements */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "20%",
-          left: "10%",
-          width: 100,
-          height: 100,
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.05)",
-          animation: "float 6s ease-in-out infinite",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "30%",
-          right: "15%",
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.03)",
-          animation: "float 8s ease-in-out infinite",
-        }}
-      />
-
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f7f6" }}>
       <Container maxWidth="lg">
+        <Stack
+          component="header"
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ py: 3, borderBottom: "1px solid", borderColor: "divider" }}
+        >
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Terminal sx={{ color: "primary.main", fontSize: 32 }} />
+            <Typography fontWeight={750}>
+              Remote Shell{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: "text.secondary",
+                  fontWeight: 400,
+                  display: { xs: "none", sm: "inline" },
+                }}
+              >
+                {" "}
+                / Interrupt
+              </Box>
+            </Typography>
+          </Stack>
+          <Button
+            component={Link}
+            to={routes.login}
+            endIcon={<ArrowForward />}
+            color="inherit"
+          >
+            Sign in
+          </Button>
+        </Stack>
         <Box
+          component="main"
           sx={{
-            display: "flex",
-            flexDirection: "column",
+            py: { xs: 6, md: 10 },
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1.05fr 1fr" },
             alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            gap: { xs: 3, md: 4 },
-            py: { xs: 4, md: 6 },
+            gap: { xs: 5, md: 7 },
           }}
         >
-          {/* Logo Section */}
-          <Fade in={showContent} timeout={1000}>
-            <Box
+          <Box>
+            <Typography
+              variant="overline"
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 2,
-                mb: 2,
+                color: "primary.main",
+                letterSpacing: ".18em",
+                fontWeight: 700,
               }}
             >
-              <Box
-                sx={{
-                  position: "relative",
-                  animation: "pulse 2s ease-in-out infinite",
-                  "@keyframes pulse": {
-                    "0%": { transform: "scale(1)" },
-                    "50%": { transform: "scale(1.05)" },
-                    "100%": { transform: "scale(1)" },
-                  },
-                }}
-              >
-                <Storage
-                  sx={{
-                    height: { xs: 80, md: 120 },
-                    width: { xs: 80, md: 120 },
-                    color: designTokens.brand.accent,
-                    filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))",
-                  }}
-                />
+              NETWORK OPERATIONS, SIMPLIFIED
+            </Typography>
+            <Typography
+              component="h1"
+              sx={{
+                fontSize: { xs: 46, md: 64 },
+                fontWeight: 750,
+                lineHeight: 1.08,
+                letterSpacing: "-.055em",
+                mt: 2,
+                mb: 3,
+              }}
+            >
+              Clarity across
+              <br />
+              your entire
+              <br />
+              <Box component="span" sx={{ color: "primary.main" }}>
+                network.
               </Box>
-
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{
-                  textShadow: "2px 2px 8px rgba(0, 0, 0, 0.4)",
-                  fontSize: { xs: "2rem", md: "3rem" },
-                  background:
-                    "linear-gradient(45deg, #F7FAFC 0%, #B8E3EA 100%)",
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Remote Shell Interrupt
-              </Typography>
-
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "#e5e7eb",
-                  fontWeight: 300,
-                  textShadow: "1px 1px 4px rgba(0, 0, 0, 0.3)",
-                  maxWidth: "600px",
-                  lineHeight: 1.6,
-                }}
-              >
-                Advanced monitoring platform for network infrastructure
-              </Typography>
-            </Box>
-          </Fade>
-
-          {/* Features Grid */}
-          <Zoom
-            in={showContent}
-            timeout={1500}
-            style={{ transitionDelay: showContent ? "500ms" : "0ms" }}
-          >
-            <Grid2 container spacing={3} sx={{ mb: 4 }}>
-              {features.map((feature, index) => (
-                <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                  <Box
-                    sx={{
-                      textAlign: "center",
-                      p: 3,
-                      borderRadius: 2,
-                      background: "rgba(255, 255, 255, 0.05)",
-                      backdropFilter: "blur(10px)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        background: "rgba(255, 255, 255, 0.1)",
-                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                      },
-                    }}
-                  >
-                    <Box sx={{ mb: 2 }}>{feature.icon}</Box>
-                    <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{ color: designTokens.brand.onDark, mb: 1 }}
-                    >
-                      {feature.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#e5e7eb", opacity: 0.9 }}
-                    >
-                      {feature.description}
-                    </Typography>
-                  </Box>
-                </Grid2>
-              ))}
-            </Grid2>
-          </Zoom>
-
-          {/* Action Button */}
-          <Fade
-            in={showContent}
-            timeout={2000}
-            style={{ transitionDelay: showContent ? "1000ms" : "0ms" }}
-          >
+            </Typography>
+            <Typography
+              color="text.secondary"
+              sx={{ maxWidth: 410, fontSize: 17, lineHeight: 1.8 }}
+            >
+              Connect the dots between your infrastructure and your customers.
+              Search, explore and automate from one focused workspace.
+            </Typography>
             <Button
               component={Link}
               to={routes.main}
-              size="large"
               variant="contained"
+              size="large"
               endIcon={<ArrowForward />}
+              sx={{ mt: 4, py: 1.6 }}
+            >
+              Open workspace
+            </Button>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 2 }}
+            >
+              SNMP discovery · VLAN search · Workflow automation
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: "#14292e",
+              borderRadius: 5,
+              color: "#e5efed",
+              p: { xs: 3, sm: 4 },
+              boxShadow: "0 30px 70px #14292e20",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Typography fontSize={12} letterSpacing=".12em" color="#a4bbb9">
+                INFRASTRUCTURE MAP
+              </Typography>
+              <HubOutlined sx={{ color: "#6bdebb" }} />
+            </Stack>
+            <Box
+              aria-hidden="true"
               sx={{
-                backgroundColor: designTokens.brand.accent,
-                color: designTokens.brand.navy,
-                height: { xs: 50, md: 60 },
-                px: { xs: 3, md: 4 },
-                borderRadius: "12px",
-                fontSize: { xs: "1.1rem", md: "1.25rem" },
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: "0 8px 24px rgba(255, 209, 102, 0.3)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "#E8B942",
-                  transform: "translateY(-2px) scale(1.02)",
-                  boxShadow: "0 12px 32px rgba(255, 209, 102, 0.4)",
-                },
-                "&:active": {
-                  transform: "translateY(0) scale(1)",
-                },
+                height: 245,
+                position: "relative",
+                my: 3,
+                backgroundImage:
+                  "radial-gradient(#375354 1px, transparent 1px)",
+                backgroundSize: "18px 18px",
               }}
             >
-              Enter Dashboard
-            </Button>
-          </Fade>
+              <svg
+                viewBox="0 0 400 245"
+                width="100%"
+                height="100%"
+                style={{ position: "absolute", inset: 0 }}
+              >
+                <path
+                  d="M200 55 V120 H65 V185 M200 120 V185 M200 120 H335 V185"
+                  fill="none"
+                  stroke="#58877e"
+                  strokeWidth="1.5"
+                />
+                <circle cx="200" cy="120" r="4" fill="#6bdebb" />
+              </svg>
+              <Box
+                sx={{
+                  position: "absolute",
+                  left: "50%",
+                  top: 12,
+                  transform: "translateX(-50%)",
+                  display: "grid",
+                  placeItems: "center",
+                  width: 80,
+                  height: 60,
+                  bgcolor: "#27473f",
+                  border: "1px solid #609a88",
+                  borderRadius: 2,
+                }}
+              >
+                <HubOutlined sx={{ color: "#83f0cd", fontSize: 30 }} />
+              </Box>
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 9,
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-around",
+                }}
+              >
+                {["Devices", "VLANs", "Clients"].map((label) => (
+                  <Box
+                    key={label}
+                    sx={{
+                      textAlign: "center",
+                      bgcolor: "#1e373c",
+                      border: "1px solid #3b565a",
+                      borderRadius: 2,
+                      p: 1.5,
+                      width: 90,
+                    }}
+                  >
+                    <DnsOutlined sx={{ color: "#a9c6c2" }} />
+                    <Typography fontSize={11} mt={0.5}>
+                      {label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+            <Typography variant="h6">One connected perspective.</Typography>
+            <Typography
+              fontSize={13}
+              sx={{ color: "#a4bbb9", mt: 1, lineHeight: 1.8 }}
+            >
+              Explore the relationships between devices, VLANs and customer
+              records.
+            </Typography>
+          </Box>
         </Box>
-      </Container>
-
-      {/* Footer */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 20,
-          textAlign: "center",
-          width: "100%",
-        }}
-      >
-        <Typography
-          variant="caption"
+        <Box
           sx={{
-            color: "rgba(255, 255, 255, 0.6)",
-            fontSize: "0.8rem",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+            borderTop: "1px solid",
+            borderColor: "divider",
+            gap: 4,
+            py: 4,
           }}
         >
-          © 2024 Remote Shell Interrupt.
+          {[
+            {
+              icon: Search,
+              title: "Find it faster",
+              text: "Trace a VLAN to its connected devices and customer details.",
+            },
+            {
+              icon: DnsOutlined,
+              title: "Know your infrastructure",
+              text: "Explore discovered equipment, ports and network information.",
+            },
+            {
+              icon: AccountTreeOutlined,
+              title: "Make work flow",
+              text: "Build visual workflows for repeatable network operations.",
+            },
+          ].map(({ icon: Icon, title, text }) => (
+            <Stack key={title} direction="row" gap={2}>
+              <Icon sx={{ color: "primary.main", mt: 0.5 }} />
+              <Box>
+                <Typography fontWeight={650} mb={0.75}>
+                  {title}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  lineHeight={1.75}
+                >
+                  {text}
+                </Typography>
+              </Box>
+            </Stack>
+          ))}
+        </Box>
+        <Typography
+          component="footer"
+          variant="caption"
+          color="text.secondary"
+          sx={{ py: 3, display: "block" }}
+        >
+          Remote Shell Interrupt / Network infrastructure workspace
         </Typography>
-      </Box>
-    </Paper>
+      </Container>
+    </Box>
   );
 }

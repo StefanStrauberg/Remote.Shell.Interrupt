@@ -1,7 +1,8 @@
-import { Storage } from "@mui/icons-material";
-import { Box, Paper, Typography } from "@mui/material";
+import { ArrowBack, HubOutlined, Terminal } from "@mui/icons-material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { ReactNode } from "react";
-import { designTokens } from "@/app/theme";
+import { Link } from "react-router";
+import { routes } from "@/app/router/paths";
 
 type Props = {
   title: string;
@@ -21,57 +22,88 @@ export default function AuthLayout({
       sx={{
         minHeight: "100vh",
         display: "grid",
-        placeItems: "center",
-        px: 2,
-        py: 4,
-        backgroundImage: designTokens.gradients.brand,
-        position: "relative",
-        overflow: "hidden",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 20% 15%, rgba(255,255,255,0.14), transparent 35%)",
-        },
+        gridTemplateColumns: { xs: "1fr", md: ".9fr 1.1fr" },
       }}
     >
-      <Paper
-        component="main"
+      <Box
         sx={{
-          width: "100%",
-          maxWidth,
-          p: { xs: 3, sm: 4 },
-          borderRadius: 3,
-          boxShadow: designTokens.shadows.floating,
-          position: "relative",
+          display: { xs: "none", md: "flex" },
+          flexDirection: "column",
+          bgcolor: "#14292e",
+          color: "white",
+          p: 6,
         }}
       >
-        <Box textAlign="center" mb={3}>
-          <Box
+        <Stack direction="row" gap={1.5} alignItems="center">
+          <Terminal sx={{ color: "#73e7c3" }} />
+          <Typography fontWeight={650}>Remote Shell / Interrupt</Typography>
+        </Stack>
+        <Box sx={{ my: "auto", py: 8, maxWidth: 430 }}>
+          <HubOutlined sx={{ color: "#73e7c3", fontSize: 64, mb: 4 }} />
+          <Typography
             sx={{
-              width: 56,
-              height: 56,
-              display: "grid",
-              placeItems: "center",
-              mx: "auto",
-              mb: 1.5,
-              color: "primary.main",
-              bgcolor: "primary.light",
-              borderRadius: 2.5,
+              fontSize: { md: 44, lg: 56 },
+              fontWeight: 700,
+              letterSpacing: "-.045em",
+              lineHeight: 1.12,
             }}
           >
-            <Storage fontSize="large" />
-          </Box>
-          <Typography variant="h4" component="h1">
-            {title}
+            A clearer view.
+            <br />A connected
+            <br />
+            <Box component="span" sx={{ color: "#73e7c3" }}>
+              workspace.
+            </Box>
           </Typography>
-          <Typography variant="body2" color="text.secondary" mt={0.75}>
-            {subtitle}
+          <Typography sx={{ mt: 3, color: "#a8bdbf", lineHeight: 1.9 }}>
+            Everything you need to explore your network infrastructure and keep
+            operations moving.
           </Typography>
         </Box>
-        {children}
-      </Paper>
+        <Typography variant="caption" color="#a8bdbf">
+          NETWORK INFRASTRUCTURE MANAGEMENT
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          p: { xs: 3, sm: 5 },
+          bgcolor: "background.paper",
+        }}
+      >
+        <Button
+          component={Link}
+          to={routes.home}
+          startIcon={<ArrowBack />}
+          color="inherit"
+          sx={{ alignSelf: "flex-start" }}
+        >
+          Back to home
+        </Button>
+        <Box
+          component="main"
+          sx={{ width: "100%", maxWidth, mx: "auto", my: "auto", py: 6 }}
+        >
+          <Typography
+            variant="overline"
+            color="primary"
+            sx={{ letterSpacing: ".16em" }}
+          >
+            YOUR WORKSPACE AWAITS
+          </Typography>
+          <Typography variant="h2" component="h1" sx={{ mt: 1, mb: 1 }}>
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            {subtitle}
+          </Typography>
+          {children}
+        </Box>
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          Remote Shell Interrupt
+        </Typography>
+      </Box>
     </Box>
   );
 }

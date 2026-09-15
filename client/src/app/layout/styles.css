@@ -1,8 +1,36 @@
 * {
   box-sizing: border-box;
 }
-
 ::selection {
-  color: #ffffff;
-  background: #2f6b9a;
+  color: #fff;
+  background: #147d68;
+}
+body {
+  overflow-wrap: anywhere;
+}
+:focus-visible {
+  outline: 3px solid #238b86;
+  outline-offset: 3px;
+}
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 1500;
+  padding: 12px 20px;
+  background: white;
+  color: #147d68;
+  border-radius: 8px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

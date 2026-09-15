@@ -30,6 +30,7 @@ export default function PageHeader({
             sx={{
               width: 44,
               height: 44,
+              flexShrink: 0,
               display: "grid",
               placeItems: "center",
               color: "primary.main",
@@ -45,7 +46,7 @@ export default function PageHeader({
             {title}
           </Typography>
           {description && (
-            <Typography variant="body2" color="text.secondary" mt={0.25}>
+            <Typography variant="body2" color="text.secondary" mt={0.75}>
               {description}
             </Typography>
           )}

@@ -1,4 +1,12 @@
-import { Grid2, Box } from "@mui/material";
+import { Grid2, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import {
+  ArrowForward,
+  DnsOutlined,
+  GroupOutlined,
+  HubOutlined,
+} from "@mui/icons-material";
+import { Link } from "react-router";
+import { routes } from "../../app/router/paths";
 import MainPageListFilter from "./MainPageListFilter";
 import MainPageList from "./MainPageList";
 import { useState } from "react";
@@ -59,6 +67,60 @@ export default function MainPageDashboard() {
         description="Find customer and network-device details by VLAN ID"
         icon={SearchIcon}
       />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        {[
+          {
+            title: "Network devices",
+            text: "Explore your infrastructure",
+            to: routes.networkDevices,
+            icon: DnsOutlined,
+          },
+          {
+            title: "Customer directory",
+            text: "Find connected customers",
+            to: routes.clients,
+            icon: GroupOutlined,
+          },
+          {
+            title: "VLAN inventory",
+            text: "Browse network segments",
+            to: routes.sprVlans,
+            icon: HubOutlined,
+          },
+        ].map(({ title, text, to, icon: Icon }) => (
+          <Paper key={to} variant="outlined" sx={{ p: 2.5 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Icon color="primary" />
+              <Button
+                component={Link}
+                to={to}
+                aria-label={`Open ${title}`}
+                sx={{ minWidth: 36, p: 0.5 }}
+              >
+                <ArrowForward fontSize="small" />
+              </Button>
+            </Stack>
+            <Typography fontWeight={650} mb={0.5}>
+              {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {text}
+            </Typography>
+          </Paper>
+        ))}
+      </Box>
       <Grid2 container spacing={3}>
         <Grid2 size={{ xs: 12, md: 9 }} order={{ xs: 2, md: 1 }}>
           {compoundObject ? (
