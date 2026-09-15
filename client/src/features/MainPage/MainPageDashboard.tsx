@@ -40,26 +40,6 @@ export default function MainPageDashboard() {
     setEnabled(true);
   };
 
-  if (routerSearchQuery.isLoading) {
-    return <PageLoading message="Searching for devices…" />;
-  }
-
-  // Show error state
-  if (routerSearchQuery.isError) {
-    return (
-      <Box>
-        <PageError
-          title="Unable to complete the search"
-          error={routerSearchQuery.error}
-        />
-        <MainPageListFilter
-          onApplyFilters={handleApplyFilters}
-          onSearch={handleSearch}
-        />
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <PageHeader
@@ -123,7 +103,14 @@ export default function MainPageDashboard() {
       </Box>
       <Grid2 container spacing={3}>
         <Grid2 size={{ xs: 12, md: 9 }} order={{ xs: 2, md: 1 }}>
-          {compoundObject ? (
+          {routerSearchQuery.isLoading ? (
+            <PageLoading message="Searching for devices…" />
+          ) : routerSearchQuery.isError ? (
+            <PageError
+              title="Unable to complete the search"
+              error={routerSearchQuery.error}
+            />
+          ) : compoundObject ? (
             <MainPageList data={compoundObject} />
           ) : (
             <EmptyPage

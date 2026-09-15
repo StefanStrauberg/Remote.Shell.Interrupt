@@ -15,6 +15,8 @@ npm run typecheck
 npm run build    # typecheck + production build
 npm run lint     # ESLint
 npm test         # regression tests
+npm run test:watch    # rerun affected tests while editing
+npm run test:coverage # V8 coverage, including HTML report
 npm run format   # apply the repository formatting policy
 npm run check    # formatting + lint + tests + production build
 npm run preview  # serve the production build
@@ -90,3 +92,48 @@ Conventions:
   DTO bodies are camelCase. Don't "normalize" one without the other.
 - **DTO casing** — types in `lib/types` mirror the serialized JSON exactly;
   MUI components and forms use camelCase.
+
+## Frontend tests
+
+Tests use Vitest. Component suites opt into jsdom with a file-level directive;
+pure helper and domain tests run in Node. React Testing Library and user-event
+exercise forms, buttons and navigation through accessible labels and roles.
+
+The suites cover:
+
+- Authentication: form validation, password visibility, pending and failed login,
+  retry, invalid server responses, redirect restoration, role guards, logout and
+  clearing session data. Store tests also check persistence and cross-tab events.
+- Navigation: role-based destinations and active links on nested routes.
+- VLAN search: boundary validation, keyboard submission, loading, empty results,
+  API errors, recovery, retaining input and resetting results.
+- Gates: create/edit validation, pending submission, failed saves, cancellation,
+  loading existing values and query-cache invalidation. Bulk-delete tests ensure
+  every page is read before deletion begins and errors stop the operation.
+- Devices and clients: loading/error/empty states, record links, pagination,
+  filters, sorting and view selection.
+- Workflows: catalog search and retry, graph import/validation, ID remapping,
+  execution errors and cancellation contracts. Designer-state tests exercise
+  undo/redo, read-only and busy states, unique Start nodes, insertion, reconnection,
+  grid snapping and resetting the saved baseline.
+- HTTP transport: cookies, normalized errors, handling 401 responses, cancellation
+  and tracking concurrent requests. A local Axios adapter keeps these tests offline.
+
+`tests/renderApp.tsx` creates an isolated query cache, theme and memory router for
+each render. UI tests mock the feature API boundary while keeping real forms,
+validation, query hooks and routing. They do not contact the backend or require a
+database. These are component/integration tests, not browser end-to-end or visual
+regression tests.
+
+`npm run typecheck` checks production and test TypeScript; `npm run check` includes
+it. Run `npm run test:coverage` and open `coverage/index.html` for line and branch
+coverage. The report includes untested source files, so its total reflects the
+whole frontend (excluding type-only DTOs and the entry point), not just tested
+modules. Reports are ignored by Git. No claim of complete coverage is implied.
+
+jsdom and jest-dom are pinned to versions compatible with the project's supported
+Node.js versions. When updating them, check their engine requirements before
+raising the versions.
+
+Testing references: [React Testing Library setup](https://testing-library.com/docs/react-testing-library/setup/)
+and [Vitest coverage](https://vitest.dev/guide/coverage).

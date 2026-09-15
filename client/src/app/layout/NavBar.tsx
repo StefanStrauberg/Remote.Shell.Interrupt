@@ -129,6 +129,7 @@ export default function NavBar() {
             key={to}
             component={NavLink}
             to={to}
+            end={to === routes.admin}
             onClick={() => setMobileOpen(false)}
             aria-current={active(to) ? "page" : undefined}
             startIcon={<Icon sx={{ fontSize: "20px !important" }} />}
