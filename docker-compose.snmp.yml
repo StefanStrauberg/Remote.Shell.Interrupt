@@ -22,24 +22,24 @@
 # the service blocks below with a new name/IP/--file.
 
 services:
-  router-8:
+  router-2:
     build:
       context: ./SnmpSimulator
-    container_name: snmp-router-8
+    container_name: snmp-router-2
     volumes:
       - ./SnmpSimulator/dumps:/dumps:ro
     command:
       - --file
-      - /dumps/router-8.example.txt
+      - /dumps/Jun2.txt
       - --address
       - 0.0.0.0
       - --port
-      - "161"
+      - '161'
       - --community
-      - public
+      - juniper
     networks:
       snmp-lan:
-        ipv4_address: 192.168.101.8
+        ipv4_address: 192.168.101.2
 
   # Copy-paste template for the next simulated device - rename the service,
   # pick a free IP (anything in 192.168.101.0/24 other than .1, the gateway),

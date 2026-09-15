@@ -89,11 +89,11 @@ docker compose up --build
 
 Builds the API and web client images and starts them alongside a PostgreSQL container. The API waits for Postgres to become healthy, then applies migrations and seeds identity on startup exactly as above; the client waits for the API to become healthy. Once everything is up:
 
-| Service  | URL                                        |
-| -------- | ------------------------------------------- |
-| Web UI   | `http://localhost:3000`                     |
+| Service  | URL                                                 |
+| -------- | --------------------------------------------------- |
+| Web UI   | `http://localhost:3000`                             |
 | API      | `http://localhost:5000` (`/swagger` in Development) |
-| Postgres | `localhost:5432`                            |
+| Postgres | `localhost:5432`                                    |
 
 The client container is nginx serving the production build, reverse-proxying `/api/` and `/health` to the API container (see `client/nginx.conf`) — the browser only ever talks to one origin, so the backend's CORS policy never comes into play for this setup. If you instead run the client with `npm run dev` against a differently-hosted API, or serve it from a different origin than the API in a real deployment, set `Cors__AllowedOrigins__0` (etc.) on the API so the browser is actually allowed to call it cross-origin.
 
@@ -130,12 +130,12 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 
 ### Authorization API
 
-| Method | Route                        | Access        |
-| ------ | ----------------------------- | ------------- |
-| POST   | `/api/v1/Auth/Login`          | anonymous     |
-| POST   | `/api/v1/Auth/Register`       | Admin         |
-| POST   | `/api/v1/Auth/CookieLogin`    | anonymous     |
-| POST   | `/api/v1/Auth/CookieLogout`   | authenticated |
+| Method | Route                       | Access        |
+| ------ | --------------------------- | ------------- |
+| POST   | `/api/v1/Auth/Login`        | anonymous     |
+| POST   | `/api/v1/Auth/Register`     | Admin         |
+| POST   | `/api/v1/Auth/CookieLogin`  | anonymous     |
+| POST   | `/api/v1/Auth/CookieLogout` | authenticated |
 
 ### Access Matrix
 
@@ -155,11 +155,11 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 
 For use as liveness/readiness probes behind a load balancer or orchestrator. All three are anonymous.
 
-| Route            | Checks                              | Use as             |
-| ----------------- | ------------------------------------ | ------------------- |
-| `/health/live`    | none — process is responding         | liveness probe       |
-| `/health/ready`   | PostgreSQL + MySQL billing connection | readiness probe     |
-| `/health`         | everything                           | manual check         |
+| Route           | Checks                                | Use as          |
+| --------------- | ------------------------------------- | --------------- |
+| `/health/live`  | none — process is responding          | liveness probe  |
+| `/health/ready` | PostgreSQL + MySQL billing connection | readiness probe |
+| `/health`       | everything                            | manual check    |
 
 ---
 
@@ -267,7 +267,7 @@ Two ways to run it:
 
   ```bash
   docker compose up -d                                              # once, so the shared network exists
-  docker compose -f docker-compose.snmp.yml up -d --build router-8  # bring up the router(s) you need
+  docker compose -f docker-compose.snmp.yml up -d --build router-2  # bring up the router(s) you need
   # point the app at 192.168.101.8 (SNMP port 161, community "public") as you would a real device
   docker compose -f docker-compose.snmp.yml down                    # tear the simulators down when done
   ```
