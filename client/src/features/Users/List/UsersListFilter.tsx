@@ -45,7 +45,11 @@ export default function UsersListFilter({
     property: string,
     operator: FilterOperator,
     value: string
-  ): FilterDescriptor => ({ PropertyPath: property, Operator: operator, Value: value });
+  ): FilterDescriptor => ({
+    PropertyPath: property,
+    Operator: operator,
+    Value: value,
+  });
 
   const handleApply = () => {
     const normalizedEmail = email.trim();
@@ -88,7 +92,12 @@ export default function UsersListFilter({
             <FilterList color="primary" sx={{ mr: 1 }} />
             <span>Filters</span>
             {hasActiveFilters && (
-              <Chip label="Active" size="small" color="primary" sx={{ ml: 1 }} />
+              <Chip
+                label="Active"
+                size="small"
+                color="primary"
+                sx={{ ml: 1 }}
+              />
             )}
           </Box>
         }

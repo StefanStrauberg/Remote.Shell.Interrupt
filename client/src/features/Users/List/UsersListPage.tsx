@@ -32,13 +32,21 @@ export default function UsersListPage({
   pagination,
   setPageNumber,
 }: Props) {
-  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     setPageNumber(value);
   };
 
   if (isPending) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -65,7 +73,11 @@ export default function UsersListPage({
 
           <TableBody>
             {users.map((user) => (
-              <UserRow key={user.id} user={user} isSelf={user.id === currentUserId} />
+              <UserRow
+                key={user.id}
+                user={user}
+                isSelf={user.id === currentUserId}
+              />
             ))}
           </TableBody>
         </Table>

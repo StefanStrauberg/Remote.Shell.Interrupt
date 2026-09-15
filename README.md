@@ -4,7 +4,7 @@
 
 - **Backend** — .NET 9, Clean Architecture, CQRS
 - **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
-- **Tests** — xUnit, 514 unit tests + 20 integration tests (real PostgreSQL/MySQL via Testcontainers)
+- **Tests** — xUnit, 582 unit tests + 20 integration tests (real PostgreSQL/MySQL via Testcontainers); Vitest, 11 frontend tests
 - **Frontend** — React 19 + TypeScript + Vite SPA (see [Frontend](#frontend) below)
 
 ---
@@ -26,7 +26,7 @@ Remote.Shell.Interrupt/
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
 ├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
 ├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SNMP Simulator, SnmpSimulator/README.md)
-├── Tests/                              # xUnit — 514 unit tests (mocks/InMemory/SQLite, no external services)
+├── Tests/                              # xUnit — 582 unit tests (mocks/InMemory/SQLite, no external services)
 └── Tests.Integration/                  # xUnit — 20 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
 
@@ -59,9 +59,12 @@ Run it standalone against a locally-running API:
 cd client
 npm install
 npm run dev      # http://localhost:3000, VITE_API_URL from .env (copy .env.example)
+npm run check    # formatting, ESLint, Vitest, TypeScript and production build
 ```
 
 Or let Docker Compose build and serve it (see below) — no Node install needed.
+
+The UI includes clients, network devices, VLAN search, tariff plans, gates, billing administration, and user management. Workflow CRUD and execution are currently available through the API; the SPA does not yet include a workflow editor. The API supports refresh-token rotation and revocation, but the SPA currently uses only the access token and requires signing in again after it expires.
 
 ---
 
@@ -99,7 +102,7 @@ The client container is nginx serving the production build, reverse-proxying `/a
 
 Works out of the box with the same dev credentials as above (`JwtSettings:Key`, `IdentitySeed:AdminPassword`, etc. all have defaults baked into `docker-compose.yml`). To override them — e.g. a real JWT key and admin password for anything beyond local/dev use — copy [`.env.example`](.env.example) to `.env` and edit it; `docker compose` picks it up automatically.
 
-The MySQL billing connection (`ConnectionStrings__DefaultConnection2`) is **not** part of this Compose setup — it stays unset, so `/health/ready` reports the `mysql-billing` check unhealthy and billing-sync endpoints won't work until you set that connection string yourself (e.g. via `.env`, pointing at your own MySQL instance). Everything else (auth, gates, network devices, dashboards) works fully against just Postgres.
+The MySQL billing connection (`ConnectionStrings__DefaultConnection2`) is **not** part of this Compose setup — it stays unset, so `/health/ready` reports the `mysql-billing` check unhealthy and billing-sync endpoints won't work until you supply a connection string pointing at your own MySQL instance. For Compose, add it to the API service's `environment` section, directly or through a Compose override; adding a variable to `.env` alone does not pass it into the container. Everything else (auth, gates, network devices, dashboards) works fully against just Postgres.
 
 In Development, Swagger UI is available at `http://localhost:5000/swagger` — use it to call `POST /api/v1/Auth/Login` (see below) and then "Authorize" with the returned token to exercise protected endpoints from the browser.
 
@@ -133,6 +136,8 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 | Method | Route                       | Access        |
 | ------ | --------------------------- | ------------- |
 | POST   | `/api/v1/Auth/Login`        | anonymous     |
+| POST   | `/api/v1/Auth/RefreshToken` | anonymous (refresh token required) |
+| POST   | `/api/v1/Auth/RevokeToken`  | anonymous (refresh token in request body) |
 | POST   | `/api/v1/Auth/Register`     | Admin         |
 | POST   | `/api/v1/Auth/CookieLogin`  | anonymous     |
 | POST   | `/api/v1/Auth/CookieLogout` | authenticated |
@@ -147,6 +152,7 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 | Gates: view / create / update / delete         |  ✅   |  ❌  |
 | Billing sync and cleanup                       |  ✅   |  ❌  |
 | Registering users                              |  ✅   |  ❌  |
+| Managing user profiles, roles and active status |  ✅   |  ❌  |
 | SNMP Get / Walk                                |  ✅   |  ❌  |
 | Workflow graphs: create / update / delete / run |  ✅   |  ❌  |
 
@@ -174,6 +180,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🖥️ **Dashboards** — filters, sorting, server-side pagination
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
+- 🖥️ **Web frontend** — React SPA with protected routes, dashboards, detail pages, gate forms, and user management
 - 🔐 **Role-based access** — Admin / User with protected routes and API
 - 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`. The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
@@ -183,7 +190,6 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 
 ### Planned
 
-- 🖥️ Web frontend (previously part of this repo under `client/`, removed for now — see [Frontend](#frontend))
 - 🧪 CI/CD
 
 ---
@@ -243,7 +249,17 @@ The Persistence project doubles as its own startup project via `ApplicationDbCon
 dotnet test Tests/Tests.csproj
 ```
 
-514 unit tests across Domain, Application, Infrastructure, Persistence, and API — mocks, EF Core InMemory, and SQLite standing in for MySQL. No external services required.
+582 unit tests across Domain, Application, Infrastructure, Persistence, and API — mocks, EF Core InMemory, and SQLite standing in for MySQL. No external services required.
+
+### Frontend checks
+
+```bash
+cd client
+npm ci
+npm run check
+```
+
+Runs Prettier, ESLint, 11 Vitest regression tests, TypeScript checking, and the Vite production build. The command stops at the first failing stage. Run `npm run format` to apply formatting fixes, then rerun `npm run check`.
 
 ### Integration tests
 

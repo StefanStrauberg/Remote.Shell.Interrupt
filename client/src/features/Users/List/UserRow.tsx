@@ -41,7 +41,8 @@ export default function UserRow({ user, isSelf }: Props) {
   const [editOpen, setEditOpen] = useState(false);
 
   const primaryRole = user.roles[0] ?? ASSIGNABLE_ROLES[1];
-  const isBusy = updateRole.isPending || setActive.isPending || deleteUser.isPending;
+  const isBusy =
+    updateRole.isPending || setActive.isPending || deleteUser.isPending;
 
   const handleRoleChange = (event: SelectChangeEvent<string>) => {
     const role = event.target.value;
@@ -73,12 +74,17 @@ export default function UserRow({ user, isSelf }: Props) {
   };
 
   const handleDelete = () => {
-    if (!window.confirm(`Permanently delete "${user.email}"? This cannot be undone.`))
+    if (
+      !window.confirm(
+        `Permanently delete "${user.email}"? This cannot be undone.`
+      )
+    )
       return;
 
     deleteUser.mutate(user.id, {
       onSuccess: () => toast.success(`${user.email} was deleted.`),
-      onError: (error) => toast.error(`Failed to delete user: ${errorMessage(error)}`),
+      onError: (error) =>
+        toast.error(`Failed to delete user: ${errorMessage(error)}`),
     });
   };
 
@@ -94,10 +100,21 @@ export default function UserRow({ user, isSelf }: Props) {
       <TableCell>{user.fullName || "—"}</TableCell>
       <TableCell>
         {isSelf ? (
-          <Chip label={primaryRole} size="small" color="primary" variant="outlined" />
+          <Chip
+            label={primaryRole}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
         ) : (
           <Select
-            value={ASSIGNABLE_ROLES.includes(primaryRole as (typeof ASSIGNABLE_ROLES)[number]) ? primaryRole : ""}
+            value={
+              ASSIGNABLE_ROLES.includes(
+                primaryRole as (typeof ASSIGNABLE_ROLES)[number]
+              )
+                ? primaryRole
+                : ""
+            }
             onChange={handleRoleChange}
             size="small"
             disabled={isBusy}
@@ -129,12 +146,21 @@ export default function UserRow({ user, isSelf }: Props) {
       </TableCell>
       <TableCell>{format(new Date(user.createdAtUtc), "PP")}</TableCell>
       <TableCell align="right">
-        <Box display="flex" justifyContent="flex-end" alignItems="center" gap={0.5}>
+        <Box
+          display="flex"
+          justifyContent="flex-end"
+          alignItems="center"
+          gap={0.5}
+        >
           {isSelf && <Chip label="You" size="small" sx={{ mr: 0.5 }} />}
 
           <Tooltip title="Edit account">
             <span>
-              <IconButton onClick={() => setEditOpen(true)} disabled={isBusy} size="small">
+              <IconButton
+                onClick={() => setEditOpen(true)}
+                disabled={isBusy}
+                size="small"
+              >
                 <Edit fontSize="small" />
               </IconButton>
             </span>

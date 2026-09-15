@@ -17,7 +17,8 @@ import { PageError, PageLoading } from "@/app/shared/components/PageFeedback";
 
 export default function UsersDashboard() {
   const { user: currentUser } = useAuth();
-  const [filters, setFilters] = useState<FilterDescriptor[]>(DEFAULT_USER_FILTERS);
+  const [filters, setFilters] =
+    useState<FilterDescriptor[]>(DEFAULT_USER_FILTERS);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const pageSize = 15;
   const [orderBy] = useState<string>("Email");

@@ -19,7 +19,11 @@ export const usersApi = {
   list(request: UsersListRequest): Promise<PagedResponse<User>> {
     return fetchPaged(
       apiPath("Users", "GetUsersByFilter"),
-      buildRequestParams(request.pagination, request.orderBy, request.filters ?? [])
+      buildRequestParams(
+        request.pagination,
+        request.orderBy,
+        request.filters ?? []
+      )
     );
   },
 
@@ -28,7 +32,10 @@ export const usersApi = {
   },
 
   async setActive(userId: string, isActive: boolean): Promise<void> {
-    await httpClient.put(apiPath("Users", "SetUserActive"), { userId, isActive });
+    await httpClient.put(apiPath("Users", "SetUserActive"), {
+      userId,
+      isActive,
+    });
   },
 
   async updateProfile(

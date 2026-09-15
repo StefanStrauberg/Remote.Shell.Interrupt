@@ -58,7 +58,13 @@ type StatTileProps = {
   color: "primary" | "success" | "info" | "warning";
 };
 
-function StatTile({ label, value, isLoading, icon: Icon, color }: StatTileProps) {
+function StatTile({
+  label,
+  value,
+  isLoading,
+  icon: Icon,
+  color,
+}: StatTileProps) {
   return (
     <Card variant="outlined" sx={{ height: "100%" }}>
       <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -110,7 +116,14 @@ function ManagementCard({
 }: ManagementCardProps) {
   return (
     <Card variant="outlined" sx={{ height: "100%" }}>
-      <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2, height: "100%" }}>
+      <CardContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          height: "100%",
+        }}
+      >
         <Stack direction="row" alignItems="center" gap={1}>
           <Icon color="primary" />
           <Typography variant="h6" component="h2">

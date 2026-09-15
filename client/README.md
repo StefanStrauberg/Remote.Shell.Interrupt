@@ -1,7 +1,7 @@
 # Remote Shell Interrupt — Web Client
 
 React 19 + TypeScript + Vite SPA for the Remote Shell Interrupt backend
-(ASP.NET Core API in `../Remote.Shell.Interrupt/src`). Built with MUI, TanStack Query,
+(ASP.NET Core API in `../src`). Built with MUI, TanStack Query,
 React Hook Form + Zod, Axios and React Router.
 
 ## Getting started
@@ -22,7 +22,7 @@ npm run preview  # serve the production build
 
 The API base URL is read from `VITE_API_URL`. Copy `.env.example` to `.env`
 (or create `.env.development` / `.env.production`) and point it at the backend
-port — see `../Remote.Shell.Interrupt/src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API/Properties/launchSettings.json`.
+port — see `../src/Remote.Shell.Interrupt.Storehouse/Remote.Shell.Interrupt.Storehouse.API/Properties/launchSettings.json`.
 The client calls the versioned backend routes under `/api/v1`.
 
 ## Docker

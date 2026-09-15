@@ -99,7 +99,9 @@ export default function EditUserDialog({ user, open, onClose }: Props) {
             variant="contained"
             disabled={updateProfile.isPending || !isValid}
             startIcon={
-              updateProfile.isPending ? <CircularProgress size={18} /> : undefined
+              updateProfile.isPending ? (
+                <CircularProgress size={18} />
+              ) : undefined
             }
           >
             {updateProfile.isPending ? "Saving..." : "Save"}
