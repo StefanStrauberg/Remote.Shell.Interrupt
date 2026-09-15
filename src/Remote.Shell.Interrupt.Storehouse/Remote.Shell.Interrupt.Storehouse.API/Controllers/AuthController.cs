@@ -60,6 +60,7 @@ public class AuthController(ISender sender,
     /// </summary>
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting(DefaultEntities.AuthRateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequest revokeTokenRequest,
                                                  CancellationToken cancellationToken)
