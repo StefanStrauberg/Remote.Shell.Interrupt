@@ -15,6 +15,7 @@
 Remote.Shell.Interrupt/
 ├── Remote.Shell.Interrupt.sln
 ├── docker-compose.yml                  # API + PostgreSQL, auto-migrates on startup (see Quick Start)
+├── docker-compose.snmp.yml             # Simulated routers on the API's network (see SNMP Simulator)
 ├── Dockerfile                          # Builds the API image (used by docker-compose.yml)
 ├── src/Remote.Shell.Interrupt.Storehouse/
 │   ├── Core/
@@ -23,7 +24,7 @@ Remote.Shell.Interrupt/
 │   ├── Infrastructure/                 # SNMP, logger, specifications, filter parser
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
-├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SnmpSimulator/README.md)
+├── SnmpSimulator/                      # Standalone SNMP v2c dump-replay server for local testing (see SNMP Simulator, SnmpSimulator/README.md)
 ├── Tests/                              # xUnit — 514 unit tests (mocks/InMemory/SQLite, no external services)
 └── Tests.Integration/                  # xUnit — 20 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
@@ -229,6 +230,26 @@ dotnet test Tests.Integration/Tests.Integration.csproj
 20 tests that boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
 
 Covers what the unit suite structurally cannot: real EF Core migrations actually applying to Postgres, `ILIKE` filtering executing against a real Npgsql provider, the JWT/cookie/role-authorization pipeline end-to-end over real HTTP, health checks against live dependencies, and `SET SESSION TRANSACTION READ ONLY` genuinely rejecting a write on the MySQL connection.
+
+---
+
+## 📡 SNMP Simulator (manual testing without real hardware)
+
+[`SnmpSimulator/`](SnmpSimulator/) is a standalone SNMP v2c server that replays a captured `snmpwalk` dump — a stand-in router for manually exercising `POST /api/v1/NetworkDevices`, `SNMPExecutor/Get`, `SNMPExecutor/Walk`, etc. without needing a real device on hand. Full details, including how to capture a dump from a real router, are in [`SnmpSimulator/README.md`](SnmpSimulator/README.md).
+
+Two ways to run it:
+
+- **Quick local check** — `dotnet run` it directly on `127.0.0.1:1161` (its defaults) and point ad-hoc `snmpget`/`snmpwalk` calls at that address. Fastest way to validate a dump file, but the API only ever talks SNMP on port 161 to a device's own IP (see `SNMPCommandExecutor.cs`), so this mode doesn't exercise the API itself.
+- **Through the API, at a real router's IP** — `docker-compose.snmp.yml` runs the simulator in Docker, pinned to a static IP (e.g. `192.168.101.8`) on the same `192.168.101.0/24` network the `api` container joins in `docker-compose.yml`. The API then talks to it exactly as it would a real router — same port, same IP shape, same code path — which is the closest thing to testing production behavior without real hardware:
+
+  ```bash
+  docker compose up -d                                              # once, so the shared network exists
+  docker compose -f docker-compose.snmp.yml up -d --build router-8  # bring up the router(s) you need
+  # point the app at 192.168.101.8 (SNMP port 161, community "public") as you would a real device
+  docker compose -f docker-compose.snmp.yml down                    # tear the simulators down when done
+  ```
+
+  This only works because the machine running Docker isn't simultaneously on a real `192.168.101.0/24` network — see the comment above the `app-net` network in `docker-compose.yml`, and [`SnmpSimulator/README.md`](SnmpSimulator/README.md) for adding more simulated devices.
 
 ---
 
