@@ -186,6 +186,14 @@ public static class ServiceRegistration
         $"JwtSettings:Key is missing or shorter than 32 characters. " +
         "Supply it via user-secrets or the JwtSettings__Key environment variable.");
 
+    // docker-compose.yml/.env.example bake in a public placeholder key so the stack runs
+    // out of the box locally; it satisfies the length check above but must never sign real
+    // tokens. Refuse to start rather than silently issuing JWTs anyone can forge.
+    if (!isDevelopment && jwtSettings.Key == InsecureDefaults.DevJwtKey)
+      throw new InvalidOperationException(
+        "JwtSettings:Key is still the public development placeholder from docker-compose.yml/.env.example. " +
+        "Set JWT_KEY (or JwtSettings__Key) to a real, secret signing key before running outside Development.");
+
     if (string.IsNullOrWhiteSpace(jwtSettings.Issuer) || string.IsNullOrWhiteSpace(jwtSettings.Audience))
       throw new InvalidOperationException("JwtSettings:Issuer and JwtSettings:Audience must be configured.");
 

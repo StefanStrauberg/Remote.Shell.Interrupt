@@ -3,6 +3,7 @@ global using Microsoft.AspNetCore.Mvc;
 global using Remote.Shell.Interrupt.Storehouse.API;
 global using Remote.Shell.Interrupt.Storehouse.Application;
 global using Remote.Shell.Interrupt.Storehouse.Application.Exceptions;
+global using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 global using Remote.Shell.Interrupt.Storehouse.Application.Middleware;
 global using Remote.Shell.Interrupt.Storehouse.AppLogger;
 global using Remote.Shell.Interrupt.Storehouse.Domain.SNMP;

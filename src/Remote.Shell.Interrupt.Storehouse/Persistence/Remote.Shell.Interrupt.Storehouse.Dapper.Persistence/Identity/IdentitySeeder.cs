@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
+using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 
@@ -56,6 +58,18 @@ public sealed class IdentitySeeder
                 "the default administrator account was not provisioned.");
             return;
         }
+
+        // docker-compose.yml/.env.example bake in a public placeholder password so the stack
+        // runs out of the box locally. It passes the check above (it's non-empty), so without
+        // this it would seed - or on a later restart, silently keep - an administrator account
+        // anyone can log into with a password documented in the README. Checked on every
+        // startup, not just first-run creation, so a later environment flip to Production is
+        // still caught even though the account already exists.
+        var environment = provider.GetRequiredService<IHostEnvironment>();
+        if (!environment.IsDevelopment() && adminPassword == InsecureDefaults.DevAdminPassword)
+            throw new InvalidOperationException(
+                "IdentitySeed:AdminPassword is still the public development placeholder from docker-compose.yml/.env.example. " +
+                "Set ADMIN_PASSWORD (or IdentitySeed__AdminPassword) to a real password before running outside Development.");
 
         if (await userManager.FindByEmailAsync(adminEmail) is not null)
             return;
