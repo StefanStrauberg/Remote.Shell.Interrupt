@@ -80,28 +80,53 @@ function readStoredUser(): AuthUser | null {
  * interceptor (see unauthorizedHandler) boots the user if the server has
  * actually expired the cookie.
  */
-export const useAuthStore = create<AuthState>()((set) => ({
-  user: null,
-  status: "idle",
+export const useAuthStore = create<AuthState>()((set) => {
+  // Cross-tab sync: the "storage" event fires in every OTHER same-origin tab
+  // (never the one that made the write) whenever localStorage changes. Without
+  // this, logging out in one tab - or being force-logged-out there by the 401
+  // interceptor when the cookie actually expired - leaves every other open tab
+  // still rendering as signed in, with cached business data on screen, until
+  // that tab happens to make its own API call. A tab left open on a shared
+  // machine is exactly the case a "log out" action is supposed to protect.
+  // `event.key === null` covers a plain `localStorage.clear()` call, which the
+  // spec fires with key/newValue both null instead of naming the key.
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", (event) => {
+      if (event.key !== null && event.key !== USER_STORAGE_KEY) return;
 
-  setSession: (user) => {
-    setStoredValue(USER_STORAGE_KEY, JSON.stringify(user));
-    set({ user, status: "authenticated" });
-  },
+      if (event.newValue === null) {
+        set({ user: null, status: "unauthenticated" });
+        return;
+      }
 
-  clearSession: () => {
-    removeStoredValue(USER_STORAGE_KEY);
-    set({ user: null, status: "unauthenticated" });
-  },
+      const user = readStoredUser();
+      if (user) set({ user, status: "authenticated" });
+    });
+  }
 
-  restoreSession: () => {
-    const storedUser = readStoredUser();
+  return {
+    user: null,
+    status: "idle",
 
-    if (storedUser) {
-      set({ user: storedUser, status: "authenticated" });
-      return;
-    }
+    setSession: (user) => {
+      setStoredValue(USER_STORAGE_KEY, JSON.stringify(user));
+      set({ user, status: "authenticated" });
+    },
 
-    set({ user: null, status: "unauthenticated" });
-  },
-}));
+    clearSession: () => {
+      removeStoredValue(USER_STORAGE_KEY);
+      set({ user: null, status: "unauthenticated" });
+    },
+
+    restoreSession: () => {
+      const storedUser = readStoredUser();
+
+      if (storedUser) {
+        set({ user: storedUser, status: "authenticated" });
+        return;
+      }
+
+      set({ user: null, status: "unauthenticated" });
+    },
+  };
+});

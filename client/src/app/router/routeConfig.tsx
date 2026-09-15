@@ -1,5 +1,5 @@
 import { lazy, Suspense, ReactNode } from "react";
-import { createBrowserRouter, Navigate } from "react-router";
+import { Navigate, RouteObject } from "react-router";
 import App from "../layout/App";
 import RouteSuspenseFallback from "../shared/components/RouteSuspenseFallback";
 import ProtectedRoute from "./ProtectedRoute";
@@ -58,7 +58,11 @@ function page(element: ReactNode) {
   return <Suspense fallback={<RouteSuspenseFallback />}>{element}</Suspense>;
 }
 
-export const router = createBrowserRouter([
+// Kept in its own module (imported into Routes.tsx, which calls
+// createBrowserRouter(routeConfig)) so tests can inspect which role each
+// route requires without going through createBrowserRouter, which needs a
+// DOM (this project's Vitest setup runs in plain Node).
+export const routeConfig: RouteObject[] = [
   {
     path: "/",
     element: <App />,
@@ -136,15 +140,6 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: routeSegments.errors,
-        element: page(
-          <ProtectedRoute>
-            <TestErrors />
-          </ProtectedRoute>
-        ),
-      },
-
       // Admin-only routes (mirrors the backend [Authorize(Roles = "Admin")])
       {
         path: routeSegments.adminWorkflows,
@@ -218,8 +213,19 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        // A debug page for manually triggering backend error responses
+        // (including a real POST to Gates/CreateGate) - not meant for
+        // regular users to reach at all, let alone unauthenticated-of-role.
+        path: routeSegments.errors,
+        element: page(
+          <ProtectedRoute roles={["Admin"]}>
+            <TestErrors />
+          </ProtectedRoute>
+        ),
+      },
 
       { path: "*", element: <Navigate replace to={routes.notFound} /> },
     ],
   },
-]);
+];
