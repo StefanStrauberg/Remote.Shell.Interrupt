@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
+using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence;
 using Tests.Integration.Fixtures;
 
 namespace Tests.Integration;
@@ -40,5 +41,28 @@ public class DatabaseMigrationAndSeedingTests(ApiFactory apiFactory)
     var result = await response.Content.ReadFromJsonAsync<AuthenticationResult>();
     result!.Success.Should().BeTrue();
     result.Roles.Should().Contain("Admin");
+  }
+
+  /// <summary>
+  /// Regression coverage for the race SyncDatabaseAsync's Postgres advisory lock exists to
+  /// prevent: several replicas of this API starting at once, all calling MigrateAsync against
+  /// the same schema concurrently. The fixture's own startup already applied every migration,
+  /// so this isn't the "fresh empty database" case - it's the equally realistic "already at the
+  /// target version, several replicas still boot together on a redeploy" case. Without the
+  /// lock serializing them, concurrent calls are still likely to succeed against an
+  /// already-migrated schema (there's nothing left to apply), so the meaningful assertion is
+  /// that every call completes without throwing - a deadlock or provider-level conflict would
+  /// surface here as a faulted task.
+  /// </summary>
+  [Fact]
+  public async Task SyncDatabaseAsync_CalledConcurrently_AllCallsCompleteWithoutError()
+  {
+    var tasks = Enumerable.Range(0, 5)
+      .Select(_ => _apiFactory.Services.SyncDatabaseAsync())
+      .ToArray();
+
+    var act = () => Task.WhenAll(tasks);
+
+    await act.Should().NotThrowAsync();
   }
 }

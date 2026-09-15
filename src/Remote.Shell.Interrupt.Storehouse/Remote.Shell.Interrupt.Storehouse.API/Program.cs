@@ -24,18 +24,34 @@ try
 
   // Applies pending EF Core migrations: creates the full schema on a fresh/empty
   // database (e.g. a newly deployed container) and applies only what's new on
-  // an existing one.
-  try
+  // an existing one. Defaults to on (unset = true) so a bare `dotnet run` and the
+  // documented docker-compose flow keep working with zero manual setup, in every
+  // environment - that default is a deliberate product decision (see README), not an
+  // oversight. Database:AutoMigrate=false is the explicit opt-out for a deployment that
+  // wants a controlled, manual `dotnet ef database update` step instead (e.g. running
+  // migrations once from a release pipeline before scaling up multiple replicas, rather
+  // than relying on SyncDatabaseAsync's advisory lock to serialize them all at boot).
+  if (app.Configuration.GetValue("Database:AutoMigrate", true))
   {
-    await app.Services.SyncDatabaseAsync();
-    Log.Information("Database migration completed successfully.");
+    try
+    {
+      await app.Services.SyncDatabaseAsync();
+      Log.Information("Database migration completed successfully.");
+    }
+    catch (Exception ex)
+    {
+      Log.Fatal(ex,
+        "Database schema synchronization failed. Verify the 'DefaultConnection' string " +
+        "and that the PostgreSQL server is reachable, then restart the host.");
+      throw;
+    }
   }
-  catch (Exception ex)
+  else
   {
-    Log.Fatal(ex,
-      "Database schema synchronization failed. Verify the 'DefaultConnection' string " +
-      "and that the PostgreSQL server is reachable, then restart the host.");
-    throw;
+    Log.Warning(
+      "Database:AutoMigrate is disabled; skipping automatic EF Core migrations. " +
+      "The schema must already be up to date (e.g. via a prior 'dotnet ef database update'), " +
+      "or startup will fail once the application queries a table/column a pending migration would add.");
   }
 
   // Seed identity roles and the default administrator account.

@@ -201,6 +201,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 | `JwtSettings__Key`                      | JWT signing key (min. 32 characters, required) |
 | `IdentitySeed__AdminEmail`              | default administrator email                    |
 | `IdentitySeed__AdminPassword`           | administrator password (empty — do not create) |
+| `Database__AutoMigrate`                 | apply EF Core migrations on startup (default `true`) |
 
 Secrets are provided via user-secrets or environment variables:
 
@@ -219,6 +220,10 @@ PostgreSQL schema is managed with real **EF Core Migrations**, stored in `src/Re
 
 - creates the entire schema on a fresh/empty database (a newly deployed container needs no manual setup), and
 - applies only the migrations not yet recorded in `__EFMigrationsHistory` on an existing one.
+
+Several replicas starting at once don't race each other into `MigrateAsync()` concurrently: the call is wrapped in a Postgres advisory lock, so only one replica actually migrates while the rest block briefly and then see the schema already at the target version.
+
+Set `Database__AutoMigrate` to `false` to opt out of this entirely — e.g. a deployment that runs `dotnet ef database update` once from a release pipeline and wants the application itself to never touch the schema. Defaults to `true` (unset = on) in every environment, matching the Quick Start flow above; with it disabled, the host still starts even if the schema is out of date, and only fails once a query hits a table/column a pending migration would have added.
 
 MySQL (`ConnectionStrings__DefaultConnection2`) is an externally-owned, read-only billing database — it is never migrated by this application.
 
