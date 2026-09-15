@@ -179,6 +179,49 @@ public class CommonQueryFilterParserTests
         act.Should().Throw<ArgumentException>();
     }
 
+    [Theory]
+    [InlineData("PasswordHash")]
+    [InlineData("SecurityStamp")]
+    [InlineData("ConcurrencyStamp")]
+    [InlineData("passwordhash")]
+    public void ParseFilters_DeniedPropertyName_ThrowsBadRequestException(string propertyPath)
+    {
+        // Denylist applies regardless of whether T actually has the property (Client doesn't) —
+        // it must reject the path before reflection ever resolves it, so the same generic
+        // reflection-based filter engine can't be pointed at Identity's secret fields
+        // (e.g. ApplicationUser.PasswordHash) through any entity.
+        var filters = new List<FilterDescriptor>
+        {
+            new() { PropertyPath = propertyPath, Operator = FilterOperator.Equals, Value = "x" }
+        };
+        Action act = () => _parser.ParseFilters<Client>(filters);
+        act.Should().Throw<BadRequestException>();
+    }
+
+    [Fact]
+    public void ParseFilters_DeniedPropertyName_NestedInPath_ThrowsBadRequestException()
+    {
+        // "COD" is a real navigation property on Client, so the chain walks one valid
+        // segment before hitting the denied one — proves the guard fires at every
+        // recursion level, not just the first segment.
+        var filters = new List<FilterDescriptor>
+        {
+            new() { PropertyPath = $"{nameof(Client.COD)}.PasswordHash", Operator = FilterOperator.Equals, Value = "x" }
+        };
+        Action act = () => _parser.ParseFilters<Client>(filters);
+        act.Should().Throw<BadRequestException>();
+    }
+
+    [Theory]
+    [InlineData("PasswordHash")]
+    [InlineData("SecurityStamp")]
+    [InlineData("ConcurrencyStamp")]
+    public void ParseOrderBy_DeniedPropertyName_ThrowsBadRequestException(string propertyPath)
+    {
+        Action act = () => _parser.ParseOrderBy<Client>(propertyPath);
+        act.Should().Throw<BadRequestException>();
+    }
+
     [Fact]
     public void ParseOrderBy_ValidPropertyName_ReturnsExpression()
     {

@@ -6,6 +6,36 @@ namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.Extensions;
 internal static class FilterDescriptorExtensions
 {
   /// <summary>
+  /// Property names that must never be reachable through a client-supplied filter or sort
+  /// path, regardless of the entity type being queried. The expression builder below has no
+  /// allowlist of "safe" properties by design — it has to resolve arbitrary paths generically
+  /// across every filterable entity — so this denylist is the backstop that stops a request
+  /// like <c>?filters=PasswordHash:StartsWith:X</c> against <c>ApplicationUser</c> (which
+  /// inherits ASP.NET Core Identity's <c>IdentityUser&lt;TKey&gt;</c>) from turning the filter
+  /// endpoint into a blind oracle for extracting password hashes or session-fixation secrets.
+  /// </summary>
+  static readonly HashSet<string> NonFilterablePropertyNames = new(StringComparer.OrdinalIgnoreCase)
+  {
+    "PasswordHash",
+    "SecurityStamp",
+    "ConcurrencyStamp",
+  };
+
+  /// <summary>
+  /// Throws if <paramref name="propertyName"/> is on the filter/sort denylist.
+  /// Called for every segment of every client-supplied property path, in both
+  /// <see cref="ToExpression{T}"/> (filtering) and order-by parsing.
+  /// </summary>
+  /// <exception cref="BadRequestException">
+  /// Thrown when the property may not be used for filtering or sorting.
+  /// </exception>
+  internal static void EnsurePropertyIsFilterable(string propertyName)
+  {
+    if (NonFilterablePropertyNames.Contains(propertyName))
+      throw new BadRequestException($"Property '{propertyName}' cannot be used in filters or sorting.");
+  }
+
+  /// <summary>
   /// Converts a <see cref="FilterDescriptor"/> into a LINQ expression for filtering entities of type <typeparamref name="T"/>.
   /// </summary>
   /// <typeparam name="T">The entity type to apply the filter against.</typeparam>
@@ -49,6 +79,8 @@ internal static class FilterDescriptorExtensions
   /// </remarks>
   static Expression BuildPropertyAccessChain(Expression current, string[] segments, int index, FilterOperator op, string value)
   {
+    EnsurePropertyIsFilterable(segments[index]);
+
     var property = Expression.PropertyOrField(current, segments[index]);
 
     if (IsFinalPropertySegment(segments, index))

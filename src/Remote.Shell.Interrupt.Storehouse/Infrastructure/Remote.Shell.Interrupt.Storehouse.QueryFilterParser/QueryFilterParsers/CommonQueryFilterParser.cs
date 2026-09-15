@@ -65,9 +65,12 @@ internal class CommonQueryFilterParser : IQueryFilterParser
   {
     var parameter = Expression.Parameter(typeof(T), "entity");
     Expression propertyExpression = parameter;
-    
+
     foreach (var member in propertyName!.Split('.'))
+    {
+      FilterDescriptorExtensions.EnsurePropertyIsFilterable(member);
       propertyExpression = Expression.PropertyOrField(propertyExpression, member);
+    }
 
     var converted = Expression.Convert(propertyExpression, typeof(object));
 
