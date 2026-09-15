@@ -11,8 +11,11 @@ import {
   DialogActions,
   Card,
   CardContent,
+  Divider,
+  Stack,
 } from "@mui/material";
 import { Link } from "react-router";
+import { SvgIconComponent } from "@mui/icons-material";
 import {
   useDeleteAllGatesMutation,
   useGatesQuery,
@@ -21,6 +24,9 @@ import {
   useDeleteAllClientsMutation,
   useSynchronizeClientsMutation,
 } from "../Clients/api/clientsQueries";
+import { useClientsQuery } from "../Clients/api/clientsQueries";
+import { useNetworkDevicesQuery } from "../NetworkDevices/api/networkDevicesQueries";
+import { useUsersQuery } from "../Users/api/usersQueries";
 import { useState } from "react";
 import { FilterDescriptor } from "../../lib/types/Common/FilterDescriptor";
 import { DEFAULT_GATE_FILTERS } from "../Gates/api/gatesApi";
@@ -31,6 +37,10 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import RouterIcon from "@mui/icons-material/Router";
+import GroupIcon from "@mui/icons-material/Group";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import DevicesIcon from "@mui/icons-material/Devices";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { toast } from "react-toastify";
 import { routes } from "../../app/router/paths";
 import { DEFAULT_PAGINATION } from "../../lib/constants/pagination";
@@ -38,6 +48,100 @@ import PageHeader from "../../app/shared/components/PageHeader";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
+}
+
+type StatTileProps = {
+  label: string;
+  value: number | undefined;
+  isLoading: boolean;
+  icon: SvgIconComponent;
+  color: "primary" | "success" | "info" | "warning";
+};
+
+function StatTile({ label, value, isLoading, icon: Icon, color }: StatTileProps) {
+  return (
+    <Card variant="outlined" sx={{ height: "100%" }}>
+      <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            flexShrink: 0,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: 2.5,
+            color: `${color}.main`,
+            bgcolor: `${color}.light`,
+          }}
+        >
+          <Icon />
+        </Box>
+        <Box>
+          {isLoading ? (
+            <CircularProgress size={22} />
+          ) : (
+            <Typography variant="h5" fontWeight={700}>
+              {value ?? 0}
+            </Typography>
+          )}
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
+
+type ManagementCardProps = {
+  title: string;
+  icon: SvgIconComponent;
+  description: string;
+  children: React.ReactNode;
+  dangerZone?: React.ReactNode;
+};
+
+function ManagementCard({
+  title,
+  icon: Icon,
+  description,
+  children,
+  dangerZone,
+}: ManagementCardProps) {
+  return (
+    <Card variant="outlined" sx={{ height: "100%" }}>
+      <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2, height: "100%" }}>
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Icon color="primary" />
+          <Typography variant="h6" component="h2">
+            {title}
+          </Typography>
+        </Stack>
+
+        <Typography variant="body2" color="text.secondary">
+          {description}
+        </Typography>
+
+        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+
+        {dangerZone && (
+          <>
+            <Divider />
+            <Box>
+              <Typography
+                variant="overline"
+                color="error"
+                sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}
+              >
+                <WarningIcon fontSize="small" /> Danger zone
+              </Typography>
+              {dangerZone}
+            </Box>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AdminPage() {
@@ -73,6 +177,24 @@ export default function AdminPage() {
   const updateClients = useSynchronizeClientsMutation();
 
   const deleteNetworkDevices = useDeleteAllNetworkDevicesMutation();
+
+  // Lightweight, unfiltered counts for the summary row - pageSize:1 means only
+  // the X-Pagination header's TotalCount is actually used, not the row itself.
+  const clientsCountQuery = useClientsQuery({
+    pagination: { pageNumber: 1, pageSize: 1 },
+    filters: [],
+    orderBy: { property: "Name", descending: false },
+  });
+  const networkDevicesCountQuery = useNetworkDevicesQuery({
+    pagination: { pageNumber: 1, pageSize: 1 },
+    filters: [],
+    orderBy: { property: "Host", descending: false },
+  });
+  const usersCountQuery = useUsersQuery({
+    pagination: { pageNumber: 1, pageSize: 1 },
+    filters: [],
+    orderBy: { property: "Email", descending: false },
+  });
 
   const showConfirmation = (
     title: string,
@@ -190,207 +312,160 @@ export default function AdminPage() {
         </Alert>
       )}
 
-      <Grid2 container spacing={3}>
+      {/* Summary */}
+      <Grid2 container spacing={2} sx={{ mb: 3 }}>
+        <Grid2 size={{ xs: 6, md: 3 }}>
+          <StatTile
+            label="Gates"
+            value={gatesPagination.TotalCount}
+            isLoading={gatesQuery.isLoading}
+            icon={RouterIcon}
+            color="primary"
+          />
+        </Grid2>
+        <Grid2 size={{ xs: 6, md: 3 }}>
+          <StatTile
+            label="Clients"
+            value={clientsCountQuery.data?.pagination.TotalCount}
+            isLoading={clientsCountQuery.isLoading}
+            icon={PeopleAltIcon}
+            color="success"
+          />
+        </Grid2>
+        <Grid2 size={{ xs: 6, md: 3 }}>
+          <StatTile
+            label="Network devices"
+            value={networkDevicesCountQuery.data?.pagination.TotalCount}
+            isLoading={networkDevicesCountQuery.isLoading}
+            icon={DevicesIcon}
+            color="info"
+          />
+        </Grid2>
+        <Grid2 size={{ xs: 6, md: 3 }}>
+          <StatTile
+            label="User accounts"
+            value={usersCountQuery.data?.pagination.TotalCount}
+            isLoading={usersCountQuery.isLoading}
+            icon={GroupIcon}
+            color="warning"
+          />
+        </Grid2>
+      </Grid2>
+
+      <Grid2 container spacing={3} sx={{ alignItems: "stretch" }}>
         {/* Gates Section */}
-        <Grid2 size={12}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                <RouterIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
-                Gate Management
-              </Typography>
-
-              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                <Grid2 size="auto">
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    component={Link}
-                    to={routes.createGate}
-                    startIcon={<AddIcon />}
-                    disabled={isAnyOperationPending}
-                  >
-                    Create Gate
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    Create a new gate router. The system will automatically
-                    update information about them.
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Grid2 container spacing={2} alignItems="center">
-                <Grid2 size="auto">
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={deleteGatesHandle}
-                    startIcon={<DeleteForeverIcon />}
-                    disabled={
-                      isAnyOperationPending || gatesPagination.TotalCount === 0
-                    }
-                  >
-                    Delete All Gates
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    <WarningIcon
-                      sx={{
-                        fontSize: 16,
-                        verticalAlign: "text-bottom",
-                        mr: 0.5,
-                      }}
-                    />
-                    Warning! This will permanently delete all gates (
-                    {gatesPagination.TotalCount} found).
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Typography
-                variant="body2"
-                color="text.primary"
-                sx={{ mt: 2, fontStyle: "italic" }}
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <ManagementCard
+            title="Gate management"
+            icon={RouterIcon}
+            description="Gates are virtual entities created exclusively for polling gateways. The system automatically keeps them up to date."
+            dangerZone={
+              <Button
+                variant="contained"
+                color="error"
+                onClick={deleteGatesHandle}
+                startIcon={<DeleteForeverIcon />}
+                disabled={
+                  isAnyOperationPending || gatesPagination.TotalCount === 0
+                }
+                size="small"
               >
-                Gates are virtual entities created exclusively for polling
-                gateways.
-              </Typography>
-            </CardContent>
-          </Card>
+                Delete all gates ({gatesPagination.TotalCount})
+              </Button>
+            }
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to={routes.createGate}
+              startIcon={<AddIcon />}
+              disabled={isAnyOperationPending}
+            >
+              Create gate
+            </Button>
+          </ManagementCard>
         </Grid2>
 
         {/* Clients Section */}
-        <Grid2 size={12}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                👥 Client Management
-              </Typography>
-
-              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                <Grid2 size="auto">
-                  <Button
-                    variant="contained"
-                    color="warning"
-                    onClick={updateClientsHandle}
-                    startIcon={<RefreshIcon />}
-                    disabled={isAnyOperationPending}
-                  >
-                    Update Clients
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    Update information about clients, tariff plans, VLANs, and
-                    address pools.
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Grid2 container spacing={2} alignItems="center">
-                <Grid2 size="auto">
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={deleteClientsHandle}
-                    startIcon={<DeleteForeverIcon />}
-                    disabled={isAnyOperationPending}
-                  >
-                    Delete All Clients
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    <WarningIcon
-                      sx={{
-                        fontSize: 16,
-                        verticalAlign: "text-bottom",
-                        mr: 0.5,
-                      }}
-                    />
-                    Warning! This will permanently delete all clients.
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Typography
-                variant="body2"
-                color="text.primary"
-                sx={{ mt: 2, fontStyle: "italic" }}
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <ManagementCard
+            title="Client management"
+            icon={PeopleAltIcon}
+            description="Clients are entities whose information is collected from the billing system."
+            dangerZone={
+              <Button
+                variant="contained"
+                color="error"
+                onClick={deleteClientsHandle}
+                startIcon={<DeleteForeverIcon />}
+                disabled={isAnyOperationPending}
+                size="small"
               >
-                Clients are entities whose information is collected from the
-                billing system.
-              </Typography>
-            </CardContent>
-          </Card>
+                Delete all clients
+              </Button>
+            }
+          >
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={updateClientsHandle}
+              startIcon={<RefreshIcon />}
+              disabled={isAnyOperationPending}
+            >
+              Sync clients, plans, VLANs
+            </Button>
+          </ManagementCard>
         </Grid2>
 
         {/* Network Devices Section */}
-        <Grid2 size={12}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                🌐 Network Devices Management
-              </Typography>
-
-              <Grid2 container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                <Grid2 size="auto">
-                  <Button
-                    component={Link}
-                    to={routes.networkDevices}
-                    variant="contained"
-                    color="info"
-                    disabled={isAnyOperationPending}
-                  >
-                    View Gateways
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    Manage and view all network gateways.
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Grid2 container spacing={2} alignItems="center">
-                <Grid2 size="auto">
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={deleteAllNetworkDevices}
-                    startIcon={<DeleteForeverIcon />}
-                    disabled={isAnyOperationPending}
-                  >
-                    Delete All Network Devices
-                  </Button>
-                </Grid2>
-                <Grid2>
-                  <Typography variant="body2" color="text.secondary">
-                    <WarningIcon
-                      sx={{
-                        fontSize: 16,
-                        verticalAlign: "text-bottom",
-                        mr: 0.5,
-                      }}
-                    />
-                    Warning! This will permanently delete all network devices.
-                  </Typography>
-                </Grid2>
-              </Grid2>
-
-              <Typography
-                variant="body2"
-                color="text.primary"
-                sx={{ mt: 2, fontStyle: "italic" }}
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <ManagementCard
+            title="Network device management"
+            icon={DevicesIcon}
+            description="Network devices are entities whose information is collected from data center routers over SNMP."
+            dangerZone={
+              <Button
+                variant="contained"
+                color="error"
+                onClick={deleteAllNetworkDevices}
+                startIcon={<DeleteForeverIcon />}
+                disabled={isAnyOperationPending}
+                size="small"
               >
-                Network devices are entities whose information is collected from
-                data center routers.
-              </Typography>
-            </CardContent>
-          </Card>
+                Delete all network devices
+              </Button>
+            }
+          >
+            <Button
+              component={Link}
+              to={routes.networkDevices}
+              variant="contained"
+              color="info"
+              disabled={isAnyOperationPending}
+            >
+              View devices
+            </Button>
+          </ManagementCard>
+        </Grid2>
+
+        {/* Users Section */}
+        <Grid2 size={{ xs: 12, md: 6 }}>
+          <ManagementCard
+            title="User management"
+            icon={GroupIcon}
+            description="Review accounts, change roles, and activate or deactivate access. New accounts are created via the Register page."
+          >
+            <Button
+              component={Link}
+              to={routes.adminUsers}
+              variant="contained"
+              color="secondary"
+              startIcon={<ManageAccountsIcon />}
+            >
+              Manage users
+            </Button>
+          </ManagementCard>
         </Grid2>
       </Grid2>
 

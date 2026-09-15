@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;
 
 public class PortDTO : IMapWith<Port>
@@ -17,6 +19,12 @@ public class PortDTO : IMapWith<Port>
 
   public IDictionary<string, HashSet<string>> ARPTableOfPort { get; set; } = null!;
   public IDictionary<string, string> NetworkTableOfPort { get; set; } = null!;
+
+  // System.Text.Json's default camelCase policy turns "VLANs" into "vlaNs" (it
+  // keeps the last letter of an all-caps run uppercase when followed by a
+  // lowercase letter, to preserve the word boundary before "s"). Pinned to the
+  // "vlans" a consumer would actually expect - see Port.ts on the frontend.
+  [JsonPropertyName("vlans")]
   public List<VLANDTO> VLANs { get; set; } = null!;
 
   public Guid? ParentId { get; set; }

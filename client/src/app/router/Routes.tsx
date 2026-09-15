@@ -35,6 +35,9 @@ const GateForm = lazy(
   () => import("../../features/Gates/CreateUpdate/GateForm")
 );
 const AdminPage = lazy(() => import("../../features/Admin/AdminPage"));
+const UsersDashboard = lazy(
+  () => import("../../features/Users/List/UsersDashboard")
+);
 const NetworkDeviceDashboard = lazy(
   () => import("../../features/NetworkDevices/List/NetworkDeviceDashboard")
 );
@@ -174,6 +177,14 @@ export const router = createBrowserRouter([
         element: page(
           <ProtectedRoute roles={["Admin"]}>
             <AdminPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: routeSegments.adminUsers,
+        element: page(
+          <ProtectedRoute roles={["Admin"]}>
+            <UsersDashboard />
           </ProtectedRoute>
         ),
       },

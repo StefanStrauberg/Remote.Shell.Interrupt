@@ -6,7 +6,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
+using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Users;
+using Remote.Shell.Interrupt.Storehouse.Application.Exceptions;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 
 namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
 
@@ -22,6 +27,7 @@ internal sealed class IdentityService(
     RoleManager<IdentityRole<Guid>> roleManager,
     SignInManager<ApplicationUser> signInManager,
     ApplicationDbContext dbContext,
+    IQueryFilterParser queryFilterParser,
     IOptions<JwtSettings> jwtOptions)
     : IIdentityService
 {
@@ -256,4 +262,92 @@ internal sealed class IdentityService(
 
     static string HashToken(string rawToken)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
+
+    public async Task<PagedList<UserDTO>> GetUsersByFilterAsync(RequestParameters requestParameters,
+                                                                CancellationToken cancellationToken = default)
+    {
+        // Queries dbContext.Users directly rather than userManager.Users: the latter
+        // throws NotSupportedException unless the configured IUserStore also implements
+        // IQueryableUserStore<TUser>, which the real EF Core store does but a test double
+        // typically does not. The DbSet works identically in both.
+        IQueryable<ApplicationUser> query = dbContext.Users.AsNoTracking();
+
+        var filterExpr = queryFilterParser.ParseFilters<ApplicationUser>(requestParameters.Filters);
+        if (filterExpr is not null)
+            query = query.Where(filterExpr);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var orderByExpr = queryFilterParser.ParseOrderBy<ApplicationUser>(requestParameters.OrderBy);
+        query = orderByExpr is not null
+            ? (requestParameters.OrderByDescending ? query.OrderByDescending(orderByExpr) : query.OrderBy(orderByExpr))
+            : query.OrderBy(u => u.Email);
+
+        var pagination = new PaginationContext(requestParameters.PageNumber ?? 1,
+                                               requestParameters.PageSize ?? Math.Max(totalCount, 1));
+
+        if (requestParameters.IsPaginated)
+            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize).Take(pagination.PageSize);
+
+        var users = await query.ToListAsync(cancellationToken);
+        var userIds = users.Select(u => u.Id).ToList();
+
+        var rolesByUserId = await (from userRole in dbContext.UserRoles
+                                   join role in dbContext.Roles on userRole.RoleId equals role.Id
+                                   where userIds.Contains(userRole.UserId)
+                                   select new { userRole.UserId, role.Name })
+                                  .ToListAsync(cancellationToken);
+
+        var rolesLookup = rolesByUserId.GroupBy(x => x.UserId)
+                                       .ToDictionary(g => g.Key, g => g.Select(x => x.Name!).ToList());
+
+        var dtos = users.Select(user => new UserDTO
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            FullName = user.FullName,
+            IsActive = user.IsActive,
+            CreatedAtUtc = user.CreatedAtUtc,
+            Roles = rolesLookup.TryGetValue(user.Id, out var roles) ? roles : []
+        });
+
+        return PagedList<UserDTO>.Create(dtos, totalCount, pagination);
+    }
+
+    public async Task UpdateUserRoleAsync(Guid userId, string role, CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        var currentRoles = await userManager.GetRolesAsync(user);
+
+        if (currentRoles.Contains(role) && currentRoles.Count == 1)
+            return;
+
+        if (currentRoles.Count > 0)
+            await userManager.RemoveFromRolesAsync(user, currentRoles);
+
+        await userManager.AddToRoleAsync(user, role);
+    }
+
+    public async Task SetUserActiveAsync(Guid userId, bool isActive, CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        if (user.IsActive == isActive)
+            return;
+
+        user.IsActive = isActive;
+        await userManager.UpdateAsync(user);
+    }
+
+    public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await FindUserOrThrowAsync(userId);
+
+        await userManager.DeleteAsync(user);
+    }
+
+    async Task<ApplicationUser> FindUserOrThrowAsync(Guid userId)
+        => await userManager.FindByIdAsync(userId.ToString())
+           ?? throw new EntityNotFoundException(typeof(ApplicationUser), nameof(ApplicationUser.Id));
 }

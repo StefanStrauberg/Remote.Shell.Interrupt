@@ -1,4 +1,7 @@
+using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Users;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Request;
+using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 
@@ -70,4 +73,35 @@ public interface IIdentityService
     /// </summary>
     Task RevokeAllRefreshTokensAsync(Guid userId,
                                      CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a filtered, paginated, sorted list of accounts for the admin Users page.
+    /// </summary>
+    Task<PagedList<UserDTO>> GetUsersByFilterAsync(RequestParameters requestParameters,
+                                                   CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replaces every role currently held by the user with a single new one
+    /// ("Admin" or "User"). Throws <see cref="Exceptions.EntityNotFoundException"/>
+    /// if the user does not exist.
+    /// </summary>
+    Task UpdateUserRoleAsync(Guid userId,
+                             string role,
+                             CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Activates or soft-deactivates an account (see <c>ApplicationUser.IsActive</c>);
+    /// a deactivated account fails login even with valid credentials. Throws
+    /// <see cref="Exceptions.EntityNotFoundException"/> if the user does not exist.
+    /// </summary>
+    Task SetUserActiveAsync(Guid userId,
+                            bool isActive,
+                            CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Permanently deletes an account. Throws <see cref="Exceptions.EntityNotFoundException"/>
+    /// if the user does not exist.
+    /// </summary>
+    Task DeleteUserAsync(Guid userId,
+                        CancellationToken cancellationToken = default);
 }

@@ -1,8 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Configuration;
 using Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Identity;
+using Remote.Shell.Interrupt.Storehouse.QueryFilterParser.QueryFilterParsers;
 
 namespace Tests.Persistence;
 
@@ -12,6 +14,7 @@ public class IdentityServiceTests : IDisposable
     readonly RoleManager<IdentityRole<Guid>> _roleManager;
     readonly SignInManager<ApplicationUser> _signInManager;
     readonly ApplicationDbContext _dbContext = TestDbContextFactory.CreateContext();
+    readonly IQueryFilterParser _queryFilterParser = new CommonQueryFilterParser();
     readonly JwtSettings _jwtSettings = new()
     {
         Issuer = "test-issuer",
@@ -35,7 +38,7 @@ public class IdentityServiceTests : IDisposable
             Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>(),
             null, null, null, null);
 
-        _service = new IdentityService(_userManager, _roleManager, _signInManager, _dbContext, Options.Create(_jwtSettings));
+        _service = new IdentityService(_userManager, _roleManager, _signInManager, _dbContext, _queryFilterParser, Options.Create(_jwtSettings));
     }
 
     public void Dispose() => _dbContext.Dispose();
@@ -338,6 +341,127 @@ public class IdentityServiceTests : IDisposable
 
         _dbContext.RefreshTokens.Single(t => t.TokenHash == HashForTest(rawToken))
                   .RevokedAtUtc.Should().Be(firstRevocation);
+    }
+
+    [Fact]
+    public async Task GetUsersByFilterAsync_ReturnsUsersWithRolesSortedByEmailByDefault()
+    {
+        var adminRole = new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" };
+        var userA = new ApplicationUser { Id = Guid.NewGuid(), Email = "b@test.com", IsActive = true, CreatedAtUtc = DateTime.UtcNow };
+        var userB = new ApplicationUser { Id = Guid.NewGuid(), Email = "a@test.com", IsActive = false, CreatedAtUtc = DateTime.UtcNow };
+        _dbContext.Users.AddRange(userA, userB);
+        _dbContext.Roles.Add(adminRole);
+        _dbContext.UserRoles.Add(new IdentityUserRole<Guid> { UserId = userA.Id, RoleId = adminRole.Id });
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _service.GetUsersByFilterAsync(new RequestParameters());
+
+        result.Should().HaveCount(2);
+        result[0].Email.Should().Be("a@test.com");
+        result[0].Roles.Should().BeEmpty();
+        result[1].Email.Should().Be("b@test.com");
+        result[1].Roles.Should().ContainSingle().Which.Should().Be("Admin");
+        result[1].IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetUsersByFilterAsync_FiltersAndPaginates()
+    {
+        for (var i = 0; i < 3; i++)
+            _dbContext.Users.Add(new ApplicationUser { Id = Guid.NewGuid(), Email = $"active{i}@test.com", IsActive = true });
+        _dbContext.Users.Add(new ApplicationUser { Id = Guid.NewGuid(), Email = "inactive@test.com", IsActive = false });
+        await _dbContext.SaveChangesAsync();
+
+        var parameters = new RequestParameters
+        {
+            PageNumber = 1,
+            PageSize = 2,
+            Filters = [new FilterDescriptor(nameof(ApplicationUser.IsActive), FilterOperator.Equals, "true")]
+        };
+
+        var result = await _service.GetUsersByFilterAsync(parameters);
+
+        result.TotalCount.Should().Be(3);
+        result.TotalPages.Should().Be(2);
+        result.Should().HaveCount(2);
+        result.Should().OnlyContain(u => u.IsActive);
+    }
+
+    [Fact]
+    public async Task UpdateUserRoleAsync_UnknownUser_ThrowsEntityNotFound()
+    {
+        var act = async () => await _service.UpdateUserRoleAsync(Guid.NewGuid(), "Admin");
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task UpdateUserRoleAsync_ReplacesExistingRolesWithTheNewOne()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid() };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.GetRolesAsync(user).Returns((IList<string>)["User"]);
+        _userManager.RemoveFromRolesAsync(user, Arg.Any<IEnumerable<string>>()).Returns(IdentityResult.Success);
+        _userManager.AddToRoleAsync(user, "Admin").Returns(IdentityResult.Success);
+
+        await _service.UpdateUserRoleAsync(user.Id, "Admin");
+
+        await _userManager.Received().RemoveFromRolesAsync(user, Arg.Is<IEnumerable<string>>(r => r.Contains("User")));
+        await _userManager.Received().AddToRoleAsync(user, "Admin");
+    }
+
+    [Fact]
+    public async Task UpdateUserRoleAsync_AlreadyHasOnlyThatRole_DoesNothing()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid() };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.GetRolesAsync(user).Returns((IList<string>)["Admin"]);
+
+        await _service.UpdateUserRoleAsync(user.Id, "Admin");
+
+        await _userManager.DidNotReceive().RemoveFromRolesAsync(user, Arg.Any<IEnumerable<string>>());
+        await _userManager.DidNotReceive().AddToRoleAsync(user, Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SetUserActiveAsync_UnknownUser_ThrowsEntityNotFound()
+    {
+        var act = async () => await _service.SetUserActiveAsync(Guid.NewGuid(), false);
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task SetUserActiveAsync_TogglesFlagAndPersists()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid(), IsActive = true };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.UpdateAsync(user).Returns(IdentityResult.Success);
+
+        await _service.SetUserActiveAsync(user.Id, false);
+
+        user.IsActive.Should().BeFalse();
+        await _userManager.Received().UpdateAsync(user);
+    }
+
+    [Fact]
+    public async Task DeleteUserAsync_UnknownUser_ThrowsEntityNotFound()
+    {
+        var act = async () => await _service.DeleteUserAsync(Guid.NewGuid());
+
+        await act.Should().ThrowAsync<EntityNotFoundException>();
+    }
+
+    [Fact]
+    public async Task DeleteUserAsync_KnownUser_CallsUserManagerDelete()
+    {
+        var user = new ApplicationUser { Id = Guid.NewGuid() };
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        _userManager.DeleteAsync(user).Returns(IdentityResult.Success);
+
+        await _service.DeleteUserAsync(user.Id);
+
+        await _userManager.Received().DeleteAsync(user);
     }
 
     async Task<string> SeedRefreshTokenAsync(Guid userId, DateTime? expiresAtUtc = null)
