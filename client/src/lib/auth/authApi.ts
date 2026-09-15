@@ -3,20 +3,8 @@ import { ApiError } from "../api/ApiError";
 import {
   AUTH_COOKIE_LOGIN_URL,
   AUTH_COOKIE_LOGOUT_URL,
-  AUTH_LOGIN_URL,
   AUTH_REGISTER_URL,
 } from "../../config/api.config";
-
-/** Body of POST /api/Auth/Login — serialized camelCase by MVC. */
-export type AuthLoginResponse = {
-  success: boolean;
-  token: string | null;
-  expiresAtUtc?: string;
-  userId: string | null;
-  email: string | null;
-  roles: string[];
-  error?: string | null;
-};
 
 /** Body of POST /api/Auth/Register. */
 export type AuthRegisterResponse = {
@@ -33,14 +21,6 @@ export type AuthCookieLoginResponse = {
 };
 
 export const authApi = {
-  async login(email: string, password: string): Promise<AuthLoginResponse> {
-    const response = await httpClient.post<AuthLoginResponse>(AUTH_LOGIN_URL, {
-      email,
-      password,
-    });
-    return response.data;
-  },
-
   async register(
     email: string,
     password: string,
@@ -58,10 +38,11 @@ export const authApi = {
   },
 
   /**
-   * Establishes an HttpOnly cookie session. Requires the backend CORS policy
-   * to allow the frontend origin with credentials (AllowCredentials + explicit
-   * origins) — withCredentials is set per-request so the JWT flow keeps
-   * working against the current wildcard CORS policy.
+   * Establishes an HttpOnly cookie session — the SPA's only authentication
+   * flow, so no bearer token ever exists in JS-accessible storage.
+   * withCredentials is on by default for every request (see httpClient.ts);
+   * the backend CORS policy pairs a concrete origin with AllowCredentials()
+   * so the browser actually accepts and stores the cross-origin cookie.
    */
   async cookieLogin(
     email: string,
@@ -70,18 +51,13 @@ export const authApi = {
   ): Promise<AuthCookieLoginResponse> {
     const response = await httpClient.post<AuthCookieLoginResponse>(
       AUTH_COOKIE_LOGIN_URL,
-      { email, password, isPersistent },
-      { withCredentials: true }
+      { email, password, isPersistent }
     );
     return response.data;
   },
 
   async cookieLogout(): Promise<void> {
-    await httpClient.post(
-      AUTH_COOKIE_LOGOUT_URL,
-      {},
-      { withCredentials: true }
-    );
+    await httpClient.post(AUTH_COOKIE_LOGOUT_URL, {});
   },
 };
 

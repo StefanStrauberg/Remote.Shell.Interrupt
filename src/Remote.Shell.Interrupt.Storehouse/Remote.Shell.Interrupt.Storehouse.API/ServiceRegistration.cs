@@ -66,12 +66,27 @@ public static class ServiceRegistration
                     {
                       options.AddPolicy(DefaultEntities.CorsPolicyName, corsPolicy =>
                       {
+                        // The SPA's session is an HttpOnly cookie (see AuthController.CookieLogin),
+                        // so a cross-origin request needs the browser to accept a cross-origin
+                        // Set-Cookie and later send it back - which requires AllowCredentials()
+                        // here, paired with a concrete origin: wildcard and AllowCredentials() are
+                        // mutually exclusive by the CORS spec (and ASP.NET Core's policy builder
+                        // throws if both are configured), so AllowAnyOrigin() can never be combined
+                        // with it.
+                        var allowsCredentialedOrigin = allowedOrigins.Length > 0 || isDevelopment;
+
                         if (allowedOrigins.Length > 0)
                           corsPolicy.WithOrigins(allowedOrigins);
                         else if (isDevelopment)
-                          corsPolicy.AllowAnyOrigin();
+                          // `npm run dev` serves the SPA on :3000 against the API on :5000 (see
+                          // client/vite.config.ts and client/.env.development) - that's the
+                          // "Development, no explicit origins configured" case this covers.
+                          corsPolicy.WithOrigins("http://localhost:3000");
                         // Outside Development, with no configured origins, no origin is allowed:
                         // safer default than permitting any site to call the API cross-origin.
+
+                        if (allowsCredentialedOrigin)
+                          corsPolicy.AllowCredentials();
 
                         corsPolicy.AllowAnyHeader()
                                   .AllowAnyMethod()

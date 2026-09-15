@@ -11,43 +11,14 @@ import { authApi } from "./authApi";
  */
 export function useAuth() {
   const user = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
   const status = useAuthStore((state) => state.status);
   const queryClient = useQueryClient();
 
   const loginAsync = useCallback(
-    async (email: string, password: string): Promise<AuthUser> => {
-      const response = await authApi.login(email, password);
-
-      if (
-        !response.success ||
-        !response.token ||
-        !response.userId ||
-        !response.email ||
-        !Array.isArray(response.roles)
-      ) {
-        throw new Error(
-          response.error ?? "The server returned an invalid login response."
-        );
-      }
-
-      const sessionUser: AuthUser = {
-        id: response.userId,
-        email: response.email,
-        roles: response.roles,
-      };
-
-      useAuthStore.getState().setSession(sessionUser, response.token);
-      return sessionUser;
-    },
-    []
-  );
-
-  const cookieLoginAsync = useCallback(
     async (
       email: string,
       password: string,
-      isPersistent = false
+      isPersistent = true
     ): Promise<AuthUser> => {
       const response = await authApi.cookieLogin(email, password, isPersistent);
 
@@ -64,7 +35,7 @@ export function useAuth() {
         roles: response.roles,
       };
 
-      useAuthStore.getState().setSession(sessionUser, null);
+      useAuthStore.getState().setSession(sessionUser);
       return sessionUser;
     },
     []
@@ -90,12 +61,10 @@ export function useAuth() {
 
   return {
     user,
-    token,
     status,
     isAuthenticated: status === ("authenticated" satisfies AuthStatus),
     isAdmin: user?.roles.includes(ADMIN_ROLE) ?? false,
     loginAsync,
-    cookieLoginAsync,
     registerAsync,
     logout,
   };

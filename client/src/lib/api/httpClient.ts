@@ -3,10 +3,8 @@ import {
   API_BASE_URL,
   AUTH_COOKIE_LOGIN_URL,
   AUTH_COOKIE_LOGOUT_URL,
-  AUTH_LOGIN_URL,
   AUTH_REGISTER_URL,
 } from "@/config/api.config";
-import { useAuthStore } from "@/lib/auth/authStore";
 import { notifyUnauthorized } from "@/lib/auth/unauthorizedHandler";
 import { uiStore } from "@/lib/stores/uiStore";
 import { toApiError } from "./ApiError";
@@ -14,10 +12,16 @@ import { toApiError } from "./ApiError";
 const httpClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30_000,
+  // The session is an HttpOnly cookie (see authApi.cookieLogin), not a bearer
+  // token attached here - this is what makes the browser send it on every
+  // request and store the Set-Cookie from CookieLogin/RefreshToken in the
+  // first place. The backend CORS policy pairs a concrete origin with
+  // AllowCredentials() (see ServiceRegistration.cs) so this also works
+  // cross-origin, e.g. `npm run dev` against a separately-hosted API.
+  withCredentials: true,
 });
 
 const inlineAuthEndpoints = new Set([
-  AUTH_LOGIN_URL,
   AUTH_REGISTER_URL,
   AUTH_COOKIE_LOGIN_URL,
   AUTH_COOKIE_LOGOUT_URL,
@@ -26,8 +30,6 @@ const inlineAuthEndpoints = new Set([
 httpClient.interceptors.request.use(
   (config) => {
     uiStore.startRequest();
-    const token = useAuthStore.getState().token;
-    if (token) config.headers.set("Authorization", `Bearer ${token}`);
     return config;
   },
   (error) => Promise.reject(error)

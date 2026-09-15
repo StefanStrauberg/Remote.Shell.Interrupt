@@ -1,43 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  decodeJwtPayload,
-  isTokenExpired,
-  rolesFromJwtPayload,
-} from "../src/lib/auth/jwt";
 import { formatApiDate, isGuid, isValidVlanId } from "../src/lib/utils";
-
-function tokenWithPayload(payload: object): string {
-  const encoded = btoa(JSON.stringify(payload))
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-  return `header.${encoded}.signature`;
-}
-
-describe("JWT session helpers", () => {
-  it("decodes URL-safe payloads and normalizes roles", () => {
-    const token = tokenWithPayload({
-      sub: "user-id",
-      role: ["Admin", "User"],
-      exp: Math.floor(Date.now() / 1000) + 120,
-    });
-    const payload = decodeJwtPayload(token);
-
-    expect(payload?.sub).toBe("user-id");
-    expect(rolesFromJwtPayload(payload!)).toEqual(["Admin", "User"]);
-    expect(isTokenExpired(token)).toBe(false);
-  });
-
-  it("rejects malformed, non-expiring, and expired tokens", () => {
-    expect(isTokenExpired("not-a-jwt")).toBe(true);
-    expect(isTokenExpired(tokenWithPayload({ sub: "user-id" }))).toBe(true);
-    expect(
-      isTokenExpired(
-        tokenWithPayload({ exp: Math.floor(Date.now() / 1000) - 60 })
-      )
-    ).toBe(true);
-  });
-});
 
 describe("input and API formatting helpers", () => {
   it("accepts only valid VLAN tags", () => {

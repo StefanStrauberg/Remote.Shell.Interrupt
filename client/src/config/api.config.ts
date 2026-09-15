@@ -11,7 +11,6 @@ export function apiPath(...segments: Array<string | number>): string {
   return [API_V1_PREFIX, ...suffix].join("/");
 }
 
-export const AUTH_LOGIN_URL = `${API_V1_PREFIX}/Auth/Login`;
 export const AUTH_REGISTER_URL = `${API_V1_PREFIX}/Auth/Register`;
 export const AUTH_COOKIE_LOGIN_URL = `${API_V1_PREFIX}/Auth/CookieLogin`;
 export const AUTH_COOKIE_LOGOUT_URL = `${API_V1_PREFIX}/Auth/CookieLogout`;
