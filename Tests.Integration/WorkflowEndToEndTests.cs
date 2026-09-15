@@ -56,7 +56,10 @@ public class WorkflowEndToEndTests(ApiFactory factory)
 
     var run = await client.PostAsJsonAsync($"/api/v1/Workflows/ExecuteWorkflow/{saved.Id}", new ExecuteWorkflowRequestDTO
     {
-      Host = "127.0.0.1", Community = "test",
+      // Host is inert for this graph (Script-only, no SnmpGet/Walk node ever dials it) - just
+      // needs to pass ExecuteWorkflowCommandValidator's SnmpTargetGuard, which now rejects
+      // loopback the same way SNMPGet/SNMPWalk already do.
+      Host = "192.168.101.8", Community = "test",
       Input = new() { ["payload"] = new Dictionary<string, object?> { ["value"] = 41 } }
     });
     run.StatusCode.Should().Be(HttpStatusCode.OK, await run.Content.ReadAsStringAsync());
