@@ -22,10 +22,20 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 
+# Serilog's File sink (see appsettings.json's "logs/log-.txt") creates this directory itself,
+# but only if it can - pre-create it owned by the non-root user below, since dotnet/aspnet's
+# published files are otherwise all root-owned and read-only to everyone else.
+RUN mkdir -p /app/logs && chown app:app /app/logs
+
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=5 \
     CMD curl -f http://localhost:8080/health/live || exit 1
 
+# mcr.microsoft.com/dotnet/aspnet ships a built-in low-privilege "app" user for exactly this -
+# running as root inside the container is an unnecessary privilege escalation path if the
+# process is ever compromised (e.g. a future dependency RCE), gaining nothing at runtime since
+# this app needs no privileged port or host resource.
+USER app
 ENTRYPOINT ["dotnet", "Remote.Shell.Interrupt.Storehouse.API.dll"]
