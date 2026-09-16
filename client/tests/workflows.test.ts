@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createWorkflow } from "../src/features/Workflows/domain/workflow/defaults";
 import {
   importAsDraft,
+  scriptSourcesDiffer,
+  scriptSourcesOf,
   validateWorkflow,
   workflowPayload,
 } from "../src/features/Workflows/domain/workflow/graph";
@@ -81,6 +83,55 @@ describe("workflow graph compatibility", () => {
     expect(validateWorkflow(graph).some((e) => e.includes("timeout"))).toBe(
       true
     );
+  });
+});
+
+describe("Script node save-confirmation gate", () => {
+  // Regression coverage for the "no client-side friction before shipping
+  // server-executable code" bug: WorkflowEditorPage.save() only prompts for
+  // confirmation when a save would actually change what a Script node runs.
+  it("extracts only Script nodes' source, keyed by node id", () => {
+    const graph = createWorkflow();
+    graph.nodes[1].type = "Script";
+    graph.nodes[1].config = { scriptSource: "return 1;" };
+    expect(scriptSourcesOf(graph)).toEqual({
+      [graph.nodes[1].id]: "return 1;",
+    });
+  });
+  it("treats a graph with no Script nodes as an empty source map", () => {
+    expect(scriptSourcesOf(createWorkflow())).toEqual({});
+  });
+  it("detects no difference for an identical snapshot", () => {
+    const before = { "node-1": "return 1;" };
+    const after = { "node-1": "return 1;" };
+    expect(scriptSourcesDiffer(before, after)).toBe(false);
+  });
+  it("detects an edited script body", () => {
+    const before = { "node-1": "return 1;" };
+    const after = { "node-1": "return 2;" };
+    expect(scriptSourcesDiffer(before, after)).toBe(true);
+  });
+  it("detects a newly added Script node", () => {
+    const before = {};
+    const after = { "node-1": "return 1;" };
+    expect(scriptSourcesDiffer(before, after)).toBe(true);
+  });
+  it("detects a removed Script node", () => {
+    const before = { "node-1": "return 1;" };
+    const after = {};
+    expect(scriptSourcesDiffer(before, after)).toBe(true);
+  });
+  it("ignores unrelated graph changes (e.g. renaming a node)", () => {
+    const graph = createWorkflow();
+    graph.nodes[1].type = "Script";
+    graph.nodes[1].config = { scriptSource: "return 1;" };
+    const before = scriptSourcesOf(graph);
+
+    graph.nodes[1].name = "Renamed";
+    graph.name = "Renamed workflow";
+    const after = scriptSourcesOf(graph);
+
+    expect(scriptSourcesDiffer(before, after)).toBe(false);
   });
 });
 

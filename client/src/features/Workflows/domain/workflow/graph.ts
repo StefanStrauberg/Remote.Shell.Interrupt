@@ -125,6 +125,33 @@ export function layoutWorkflow(value: WorkflowDefinition): WorkflowDefinition {
   return graph;
 }
 
+/** Maps Script-node id -> its scriptSource, for diffing what a save is about to persist. */
+export function scriptSourcesOf(
+  graph: WorkflowDefinition
+): Record<string, string> {
+  const sources: Record<string, string> = {};
+  for (const node of graph.nodes) {
+    if (node.type === "Script") {
+      sources[node.id] = String(node.config.scriptSource ?? "");
+    }
+  }
+  return sources;
+}
+
+/** True when any Script node's source differs between the two snapshots
+ * (added, changed, or removed) - the signal that a save would actually ship
+ * different server-executable code, not just move a box on the canvas. */
+export function scriptSourcesDiffer(
+  before: Record<string, string>,
+  after: Record<string, string>
+): boolean {
+  const ids = new Set([...Object.keys(before), ...Object.keys(after)]);
+  for (const id of ids) {
+    if ((before[id] ?? "") !== (after[id] ?? "")) return true;
+  }
+  return false;
+}
+
 export function workflowPayload(graph: WorkflowDefinition) {
   return {
     name: graph.name.trim(),

@@ -33,7 +33,12 @@ import { routes } from "@/app/router/paths";
 import { useWorkflow, workflowKeys } from "./api/workflowsQueries";
 import { workflowsApi } from "./api/workflowsApi";
 import { createWorkflow } from "./domain/workflow/defaults";
-import { importAsDraft, validateWorkflow } from "./domain/workflow/graph";
+import {
+  importAsDraft,
+  scriptSourcesDiffer,
+  scriptSourcesOf,
+  validateWorkflow,
+} from "./domain/workflow/graph";
 import { nodeTypes, WorkflowDefinition } from "./domain/workflow/model";
 import { DesignerProvider } from "./designer/state/DesignerProvider";
 import { useDesigner } from "./designer/state/designerContext";
@@ -90,6 +95,12 @@ function Editor({ persisted }: { persisted: boolean }) {
   const [confirmation, setConfirmation] = useState<
     "publish" | "archive" | "remove" | null
   >(null);
+  // Snapshot of every Script node's source as of the last load/save, so save()
+  // can tell whether this save would actually change what code runs on the
+  // server - not just whether *something* changed elsewhere in the graph.
+  const [scriptBaseline, setScriptBaseline] = useState(() =>
+    scriptSourcesOf(d.workflow)
+  );
   const bypassBlock = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const blocker = useBlocker(() => !bypassBlock.current && (d.dirty || d.busy));
@@ -130,6 +141,22 @@ function Editor({ persisted }: { persisted: boolean }) {
     const errors = validateWorkflow(d.workflow);
     setIssues(errors);
     if (errors.length) return;
+
+    // Script nodes run arbitrary JavaScript on the server the next time this
+    // workflow executes - saving new/changed source is the one action here
+    // that actually ships executable code, so it's the point that gets a
+    // deliberate confirmation rather than the textarea itself on every
+    // keystroke (see Inspector.tsx for the persistent warning while editing).
+    const currentScriptSources = scriptSourcesOf(d.workflow);
+    if (
+      scriptSourcesDiffer(scriptBaseline, currentScriptSources) &&
+      !window.confirm(
+        "This save changes JavaScript in a Script node. That code will run on the server, with access to this workflow's context data, the next time it executes. Save anyway?"
+      )
+    ) {
+      return;
+    }
+
     d.setBusy(true);
     setError("");
     try {
@@ -150,6 +177,7 @@ function Editor({ persisted }: { persisted: boolean }) {
           navigate(routes.adminWorkflows, { replace: true });
         }
       }
+      setScriptBaseline(currentScriptSources);
       void cache.invalidateQueries({ queryKey: workflowKeys.all });
       toast.success("Workflow saved.");
     } catch (e) {

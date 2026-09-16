@@ -147,6 +147,11 @@ function NodeEditor({ node }: { node: WorkflowNode }) {
       </Typography>
       {node.type === "Script" && (
         <>
+          <Alert severity="warning">
+            This code runs on the server, with access to this workflow&apos;s
+            context data (SNMP results, variables from earlier nodes), the next
+            time the workflow executes. Only paste JavaScript you trust.
+          </Alert>
           <TextField
             label="Input context path"
             value={String(node.config.input ?? "")}
