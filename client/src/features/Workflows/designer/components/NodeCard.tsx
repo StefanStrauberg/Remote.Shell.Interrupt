@@ -41,9 +41,19 @@ export function NodeCard({
         .filter(Boolean)
         .join(" ")}
       style={{ left: node.positionX, top: node.positionY }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      aria-label={`${node.type} node: ${node.name}`}
       onPointerDown={onDragStart}
       onContextMenu={onContextMenu}
       onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
         event.stopPropagation();
         onSelect();
       }}
