@@ -69,3 +69,4 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Qu
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.PublishWorkflow;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Seed;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.ArchiveWorkflow;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Diagnostics.Commands.ReportClientError;

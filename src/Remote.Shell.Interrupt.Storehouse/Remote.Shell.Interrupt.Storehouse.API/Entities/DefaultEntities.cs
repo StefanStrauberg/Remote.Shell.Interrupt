@@ -23,6 +23,13 @@ public static class DefaultEntities
   public const string AuthRateLimitPolicy = "AuthRateLimit";
 
   /// <summary>
+  /// Rate-limiting policy name applied to the anonymous client-error-reporting endpoint, to
+  /// bound how fast an unauthenticated caller can write into the backend's log file.
+  /// Must be a compile-time constant: referenced from the <see cref="Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute"/>.
+  /// </summary>
+  public const string ClientErrorRateLimitPolicy = "ClientErrorRateLimit";
+
+  /// <summary>
   /// The file path pattern for logging output, used by logging providers such as Serilog.
   /// </summary>
   public static string LoggingTo { get; } = "logs/log-.txt";

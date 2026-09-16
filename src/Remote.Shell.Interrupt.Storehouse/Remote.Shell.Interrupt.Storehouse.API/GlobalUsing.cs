@@ -54,3 +54,4 @@ global using Remote.Shell.Interrupt.Storehouse.API.Middleware;
 global using Serilog.Context;
 global using Remote.Shell.Interrupt.Storehouse.API.HealthChecks;
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+global using Remote.Shell.Interrupt.Storehouse.Application.Features.Diagnostics.Commands.ReportClientError;

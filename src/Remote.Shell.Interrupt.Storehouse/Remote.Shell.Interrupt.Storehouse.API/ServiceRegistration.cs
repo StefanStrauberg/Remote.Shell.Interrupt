@@ -94,7 +94,7 @@ public static class ServiceRegistration
                       });
                     });
 
-    builder.Services.AddAuthRateLimiting();
+    builder.Services.AddApiRateLimiting();
 
     builder.Services.AddScoped<CorrelationIdMiddleware>();
   }
@@ -143,11 +143,12 @@ public static class ServiceRegistration
   }
 
   /// <summary>
-  /// Registers a rate-limiting policy for credential-checking auth endpoints
-  /// (login, cookie login), partitioned per client IP address, to slow down
-  /// brute-force/credential-stuffing attempts against those endpoints.
+  /// Registers rate-limiting policies for anonymously-reachable endpoints, partitioned per
+  /// client IP address: credential-checking auth endpoints (login, cookie login), to slow down
+  /// brute-force/credential-stuffing attempts, and the client-error-reporting endpoint, to bound
+  /// how fast an unauthenticated caller can write into the backend's log file.
   /// </summary>
-  static IServiceCollection AddAuthRateLimiting(this IServiceCollection services)
+  static IServiceCollection AddApiRateLimiting(this IServiceCollection services)
   {
     services.AddRateLimiter(options =>
     {
@@ -173,6 +174,19 @@ public static class ServiceRegistration
           factory: _ => new SlidingWindowRateLimiterOptions
           {
             PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 4,
+            QueueLimit = 0
+          }));
+
+      options.AddPolicy(DefaultEntities.ClientErrorRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+          partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+          factory: _ => new SlidingWindowRateLimiterOptions
+          {
+            // Generous compared to AuthRateLimit: a broken deploy can legitimately make many
+            // tabs report a burst of errors at once, and this must not itself get lost.
+            PermitLimit = 20,
             Window = TimeSpan.FromMinutes(1),
             SegmentsPerWindow = 4,
             QueueLimit = 0
