@@ -74,8 +74,7 @@ public class CreateWorkflowCommandHandlerTests : WorkflowHandlerTestBase
     {
         Workflows.AnyByQueryAsync(Arg.Any<ISpecification<WorkflowDefinition>>(), Arg.Any<CancellationToken>()).Returns(true);
 
-        var act = async () => await ((ICommandHandler<CreateWorkflowCommand, Unit>)_handler)
-            .Handle(Command(), CancellationToken.None);
+        var act = async () => await _handler.Handle(Command(), CancellationToken.None);
 
         await act.Should().ThrowAsync<EntityAlreadyExists>();
         Workflows.DidNotReceiveWithAnyArgs().InsertOne(default!);
@@ -88,12 +87,28 @@ public class CreateWorkflowCommandHandlerTests : WorkflowHandlerTestBase
         WorkflowDefinition? inserted = null;
         Workflows.InsertOne(Arg.Do<WorkflowDefinition>(w => inserted = w));
 
-        await ((ICommandHandler<CreateWorkflowCommand, Unit>)_handler).Handle(Command(), CancellationToken.None);
+        await _handler.Handle(Command(), CancellationToken.None);
 
         inserted.Should().NotBeNull();
         inserted!.Name.Should().Be("wf-1");
         UnitOfWork.Received().StartTransaction();
         UnitOfWork.Received().Complete();
+    }
+
+    [Fact]
+    public async Task Handle_NoDuplicate_ReturnsInsertedEntitysId()
+    {
+        // Regression: the caller used to have no way to learn the new workflow's ID from this
+        // command's response and had to re-query by name, which is ambiguous under a race. The
+        // ID here comes from the DB's gen_random_uuid() default via SaveChanges() - simulate
+        // that by having InsertOne assign an ID the way EF Core would after Complete().
+        Workflows.AnyByQueryAsync(Arg.Any<ISpecification<WorkflowDefinition>>(), Arg.Any<CancellationToken>()).Returns(false);
+        var generatedId = Guid.NewGuid();
+        Workflows.InsertOne(Arg.Do<WorkflowDefinition>(w => w.Id = generatedId));
+
+        var result = await _handler.Handle(Command(), CancellationToken.None);
+
+        result.Should().Be(generatedId);
     }
 
     [Fact]
@@ -103,7 +118,7 @@ public class CreateWorkflowCommandHandlerTests : WorkflowHandlerTestBase
         var handler = new CreateWorkflowCommandHandler(UnitOfWork, realSpec, Parser, Mapper);
         Workflows.AnyByQueryAsync(Arg.Any<ISpecification<WorkflowDefinition>>(), Arg.Any<CancellationToken>()).Returns(false);
 
-        await ((ICommandHandler<CreateWorkflowCommand, Unit>)handler).Handle(Command(), CancellationToken.None);
+        await handler.Handle(Command(), CancellationToken.None);
 
         await Workflows.Received().AnyByQueryAsync(
             Arg.Is<ISpecification<WorkflowDefinition>>(s => s.Criterias != null), Arg.Any<CancellationToken>());

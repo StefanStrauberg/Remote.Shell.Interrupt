@@ -55,9 +55,9 @@ public class WorkflowsController(ISender sender) : BaseAPIController(sender)
   /// </summary>
   /// <param name="createWorkflowDTO">The graph (name, start node, nodes, edges) to create.</param>
   /// <param name="cancellationToken">Token to cancel the request if needed.</param>
-  /// <returns><see cref="StatusCodes.Status200OK"/> upon successful creation.</returns>
+  /// <returns>The new workflow's ID.</returns>
   [HttpPost]
-  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
   public async Task<IActionResult> CreateWorkflow([FromBody] CreateWorkflowDTO createWorkflowDTO,
                                                   CancellationToken cancellationToken)
     => Ok(await Sender.Send(new CreateWorkflowCommand(createWorkflowDTO), cancellationToken));

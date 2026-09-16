@@ -137,31 +137,32 @@ describe("Script node save-confirmation gate", () => {
 
 describe("workflow HTTP contract", () => {
   beforeEach(() => vi.restoreAllMocks());
-  it("resolves the ID assigned by the server after creating a workflow", async () => {
+  it("uses the ID returned directly by CreateWorkflow, not a name lookup", async () => {
+    // Regression: this used to re-derive the ID via list(1, name, true), which could resolve
+    // to the wrong workflow under a concurrent create/rename sharing that name. The backend
+    // now returns the new ID in the CreateWorkflow response body itself.
     const draft = createWorkflow();
     const saved = { ...draft, id: "server-id" };
-    const post = vi.spyOn(httpClient, "post").mockResolvedValue({ data: {} });
-    vi.spyOn(workflowsApi, "list").mockResolvedValue({
-      data: [{ ...saved, nodeCount: 2, edgeCount: 1 }],
-      pagination: {
-        TotalCount: 1,
-        TotalPages: 1,
-        PageSize: 12,
-        CurrentPage: 1,
-        HasNext: false,
-        HasPrevious: false,
-      },
-    });
+    const post = vi
+      .spyOn(httpClient, "post")
+      .mockResolvedValue({ data: "server-id" });
+    const list = vi.spyOn(workflowsApi, "list");
     vi.spyOn(workflowsApi, "get").mockResolvedValue(saved);
+
     expect(await workflowsApi.create(draft)).toEqual(saved);
+
     expect(post).toHaveBeenCalledWith(
       "/api/v1/Workflows/CreateWorkflow",
       workflowPayload(draft)
     );
+    expect(workflowsApi.get).toHaveBeenCalledWith("server-id");
+    expect(list).not.toHaveBeenCalled();
   });
-  it("does not retry a successful creation if ID lookup fails", async () => {
-    const post = vi.spyOn(httpClient, "post").mockResolvedValue({ data: {} });
-    vi.spyOn(workflowsApi, "list").mockRejectedValue(new Error("Offline"));
+  it("does not retry a successful creation if the follow-up GET fails", async () => {
+    const post = vi
+      .spyOn(httpClient, "post")
+      .mockResolvedValue({ data: "server-id" });
+    vi.spyOn(workflowsApi, "get").mockRejectedValue(new Error("Offline"));
     expect(await workflowsApi.create(createWorkflow())).toBeNull();
     expect(post).toHaveBeenCalledTimes(1);
   });

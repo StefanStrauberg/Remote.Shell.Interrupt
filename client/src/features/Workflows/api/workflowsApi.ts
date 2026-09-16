@@ -39,12 +39,15 @@ export const workflowsApi = {
     ).data;
   },
   async create(graph: WorkflowDefinition): Promise<WorkflowDefinition | null> {
-    await httpClient.post(endpoint("CreateWorkflow"), workflowPayload(graph));
-    // Create returns MediatR Unit, not an ID. Resolve the server-assigned ID by its unique name.
+    // CreateWorkflow's response body is the new workflow's ID (a plain GUID string) - fetched
+    // by primary key below, not by re-querying for a name match, which was ambiguous under a
+    // concurrent create/rename sharing that name.
+    const response = await httpClient.post<string>(
+      endpoint("CreateWorkflow"),
+      workflowPayload(graph)
+    );
     try {
-      const page = await workflowsApi.list(1, graph.name.trim(), true);
-      const saved = page.data.find((w) => w.name === graph.name.trim());
-      return saved ? await workflowsApi.get(saved.id) : null;
+      return await workflowsApi.get(response.data);
     } catch {
       return null;
     } // Creation succeeded; never retry POST because a follow-up GET failed.
