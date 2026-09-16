@@ -111,11 +111,26 @@ The suites cover:
   loading existing values and query-cache invalidation. Bulk-delete tests ensure
   every page is read before deletion begins and errors stop the operation.
 - Devices and clients: loading/error/empty states, record links, pagination,
-  filters, sorting and view selection.
+  filters, sorting and view selection. Detail tests cover optional customer data,
+  contacts/history, port speed units, empty diagnostics, and independent expansion
+  of MAC tables and aggregated interfaces. Filter tests exercise submission,
+  normalization, pagination reset and recovery from an empty result.
+- Account administration: self-account protections, role changes, deletion
+  confirmation, pending operations, rollback after failed activation changes,
+  profile validation and retry. Registration tests cover administrator-only
+  access, password confirmation, selected roles, preserving the administrator's
+  session and refreshing the user directory.
+- Administrative operations: cancellation of bulk-delete confirmations, selecting
+  the correct deletion, blocking concurrent operations, error recovery and
+  invalidating clients, tariffs and VLANs after synchronization.
 - Workflows: catalog search and retry, graph import/validation, ID remapping,
   execution errors and cancellation contracts. Designer-state tests exercise
   undo/redo, read-only and busy states, unique Start nodes, insertion, reconnection,
   grid snapping and resetting the saved baseline.
+- Workflow execution UI: saved/dirty guards, JSON input validation, request
+  payloads, busy-state locking, trace and output rendering, application and
+  transport failures, retry, cancellation, unmount cleanup and device-cache
+  invalidation.
 - HTTP transport: cookies, normalized errors, handling 401 responses, cancellation
   and tracking concurrent requests. A local Axios adapter keeps these tests offline.
 
