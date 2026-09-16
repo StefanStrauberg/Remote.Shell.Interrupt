@@ -97,6 +97,19 @@ export function importAsDraft(value: unknown): WorkflowDefinition {
   return graph;
 }
 
+/** Prepares a "Create draft copy" of a graph: a new Draft with fresh IDs, distinctly named
+ * from its source. Only bumps the version when the source was Published or Archived (frozen) -
+ * that copy is the start of the *next* revision. Copying an editable Draft isn't a new
+ * revision, just a duplicate of the one being worked on, so it keeps the same version number. */
+export function duplicateAsDraft(
+  graph: WorkflowDefinition
+): WorkflowDefinition {
+  const copy = importAsDraft(graph);
+  copy.name += " copy";
+  if (graph.status !== "Draft") copy.version += 1;
+  return copy;
+}
+
 /** Seeded graphs may have no designer coordinates. Arrange each reachable layer,
  * then place disconnected nodes in a final column; cycles cannot stall the walk. */
 export function layoutWorkflow(value: WorkflowDefinition): WorkflowDefinition {

@@ -34,6 +34,7 @@ import { useWorkflow, workflowKeys } from "./api/workflowsQueries";
 import { workflowsApi } from "./api/workflowsApi";
 import { createWorkflow } from "./domain/workflow/defaults";
 import {
+  duplicateAsDraft,
   importAsDraft,
   scriptSourcesDiffer,
   scriptSourcesOf,
@@ -213,9 +214,7 @@ function Editor({ persisted }: { persisted: boolean }) {
     }
   };
   const copy = () => {
-    const graph = importAsDraft(d.workflow);
-    graph.name += " copy";
-    graph.version += 1;
+    const graph = duplicateAsDraft(d.workflow);
     navigate(routes.createWorkflow, { state: { draft: graph } });
   };
   const exportGraph = () => {

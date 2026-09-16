@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createWorkflow } from "../src/features/Workflows/domain/workflow/defaults";
 import {
+  duplicateAsDraft,
   importAsDraft,
   scriptSourcesDiffer,
   scriptSourcesOf,
@@ -83,6 +84,38 @@ describe("workflow graph compatibility", () => {
     expect(validateWorkflow(graph).some((e) => e.includes("timeout"))).toBe(
       true
     );
+  });
+});
+
+describe("draft-copy version handling", () => {
+  // Regression coverage for: "Create draft copy" used to bump the version on every copy,
+  // including when duplicating a Draft that was never published - silently skipping version
+  // numbers for a workflow that was never actually released as that prior version.
+  it("keeps the same version when copying a Draft", () => {
+    const graph = { ...createWorkflow(), status: "Draft" as const, version: 3 };
+    const copy = duplicateAsDraft(graph);
+    expect(copy.version).toBe(3);
+    expect(copy.name).toBe(`${graph.name} copy`);
+    expect(copy.status).toBe("Draft");
+    expect(copy.id).not.toBe(graph.id);
+  });
+  it("bumps the version when copying a Published workflow", () => {
+    const graph = {
+      ...createWorkflow(),
+      status: "Published" as const,
+      version: 3,
+    };
+    const copy = duplicateAsDraft(graph);
+    expect(copy.version).toBe(4);
+  });
+  it("bumps the version when copying an Archived workflow", () => {
+    const graph = {
+      ...createWorkflow(),
+      status: "Archived" as const,
+      version: 1,
+    };
+    const copy = duplicateAsDraft(graph);
+    expect(copy.version).toBe(2);
   });
 });
 
