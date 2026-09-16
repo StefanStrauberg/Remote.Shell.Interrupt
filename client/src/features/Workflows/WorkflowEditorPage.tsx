@@ -424,10 +424,11 @@ function Editor({ persisted }: { persisted: boolean }) {
           </Box>
         </Box>
         <Box hidden={tab !== 1} p={2}>
-          <ExecutionPanel
-            key={JSON.stringify(d.workflow)}
-            persisted={persisted}
-          />
+          {/* No key here: ExecutionPanel must stay mounted across graph edits so a
+              user typing a host/community, watching a run, or reading a past result
+              in this tab isn't wiped out or have its in-flight request aborted by
+              an edit made elsewhere in the designer. */}
+          <ExecutionPanel persisted={persisted} />
         </Box>
         {tab === 2 && (
           <Box
