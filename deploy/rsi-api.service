@@ -1,0 +1,48 @@
+# systemd unit for the API. Install once (see server-setup.sh) to
+# /etc/systemd/system/rsi-api.service, then `systemctl daemon-reload`.
+#
+# `ExecStart`/`WorkingDirectory` point at the `current` symlink, not a
+# specific release directory - deploy.sh repoints that symlink and restarts
+# this unit, so the unit file itself never needs editing between deploys.
+#
+# Useful commands:
+#   systemctl start|stop|restart|status rsi-api
+#   systemctl enable rsi-api        # start on boot
+#   journalctl -u rsi-api -f        # live logs (also written to
+#                                    # /opt/rsi/shared/logs/log-*.txt)
+
+[Unit]
+Description=Remote Shell Interrupt API
+Documentation=https://github.com/StefanStrauberg/Remote.Shell.Interrupt
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+
+[Service]
+# Plain "simple": the app does not call UseSystemd()/sd_notify, so
+# Type=notify would just make `systemctl start` hang until TimeoutStartSec.
+Type=simple
+User=rsi
+Group=rsi
+WorkingDirectory=/opt/rsi/current/api
+ExecStart=/opt/rsi/current/api/Remote.Shell.Interrupt.Storehouse.API
+EnvironmentFile=/opt/rsi/shared/api.env
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+
+SyslogIdentifier=rsi-api
+StandardOutput=journal
+StandardError=journal
+
+# Hardening: the process only ever needs to read its own release tree and
+# write to the shared logs directory (Serilog's relative "logs/log-.txt" is
+# symlinked there by deploy.sh) plus talk to Postgres over loopback.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/rsi/shared/logs
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

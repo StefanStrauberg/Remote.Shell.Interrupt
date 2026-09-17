@@ -1,0 +1,10 @@
+# Copy to deploy/deploy.conf (gitignored - it's machine/environment specific)
+# and edit. Sourced by deploy/deploy.sh.
+
+SERVER_HOST=10.0.0.10
+SERVER_USER=admin
+
+# Defaults below usually don't need changing.
+#REMOTE_BASE=/opt/rsi
+#SERVICE_NAME=rsi-api
+#KEEP_RELEASES=5

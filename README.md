@@ -260,6 +260,31 @@ The Persistence project doubles as its own startup project via `ApplicationDbCon
 
 ---
 
+## 🚚 Deployment (offline / air-gapped server)
+
+For a Debian 12/13 server with no ongoing internet access, [`deploy/`](deploy/) ships the app **without Docker** — a self-contained .NET publish (the target needs no `dotnet` runtime installed) plus the static frontend build, run via `systemd` and `nginx`, both installed from Debian's own repos during a one-time internet window.
+
+```
+deploy/
+├── server-setup.sh      # run once on the server (root), while it has internet:
+│                         # installs postgresql + nginx, creates the app user,
+│                         # /opt/rsi layout, Postgres role/db, systemd unit, nginx site
+├── rsi-api.service       # systemd unit (installed by server-setup.sh)
+├── nginx-rsi.conf        # nginx site config (installed by server-setup.sh)
+├── api.env.example       # secrets template -> /opt/rsi/shared/api.env on the server
+├── publish.sh            # run on a connected workstation: self-contained linux-x64
+│                         # API publish + frontend build -> deploy/dist/<tag>/
+├── deploy.sh             # run on a connected workstation: rsync the release to the
+│                         # server, swap the `current` symlink, restart rsi-api
+└── deploy.conf.example   # copy to deploy.conf (gitignored) - SERVER_HOST/SERVER_USER
+```
+
+Releases land in `/opt/rsi/releases/<tag>/` with `/opt/rsi/current` symlinked to the active one — `deploy.sh` repoints the symlink and restarts the service, so a rollback (`deploy/deploy.sh --rollback`) is just relinking to the previous release, no rebuild needed. EF Core migrations still apply automatically on API startup (see [Database](#-database) above), so there's no separate migration step in the deploy flow. Secrets live in `/opt/rsi/shared/api.env` (the systemd `EnvironmentFile`), outside `releases/`, so deploys never touch them.
+
+First-time setup: `scp -r deploy/ admin@server:/tmp/rsi-deploy && ssh admin@server 'cd /tmp/rsi-deploy && sudo ./server-setup.sh'`, edit `/opt/rsi/shared/api.env`'s secrets, then run `deploy/publish.sh && deploy/deploy.sh` from the workstation. See each script's header comment for details.
+
+---
+
 ## 🧰 Test data export/import
 
 `scripts/export_test_data.py` dumps `Clients` / `TfPlans` / `SPRVlans` (optionally `CODs`) rows out of a running PostgreSQL container as plain-SQL, data-only files — handy for seeding a separate local/test database with real-shaped data without a live billing sync.

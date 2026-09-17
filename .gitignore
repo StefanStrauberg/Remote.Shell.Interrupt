@@ -363,3 +363,8 @@ obj/
 
 # scripts/export_test_data.py output - real exported data (customer PII, etc.), never commit
 db_export/
+
+# deploy/ - machine-specific config and local build output, never commit
+deploy/deploy.conf
+deploy/api.env
+deploy/dist/
