@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 
-public class CandidateEdgeDTO : IMapWith<CandidateEdge>
+public class CandidateEdgeDTO : IRegister
 {
   public string? Condition { get; set; }
 
   public int Priority { get; set; }
 
-  void IMapWith<CandidateEdge>.Mapping(Profile profile)
-    => profile.CreateMap<CandidateEdge, CandidateEdgeDTO>();
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<CandidateEdge, CandidateEdgeDTO>();
 }

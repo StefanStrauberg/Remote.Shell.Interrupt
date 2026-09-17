@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.LocBillRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
@@ -30,10 +29,9 @@ public class GetClientsByVlanTagQueryHandlerTests
         _unitOfWork.Clients.Returns(_clients);
         _unitOfWork.SPRVlans.Returns(_sprVlans);
         _clientSpec.Clone().Returns(_clientSpec);
-        var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new AssemblyMappingProfile(typeof(DetailClientDTO).Assembly)),
-            NullLoggerFactory.Instance);
-        _mapper = config.CreateMapper();
+        var config = new TypeAdapterConfig();
+        config.Scan(typeof(DetailClientDTO).Assembly);
+        _mapper = new Mapper(config);
     }
 
     GetSPRVlansByFilterQueryHandler CreateSprVlanHandler()

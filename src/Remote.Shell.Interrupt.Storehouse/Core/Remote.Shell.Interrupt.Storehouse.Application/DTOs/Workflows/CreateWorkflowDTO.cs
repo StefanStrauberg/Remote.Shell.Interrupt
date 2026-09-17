@@ -1,7 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 
-public class CreateWorkflowDTO : BaseWorkflowDTO, IMapWith<WorkflowDefinition>
+public class CreateWorkflowDTO : BaseWorkflowDTO, IRegister
 {
-  void IMapWith<WorkflowDefinition>.Mapping(Profile profile)
-    => profile.CreateMap<CreateWorkflowDTO, WorkflowDefinition>();
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<CreateWorkflowDTO, WorkflowDefinition>();
 }

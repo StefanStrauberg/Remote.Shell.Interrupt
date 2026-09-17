@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;
 
-public class PortDTO : IMapWith<Port>
+public class PortDTO : IRegister
 {
   public Guid Id { get; set; }
   public int InterfaceNumber { get; set; }
@@ -29,43 +29,42 @@ public class PortDTO : IMapWith<Port>
 
   public Guid? ParentId { get; set; }
 
-  void IMapWith<Port>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<Port, PortDTO>()
-           .ForMember(dest => dest.Id,
-                      opt => opt.MapFrom(src => src.Id))
-           .ForMember(dest => dest.InterfaceNumber,
-                      opt => opt.MapFrom(src => src.InterfaceNumber))
-           .ForMember(dest => dest.InterfaceName,
-                      opt => opt.MapFrom(src => src.InterfaceName))
-           .ForMember(dest => dest.InterfaceType,
-                      opt => opt.MapFrom(src => src.InterfaceType.ToDescriptionString()))
-           .ForMember(dest => dest.InterfaceStatus,
-                      opt => opt.MapFrom(src => src.InterfaceStatus.ToDescriptionString()))
-           .ForMember(dest => dest.InterfaceSpeed,
-                      opt => opt.MapFrom(src => src.InterfaceSpeed))
-           .ForMember(dest => dest.IsAggregated,
-                      opt => opt.MapFrom(src => src.AggregatedPorts.Count != 0))
-           .ForMember(dest => dest.MACAddress,
-                      opt => opt.MapFrom(src => src.MACAddress))
-           .ForMember(dest => dest.Description,
-                      opt => opt.MapFrom(src => src.Description))
-           .ForMember(dest => dest.AggregatedPorts,
-                      opt => opt.MapFrom(src => src.AggregatedPorts))
-           .ForMember(dest => dest.MacTable,
-                      opt => opt.MapFrom(src => src.MACTable.Select(x => x.MACAddress)))
-           .ForMember(dest => dest.VLANs,
-                      opt => opt.MapFrom(src => src.VLANs))
-           .ForMember(dest => dest.ARPTableOfPort,
-                      opt => opt.MapFrom(src => src.ARPTableOfInterface
-                                                   .GroupBy(arp => arp.MAC) // Group by MAC address
-                                                   .ToDictionary(grp => grp.Key, // MAC address as the key
-                                                                 grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))
-                                                   )))
-           .ForMember(dest => dest.NetworkTableOfPort,
-                      opt => opt.MapFrom(src => src.NetworkTableOfInterface.ToDictionary(net => ConvertLongIPAddressToString.Handle(net.NetworkAddress),
-                                                                                         net => ConvertLongIPAddressToString.Handle(net.Netmask))))
-           .ForMember(dest => dest.ParentId,
-                      opt => opt.MapFrom(src => src.ParentId));
+    config.NewConfig<Port, PortDTO>()
+          .Map(dest => dest.Id,
+               src => src.Id)
+          .Map(dest => dest.InterfaceNumber,
+               src => src.InterfaceNumber)
+          .Map(dest => dest.InterfaceName,
+               src => src.InterfaceName)
+          .Map(dest => dest.InterfaceType,
+               src => src.InterfaceType.ToDescriptionString())
+          .Map(dest => dest.InterfaceStatus,
+               src => src.InterfaceStatus.ToDescriptionString())
+          .Map(dest => dest.InterfaceSpeed,
+               src => src.InterfaceSpeed)
+          .Map(dest => dest.IsAggregated,
+               src => src.AggregatedPorts.Count != 0)
+          .Map(dest => dest.MACAddress,
+               src => src.MACAddress)
+          .Map(dest => dest.Description,
+               src => src.Description)
+          .Map(dest => dest.AggregatedPorts,
+               src => src.AggregatedPorts)
+          .Map(dest => dest.MacTable,
+               src => src.MACTable.Select(x => x.MACAddress))
+          .Map(dest => dest.VLANs,
+               src => src.VLANs)
+          .Map(dest => dest.ARPTableOfPort,
+               src => src.ARPTableOfInterface
+                          .GroupBy(arp => arp.MAC) // Group by MAC address
+                          .ToDictionary(grp => grp.Key, // MAC address as the key
+                                        grp => new HashSet<string>(grp.Select(arp => arp.IPAddress))))
+          .Map(dest => dest.NetworkTableOfPort,
+               src => src.NetworkTableOfInterface.ToDictionary(net => ConvertLongIPAddressToString.Handle(net.NetworkAddress),
+                                                                net => ConvertLongIPAddressToString.Handle(net.Netmask)))
+          .Map(dest => dest.ParentId,
+               src => src.ParentId);
   }
 }

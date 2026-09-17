@@ -1,11 +1,11 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 
-public class UpdateGateDTO : GateDTO, IMapWith<Gate>
+public class UpdateGateDTO : GateDTO, IRegister
 {
-  void IMapWith<Gate>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<UpdateGateDTO, Gate>()
-           .ForMember(dest => dest.IPAddress,
-                      opt => opt.MapFrom(src => ConvertStringIPAddressToLong.Handle(src.IPAddress)));
+    config.NewConfig<UpdateGateDTO, Gate>()
+          .Map(dest => dest.IPAddress,
+               src => ConvertStringIPAddressToLong.Handle(src.IPAddress));
   }
 }

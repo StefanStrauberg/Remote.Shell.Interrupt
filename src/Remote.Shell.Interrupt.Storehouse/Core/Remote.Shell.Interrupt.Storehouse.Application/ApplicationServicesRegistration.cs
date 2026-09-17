@@ -1,13 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application;
 
 /// <summary>
-/// Provides extension methods to register core application services including MediatR, AutoMapper, validation, and middleware.
+/// Provides extension methods to register core application services including MediatR, Mapster, validation, and middleware.
 /// </summary>
 public static class ApplicationServicesRegistration
 {
   /// <summary>
   /// Adds essential application services to the dependency injection container.
-  /// This includes MediatR behaviors, AutoMapper profiles, FluentValidation, and exception handling middleware.
+  /// This includes MediatR behaviors, Mapster mapping registrations, FluentValidation, and exception handling middleware.
   /// </summary>
   /// <param name="services">The service collection to which dependencies are registered.</param>
   /// <returns>The updated <see cref="IServiceCollection"/> for fluent chaining.</returns>
@@ -24,11 +24,12 @@ public static class ApplicationServicesRegistration
     services.AddTransient<FindEntitiesByFilterQueryHandler<SPRVlan, SPRVlanDTO, GetSPRVlansByFilterQuery>, GetSPRVlansByFilterQueryHandler>();
     services.AddTransient<IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>, GetClientsByVlanTagQueryHandler>();
 
-    // AutoMapper injection
-    services.AddAutoMapper(cfg =>
-    {
-      cfg.AddProfile(new AssemblyMappingProfile(Assembly.GetExecutingAssembly()));
-    });
+    // Mapster injection - a fresh (non-global) config instance, not TypeAdapterConfig.GlobalSettings,
+    // so registrations don't leak across parallel test runs via static state.
+    var mapperConfig = new TypeAdapterConfig();
+    mapperConfig.Scan(Assembly.GetExecutingAssembly());
+    services.AddSingleton(mapperConfig);
+    services.AddScoped<IMapper, Mapper>();
 
     // Exception Handling Middleware injection
     services.AddScoped<ExceptionHandlingMiddleware>();

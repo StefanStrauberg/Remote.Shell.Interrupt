@@ -9,7 +9,7 @@ public record UpdateWorkflowCommand(UpdateWorkflowDTO WorkflowDto) : ICommand<Un
 /// <summary>
 /// Handles <see cref="UpdateWorkflowCommand"/> as a full graph replace rather than a scalar
 /// field patch: the generic <c>UpdateEntityCommandHandler</c> base maps a DTO onto a tracked
-/// entity in one AutoMapper call, which doesn't give predictable delete/insert semantics for
+/// entity in one Mapster call, which doesn't give predictable delete/insert semantics for
 /// a node/edge collection. Instead this handler fetches the entity <b>tracked</b> (with its
 /// current Nodes/Edges included), clears those collections, and repopulates them from the
 /// DTO - EF Core's change tracker deletes the orphaned rows and inserts the new ones on

@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IGateRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
@@ -199,10 +198,9 @@ public class GetGateByIdQueryHandlerTests : GateHandlerTestBase
     [Fact]
     public async Task Handle_GateExists_ReturnsMappedDtoWithDottedIpAddress()
     {
-        var mapperConfig = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new AssemblyMappingProfile(typeof(GateDTO).Assembly)),
-            NullLoggerFactory.Instance);
-        var realMapper = mapperConfig.CreateMapper();
+        var mapperConfig = new TypeAdapterConfig();
+        mapperConfig.Scan(typeof(GateDTO).Assembly);
+        var realMapper = new Mapper(mapperConfig);
         var handler = new GetGateByIdQueryHandler(UnitOfWork, Specification, Parser, realMapper);
         var gate = new Gate
         {

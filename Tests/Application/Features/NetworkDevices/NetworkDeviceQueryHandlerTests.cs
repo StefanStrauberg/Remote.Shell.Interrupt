@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
@@ -172,10 +171,9 @@ public class GetNetworkDeviceByIdQueryHandlerTests
         _specification.AddThenInclude(Arg.Any<Expression<Func<Port, IEnumerable<TerminatedNetworkEntity>>>>()).Returns(_specification);
         _specification.AddThenInclude(Arg.Any<Expression<Func<Port, IEnumerable<VLAN>>>>()).Returns(_specification);
 
-        var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new AssemblyMappingProfile(typeof(NetworkDeviceDTO).Assembly)),
-            NullLoggerFactory.Instance);
-        _mapper = config.CreateMapper();
+        var config = new TypeAdapterConfig();
+        config.Scan(typeof(NetworkDeviceDTO).Assembly);
+        _mapper = new Mapper(config);
     }
 
     [Fact]
@@ -258,10 +256,9 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
         _specification.AddThenInclude(Arg.Any<Expression<Func<Port, IEnumerable<VLAN>>>>()).Returns(_specification);
         _specification.AddFilter(Arg.Any<Expression<Func<NetworkDevice, bool>>>()).Returns(_specification);
 
-        var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new AssemblyMappingProfile(typeof(NetworkDeviceDTO).Assembly)),
-            NullLoggerFactory.Instance);
-        _mapper = config.CreateMapper();
+        var config = new TypeAdapterConfig();
+        config.Scan(typeof(NetworkDeviceDTO).Assembly);
+        _mapper = new Mapper(config);
     }
 
     GetCompoundDataByVlanTagQueryHandler CreateHandler()

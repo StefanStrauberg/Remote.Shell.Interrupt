@@ -1,13 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 
-public class ShortClientDTO : BaseClientDTO, IMapWith<Client>
+public class ShortClientDTO : BaseClientDTO, IRegister
 {
   public Guid Id { get; set; }
 
-   void IMapWith<Client>.Mapping(Profile profile)
+   void IRegister.Register(TypeAdapterConfig config)
    {
-        profile.CreateMap<Client, ShortClientDTO>()
-               .ForMember(dest => dest.Id, 
-                          opt => opt.MapFrom(src => src.Id));
+        config.NewConfig<Client, ShortClientDTO>()
+              .Map(dest => dest.Id,
+                   src => src.Id);
    }
 }

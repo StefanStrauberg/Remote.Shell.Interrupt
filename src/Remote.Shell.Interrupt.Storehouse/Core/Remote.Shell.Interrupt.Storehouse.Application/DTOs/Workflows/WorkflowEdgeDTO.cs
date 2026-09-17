@@ -7,7 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 /// (e.g. an undo stack or an inspector panel) can keep a stable reference to a specific edge
 /// across a round-trip through the API.
 /// </summary>
-public class WorkflowEdgeDTO : IMapWith<EdgeDefinition>
+public class WorkflowEdgeDTO : IRegister
 {
   public Guid Id { get; set; }
 
@@ -19,7 +19,7 @@ public class WorkflowEdgeDTO : IMapWith<EdgeDefinition>
 
   public int Priority { get; set; }
 
-  void IMapWith<EdgeDefinition>.Mapping(Profile profile)
-    => profile.CreateMap<EdgeDefinition, WorkflowEdgeDTO>()
-              .ReverseMap();
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<EdgeDefinition, WorkflowEdgeDTO>()
+             .TwoWays();
 }

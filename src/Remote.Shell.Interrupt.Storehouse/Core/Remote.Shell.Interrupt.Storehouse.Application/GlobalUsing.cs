@@ -1,4 +1,5 @@
-global using AutoMapper;
+global using Mapster;
+global using MapsterMapper;
 global using FluentValidation;
 global using MediatR;
 global using Microsoft.AspNetCore.Http;
@@ -6,7 +7,6 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
-global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Mapping;
 global using Remote.Shell.Interrupt.Storehouse.Application.Exceptions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers;
 global using Remote.Shell.Interrupt.Storehouse.Application.Middleware;
@@ -50,7 +50,6 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.UpdateGate;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Gates.Commands.CreateGate;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.SPRVlans.Queries.GetSPRVlansByFilter;
-global using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
 global using Remote.Shell.Interrupt.Storehouse.Application.Models.Response;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 global using Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;

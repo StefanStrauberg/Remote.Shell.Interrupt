@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 
-public class WorkflowExecutionResultDTO : IMapWith<WorkflowExecutionResult>
+public class WorkflowExecutionResultDTO : IRegister
 {
   public bool Success { get; set; } = true;
 
@@ -10,8 +10,8 @@ public class WorkflowExecutionResultDTO : IMapWith<WorkflowExecutionResult>
 
   public Dictionary<string, object?> FinalVariables { get; set; } = [];
 
-  void IMapWith<WorkflowExecutionResult>.Mapping(Profile profile)
-    => profile.CreateMap<WorkflowExecutionResult, WorkflowExecutionResultDTO>()
-              .ForMember(dest => dest.FinalVariables,
-                         opt => opt.MapFrom(src => src.FinalVariables));
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<WorkflowExecutionResult, WorkflowExecutionResultDTO>()
+             .Map(dest => dest.FinalVariables,
+                  src => src.FinalVariables);
 }

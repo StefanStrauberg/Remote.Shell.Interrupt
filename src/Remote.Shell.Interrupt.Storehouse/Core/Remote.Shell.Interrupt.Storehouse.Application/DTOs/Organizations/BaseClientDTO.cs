@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 
-public class BaseClientDTO : IMapWith<Client>
+public class BaseClientDTO : IRegister
 {
     public int IdClient { get; set; }
     public string NrDogovor { get; set; } = string.Empty;
@@ -11,24 +11,24 @@ public class BaseClientDTO : IMapWith<Client>
     public bool Working { get; set; }
     public bool AntiDDOS { get; set; }
 
-    void IMapWith<Client>.Mapping(Profile profile)
+    void IRegister.Register(TypeAdapterConfig config)
     {
-      profile.CreateMap<Client, BaseClientDTO>()
-             .ForMember(dest => dest.IdClient,
-                        opt => opt.MapFrom(src => src.IdClient))
-             .ForMember(dest => dest.NrDogovor,
-                      opt => opt.MapFrom(src => src.NrDogovor))
-             .ForMember(dest => dest.Name,
-                        opt => opt.MapFrom(src => src.Name))
-             .ForMember(dest => dest.ContactT,
-                        opt => opt.MapFrom(src => src.ContactT))
-             .ForMember(dest => dest.TelephoneT,
-                        opt => opt.MapFrom(src => src.TelephoneT))
-             .ForMember(dest => dest.EmailT,
-                        opt => opt.MapFrom(src => src.EmailT))
-             .ForMember(dest => dest.Working,
-                        opt => opt.MapFrom(src => src.Working))
-             .ForMember(dest => dest.AntiDDOS,
-                        opt => opt.MapFrom(src => src.AntiDDOS));
+      config.NewConfig<Client, BaseClientDTO>()
+            .Map(dest => dest.IdClient,
+                 src => src.IdClient)
+            .Map(dest => dest.NrDogovor,
+                 src => src.NrDogovor)
+            .Map(dest => dest.Name,
+                 src => src.Name)
+            .Map(dest => dest.ContactT,
+                 src => src.ContactT)
+            .Map(dest => dest.TelephoneT,
+                 src => src.TelephoneT)
+            .Map(dest => dest.EmailT,
+                 src => src.EmailT)
+            .Map(dest => dest.Working,
+                 src => src.Working)
+            .Map(dest => dest.AntiDDOS,
+                 src => src.AntiDDOS);
     }
 }

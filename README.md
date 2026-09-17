@@ -39,7 +39,7 @@ Remote.Shell.Interrupt/
 - **EF Core 9 + Npgsql** — PostgreSQL data access
 - **ASP.NET Core Identity** — authentication (JWT + Cookie), roles
 - **MediatR** — CQRS pipeline (validation + logging)
-- **AutoMapper** — DTO mapping
+- **Mapster** — DTO mapping
 - **FluentValidation** — command validation
 - **Serilog** — structured request logging (console + files), correlation ID per request
 - **SharpSnmpLib** — SNMP v2c

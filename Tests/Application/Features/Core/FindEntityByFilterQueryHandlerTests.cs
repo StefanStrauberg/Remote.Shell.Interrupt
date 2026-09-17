@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;

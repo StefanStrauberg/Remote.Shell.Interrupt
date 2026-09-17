@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 
-public class DetailClientDTO : BaseClientDTO, IMapWith<Client>
+public class DetailClientDTO : BaseClientDTO, IRegister
 {
   public Guid Id { get; set; }
   public DateTime? Dat1 { get; set; }
@@ -18,36 +18,36 @@ public class DetailClientDTO : BaseClientDTO, IMapWith<Client>
   public TfPlanDTO? TfPlan { get; set; }
   public List<SPRVlanDTO> SPRVlans { get; set; } = [];
 
-  void IMapWith<Client>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<Client, DetailClientDTO>()
-           .ForMember(dest => dest.Id,
-                      opt => opt.MapFrom(src => src.Id))
-           .ForMember(dest => dest.Dat1,
-                      opt => opt.MapFrom(src => src.Dat1))
-           .ForMember(dest => dest.Dat2,
-                      opt => opt.MapFrom(src => src.Dat2))
-           .ForMember(dest => dest.Prim1,
-                      opt => opt.MapFrom(src => src.Prim1))
-           .ForMember(dest => dest.Prim2,
-                      opt => opt.MapFrom(src => src.Prim2))
-           .ForMember(dest => dest.Nik,
-                      opt => opt.MapFrom(src => src.Nik))
-           .ForMember(dest => dest.ContactC,
-                      opt => opt.MapFrom(src => src.ContactC))
-           .ForMember(dest => dest.TelephoneC,
-                      opt => opt.MapFrom(src => src.TelephoneC))
-           .ForMember(dest => dest.EmailC,
-                      opt => opt.MapFrom(src => src.EmailC))
-           .ForMember(dest => dest.History,
-                      opt => opt.MapFrom(src => src.History))
-           .ForMember(dest => dest.Id_COD,
-                      opt => opt.MapFrom(src => src.Id_COD))
-           .ForMember(dest => dest.COD,
-                      opt => opt.MapFrom(src => src.COD))
-           .ForMember(dest => dest.Id_TPlan,
-                      opt => opt.MapFrom(src => src.Id_TfPlan))
-           .ForMember(dest => dest.TfPlan,
-                      opt => opt.MapFrom(src => src.TfPlan));
+    config.NewConfig<Client, DetailClientDTO>()
+          .Map(dest => dest.Id,
+               src => src.Id)
+          .Map(dest => dest.Dat1,
+               src => src.Dat1)
+          .Map(dest => dest.Dat2,
+               src => src.Dat2)
+          .Map(dest => dest.Prim1,
+               src => src.Prim1)
+          .Map(dest => dest.Prim2,
+               src => src.Prim2)
+          .Map(dest => dest.Nik,
+               src => src.Nik)
+          .Map(dest => dest.ContactC,
+               src => src.ContactC)
+          .Map(dest => dest.TelephoneC,
+               src => src.TelephoneC)
+          .Map(dest => dest.EmailC,
+               src => src.EmailC)
+          .Map(dest => dest.History,
+               src => src.History)
+          .Map(dest => dest.Id_COD,
+               src => src.Id_COD)
+          .Map(dest => dest.COD,
+               src => src.COD)
+          .Map(dest => dest.Id_TPlan,
+               src => src.Id_TfPlan)
+          .Map(dest => dest.TfPlan,
+               src => src.TfPlan);
   }
 }

@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 
-public class SPRVlanDTO : IMapWith<SPRVlan>
+public class SPRVlanDTO : IRegister
 {
   public Guid Id { get; set; }
   public int IdVlan { get; set; }
@@ -8,16 +8,16 @@ public class SPRVlanDTO : IMapWith<SPRVlan>
   public bool UseClient { get; set; }
   public bool UseCOD { get; set; }
 
-  void IMapWith<SPRVlan>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<SPRVlan, SPRVlanDTO>()
-           .ForMember(dest => dest.IdVlan,
-                      opt => opt.MapFrom(src => src.IdVlan))
-           .ForMember(dest => dest.IdClient,
-                      opt => opt.MapFrom(src => src.IdClient))
-           .ForMember(dest => dest.UseClient,
-                      opt => opt.MapFrom(src => src.UseClient))
-           .ForMember(dest => dest.UseCOD,
-                      opt => opt.MapFrom(src => src.UseCOD));
+    config.NewConfig<SPRVlan, SPRVlanDTO>()
+          .Map(dest => dest.IdVlan,
+               src => src.IdVlan)
+          .Map(dest => dest.IdClient,
+               src => src.IdClient)
+          .Map(dest => dest.UseClient,
+               src => src.UseClient)
+          .Map(dest => dest.UseCOD,
+               src => src.UseCOD);
   }
 }

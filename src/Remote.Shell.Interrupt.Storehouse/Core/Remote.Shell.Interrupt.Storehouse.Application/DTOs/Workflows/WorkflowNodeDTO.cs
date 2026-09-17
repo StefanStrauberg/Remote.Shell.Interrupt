@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 /// submitting one to create/update - the caller assigns <see cref="Id"/> itself so that
 /// <see cref="WorkflowEdgeDTO"/> entries in the same payload can reference it.
 /// </summary>
-public class WorkflowNodeDTO : IMapWith<NodeDefinition>
+public class WorkflowNodeDTO : IRegister
 {
   public Guid Id { get; set; }
 
@@ -22,7 +22,7 @@ public class WorkflowNodeDTO : IMapWith<NodeDefinition>
 
   public double PositionY { get; set; }
 
-  void IMapWith<NodeDefinition>.Mapping(Profile profile)
-    => profile.CreateMap<NodeDefinition, WorkflowNodeDTO>()
-              .ReverseMap();
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<NodeDefinition, WorkflowNodeDTO>()
+             .TwoWays();
 }

@@ -1,4 +1,3 @@
-using AutoMapper;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.ARPEntities;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.NetworkDevices;
@@ -6,7 +5,6 @@ using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Organizations;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Ports;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TerminatedNetworkEntities;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.TfPlans;
-using Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping;
 
 namespace Tests.Application.Mapping;
 
@@ -14,10 +12,9 @@ public class AssemblyMappingProfileTests
 {
     static IMapper CreateMapper()
     {
-        var config = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new AssemblyMappingProfile(typeof(GateDTO).Assembly)),
-            NullLoggerFactory.Instance);
-        return config.CreateMapper();
+        var config = new TypeAdapterConfig();
+        config.Scan(typeof(GateDTO).Assembly);
+        return new Mapper(config);
     }
 
     [Fact]

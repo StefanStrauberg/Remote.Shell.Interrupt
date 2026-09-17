@@ -1,4 +1,3 @@
-using AutoMapper;
 using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IWorkflowRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
@@ -249,10 +248,9 @@ public class GetWorkflowByIdQueryHandlerTests : WorkflowHandlerTestBase
     [Fact]
     public async Task Handle_WorkflowExists_ReturnsMappedGraph()
     {
-        var mapperConfig = new MapperConfiguration(cfg =>
-            cfg.AddProfile(new Remote.Shell.Interrupt.Storehouse.Application.Services.Mapping.AssemblyMappingProfile(typeof(WorkflowDTO).Assembly)),
-            Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
-        var realMapper = mapperConfig.CreateMapper();
+        var mapperConfig = new TypeAdapterConfig();
+        mapperConfig.Scan(typeof(WorkflowDTO).Assembly);
+        var realMapper = new Mapper(mapperConfig);
         var handler = new GetWorkflowByIdQueryHandler(UnitOfWork, Specification, Parser, realMapper);
 
         var startId = Guid.NewGuid();

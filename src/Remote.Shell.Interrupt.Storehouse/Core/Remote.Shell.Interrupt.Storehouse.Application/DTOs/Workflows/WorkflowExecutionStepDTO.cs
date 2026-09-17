@@ -1,6 +1,6 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 
-public class WorkflowExecutionStepDTO : IMapWith<WorkflowExecutionStep>
+public class WorkflowExecutionStepDTO : IRegister
 {
   public string NodeName { get; set; } = string.Empty;
 
@@ -18,6 +18,6 @@ public class WorkflowExecutionStepDTO : IMapWith<WorkflowExecutionStep>
 
   public List<string> Logs { get; set; } = [];
 
-  void IMapWith<WorkflowExecutionStep>.Mapping(Profile profile)
-    => profile.CreateMap<WorkflowExecutionStep, WorkflowExecutionStepDTO>();
+  void IRegister.Register(TypeAdapterConfig config)
+    => config.NewConfig<WorkflowExecutionStep, WorkflowExecutionStepDTO>();
 }

@@ -1,16 +1,16 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Vlans;
 
-public class VLANDTO : IMapWith<VLAN>
+public class VLANDTO : IRegister
 {
   public int VLANTag { get; set; } // 10
   public string VLANName { get; set; } = string.Empty; // "VLAN10"
 
-  void IMapWith<VLAN>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<VLAN, VLANDTO>()
-           .ForMember(dest => dest.VLANTag,
-                      opt => opt.MapFrom(src => src.VLANTag))
-           .ForMember(dest => dest.VLANName,
-                      opt => opt.MapFrom(src => src.VLANName));
+    config.NewConfig<VLAN, VLANDTO>()
+          .Map(dest => dest.VLANTag,
+               src => src.VLANTag)
+          .Map(dest => dest.VLANName,
+               src => src.VLANName);
   }
 }

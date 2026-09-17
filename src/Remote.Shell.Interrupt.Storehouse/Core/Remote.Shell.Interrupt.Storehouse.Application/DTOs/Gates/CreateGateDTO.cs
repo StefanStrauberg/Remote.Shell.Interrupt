@@ -1,13 +1,13 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
 
-public class CreateGateDTO : BaseGateDTO, IMapWith<Gate>
+public class CreateGateDTO : BaseGateDTO, IRegister
 {
   public string IPAddress { get; set; } = string.Empty;
 
-  void IMapWith<Gate>.Mapping(Profile profile)
+  void IRegister.Register(TypeAdapterConfig config)
   {
-    profile.CreateMap<CreateGateDTO, Gate>()
-           .ForMember(dest => dest.IPAddress,
-                      opt => opt.MapFrom(src => ConvertStringIPAddressToLong.Handle(src.IPAddress)));
+    config.NewConfig<CreateGateDTO, Gate>()
+          .Map(dest => dest.IPAddress,
+               src => ConvertStringIPAddressToLong.Handle(src.IPAddress));
   }
 }

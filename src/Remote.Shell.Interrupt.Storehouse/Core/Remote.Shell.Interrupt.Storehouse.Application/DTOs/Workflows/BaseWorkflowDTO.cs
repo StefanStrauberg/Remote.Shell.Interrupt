@@ -2,7 +2,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.DTOs.Workflows;
 
 /// <summary>
 /// Shared property holder for the Workflow DTOs. Deliberately does not implement
-/// <see cref="IMapWith{T}"/> - each derived DTO registers its own complete AutoMapper map,
+/// <see cref="IRegister"/> - each derived DTO registers its own complete Mapster map,
 /// same reasoning as <c>BaseGateDTO</c>.
 /// </summary>
 public class BaseWorkflowDTO
