@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using MediatR;
+using Mediator;
 using Remote.Shell.Interrupt.Storehouse.API.Entities;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;

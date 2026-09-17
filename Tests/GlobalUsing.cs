@@ -30,7 +30,11 @@ global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositorie
 
 // Infrastructure - Specification (InternalsVisibleTo)
 global using Remote.Shell.Interrupt.Storehouse.Specification.Specifications;
-global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
+// Namespace alias, not a using: Mediator's own CQRS.ICommand<T>/CQRS.IQuery<T>/etc. collide by name
+// with ours (see Application's GlobalUsing.cs for the full rationale) - test code goes
+// through "CQRS." for our own contracts.
+global using CQRS = Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
+global using Mediator;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers.Extensions;

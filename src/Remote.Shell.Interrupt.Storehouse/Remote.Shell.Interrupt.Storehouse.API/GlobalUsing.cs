@@ -1,5 +1,6 @@
-global using MediatR;
+global using Mediator;
 global using Microsoft.AspNetCore.Mvc;
+global using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 global using Remote.Shell.Interrupt.Storehouse.API;
 global using Remote.Shell.Interrupt.Storehouse.Application;
 global using Remote.Shell.Interrupt.Storehouse.Application.Exceptions;

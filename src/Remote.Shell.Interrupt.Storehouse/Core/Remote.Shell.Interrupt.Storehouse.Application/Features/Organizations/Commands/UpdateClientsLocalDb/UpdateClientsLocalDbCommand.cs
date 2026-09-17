@@ -1,9 +1,11 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.UpdateClientsLocalDb;
 
 /// <summary>
 /// Represents a command to update local client database records based on remote data.
 /// </summary>
-public record UpdateClientsLocalDbCommand : ICommand;
+public record UpdateClientsLocalDbCommand : CQRS.ICommand;
 
 /// <summary>
 /// Handles the UpdateClientsLocalDbCommand and synchronizes local client-related data
@@ -17,7 +19,7 @@ public record UpdateClientsLocalDbCommand : ICommand;
 /// <param name="remBillUnitOfWork">Unit of work for remote database operations.</param>
 internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnitOfWork,
                                                   IRemBillUnitOfWork remBillUnitOfWork)
-  : ICommandHandler<UpdateClientsLocalDbCommand, Unit>
+  : CQRS.ICommandHandler<UpdateClientsLocalDbCommand, Unit>
 {
   /// <summary>
   /// Handles the request to update local client records based on remote data.
@@ -25,7 +27,7 @@ internal class UpdateClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
   /// <param name="request">The command initiating the update process.</param>
   /// <param name="cancellationToken">Token to handle request cancellation.</param>
   /// <returns>A unit value indicating successful execution.</returns>
-  async Task<Unit> IRequestHandler<UpdateClientsLocalDbCommand, Unit>.Handle(UpdateClientsLocalDbCommand request,
+  async ValueTask<Unit> IRequestHandler<UpdateClientsLocalDbCommand, Unit>.Handle(UpdateClientsLocalDbCommand request,
                                                                              CancellationToken cancellationToken)
   {
     // Retrieve all remote records

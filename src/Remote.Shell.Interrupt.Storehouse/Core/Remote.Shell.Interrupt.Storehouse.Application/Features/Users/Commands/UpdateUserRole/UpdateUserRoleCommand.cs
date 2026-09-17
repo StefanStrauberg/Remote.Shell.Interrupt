@@ -1,3 +1,4 @@
+using Mediator;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.UpdateUserRole;
@@ -5,7 +6,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.
 /// <summary>
 /// Replaces every role currently held by a user with a single new one ("Admin" or "User").
 /// </summary>
-public sealed record UpdateUserRoleCommand(Guid UserId, string Role) : ICommand;
+public sealed record UpdateUserRoleCommand(Guid UserId, string Role) : CQRS.ICommand;
 
 /// <param name="currentUserService">
 /// Guards against an admin changing their own role - a self-service demotion could
@@ -13,9 +14,9 @@ public sealed record UpdateUserRoleCommand(Guid UserId, string Role) : ICommand;
 /// </param>
 internal class UpdateUserRoleCommandHandler(IIdentityService identityService,
                                             ICurrentUserService currentUserService)
-  : ICommandHandler<UpdateUserRoleCommand>
+  : CQRS.ICommandHandler<UpdateUserRoleCommand>
 {
-  async Task<Unit> IRequestHandler<UpdateUserRoleCommand, Unit>.Handle(UpdateUserRoleCommand request,
+  async ValueTask<Unit> IRequestHandler<UpdateUserRoleCommand, Unit>.Handle(UpdateUserRoleCommand request,
                                                                        CancellationToken cancellationToken)
   {
     if (currentUserService.UserId == request.UserId)

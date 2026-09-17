@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Diagnostics.Commands.ReportClientError;
 
 namespace Tests.Application.Features.Diagnostics;

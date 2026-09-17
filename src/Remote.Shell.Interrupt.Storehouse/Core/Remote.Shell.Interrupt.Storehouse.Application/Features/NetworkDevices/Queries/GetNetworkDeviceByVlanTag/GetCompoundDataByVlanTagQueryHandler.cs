@@ -1,15 +1,17 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceByVlanTag;
 
-public record GetCompoundDataByVlanTagQuery(int VlanTag) : IQuery<CompoundObjectDTO>;
+public record GetCompoundDataByVlanTagQuery(int VlanTag) : CQRS.IQuery<CompoundObjectDTO>;
 
 internal class GetCompoundDataByVlanTagQueryHandler(INetDevUnitOfWork unitOfWork,
                                                    INetworkDeviceSpecification netDevSpec,
                                                    IQueryFilterParser parser,
                                                    IMapper mapper,
-                                                   IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> clientsHandler)
-  : IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>
+                                                   CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> clientsHandler)
+  : CQRS.IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>
 {
-  async Task<CompoundObjectDTO> IRequestHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompoundDataByVlanTagQuery request,
+  async ValueTask<CompoundObjectDTO> IRequestHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>.Handle(GetCompoundDataByVlanTagQuery request,
                                                                                                         CancellationToken cancellationToken)
   {
     ValidateRequest(request);

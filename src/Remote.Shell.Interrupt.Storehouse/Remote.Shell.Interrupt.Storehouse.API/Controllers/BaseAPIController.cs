@@ -18,7 +18,7 @@ public class BaseAPIController(ISender sender) : ControllerBase
 {
   /// <summary>
   /// Lazily resolves an <see cref="ISender"/> instance from the current request's service provider.
-  /// Used to dispatch commands and queries via MediatR.
+  /// Used to dispatch commands and queries via Mediator.
   /// </summary>
   /// <exception cref="ArgumentNullException">
   /// Thrown if the <see cref="ISender"/> service is not available in the request context.

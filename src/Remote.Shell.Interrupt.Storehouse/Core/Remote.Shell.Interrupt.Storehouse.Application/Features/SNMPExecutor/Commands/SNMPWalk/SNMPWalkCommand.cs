@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Commands.SNMPWalk;
 
 /// <summary>
@@ -8,7 +10,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Co
 /// <param name="OID">The object identifier (OID) specifying the starting point for the walk operation.</param>
 public record SNMPWalkCommand(string Host,
                               string Community,
-                              string OID) : ICommand<IEnumerable<SNMPResponse>>
+                              string OID) : CQRS.ICommand<IEnumerable<SNMPResponse>>
 {
   // Prevents the LoggingBehavior pipeline from writing the community string - a shared
   // read/write credential on the target device, not just an identifier - to the console/file
@@ -33,7 +35,7 @@ internal class SNMPWalkCommandHandler(ISNMPCommandExecutor executor) : IRequestH
   /// <param name="request">The SNMP Walk command containing host, community, and starting OID information.</param>
   /// <param name="cancellationToken">Token to handle request cancellation.</param>
   /// <returns>A collection of SNMP responses containing multiple objects from the OID subtree.</returns>
-  async Task<IEnumerable<SNMPResponse>> IRequestHandler<SNMPWalkCommand, IEnumerable<SNMPResponse>>.Handle(SNMPWalkCommand request,
+  async ValueTask<IEnumerable<SNMPResponse>> IRequestHandler<SNMPWalkCommand, IEnumerable<SNMPResponse>>.Handle(SNMPWalkCommand request,
                                                                                                            CancellationToken cancellationToken)
     => await executor.WalkCommand(request.Host,
                                   request.Community,

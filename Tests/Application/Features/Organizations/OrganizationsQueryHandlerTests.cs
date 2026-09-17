@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.LocBillRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
@@ -47,7 +46,7 @@ public class GetClientsByVlanTagQueryHandlerTests
         var handler = new GetClientsByVlanTagQueryHandler(_unitOfWork, _clientSpec, _parser, _mapper,
                                                           CreateSprVlanHandler());
 
-        var act = async () => await ((IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
+        var act = async () => await ((CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
             .Handle(new GetClientsByVlanTagQuery(0), CancellationToken.None);
 
         await act.Should().ThrowAsync<BadRequestException>();
@@ -79,7 +78,7 @@ public class GetClientsByVlanTagQueryHandlerTests
 
         var handler = new GetClientsByVlanTagQueryHandler(_unitOfWork, _clientSpec, _parser, _mapper,
                                                           CreateSprVlanHandler());
-        var result = await ((IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
+        var result = await ((CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
             .Handle(new GetClientsByVlanTagQuery(100), CancellationToken.None);
 
         var clients = result.ToList();
@@ -106,7 +105,7 @@ public class GetClientsByVlanTagQueryHandlerTests
 
         var handler = new GetClientsByVlanTagQueryHandler(_unitOfWork, _clientSpec, _parser, _mapper,
                                                           CreateSprVlanHandler());
-        var result = await ((IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
+        var result = await ((CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>)handler)
             .Handle(new GetClientsByVlanTagQuery(100), CancellationToken.None);
 
         result.Should().ContainSingle(c => c.Name == "Same");
@@ -139,7 +138,7 @@ public class LocalDbSyncCommandHandlerTests
         _cods.GetAllAsync(Arg.Any<CancellationToken>()).Returns([new COD()]);
 
         var handler = new DeleteClientsLocalDbCommandHandler(_local);
-        await ((ICommandHandler<DeleteClientsLocalDbCommand, Unit>)handler)
+        await ((CQRS.ICommandHandler<DeleteClientsLocalDbCommand, Unit>)handler)
             .Handle(new DeleteClientsLocalDbCommand(), CancellationToken.None);
 
         _tfPlans.Received().DeleteMany(Arg.Any<IEnumerable<TfPlan>>());
@@ -158,7 +157,7 @@ public class LocalDbSyncCommandHandlerTests
         _cods.GetAllAsync(Arg.Any<CancellationToken>()).Returns([]);
 
         var handler = new DeleteClientsLocalDbCommandHandler(_local);
-        await ((ICommandHandler<DeleteClientsLocalDbCommand, Unit>)handler)
+        await ((CQRS.ICommandHandler<DeleteClientsLocalDbCommand, Unit>)handler)
             .Handle(new DeleteClientsLocalDbCommand(), CancellationToken.None);
 
         _local.DidNotReceive().Complete();
@@ -217,7 +216,7 @@ public class LocalDbSyncCommandHandlerTests
         _sprVlans.InsertMany(Arg.Do<IEnumerable<SPRVlan>>(x => insertedSprVlans.AddRange(x)));
 
         var handler = new UpdateClientsLocalDbCommandHandler(_local, _remote);
-        await ((ICommandHandler<UpdateClientsLocalDbCommand, Unit>)handler)
+        await ((CQRS.ICommandHandler<UpdateClientsLocalDbCommand, Unit>)handler)
             .Handle(new UpdateClientsLocalDbCommand(), CancellationToken.None);
 
         insertedClients.Should().ContainSingle();
@@ -257,7 +256,7 @@ public class LocalDbSyncCommandHandlerTests
         _sprVlans.GetAllAsync(Arg.Any<CancellationToken>()).Returns([new SPRVlan()]);
 
         var handler = new UpdateClientsLocalDbCommandHandler(_local, _remote);
-        await ((ICommandHandler<UpdateClientsLocalDbCommand, Unit>)handler)
+        await ((CQRS.ICommandHandler<UpdateClientsLocalDbCommand, Unit>)handler)
             .Handle(new UpdateClientsLocalDbCommand(), CancellationToken.None);
 
         _clients.Received().DeleteMany(Arg.Any<IEnumerable<Client>>());

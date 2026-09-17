@@ -1,11 +1,16 @@
 global using Mapster;
 global using MapsterMapper;
 global using FluentValidation;
-global using MediatR;
+global using Mediator;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.DependencyInjection;
 global using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
-global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
+// Namespace ALIAS (not a type alias - this compiler doesn't support C#12's generic
+// using-alias syntax) for our own CQRS contracts. Mediator ships its own generic
+// CQRS.ICommand<T>/CQRS.IQuery<T>/CQRS.ICommandHandler<,>/CQRS.IQueryHandler<,> marker interfaces, which
+// collide by name with ours - every reference to our own versions goes through this
+// "CQRS." prefix (see Features/**) instead of relying on an unqualified name.
+global using CQRS = Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 global using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
 global using Remote.Shell.Interrupt.Storehouse.Application.Exceptions;
 global using Remote.Shell.Interrupt.Storehouse.Application.Helpers;

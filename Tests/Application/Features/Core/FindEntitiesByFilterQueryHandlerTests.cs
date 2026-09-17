@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;

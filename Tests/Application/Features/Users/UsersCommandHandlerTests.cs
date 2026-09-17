@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.DeleteUser;
 using Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.SetUserActive;

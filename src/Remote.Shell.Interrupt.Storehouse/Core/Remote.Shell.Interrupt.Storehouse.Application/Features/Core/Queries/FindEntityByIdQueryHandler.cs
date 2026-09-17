@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 
 /// <summary>
@@ -32,7 +34,7 @@ internal abstract class FindEntityByIdQueryHandler<TEntity, TDto, TQuery>(ISpeci
   /// <param name="request">The query containing the entity ID.</param>
   /// <param name="cancellationToken">Token used to observe cancellation requests.</param>
   /// <returns>The mapped <typeparamref name="TDto"/> if the entity is found.</returns>
-  async Task<TDto> IRequestHandler<TQuery, TDto>.Handle(TQuery request, CancellationToken cancellationToken)
+  async ValueTask<TDto> IRequestHandler<TQuery, TDto>.Handle(TQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Id);
 

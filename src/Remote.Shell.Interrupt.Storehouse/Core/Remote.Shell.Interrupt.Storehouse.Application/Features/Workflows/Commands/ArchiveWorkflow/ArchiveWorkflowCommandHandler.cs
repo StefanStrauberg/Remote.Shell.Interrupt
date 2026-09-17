@@ -1,17 +1,19 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.ArchiveWorkflow;
 
 /// <summary>
 /// Transitions a <see cref="WorkflowDefinition"/> to <see cref="WorkflowStatus.Archived"/>
 /// from either <see cref="WorkflowStatus.Draft"/> or <see cref="WorkflowStatus.Published"/>.
 /// </summary>
-public record ArchiveWorkflowCommand(Guid Id) : ICommand<Unit>;
+public record ArchiveWorkflowCommand(Guid Id) : CQRS.ICommand<Unit>;
 
 internal class ArchiveWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfWork,
                                              IWorkflowSpecification specification,
                                              IQueryFilterParser queryFilterParser)
-  : ICommandHandler<ArchiveWorkflowCommand, Unit>
+  : CQRS.ICommandHandler<ArchiveWorkflowCommand, Unit>
 {
-  public async Task<Unit> Handle(ArchiveWorkflowCommand request, CancellationToken cancellationToken)
+  public async ValueTask<Unit> Handle(ArchiveWorkflowCommand request, CancellationToken cancellationToken)
   {
     var spec = BuildSpecification(request.Id);
 

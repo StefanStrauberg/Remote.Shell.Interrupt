@@ -1,3 +1,4 @@
+using Mediator;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.DeleteNetworkDevices;
@@ -5,7 +6,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 /// <summary>
 /// Represents a command to delete all network devices.
 /// </summary>
-public record DeleteAllNetworkDevicesCommand : ICommand<Unit>;
+public record DeleteAllNetworkDevicesCommand : CQRS.ICommand<Unit>;
 
 /// <summary>
 /// Handles the DeleteNetworkDevicesCommand and removes all network devices.
@@ -24,7 +25,7 @@ internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUni
                                                      IQueryFilterParser queryFilterParser,
                                                      ICurrentUserService currentUserService,
                                                      IAppLogger<DeleteAllNetworkDevicesCommandHandler> logger)
-  : ICommandHandler<DeleteAllNetworkDevicesCommand, Unit>
+  : CQRS.ICommandHandler<DeleteAllNetworkDevicesCommand, Unit>
 {
   /// <summary>
   /// Handles the request to delete all network devices.
@@ -32,7 +33,7 @@ internal class DeleteAllNetworkDevicesCommandHandler(INetDevUnitOfWork netDevUni
   /// <param name="request">The command initiating the deletion process.</param>
   /// <param name="cancellationToken">Token to support request cancellation.</param>
   /// <returns>A unit value indicating successful execution.</returns>
-  async Task<Unit> IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>.Handle(DeleteAllNetworkDevicesCommand request,
+  async ValueTask<Unit> IRequestHandler<DeleteAllNetworkDevicesCommand, Unit>.Handle(DeleteAllNetworkDevicesCommand request,
                                                                              CancellationToken cancellationToken)
   {
     // Retrieve all network devices

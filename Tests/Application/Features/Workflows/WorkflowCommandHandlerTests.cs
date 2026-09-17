@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IWorkflowRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;

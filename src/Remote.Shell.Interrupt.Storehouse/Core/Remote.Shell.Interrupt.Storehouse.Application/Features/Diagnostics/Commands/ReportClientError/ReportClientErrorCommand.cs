@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Diagnostics.Commands.ReportClientError;
 
 /// <summary>
@@ -13,12 +15,12 @@ public record ReportClientErrorCommand(string Message,
                                         string? Stack,
                                         string? Url,
                                         string? UserAgent,
-                                        string? Context) : ICommand<Unit>;
+                                        string? Context) : CQRS.ICommand<Unit>;
 
 internal class ReportClientErrorCommandHandler(IAppLogger<ReportClientErrorCommandHandler> logger)
-  : ICommandHandler<ReportClientErrorCommand, Unit>
+  : CQRS.ICommandHandler<ReportClientErrorCommand, Unit>
 {
-  public Task<Unit> Handle(ReportClientErrorCommand request, CancellationToken cancellationToken)
+  public ValueTask<Unit> Handle(ReportClientErrorCommand request, CancellationToken cancellationToken)
   {
     logger.LogError(
       "[Client] {Message} at {Url} ({UserAgent}) context={Context}{NewLine}{Stack}",
@@ -29,6 +31,6 @@ internal class ReportClientErrorCommandHandler(IAppLogger<ReportClientErrorComma
       Environment.NewLine,
       request.Stack ?? "no stack trace");
 
-    return Task.FromResult(Unit.Value);
+    return Unit.ValueTask;
   }
 }

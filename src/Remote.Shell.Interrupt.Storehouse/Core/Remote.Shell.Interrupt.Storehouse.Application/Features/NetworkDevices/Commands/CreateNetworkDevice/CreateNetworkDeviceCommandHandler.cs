@@ -1,6 +1,8 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Commands.CreateNetworkDevice;
 
-public record CreateNetworkDeviceCommand(string Host, string Community, string TypeOfNetworkDevice) : ICommand;
+public record CreateNetworkDeviceCommand(string Host, string Community, string TypeOfNetworkDevice) : CQRS.ICommand;
 
 /// <summary>
 /// Runs the seeded "Network device discovery" workflow (see
@@ -14,9 +16,9 @@ public record CreateNetworkDeviceCommand(string Host, string Community, string T
 internal class CreateNetworkDeviceCommandHandler(IWorkflowUnitOfWork workflowUnitOfWork,
                                                  IWorkflowSpecification specification,
                                                  IWorkflowEngine engine)
-  : ICommandHandler<CreateNetworkDeviceCommand, Unit>
+  : CQRS.ICommandHandler<CreateNetworkDeviceCommand, Unit>
 {
-  async Task<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
+  async ValueTask<Unit> IRequestHandler<CreateNetworkDeviceCommand, Unit>.Handle(CreateNetworkDeviceCommand request,
                                                                             CancellationToken cancellationToken)
   {
     // Fail fast, before any SNMP call, exactly like the handler this replaces did.

@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IWorkflowRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.SNMPRep;
@@ -107,7 +106,7 @@ public class CreateNetworkDeviceCommandHandlerTests
     async Task<NetworkDevice> RunAsync(string host, string community, string deviceType)
     {
         var handler = CreateHandler();
-        await ((ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
+        await ((CQRS.ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
             .Handle(new CreateNetworkDeviceCommand(host, community, deviceType), CancellationToken.None);
         return _inserted.Should().ContainSingle().Subject;
     }
@@ -117,7 +116,7 @@ public class CreateNetworkDeviceCommandHandlerTests
     {
         var handler = CreateHandler();
 
-        var act = async () => await ((ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
+        var act = async () => await ((CQRS.ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
             .Handle(new CreateNetworkDeviceCommand("10.0.0.1", "public", "NotAVendor"), CancellationToken.None);
 
         await act.Should().ThrowAsync<BadRequestException>()
@@ -412,7 +411,7 @@ public class CreateNetworkDeviceCommandHandlerTests
                   Resp($"{ArpIpOid}.2", "192.168.1.11"));
 
         var handler = CreateHandler();
-        var act = async () => await ((ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
+        var act = async () => await ((CQRS.ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
             .Handle(new CreateNetworkDeviceCommand("10.0.0.1", "public", "Cisco"), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -438,7 +437,7 @@ public class CreateNetworkDeviceCommandHandlerTests
         SetupWalk(ArpIpOid);
 
         var handler = CreateHandler();
-        var act = async () => await ((ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
+        var act = async () => await ((CQRS.ICommandHandler<CreateNetworkDeviceCommand, Unit>)handler)
             .Handle(new CreateNetworkDeviceCommand("10.0.0.1", "public", "Cisco"), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()

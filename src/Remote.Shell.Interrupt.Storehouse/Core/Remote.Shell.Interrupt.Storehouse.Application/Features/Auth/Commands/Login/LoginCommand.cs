@@ -1,14 +1,14 @@
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Models.Auth;
-using MediatR;
+using Mediator;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Auth.Commands.Login;
 
 /// <summary>
 /// Authenticates a user and returns a signed JWT access token.
 /// </summary>
-public sealed record LoginCommand(string Email, string Password) : ICommand<AuthenticationResult>
+public sealed record LoginCommand(string Email, string Password) : CQRS.ICommand<AuthenticationResult>
 {
     // Prevents the LoggingBehavior pipeline from serializing the password.
     public override string ToString()
@@ -20,9 +20,9 @@ public sealed record LoginCommand(string Email, string Password) : ICommand<Auth
 /// and token issuance to the identity abstraction.
 /// </summary>
 internal sealed class LoginCommandHandler(IIdentityService identityService)
-    : ICommandHandler<LoginCommand, AuthenticationResult>
+    : CQRS.ICommandHandler<LoginCommand, AuthenticationResult>
 {
-    async Task<AuthenticationResult> IRequestHandler<LoginCommand, AuthenticationResult>.Handle(
+    async ValueTask<AuthenticationResult> IRequestHandler<LoginCommand, AuthenticationResult>.Handle(
         LoginCommand request, CancellationToken cancellationToken)
         => await identityService.LoginAsync(request.Email, request.Password, cancellationToken);
 }

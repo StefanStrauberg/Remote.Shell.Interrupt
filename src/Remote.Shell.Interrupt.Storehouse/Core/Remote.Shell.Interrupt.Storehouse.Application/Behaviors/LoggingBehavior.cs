@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 
 /// <summary>
@@ -16,7 +18,7 @@ public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRe
   /// <param name="next">The delegate responsible for processing the request.</param>
   /// <param name="cancellationToken">A token for canceling the operation if needed.</param>
   /// <returns>The response generated after processing the request.</returns>
-  public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+  public async ValueTask<TResponse> Handle(TRequest request, MessageHandlerDelegate<TRequest, TResponse> next, CancellationToken cancellationToken)
   {
     var requestName = typeof(TRequest).Name;
     logger.LogInformation("[START] Handling request: {RequestName} with data: {Request}", requestName, request);
@@ -25,7 +27,7 @@ public class LoggingBehavior<TRequest, TResponse>(IAppLogger<LoggingBehavior<TRe
 
     try
     {
-      var response = await next();
+      var response = await next(request, cancellationToken);
       stopwatch.Stop();
       var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
 

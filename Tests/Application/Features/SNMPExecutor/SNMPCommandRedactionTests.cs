@@ -1,7 +1,7 @@
 namespace Tests.Application.Features.SNMPExecutor;
 
 /// <summary>
-/// LoggingBehavior logs every MediatR command via "{Request}", which stringifies the request -
+/// LoggingBehavior logs every command via "{Request}", which stringifies the request -
 /// these lock in that the SNMP community string (a shared read/write credential on the target
 /// device, not just an identifier) never ends up in that log line, the same guarantee
 /// LoginCommand/RegisterCommand already give the password.

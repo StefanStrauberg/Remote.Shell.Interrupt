@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Commands.SNMPGet;
 
 /// <summary>
@@ -8,7 +10,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.SNMPExecutor.Co
 /// <param name="OID">The object identifier (OID) specifying the data to retrieve.</param>
 public record SNMPGetCommand(string Host,
                              string Community,
-                             string OID) : ICommand<SNMPResponse>
+                             string OID) : CQRS.ICommand<SNMPResponse>
 {
   // Prevents the LoggingBehavior pipeline from writing the community string - a shared
   // read/write credential on the target device, not just an identifier - to the console/file
@@ -33,7 +35,7 @@ internal class SNMPGetCommandHandler(ISNMPCommandExecutor executor) : IRequestHa
   /// <param name="request">The SNMP GET command containing host, community, and OID information.</param>
   /// <param name="cancellationToken">Token to handle request cancellation.</param>
   /// <returns>The response containing SNMP data.</returns>
-  async Task<SNMPResponse> IRequestHandler<SNMPGetCommand, SNMPResponse>.Handle(SNMPGetCommand request,
+  async ValueTask<SNMPResponse> IRequestHandler<SNMPGetCommand, SNMPResponse>.Handle(SNMPGetCommand request,
                                                                                 CancellationToken cancellationToken)
     => await executor.GetCommand(request.Host,
                                  request.Community,

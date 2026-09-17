@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.API.Controllers;
 using Remote.Shell.Interrupt.Storehouse.API.Entities;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;

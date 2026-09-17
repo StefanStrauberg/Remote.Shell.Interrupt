@@ -1,15 +1,17 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Queries.GetClientsByVlanTag;
 
-public record GetClientsByVlanTagQuery(int VlanTag) : IQuery<IEnumerable<DetailClientDTO>>;
+public record GetClientsByVlanTagQuery(int VlanTag) : CQRS.IQuery<IEnumerable<DetailClientDTO>>;
 
 internal class GetClientsByVlanTagQueryHandler(ILocBillUnitOfWork unitOfWork,
                                                IClientSpecification clientSpec,
                                                IQueryFilterParser filterParser,
                                                IMapper mapper,
                                                FindEntitiesByFilterQueryHandler<SPRVlan, SPRVlanDTO, GetSPRVlansByFilterQuery> vlanHandler)
-  : IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
+  : CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>
 {
-  async Task<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
+  async ValueTask<IEnumerable<DetailClientDTO>> IRequestHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>.Handle(GetClientsByVlanTagQuery request,
                                                                                                                           CancellationToken cancellationToken)
   {
     ValidateRequest(request);

@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.PublishWorkflow;
 
 /// <summary>
@@ -5,14 +7,14 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Comma
 /// <see cref="WorkflowStatus.Published"/>. From that point on its graph is immutable - see
 /// UpdateWorkflowCommandHandler.
 /// </summary>
-public record PublishWorkflowCommand(Guid Id) : ICommand<Unit>;
+public record PublishWorkflowCommand(Guid Id) : CQRS.ICommand<Unit>;
 
 internal class PublishWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfWork,
                                              IWorkflowSpecification specification,
                                              IQueryFilterParser queryFilterParser)
-  : ICommandHandler<PublishWorkflowCommand, Unit>
+  : CQRS.ICommandHandler<PublishWorkflowCommand, Unit>
 {
-  public async Task<Unit> Handle(PublishWorkflowCommand request, CancellationToken cancellationToken)
+  public async ValueTask<Unit> Handle(PublishWorkflowCommand request, CancellationToken cancellationToken)
   {
     var spec = BuildSpecification(request.Id);
 

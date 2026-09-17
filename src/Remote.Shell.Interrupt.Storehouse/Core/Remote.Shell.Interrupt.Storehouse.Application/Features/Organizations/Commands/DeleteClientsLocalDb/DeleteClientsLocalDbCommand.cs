@@ -1,9 +1,11 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Organizations.Commands.DeleteClientsLocalDb;
 
 /// <summary>
 /// Represents a command to delete all clients and related local database records.
 /// </summary>
-public record DeleteClientsLocalDbCommand : ICommand<Unit>;
+public record DeleteClientsLocalDbCommand : CQRS.ICommand<Unit>;
 
 /// <summary>
 /// Handles the DeleteClientsLocalDbCommand and removes all relevant local database records.
@@ -14,7 +16,7 @@ public record DeleteClientsLocalDbCommand : ICommand<Unit>;
 /// </remarks>
 /// <param name="locBillUnitOfWork">Unit of work for managing database operations.</param>
 internal class DeleteClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnitOfWork) 
-  : ICommandHandler<DeleteClientsLocalDbCommand, Unit>
+  : CQRS.ICommandHandler<DeleteClientsLocalDbCommand, Unit>
 {
   /// <summary>
   /// Handles the request to delete all local database records for clients.
@@ -22,7 +24,7 @@ internal class DeleteClientsLocalDbCommandHandler(ILocBillUnitOfWork locBillUnit
   /// <param name="request">The command initiating the deletion process.</param>
   /// <param name="cancellationToken">Token to handle request cancellation.</param>
   /// <returns>A unit value indicating successful execution.</returns>
-  async Task<Unit> IRequestHandler<DeleteClientsLocalDbCommand, Unit>.Handle(DeleteClientsLocalDbCommand request,
+  async ValueTask<Unit> IRequestHandler<DeleteClientsLocalDbCommand, Unit>.Handle(DeleteClientsLocalDbCommand request,
                                                                              CancellationToken cancellationToken)
   {
     // Retrieve all TF plans, SPR VLANs, clients, and CODs

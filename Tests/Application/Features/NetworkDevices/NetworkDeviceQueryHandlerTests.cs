@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.NetDevRep;
@@ -245,8 +244,8 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
     readonly INetworkDeviceSpecification _specification = Substitute.For<INetworkDeviceSpecification>();
     readonly IQueryFilterParser _parser = new CommonQueryFilterParser();
     readonly IMapper _mapper;
-    readonly IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> _clientsHandler =
-        Substitute.For<IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>>();
+    readonly CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>> _clientsHandler =
+        Substitute.For<CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>>();
 
     public GetCompoundDataByVlanTagQueryHandlerTests()
     {
@@ -267,7 +266,7 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
     [Fact]
     public async Task Handle_NonPositiveVlanTag_ThrowsBadRequest()
     {
-        var act = async () => await ((IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
+        var act = async () => await ((CQRS.IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
             .Handle(new GetCompoundDataByVlanTagQuery(-1), CancellationToken.None);
 
         await act.Should().ThrowAsync<BadRequestException>();
@@ -311,7 +310,7 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
         _devices.GetManyWithChildrenAsync(Arg.Any<ISpecification<NetworkDevice>>(), Arg.Any<CancellationToken>())
                 .Returns([goodDevice, badDevice]);
 
-        var result = await ((IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
+        var result = await ((CQRS.IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
             .Handle(new GetCompoundDataByVlanTagQuery(100), CancellationToken.None);
 
         result.Clients.Should().ContainSingle(c => c.Name == "Alpha");
@@ -349,7 +348,7 @@ public class GetCompoundDataByVlanTagQueryHandlerTests
         _devices.GetManyWithChildrenAsync(Arg.Any<ISpecification<NetworkDevice>>(), Arg.Any<CancellationToken>())
                 .Returns([device]);
 
-        var result = await ((IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
+        var result = await ((CQRS.IQueryHandler<GetCompoundDataByVlanTagQuery, CompoundObjectDTO>)CreateHandler())
             .Handle(new GetCompoundDataByVlanTagQuery(101), CancellationToken.None);
 
         var devices = result.NetworkDevices.ToList();

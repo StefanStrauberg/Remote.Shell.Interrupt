@@ -38,7 +38,7 @@ Remote.Shell.Interrupt/
 - **ASP.NET Core 9** — REST API, versioned under `/api/v1`
 - **EF Core 9 + Npgsql** — PostgreSQL data access
 - **ASP.NET Core Identity** — authentication (JWT + Cookie), roles
-- **MediatR** — CQRS pipeline (validation + logging)
+- **[Mediator](https://github.com/martinothamar/Mediator)** — source-generator-based CQRS pipeline (validation + logging); `Mediator.SourceGenerator` lives in the API project, `Mediator.Abstractions` in Application
 - **Mapster** — DTO mapping
 - **FluentValidation** — command validation
 - **Serilog** — structured request logging (console + files), correlation ID per request
@@ -193,7 +193,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🖥️ **Web frontend** — responsive engineering workspace with protected routes, searchable interface tables, diagnostic detail panels, customer tabs, gate forms, user management, and a visual workflow designer
 - 🔐 **Role-based access** — Admin / User with protected routes and API
 - 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`, editable end-to-end from the SPA's canvas designer (Admin → Workflows). The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
-- 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
+- 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → Mediator → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`
 - 🐳 **Docker Compose** — web client + API + PostgreSQL, migrations and identity seeding run automatically on startup (see [Quick Start](#-quick-start))

@@ -1,28 +1,24 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application;
 
 /// <summary>
-/// Provides extension methods to register core application services including MediatR, Mapster, validation, and middleware.
+/// Provides extension methods to register core application services including Mediator, Mapster, validation, and middleware.
 /// </summary>
 public static class ApplicationServicesRegistration
 {
   /// <summary>
   /// Adds essential application services to the dependency injection container.
-  /// This includes MediatR behaviors, Mapster mapping registrations, FluentValidation, and exception handling middleware.
+  /// This includes Mapster mapping registrations, FluentValidation, and exception handling middleware.
+  /// Mediator registration itself lives in the API project's <c>ServiceRegistration.AddApplicationServices</c>
+  /// (see its "Application Layers" section) - the source generator that implements <c>AddMediator</c> only
+  /// runs in the project that references <c>Mediator.SourceGenerator</c> (the API/edge project), so the
+  /// generated method isn't available to call from here.
   /// </summary>
   /// <param name="services">The service collection to which dependencies are registered.</param>
   /// <returns>The updated <see cref="IServiceCollection"/> for fluent chaining.</returns>
   public static IServiceCollection AddApplicationServices(this IServiceCollection services)
   {
-    // MediatR injection
-    services.AddMediatR(config =>
-    {
-      config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
-      config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-      config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-    });
-
     services.AddTransient<FindEntitiesByFilterQueryHandler<SPRVlan, SPRVlanDTO, GetSPRVlansByFilterQuery>, GetSPRVlansByFilterQueryHandler>();
-    services.AddTransient<IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>, GetClientsByVlanTagQueryHandler>();
+    services.AddTransient<CQRS.IQueryHandler<GetClientsByVlanTagQuery, IEnumerable<DetailClientDTO>>, GetClientsByVlanTagQueryHandler>();
 
     // Mapster injection - a fresh (non-global) config instance, not TypeAdapterConfig.GlobalSettings,
     // so registrations don't leak across parallel test runs via static state.

@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.IGateRep;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.UnOfWrkRep;
@@ -59,7 +58,7 @@ public class CreateGateCommandHandlerTests : GateHandlerTestBase
     {
         Gates.AnyByQueryAsync(Arg.Any<ISpecification<Gate>>(), Arg.Any<CancellationToken>()).Returns(true);
 
-        var act = async () => await ((ICommandHandler<CreateGateCommand, Unit>)_handler)
+        var act = async () => await ((CQRS.ICommandHandler<CreateGateCommand, Unit>)_handler)
             .Handle(_command, CancellationToken.None);
 
         await act.Should().ThrowAsync<EntityAlreadyExists>();
@@ -73,7 +72,7 @@ public class CreateGateCommandHandlerTests : GateHandlerTestBase
         Gate? inserted = null;
         Gates.InsertOne(Arg.Do<Gate>(g => inserted = g));
 
-        await ((ICommandHandler<CreateGateCommand, Unit>)_handler).Handle(_command, CancellationToken.None);
+        await ((CQRS.ICommandHandler<CreateGateCommand, Unit>)_handler).Handle(_command, CancellationToken.None);
 
         inserted.Should().NotBeNull();
         inserted!.Name.Should().Be("gw-1");
@@ -91,7 +90,7 @@ public class CreateGateCommandHandlerTests : GateHandlerTestBase
         var handler = new CreateGateCommandHandler(UnitOfWork, realSpec, Parser, Mapper);
         Gates.AnyByQueryAsync(Arg.Any<ISpecification<Gate>>(), Arg.Any<CancellationToken>()).Returns(false);
 
-        await ((ICommandHandler<CreateGateCommand, Unit>)handler).Handle(_command, CancellationToken.None);
+        await ((CQRS.ICommandHandler<CreateGateCommand, Unit>)handler).Handle(_command, CancellationToken.None);
 
         await Gates.Received().AnyByQueryAsync(
             Arg.Is<ISpecification<Gate>>(s => s.Criterias != null), Arg.Any<CancellationToken>());
@@ -160,7 +159,7 @@ public class UpdateGateCommandHandlerTests : GateHandlerTestBase
     {
         Gates.AnyByQueryAsync(Arg.Any<ISpecification<Gate>>(), Arg.Any<CancellationToken>()).Returns(false);
 
-        var act = async () => await ((ICommandHandler<UpdateGateCommand, Unit>)_handler)
+        var act = async () => await ((CQRS.ICommandHandler<UpdateGateCommand, Unit>)_handler)
             .Handle(new UpdateGateCommand(_dto), CancellationToken.None);
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
@@ -173,7 +172,7 @@ public class UpdateGateCommandHandlerTests : GateHandlerTestBase
         Gates.AnyByQueryAsync(Arg.Any<ISpecification<Gate>>(), Arg.Any<CancellationToken>()).Returns(true);
         Gates.GetOneShortAsync(Arg.Any<ISpecification<Gate>>(), Arg.Any<CancellationToken>()).Returns(_gate);
 
-        await ((ICommandHandler<UpdateGateCommand, Unit>)_handler)
+        await ((CQRS.ICommandHandler<UpdateGateCommand, Unit>)_handler)
             .Handle(new UpdateGateCommand(_dto), CancellationToken.None);
 
         Mapper.Received().Map(_dto, _gate);

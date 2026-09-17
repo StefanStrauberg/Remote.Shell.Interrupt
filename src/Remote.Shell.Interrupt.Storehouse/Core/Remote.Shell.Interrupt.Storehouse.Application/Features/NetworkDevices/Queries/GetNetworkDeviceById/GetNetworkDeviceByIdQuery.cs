@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.Queries.GetNetworkDeviceById;
 
 /// <summary>
@@ -31,7 +33,7 @@ internal class GetNetworkDeviceByIdQueryHandler(INetDevUnitOfWork netDevUnitOfWo
   /// <param name="request">The query containing the entity ID.</param>
   /// <param name="cancellationToken">Token for cancelling the operation.</param>
   /// <returns>The mapped <see cref="NetworkDeviceDTO"/>.</returns>
-  public override async Task<NetworkDeviceDTO> Handle(GetNetworkDeviceByIdQuery request, CancellationToken cancellationToken)
+  public override async ValueTask<NetworkDeviceDTO> Handle(GetNetworkDeviceByIdQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Parameters);
 

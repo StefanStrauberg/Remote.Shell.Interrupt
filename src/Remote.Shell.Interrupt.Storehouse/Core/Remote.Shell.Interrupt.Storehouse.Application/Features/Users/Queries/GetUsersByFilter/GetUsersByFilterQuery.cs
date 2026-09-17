@@ -6,11 +6,11 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Queries.G
 /// <summary>
 /// Retrieves a filtered, paginated, sorted list of accounts for the admin Users page.
 /// </summary>
-public sealed record GetUsersByFilterQuery(RequestParameters Parameters) : IQuery<PagedList<UserDTO>>;
+public sealed record GetUsersByFilterQuery(RequestParameters Parameters) : CQRS.IQuery<PagedList<UserDTO>>;
 
 internal class GetUsersByFilterQueryHandler(IIdentityService identityService)
-  : IQueryHandler<GetUsersByFilterQuery, PagedList<UserDTO>>
+  : CQRS.IQueryHandler<GetUsersByFilterQuery, PagedList<UserDTO>>
 {
-  public async Task<PagedList<UserDTO>> Handle(GetUsersByFilterQuery request, CancellationToken cancellationToken)
+  public async ValueTask<PagedList<UserDTO>> Handle(GetUsersByFilterQuery request, CancellationToken cancellationToken)
     => await identityService.GetUsersByFilterAsync(request.Parameters, cancellationToken);
 }

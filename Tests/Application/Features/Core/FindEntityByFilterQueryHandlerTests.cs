@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.QueryFilterParser;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Repositories.Specification;
 using Remote.Shell.Interrupt.Storehouse.Application.DTOs.Gates;
@@ -74,7 +73,7 @@ public class FindEntityByFilterQueryHandlerTests
     {
         _handler.Exists = false;
 
-        Func<Task> act = () => _handler.Handle(new TestGateByFilterQuery(new RequestParameters()), CancellationToken.None);
+        Func<Task> act = () => _handler.Handle(new TestGateByFilterQuery(new RequestParameters()), CancellationToken.None).AsTask();
 
         await act.Should().ThrowAsync<EntityNotFoundException>();
     }

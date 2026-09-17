@@ -1,3 +1,4 @@
+using Mediator;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.SetUserActive;
@@ -6,7 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.
 /// Activates or soft-deactivates an account. A deactivated account fails login
 /// even with valid credentials, but its data and history are kept.
 /// </summary>
-public sealed record SetUserActiveCommand(Guid UserId, bool IsActive) : ICommand;
+public sealed record SetUserActiveCommand(Guid UserId, bool IsActive) : CQRS.ICommand;
 
 /// <param name="currentUserService">
 /// Guards against an admin deactivating their own account - the one account
@@ -14,9 +15,9 @@ public sealed record SetUserActiveCommand(Guid UserId, bool IsActive) : ICommand
 /// </param>
 internal class SetUserActiveCommandHandler(IIdentityService identityService,
                                            ICurrentUserService currentUserService)
-  : ICommandHandler<SetUserActiveCommand>
+  : CQRS.ICommandHandler<SetUserActiveCommand>
 {
-  async Task<Unit> IRequestHandler<SetUserActiveCommand, Unit>.Handle(SetUserActiveCommand request,
+  async ValueTask<Unit> IRequestHandler<SetUserActiveCommand, Unit>.Handle(SetUserActiveCommand request,
                                                                       CancellationToken cancellationToken)
   {
     if (currentUserService.UserId == request.UserId)

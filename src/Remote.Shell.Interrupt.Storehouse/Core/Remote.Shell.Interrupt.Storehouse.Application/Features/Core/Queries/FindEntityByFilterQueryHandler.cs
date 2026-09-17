@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 
 /// <summary>
@@ -33,7 +35,7 @@ internal abstract class FindEntityByFilterQueryHandler<TEntity, TDto, TQuery>(IS
   /// <param name="request">The query containing filter parameters.</param>
   /// <param name="cancellationToken">Used to propagate cancellation signals.</param>
   /// <returns>A mapped <typeparamref name="TDto"/> object representing the result.</returns>
-  public virtual async Task<TDto> Handle(TQuery request, CancellationToken cancellationToken)
+  public virtual async ValueTask<TDto> Handle(TQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Parameters);
 

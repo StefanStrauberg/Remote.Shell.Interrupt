@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 /// <typeparam name="TRequest">The type of request being processed.</typeparam>
 /// <typeparam name="TResponse">The type of response returned after handling the request.</typeparam>
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse>
-  where TRequest : ICommand<TResponse>
+  where TRequest : CQRS.ICommand<TResponse>
 {
   /// <summary>
   /// Validates the request against all registered validators.
@@ -19,10 +21,10 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
   /// <param name="cancellationToken">A token for canceling the operation if needed.</param>
   /// <returns>The response generated after processing the request.</returns>
   /// <exception cref="ValidationException">Thrown when one or more validators report errors.</exception>
-  public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+  public async ValueTask<TResponse> Handle(TRequest request, MessageHandlerDelegate<TRequest, TResponse> next, CancellationToken cancellationToken)
   {
     if (!validators.Any())
-        return await next();
+        return await next(request, cancellationToken);
 
     var context = new ValidationContext<TRequest>(request);
 
@@ -35,14 +37,14 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
     if (errors.Count != 0)
     {
       // Group errors by property name.
-      var errorsDictionary = errors.GroupBy(error => error.PropertyName, 
+      var errorsDictionary = errors.GroupBy(error => error.PropertyName,
                                             error => error.ErrorMessage)
-                                   .ToDictionary(group => group.Key, 
+                                   .ToDictionary(group => group.Key,
                                                  group => group.ToArray());
-      
+
       throw new ValidationException(errorsDictionary);
     }
 
-    return await next();
+    return await next(request, cancellationToken);
   }
 }

@@ -4,7 +4,7 @@ namespace Remote.Shell.Interrupt.Storehouse.API.Middleware;
 /// Assigns a correlation ID to each request - reusing an inbound <c>X-Correlation-ID</c> header
 /// when the caller already supplies one, generating a new one otherwise - and pushes it onto
 /// Serilog's ambient log context for the lifetime of the request. Every log line written while
-/// handling the request (the request-logging summary, MediatR's LoggingBehavior, repository
+/// handling the request (the request-logging summary, Mediator's LoggingBehavior, repository
 /// logs, etc.) is enriched with it, so they can be tied back together when investigating a
 /// production incident. The value is also echoed back on the response so a caller can quote
 /// it when reporting an issue.

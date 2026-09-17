@@ -1,17 +1,19 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;
 
 public abstract record UpdateEntityCommand<TEntity, TDto>(Guid EntityId, TDto DtoEntity) 
-  : ICommand<Unit>;
+  : CQRS.ICommand<Unit>;
 
 abstract class UpdateEntityCommandHandler<TEntity, TDto, TCommand>(ISpecification<TEntity> specification,
                                                                    IQueryFilterParser queryFilterParser,
                                                                    IMapper mapper)
-  : ICommandHandler<TCommand, Unit>
+  : CQRS.ICommandHandler<TCommand, Unit>
   where TEntity : BaseEntity
   where TDto : class
   where TCommand : UpdateEntityCommand<TEntity, TDto>
 {
-  async Task<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
+  async ValueTask<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.EntityId);
 

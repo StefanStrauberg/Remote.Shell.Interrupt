@@ -5,7 +5,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Queries;
 /// </summary>
 /// <param name="Parameters">The request parameters containing filtering and pagination logic.</param>
 public abstract record FindEntitiesByFilterQuery<TResponse>(RequestParameters Parameters)
-  : IQuery<PagedList<TResponse>>;
+  : CQRS.IQuery<PagedList<TResponse>>;
 
 /// <summary>
 /// Provides a base handler for executing filtered and paginated queries.
@@ -20,7 +20,7 @@ public abstract record FindEntitiesByFilterQuery<TResponse>(RequestParameters Pa
 internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(ISpecification<TEntity> specification,
                                                                                 IQueryFilterParser queryFilterParser,
                                                                                 IMapper mapper)
-  : IQueryHandler<TQuery, PagedList<TDto>>
+  : CQRS.IQueryHandler<TQuery, PagedList<TDto>>
   where TEntity : BaseEntity
   where TDto : class
   where TQuery : FindEntitiesByFilterQuery<TDto>
@@ -31,7 +31,7 @@ internal abstract class FindEntitiesByFilterQueryHandler<TEntity, TDto, TQuery>(
   /// <param name="request">The incoming query instance.</param>
   /// <param name="cancellationToken">Used to propagate cancellation signals.</param>
   /// <returns>A paginated list of mapped DTOs matching the query criteria.</returns>
-  public virtual async Task<PagedList<TDto>> Handle(TQuery request, CancellationToken cancellationToken)
+  public virtual async ValueTask<PagedList<TDto>> Handle(TQuery request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Parameters);
     var isPaginated = request.Parameters.IsPaginated;

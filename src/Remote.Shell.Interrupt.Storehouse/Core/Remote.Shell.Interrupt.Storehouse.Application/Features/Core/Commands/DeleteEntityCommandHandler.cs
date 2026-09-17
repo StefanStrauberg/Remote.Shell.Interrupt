@@ -1,10 +1,12 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;
 
 /// <summary>
 /// Represents a command to delete an entity by its unique identifier.
 /// </summary>
 public abstract record DeleteEntityCommand(Guid Id)
-  : ICommand<Unit>;
+  : CQRS.ICommand<Unit>;
 
 /// <summary>
 /// Abstract base handler for processing <see cref="DeleteEntityCommand"/> instances.
@@ -24,7 +26,7 @@ internal abstract class DeleteEntityCommandHandler<TEntity, TCommand>(ISpecifica
   /// <param name="request">The delete command containing the entity ID.</param>
   /// <param name="cancellationToken">Token for cancelling the operation.</param>
   /// <returns>A <see cref="Unit"/> result indicating completion.</returns>
-  async Task<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
+  async ValueTask<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
   {
     var specification = BuildSpecification(request.Id);
 

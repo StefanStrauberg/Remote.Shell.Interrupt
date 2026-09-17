@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.CreateWorkflow;
 
 /// <summary>
@@ -10,7 +12,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Comma
 /// GetWorkflowsByFilter-by-name lookup is ambiguous under a concurrent create/rename and is an
 /// extra round trip besides.
 /// </summary>
-public record CreateWorkflowCommand(CreateWorkflowDTO WorkflowDto) : ICommand<Guid>;
+public record CreateWorkflowCommand(CreateWorkflowDTO WorkflowDto) : CQRS.ICommand<Guid>;
 
 /// <summary>
 /// Handles creation of <see cref="WorkflowDefinition"/> entities. Mirrors
@@ -26,9 +28,9 @@ internal class CreateWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfWo
                                              IWorkflowSpecification specification,
                                              IQueryFilterParser queryFilterParser,
                                              IMapper mapper)
-  : ICommandHandler<CreateWorkflowCommand, Guid>
+  : CQRS.ICommandHandler<CreateWorkflowCommand, Guid>
 {
-  public async Task<Guid> Handle(CreateWorkflowCommand request, CancellationToken cancellationToken)
+  public async ValueTask<Guid> Handle(CreateWorkflowCommand request, CancellationToken cancellationToken)
   {
     var filter = queryFilterParser.ParseFilters<WorkflowDefinition>(new RequestParameters
     {

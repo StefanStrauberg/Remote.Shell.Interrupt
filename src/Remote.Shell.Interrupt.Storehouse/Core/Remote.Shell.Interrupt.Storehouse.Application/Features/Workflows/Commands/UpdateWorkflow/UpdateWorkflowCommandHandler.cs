@@ -1,10 +1,12 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Commands.UpdateWorkflow;
 
 /// <summary>
 /// Command to replace an existing <see cref="WorkflowDefinition"/>'s graph (name/version/
 /// start node plus its full node/edge set) with the contents of an <see cref="UpdateWorkflowDTO"/>.
 /// </summary>
-public record UpdateWorkflowCommand(UpdateWorkflowDTO WorkflowDto) : ICommand<Unit>;
+public record UpdateWorkflowCommand(UpdateWorkflowDTO WorkflowDto) : CQRS.ICommand<Unit>;
 
 /// <summary>
 /// Handles <see cref="UpdateWorkflowCommand"/> as a full graph replace rather than a scalar
@@ -20,9 +22,9 @@ internal class UpdateWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfWo
                                             IWorkflowSpecification specification,
                                             IQueryFilterParser queryFilterParser,
                                             IMapper mapper)
-  : ICommandHandler<UpdateWorkflowCommand, Unit>
+  : CQRS.ICommandHandler<UpdateWorkflowCommand, Unit>
 {
-  public async Task<Unit> Handle(UpdateWorkflowCommand request, CancellationToken cancellationToken)
+  public async ValueTask<Unit> Handle(UpdateWorkflowCommand request, CancellationToken cancellationToken)
   {
     var dto = request.WorkflowDto;
 

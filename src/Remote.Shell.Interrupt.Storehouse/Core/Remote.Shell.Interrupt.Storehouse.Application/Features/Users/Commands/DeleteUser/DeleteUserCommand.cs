@@ -1,3 +1,4 @@
+using Mediator;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Identity;
 
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.DeleteUser;
@@ -5,14 +6,14 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Users.Commands.
 /// <summary>
 /// Permanently deletes an account.
 /// </summary>
-public sealed record DeleteUserCommand(Guid UserId) : ICommand;
+public sealed record DeleteUserCommand(Guid UserId) : CQRS.ICommand;
 
 /// <param name="currentUserService">Guards against an admin deleting their own account.</param>
 internal class DeleteUserCommandHandler(IIdentityService identityService,
                                         ICurrentUserService currentUserService)
-  : ICommandHandler<DeleteUserCommand>
+  : CQRS.ICommandHandler<DeleteUserCommand>
 {
-  async Task<Unit> IRequestHandler<DeleteUserCommand, Unit>.Handle(DeleteUserCommand request,
+  async ValueTask<Unit> IRequestHandler<DeleteUserCommand, Unit>.Handle(DeleteUserCommand request,
                                                                    CancellationToken cancellationToken)
   {
     if (currentUserService.UserId == request.UserId)

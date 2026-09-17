@@ -1,3 +1,5 @@
+using Mediator;
+
 namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Core.Commands;
 /// </summary>
 /// <typeparam name="TCreateDto">The type of DTO used to populate the entity.</typeparam>
 public abstract record CreateEntityCommand<TCreateDto>(TCreateDto CreateDto)
-  : ICommand<Unit>;
+  : CQRS.ICommand<Unit>;
 
 /// <summary>
 /// Base handler for processing <see cref="CreateEntityCommand{TCreateDto}"/> instances.
@@ -16,12 +18,12 @@ public abstract record CreateEntityCommand<TCreateDto>(TCreateDto CreateDto)
 /// <typeparam name="TCommand">The specific command type inheriting from <see cref="CreateEntityCommand{TDto}"/>.</typeparam>
 internal abstract class CreateEntityCommandHandler<TEntity, TDto, TCommand>(ISpecification<TEntity> specification,
                                                                             IMapper mapper)
-  : ICommandHandler<TCommand, Unit>
+  : CQRS.ICommandHandler<TCommand, Unit>
   where TEntity : BaseEntity
   where TDto : class
   where TCommand : CreateEntityCommand<TDto>
 {
-  async Task<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
+  async ValueTask<Unit> IRequestHandler<TCommand, Unit>.Handle(TCommand request, CancellationToken cancellationToken)
   {
     var filter = BuildDuplicateCheckFilter(request.CreateDto);
     var specification = BuildSpecification(filter);

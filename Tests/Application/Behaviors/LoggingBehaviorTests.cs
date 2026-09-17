@@ -1,4 +1,3 @@
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.Logger;
@@ -22,7 +21,7 @@ public class LoggingBehaviorTests
     [Fact]
     public async Task Handle_NextSucceeds_ReturnsResponse()
     {
-        var result = await _behavior.Handle(_command, () => Task.FromResult("ok"), CancellationToken.None);
+        var result = await _behavior.Handle(_command, (_, _) => new ValueTask<string>("ok"), CancellationToken.None);
 
         result.Should().Be("ok");
     }
@@ -30,7 +29,7 @@ public class LoggingBehaviorTests
     [Fact]
     public async Task Handle_NextSucceeds_LogsStartAndEnd()
     {
-        await _behavior.Handle(_command, () => Task.FromResult("ok"), CancellationToken.None);
+        await _behavior.Handle(_command, (_, _) => new ValueTask<string>("ok"), CancellationToken.None);
 
         _logger.Received().LogInformation(Arg.Is<string>(m => m.Contains("[START]")), Arg.Any<object[]>());
         _logger.Received().LogInformation(Arg.Is<string>(m => m.Contains("[END]")), Arg.Any<object[]>());
@@ -41,7 +40,7 @@ public class LoggingBehaviorTests
     public async Task Handle_NextThrows_LogsErrorAndRethrows()
     {
         var act = async () => await _behavior.Handle(_command,
-                                                     () => throw new InvalidOperationException("boom"),
+                                                     (_, _) => throw new InvalidOperationException("boom"),
                                                      CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("boom");
@@ -49,7 +48,7 @@ public class LoggingBehaviorTests
     }
 }
 
-public record TestLogUnitCommand : ICommand<Unit>;
+public record TestLogUnitCommand : CQRS.ICommand<Unit>;
 
 public class LoggingBehaviorUnitTests
 {
@@ -60,7 +59,7 @@ public class LoggingBehaviorUnitTests
         var behavior = new LoggingBehavior<TestLogUnitCommand, Unit>(logger);
 
         var result = await behavior.Handle(new TestLogUnitCommand(),
-                                           () => Task.FromResult(Unit.Value),
+                                           (_, _) => Unit.ValueTask,
                                            CancellationToken.None);
 
         result.Should().Be(Unit.Value);

@@ -6,7 +6,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.Workflows.Comma
 /// Gate/NetworkDevice - a workflow is reusable across any device with the same shape.
 /// </summary>
 public record ExecuteWorkflowCommand(Guid WorkflowId, string Host, string Community, Dictionary<string, object?>? Input = null)
-  : ICommand<WorkflowExecutionResultDTO>
+  : CQRS.ICommand<WorkflowExecutionResultDTO>
 {
   // Prevents the LoggingBehavior pipeline from writing the community string - a shared
   // read/write credential on the target device, not just an identifier - to the console/file
@@ -28,9 +28,9 @@ internal class ExecuteWorkflowCommandHandler(IWorkflowUnitOfWork workflowUnitOfW
                                              IQueryFilterParser queryFilterParser,
                                              IWorkflowEngine engine,
                                              IMapper mapper)
-  : ICommandHandler<ExecuteWorkflowCommand, WorkflowExecutionResultDTO>
+  : CQRS.ICommandHandler<ExecuteWorkflowCommand, WorkflowExecutionResultDTO>
 {
-  public async Task<WorkflowExecutionResultDTO> Handle(ExecuteWorkflowCommand request, CancellationToken cancellationToken)
+  public async ValueTask<WorkflowExecutionResultDTO> Handle(ExecuteWorkflowCommand request, CancellationToken cancellationToken)
   {
     var filterExpr = queryFilterParser.ParseFilters<WorkflowDefinition>(RequestParametersFactory.ForId(request.WorkflowId).Filters);
     var spec = specification.Clone();

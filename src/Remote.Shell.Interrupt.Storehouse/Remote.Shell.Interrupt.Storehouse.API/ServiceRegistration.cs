@@ -45,6 +45,20 @@ public static class ServiceRegistration
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     builder.Services.AddAuthenticationAndAuthorization(builder.Configuration, builder.Environment.IsDevelopment());
 
+    // Mediator injection - must be registered here (not in the Application project's
+    // ApplicationServicesRegistration) because Mediator.SourceGenerator only generates the
+    // AddMediator() implementation in the project that references it, which per the library's
+    // guidance should be the outermost/edge project (this one), not every layer.
+    // ServiceLifetime is set to Scoped (the library defaults to Singleton) to match every
+    // handler's actual dependencies - IUnitOfWork implementations are registered AddScoped
+    // (see PersistenceServicesRegistration), so a singleton-lifetime handler would capture and
+    // reuse the same EF Core DbContext-backed unit of work across every request forever.
+    builder.Services.AddMediator(options =>
+    {
+      options.ServiceLifetime = ServiceLifetime.Scoped;
+      options.PipelineBehaviors = [typeof(ValidationBehavior<,>), typeof(LoggingBehavior<,>)];
+    });
+
     // Application Layers
     builder.Services.AddApplicationServices();
     builder.Services.AddSNMPCommandExecutorServices();

@@ -1,12 +1,11 @@
 using FluentValidation;
-using MediatR;
 using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 using Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;
 using ValidationException = Remote.Shell.Interrupt.Storehouse.Application.Exceptions.ValidationException;
 
 namespace Tests.Application.Behaviors;
 
-public record TestValidatedCommand(string Value) : ICommand<string>;
+public record TestValidatedCommand(string Value) : CQRS.ICommand<string>;
 
 public class ValidationBehaviorTests
 {
@@ -34,7 +33,7 @@ public class ValidationBehaviorTests
         var nextCalled = false;
 
         var result = await behavior.Handle(new TestValidatedCommand("v"),
-                                           () => { nextCalled = true; return Task.FromResult("ok"); },
+                                           (_, _) => { nextCalled = true; return new ValueTask<string>("ok"); },
                                            CancellationToken.None);
 
         result.Should().Be("ok");
@@ -47,7 +46,7 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestValidatedCommand, string>([PassingValidator()]);
 
         var result = await behavior.Handle(new TestValidatedCommand("v"),
-                                           () => Task.FromResult("ok"),
+                                           (_, _) => new ValueTask<string>("ok"),
                                            CancellationToken.None);
 
         result.Should().Be("ok");
@@ -59,7 +58,7 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestValidatedCommand, string>([FailingValidator("Value", "is bad")]);
 
         var act = async () => await behavior.Handle(new TestValidatedCommand("v"),
-                                                    () => Task.FromResult("ok"),
+                                                    (_, _) => new ValueTask<string>("ok"),
                                                     CancellationToken.None);
 
         var exception = (await act.Should().ThrowAsync<ValidationException>()).Which;
@@ -75,7 +74,7 @@ public class ValidationBehaviorTests
              FailingValidator("Other", "other")]);
 
         var act = async () => await behavior.Handle(new TestValidatedCommand("v"),
-                                                    () => Task.FromResult("ok"),
+                                                    (_, _) => new ValueTask<string>("ok"),
                                                     CancellationToken.None);
 
         var exception = (await act.Should().ThrowAsync<ValidationException>()).Which;
@@ -91,7 +90,7 @@ public class ValidationBehaviorTests
         var nextCalled = false;
 
         var act = async () => await behavior.Handle(new TestValidatedCommand("v"),
-                                                    () => { nextCalled = true; return Task.FromResult("ok"); },
+                                                    (_, _) => { nextCalled = true; return new ValueTask<string>("ok"); },
                                                     CancellationToken.None);
 
         await act.Should().ThrowAsync<ValidationException>();
