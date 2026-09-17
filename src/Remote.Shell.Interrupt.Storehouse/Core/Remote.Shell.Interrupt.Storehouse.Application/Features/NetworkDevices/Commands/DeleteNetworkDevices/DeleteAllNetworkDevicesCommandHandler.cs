@@ -9,7 +9,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Features.NetworkDevices.
 public record DeleteAllNetworkDevicesCommand : CQRS.ICommand<Unit>;
 
 /// <summary>
-/// Handles the DeleteNetworkDevicesCommand and removes all network devices.
+/// Handles <see cref="DeleteAllNetworkDevicesCommand"/> and removes all network devices.
 /// </summary>
 /// <remarks>
 /// This handler retrieves all network devices, iterates through them,

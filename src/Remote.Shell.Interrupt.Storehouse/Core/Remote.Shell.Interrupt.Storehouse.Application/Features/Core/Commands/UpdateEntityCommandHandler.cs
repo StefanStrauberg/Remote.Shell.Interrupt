@@ -45,6 +45,9 @@ abstract class UpdateEntityCommandHandler<TEntity, TDto, TCommand>(ISpecificatio
   protected abstract Task<TEntity> FetchEntityAsync(ISpecification<TEntity> specification,
                                                     CancellationToken cancellationToken);
 
+  /// <summary>
+  /// Despite the name, maps the DTO's fields onto the tracked entity (DTO -> entity).
+  /// </summary>
   protected virtual void MapToDto(TDto source, TEntity destination)
     => mapper.Map(source, destination);
 

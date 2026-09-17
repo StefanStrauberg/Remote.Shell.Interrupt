@@ -149,11 +149,11 @@ internal class GenericSpecification<TBase> : ISpecification<TBase> where TBase :
     if (includeExpression is null)
       throw new ArgumentNullException(nameof(includeExpression), "Filtered include expression cannot be null.");
 
-    // Convert the expression to the appropriate format for filtered includes
+    // Re-wraps the typed lambda as an untyped LambdaExpression for storage. Nothing reads
+    // FilteredIncludeChains today - no query pipeline applies these to the included children.
     var parameter = includeExpression.Parameters[0];
     var body = includeExpression.Body;
 
-    // Create a new expression that can be handled by your existing infrastructure
     var newExpression = Expression.Lambda(body, parameter);
     _filteredIncludeChains.Add(newExpression);
 

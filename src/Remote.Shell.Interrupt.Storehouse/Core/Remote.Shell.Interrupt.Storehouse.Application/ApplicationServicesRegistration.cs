@@ -1,7 +1,7 @@
 namespace Remote.Shell.Interrupt.Storehouse.Application;
 
 /// <summary>
-/// Provides extension methods to register core application services including Mediator, Mapster, validation, and middleware.
+/// Provides extension methods to register core application services including Mapster, validation, and middleware.
 /// </summary>
 public static class ApplicationServicesRegistration
 {

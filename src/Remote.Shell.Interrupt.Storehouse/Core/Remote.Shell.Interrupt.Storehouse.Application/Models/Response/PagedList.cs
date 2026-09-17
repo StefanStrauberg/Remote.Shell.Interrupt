@@ -41,8 +41,7 @@ public class PagedList<T> : List<T>
     /// </summary>
     /// <param name="items">The collection of items to include in the paged list.</param>
     /// <param name="count">The total number of items.</param>
-    /// <param name="pageNumber">The current page number.</param>
-    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="paginationContext">The pagination context specifying page number and page size.</param>
     public PagedList(IEnumerable<T> items, int count, PaginationContext paginationContext)
     {
         TotalCount = count;

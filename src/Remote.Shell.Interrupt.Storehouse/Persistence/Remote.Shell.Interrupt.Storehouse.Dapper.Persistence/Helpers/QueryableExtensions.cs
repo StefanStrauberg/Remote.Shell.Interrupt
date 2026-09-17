@@ -5,13 +5,13 @@ internal static class QueryableExtensions
   /// <summary>
   /// Applies multiple include expressions to the query.
   /// </summary>
-  /// <typeparam name="T">The entity type being queried.</typeparam>
+  /// <typeparam name="TBase">The entity type being queried.</typeparam>
   /// <param name="query">The base query.</param>
   /// <param name="includeChains">Collection of include chains specifying navigation properties.</param>
-  /// <returns>An <see cref="IQueryable{T}"/> with the applied includes.</returns>
+  /// <returns>An <see cref="IQueryable{TBase}"/> with the applied includes.</returns>
   /// <remarks>
   /// Uses reflection to dynamically invoke <c>Include</c> and <c>ThenInclude</c> methods from EF Core.
-  /// Supports nested includes via <see cref="IIncludeChain{T}"/>.
+  /// Supports nested includes via <see cref="IIncludeChain{TBase}"/>.
   /// </remarks>
   public static IQueryable<TBase> ApplyIncludes<TBase>(this IQueryable<TBase> query, IEnumerable<IIncludeChain<TBase>> includeChains)
     where TBase : BaseEntity

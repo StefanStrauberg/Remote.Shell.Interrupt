@@ -7,7 +7,7 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Remote.Shell.Interrupt.Storehouse.Application.Behaviors;
 // Namespace ALIAS (not a type alias - this compiler doesn't support C#12's generic
 // using-alias syntax) for our own CQRS contracts. Mediator ships its own generic
-// CQRS.ICommand<T>/CQRS.IQuery<T>/CQRS.ICommandHandler<,>/CQRS.IQueryHandler<,> marker interfaces, which
+// ICommand<T>/IQuery<T>/ICommandHandler<,>/IQueryHandler<,> marker interfaces, which
 // collide by name with ours - every reference to our own versions goes through this
 // "CQRS." prefix (see Features/**) instead of relying on an unqualified name.
 global using CQRS = Remote.Shell.Interrupt.Storehouse.Application.Contracts.CQRS;

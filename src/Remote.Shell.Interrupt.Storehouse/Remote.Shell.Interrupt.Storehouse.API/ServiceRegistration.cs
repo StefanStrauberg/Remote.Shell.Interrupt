@@ -158,9 +158,10 @@ public static class ServiceRegistration
 
   /// <summary>
   /// Registers rate-limiting policies for anonymously-reachable endpoints, partitioned per
-  /// client IP address: credential-checking auth endpoints (login, cookie login), to slow down
-  /// brute-force/credential-stuffing attempts, and the client-error-reporting endpoint, to bound
-  /// how fast an unauthenticated caller can write into the backend's log file.
+  /// client IP address: the auth endpoints (login, cookie login, refresh token, revoke token),
+  /// to slow down brute-force/credential-stuffing and token-guessing attempts, and the
+  /// client-error-reporting endpoint, to bound how fast an unauthenticated caller can write
+  /// into the backend's log file.
   /// </summary>
   static IServiceCollection AddApiRateLimiting(this IServiceCollection services)
   {
@@ -345,8 +346,8 @@ public static class ServiceRegistration
             : Serilog.Events.LogEventLevel.Information;
     });
 
-    // Registered first so it also catches exceptions thrown by CORS/authentication/
-    // authorization middleware further down the pipeline, not just controller actions.
+    // Registered ahead of the rest of the pipeline so it also catches exceptions thrown by
+    // CORS/authentication/authorization middleware further down it, not just controller actions.
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     app.UseHttpsRedirection();

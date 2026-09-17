@@ -7,7 +7,7 @@ namespace Remote.Shell.Interrupt.Storehouse.QueryFilterParser.QueryFilterParsers
 internal class CommonQueryFilterParser : IQueryFilterParser
 {
 
-  // <inheritdoc />
+  /// <inheritdoc />
   Expression<Func<T, bool>>? IQueryFilterParser.ParseFilters<T>(List<FilterDescriptor>? filters)
   {
     if (ShouldSkipProcessing(filters)) return null;

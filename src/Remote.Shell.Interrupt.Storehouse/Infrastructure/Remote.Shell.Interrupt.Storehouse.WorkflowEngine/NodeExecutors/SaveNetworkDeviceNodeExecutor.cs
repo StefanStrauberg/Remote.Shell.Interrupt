@@ -1,17 +1,17 @@
 namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine.NodeExecutors;
 
 /// <summary>
-/// The engine's one side-effecting node type: builds a <see cref="NetworkDevice"/> (with its
-/// full Ports/VLANs/MAC/ARP/NetworkTable/AggregatedPorts graph) from context variables
-/// populated by earlier nodes, and inserts it. Reads:
+/// The engine's one node type that writes to the database: builds a
+/// <see cref="NetworkDevice"/> (with its full Ports/VLANs/MAC/ARP/NetworkTable/AggregatedPorts
+/// graph) from context variables populated by earlier nodes, and inserts it. Reads:
 /// <list type="bullet">
 /// <item><c>input.vendor</c> - required, parsed as <see cref="TypeOfNetworkDevice"/>.</item>
 /// <item><c>device.generalInformation</c>, <c>device.name</c> - optional strings.</item>
 /// <item><c>network.ports</c> - required array of objects shaped
 /// <c>{number, name, type, speed, status, mac, description, vlans:[{tag,name}],
 /// macTable:[mac], arp:[{mac,ip}], network:[{ip,mask}], aggregatedPortNumbers:[number]}</c>;
-/// <c>type</c>/<c>status</c> are the raw numeric SNMP values (parsed the same way
-/// <c>Enum.Parse&lt;PortType&gt;</c>/<c>Enum.Parse&lt;PortStatus&gt;</c> always has), and
+/// <c>type</c>/<c>status</c> are the raw numeric SNMP values (parsed via
+/// <c>Enum.Parse&lt;PortType&gt;</c>/<c>Enum.Parse&lt;PortStatus&gt;</c>), and
 /// <c>aggregatedPortNumbers</c> on a port makes it the parent of those other ports.</item>
 /// </list>
 /// The device's own <c>Host</c> comes from <see cref="WorkflowContext.Host"/>, not context -

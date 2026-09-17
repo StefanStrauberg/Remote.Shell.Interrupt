@@ -2,11 +2,10 @@ namespace Remote.Shell.Interrupt.Storehouse.Infrastructure.WorkflowEngine.NodeEx
 
 /// <summary>
 /// Small JS helper library executed before every Script node's own <c>scriptSource</c>, so
-/// scripts can call these instead of re-implementing them per node. Each function ports one of
-/// the pure-function helpers under Application/Helpers that CreateNetworkDeviceCommandHandler
-/// used to rely on directly in C# (OIDGetNumbers, FormatMACAddress, FormatEgressPorts,
-/// RemoveTrailingPlusDigit) - see the Application-layer versions for the authoritative
-/// behavior each of these must match.
+/// scripts can call these instead of re-implementing them per node. They port the pure-function
+/// OID/MAC/egress-port helpers that CreateNetworkDeviceCommandHandler used to call directly in
+/// C# before device discovery moved into workflow graphs; those C# helpers are gone, so these
+/// definitions are now the authoritative behavior.
 /// </summary>
 internal static class WorkflowScriptPrelude
 {

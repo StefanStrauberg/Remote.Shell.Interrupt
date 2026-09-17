@@ -6,7 +6,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Application.Validations.Workflows;
 /// Validates the SNMP target on a workflow run request. Mirrors
 /// <see cref="SNMPGetCommandValidator"/>/<see cref="SNMPWalkCommandValidator"/> exactly - a
 /// workflow's <c>SnmpGet</c>/<c>SnmpWalk</c> nodes ultimately hit the same
-/// <see cref="Remote.Shell.Interrupt.Storehouse.Infrastructure.SNMPCommandExecutor.SNMPCommandExecutor"/>
+/// <c>SNMPCommandExecutor</c> (Infrastructure)
 /// against <see cref="ExecuteWorkflowCommand.Host"/>, so it needs the same format and
 /// SSRF-shaped-target checks, not just the "AbstractValidator exists for every SNMP entry
 /// point" guarantee those two already gave the Get/Walk endpoints.

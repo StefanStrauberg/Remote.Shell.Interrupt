@@ -16,8 +16,8 @@ public static class DefaultEntities
   public static string ExposedHeaders { get; } = "X-Pagination";
 
   /// <summary>
-  /// Rate-limiting policy name applied to credential-checking auth endpoints
-  /// (login, cookie login) to slow down brute-force/credential-stuffing attempts.
+  /// Rate-limiting policy name applied to the anonymous auth endpoints (login, cookie login,
+  /// refresh token, revoke token) to slow down brute-force/credential-stuffing attempts.
   /// Must be a compile-time constant: referenced from the <see cref="Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute"/>.
   /// </summary>
   public const string AuthRateLimitPolicy = "AuthRateLimit";

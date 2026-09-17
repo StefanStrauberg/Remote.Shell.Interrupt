@@ -8,7 +8,7 @@ public class WorkflowDefinitionConfiguration : IEntityTypeConfiguration<Workflow
 
     builder.HasKey(x => x.Id);
 
-    // Duplicate-check target for CreateWorkflowCommandHandler, mirrors Gate.IPAddress.
+    // Unique: the race-safe backing for CreateWorkflowCommandHandler's duplicate-name check.
     builder.HasIndex(x => x.Name)
            .IsUnique();
 

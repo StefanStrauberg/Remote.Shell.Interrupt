@@ -14,8 +14,8 @@ internal class WorkflowEngine(IWorkflowNodeResolver resolver) : IWorkflowEngine
   // a step cap, executing that graph would run this while(true) forever: cancellationToken is
   // only the caller's HTTP RequestAborted, which never fires on its own unless the client
   // disconnects. This bounds a run to something far past any legitimate graph's node count
-  // (the seeded network-device-discovery workflow, the largest shipped with this app, is under
-  // 20 nodes) while still catching a genuine cycle quickly.
+  // (the seeded network-device-discovery workflow, the largest shipped with this app, is a
+  // little over 50 nodes) while still catching a genuine cycle quickly.
   const int MaxSteps = 1_000;
 
   public async Task<WorkflowExecutionResult> ExecuteAsync(WorkflowDefinition workflow,

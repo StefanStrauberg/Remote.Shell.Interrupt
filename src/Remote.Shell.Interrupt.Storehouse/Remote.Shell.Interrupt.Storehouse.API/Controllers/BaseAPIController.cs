@@ -17,11 +17,11 @@
 public class BaseAPIController(ISender sender) : ControllerBase
 {
   /// <summary>
-  /// Lazily resolves an <see cref="ISender"/> instance from the current request's service provider.
-  /// Used to dispatch commands and queries via Mediator.
+  /// The injected <see cref="ISender"/> derived controllers use to dispatch commands and
+  /// queries via Mediator.
   /// </summary>
   /// <exception cref="ArgumentNullException">
-  /// Thrown if the <see cref="ISender"/> service is not available in the request context.
+  /// Thrown at construction if the injected <see cref="ISender"/> is <c>null</c>.
   /// </exception>
   protected ISender Sender = sender
     ?? throw new ArgumentNullException(nameof(sender));

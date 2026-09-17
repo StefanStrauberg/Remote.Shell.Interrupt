@@ -14,10 +14,11 @@ internal partial class SNMPCommandExecutor : ISNMPCommandExecutor
 
     // A device that never returns EndOfMibView/NoSuchObject and never leaves the requested
     // subtree (a buggy agent, or one that starts repeating OIDs) would otherwise keep
-    // WalkCommand's loop going forever even with the wall-clock timeout above bounding any
-    // single round-trip - this bounds the number of round-trips too. 10,000 GETBULK calls at
-    // the default 20 repetitions/call is up to 200,000 OIDs, comfortably above a real router's
-    // interface/ARP/MAC/VLAN table.
+    // WalkCommand's loop spinning until WalkTimeoutMs above expires - which reports the
+    // generic "did not respond" message, hiding the real cause. This bounds the number of
+    // round-trips too, so a runaway walk fails with an error that names it. 10,000 GETBULK
+    // calls at the default 20 repetitions/call is up to 200,000 OIDs, comfortably above a
+    // real router's interface/ARP/MAC/VLAN table.
     const int MaxWalkIterations = 10_000;
 
     public async Task<SNMPResponse> GetCommand(string host, string community, string oid, CancellationToken cancellationToken, bool toHex = false)

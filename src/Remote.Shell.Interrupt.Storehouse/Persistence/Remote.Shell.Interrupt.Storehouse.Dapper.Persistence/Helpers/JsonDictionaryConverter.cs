@@ -6,7 +6,7 @@ namespace Remote.Shell.Interrupt.Storehouse.Dapper.Persistence.Helpers;
 /// deserializes untyped values as boxed <see cref="JsonElement"/>, not plain CLR
 /// primitives - <see cref="Normalize"/> converts those back to string/long/double/bool/
 /// null/List/Dictionary so callers see the same shapes as when the dictionary was built
-/// directly in memory (e.g. in a test, or the demo's node executors).
+/// directly in memory (e.g. in a test, or in the workflow engine's node executors).
 /// </summary>
 internal static class JsonDictionaryConverter
 {
