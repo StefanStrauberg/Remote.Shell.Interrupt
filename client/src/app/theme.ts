@@ -2,15 +2,15 @@ import { alpha, createTheme } from "@mui/material/styles";
 
 export const designTokens = Object.freeze({
   brand: {
-    navy: "#14292E",
-    blue: "#147D68",
-    cyan: "#238B86",
-    accent: "#74E6C3",
+    navy: "#1C2940",
+    blue: "#355EC7",
+    cyan: "#526C9C",
+    accent: "#B0C6FF",
     onDark: "#F7FAFC",
   },
   gradients: {
-    brand: "linear-gradient(135deg, #14292E 0%, #147D68 58%, #24506F 100%)",
-    appBar: "linear-gradient(110deg, #14292E 0%, #24506F 55%, #147D68 100%)",
+    brand: "linear-gradient(135deg, #1C2940 0%, #355EC7 58%, #24506F 100%)",
+    appBar: "linear-gradient(110deg, #1C2940 0%, #24506F 55%, #355EC7 100%)",
   },
   shadows: {
     surface: "0 2px 8px rgba(20, 41, 46, 0.025)",
@@ -24,36 +24,36 @@ export const appTheme = createTheme({
     primary: {
       main: designTokens.brand.blue,
       dark: designTokens.brand.navy,
-      light: "#E0F2EC",
+      light: "#EDF2FF",
       contrastText: "#FFFFFF",
     },
     secondary: {
       main: designTokens.brand.cyan,
-      dark: "#176963",
-      light: "#E1F3EF",
+      dark: "#3B5280",
+      light: "#EEF2FA",
     },
     success: { main: "#2F855A" },
     warning: { main: "#C47B16" },
     error: { main: "#C74343" },
     info: { main: "#3978A8" },
     background: {
-      default: "#F5F7F8",
+      default: "#F4F6FA",
       paper: "#FFFFFF",
     },
     text: {
-      primary: "#203438",
-      secondary: "#657A7F",
+      primary: "#243246",
+      secondary: "#617089",
     },
-    divider: "#E2E8EA",
+    divider: "#DFE5EE",
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 8 },
   spacing: 8,
   typography: {
     fontFamily: '"Roboto", "Segoe UI", sans-serif',
     h1: { fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.03em" },
     h2: { fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.025em" },
     h3: { fontSize: "1.75rem", fontWeight: 700, letterSpacing: "-0.02em" },
-    h4: { fontSize: "1.8rem", fontWeight: 700, letterSpacing: "-0.015em" },
+    h4: { fontSize: "1.65rem", fontWeight: 700, letterSpacing: "-0.015em" },
     h5: { fontSize: "1.25rem", fontWeight: 700 },
     h6: { fontSize: "1rem", fontWeight: 700 },
     button: { fontWeight: 600, textTransform: "none", letterSpacing: 0 },
@@ -61,11 +61,11 @@ export const appTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        html: { minHeight: "100%", backgroundColor: "#F5F7F8" },
+        html: { minHeight: "100%", backgroundColor: "#F4F6FA" },
         body: {
           minHeight: "100%",
           margin: 0,
-          backgroundColor: "#F5F7F8",
+          backgroundColor: "#F4F6FA",
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",
         },
@@ -79,8 +79,8 @@ export const appTheme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: {
         root: {
-          minHeight: 40,
-          borderRadius: 10,
+          minHeight: 36,
+          borderRadius: 8,
           paddingInline: 18,
         },
       },
@@ -89,7 +89,7 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: { backgroundImage: "none" },
         outlined: {
-          borderColor: "#E2E8EA",
+          borderColor: "#DFE5EE",
           boxShadow: designTokens.shadows.surface,
         },
       },
@@ -98,8 +98,8 @@ export const appTheme = createTheme({
       defaultProps: { variant: "outlined" },
       styleOverrides: {
         root: {
-          borderColor: "#E2E8EA",
-          borderRadius: 16,
+          borderColor: "#DFE5EE",
+          borderRadius: 8,
           boxShadow: designTokens.shadows.surface,
           transition: "box-shadow 180ms ease, transform 180ms ease",
         },
@@ -120,7 +120,7 @@ export const appTheme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 8,
           backgroundColor: "#FFFFFF",
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: designTokens.brand.blue,
@@ -129,7 +129,7 @@ export const appTheme = createTheme({
             boxShadow: `0 0 0 3px ${alpha(designTokens.brand.blue, 0.12)}`,
           },
         },
-        notchedOutline: { borderColor: "#D3DDDF" },
+        notchedOutline: { borderColor: "#CDD6E4" },
       },
     },
     MuiChip: {
@@ -144,19 +144,19 @@ export const appTheme = createTheme({
     },
     MuiDialog: {
       styleOverrides: {
-        paper: { borderRadius: 16 },
+        paper: { borderRadius: 8 },
       },
     },
     MuiTableContainer: {
       styleOverrides: {
-        root: { borderRadius: 12, border: "1px solid #E2E8EA" },
+        root: { borderRadius: 12, border: "1px solid #DFE5EE" },
       },
     },
     MuiTableCell: {
       styleOverrides: {
         head: {
-          backgroundColor: "#F6F8F9",
-          color: "#50686D",
+          backgroundColor: "#F5F7FB",
+          color: "#566680",
           fontWeight: 700,
         },
       },

@@ -3,13 +3,13 @@
 }
 ::selection {
   color: #fff;
-  background: #147d68;
+  background: #355ec7;
 }
 body {
   overflow-wrap: anywhere;
 }
 :focus-visible {
-  outline: 3px solid #238b86;
+  outline: 3px solid #355ec7;
   outline-offset: 3px;
 }
 .skip-link {
@@ -19,7 +19,7 @@ body {
   z-index: 1500;
   padding: 12px 20px;
   background: white;
-  color: #147d68;
+  color: #355ec7;
   border-radius: 8px;
 }
 .skip-link:focus {

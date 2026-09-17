@@ -4,7 +4,7 @@
 
 - **Backend** — .NET 9, Clean Architecture, CQRS
 - **Databases** — PostgreSQL (primary) + MySQL (billing gateway, read-only)
-- **Tests** — xUnit, 582 unit tests + 21 integration tests (real PostgreSQL/MySQL via Testcontainers); Vitest, 21 frontend tests
+- **Tests** — xUnit unit and integration suites (real PostgreSQL/MySQL via Testcontainers); Vitest + React Testing Library for frontend unit and component/integration tests
 - **Frontend** — React 19 + TypeScript + Vite SPA (see [Frontend](#frontend) below)
 
 ---
@@ -24,8 +24,8 @@ Remote.Shell.Interrupt/
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
 ├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
-├── Tests/                              # xUnit — 582 unit tests (mocks/InMemory/SQLite, no external services)
-└── Tests.Integration/                  # xUnit — 21 tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
+├── Tests/                              # xUnit unit tests (mocks/InMemory/SQLite, no external services)
+└── Tests.Integration/                  # xUnit tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
 
 ---
@@ -49,20 +49,30 @@ Remote.Shell.Interrupt/
 
 ### Frontend
 
-A React 19 + TypeScript + Vite SPA under [`client/`](client/) — MUI, TanStack Query, Zustand, React Hook Form + Zod, Axios, React Router. Feature-sliced (`src/features/<Area>/{api,List,Detail}`), with its own [README](client/README.md) covering architecture and conventions in depth. Talks to the backend's versioned `/api/v1` routes; JWT is kept in memory/localStorage (the alternative HttpOnly-cookie flow exists in the API client but isn't wired into any page yet).
+A React 19 + TypeScript + Vite SPA under [`client/`](client/) — MUI, TanStack Query, Zustand, React Hook Form + Zod, Axios, React Router. Feature-sliced (`src/features/<Area>/{api,List,Detail}`), with its own [README](client/README.md) covering setup, architecture, UI behavior and tests. The SPA calls the backend's versioned `/api/v1` routes and signs in through `Auth/CookieLogin` using an HttpOnly session cookie. Only the non-secret user profile is cached in localStorage; browser requests do not carry a JavaScript-managed bearer token.
 
-Run it standalone against a locally-running API:
+Run it standalone against a locally-running API with Node.js matching `client/package.json` (`^20.19.0`, `^22.13.0`, or `>=24`):
 
 ```bash
 cd client
-npm install
+npm ci
 npm run dev      # http://localhost:3000, VITE_API_URL from .env (copy .env.example)
 npm run check    # formatting, ESLint, Vitest, TypeScript and production build
 ```
 
 Or let Docker Compose build and serve it (see below) — no Node install needed.
 
-The UI includes clients, network devices, VLAN search, tariff plans, gates, billing administration, user management, and a visual workflow designer (Admin → Workflows) — a canvas editor for the node/edge graphs described below, with drag/drop, undo/redo, JSON import/export, and a run panel that executes the saved graph against a live device and renders the step-by-step trace. The API supports refresh-token rotation and revocation, but the SPA currently uses only the access token and requires signing in again after it expires.
+The UI is organized as an **engineering workspace**:
+
+- Compact navigation with role-based destinations and a menu drawer on narrow screens.
+- VLAN search with shareable URLs, for example `/mainPage?vlan=120`, and combined customer/device results.
+- A grouped interface table with local text/status filters, compact rows and a closeable detail panel. Details include VLANs, MAC addresses, aggregation members and optional ARP/network data; IPs and learned MACs can be copied. Statuses describe collected SNMP data, not a live monitoring feed.
+- Device and customer directories default to tables while retaining card views, server-side filters and pagination. Customers also retain list view and sorting.
+- Customer details are grouped into Overview, Network & plan, Contacts, and Notes & history.
+- Tariff plans, VLANs, gates, billing synchronization, account provisioning and user administration remain available according to the user's role.
+- The visual workflow designer (Admin → Workflows) supports drag/drop, undo/redo, validation, JSON import/export, draft copies and lifecycle actions. **Focus canvas** hides editing panels; **More actions** groups less frequent commands. The execution panel runs a saved graph and displays its trace after completion. Read-only states, unsaved-change protection and request cancellation are retained.
+
+Logout clears the local session and cached business data. A protected API request returning HTTP 401 clears the expired session and returns the user to sign-in. JWT login, refresh and revocation remain separate API capabilities for API clients; the SPA uses the cookie flow.
 
 ---
 
@@ -131,27 +141,27 @@ curl -X POST http://localhost:5000/api/v1/Auth/Login \
 
 ### Authorization API
 
-| Method | Route                       | Access        |
-| ------ | --------------------------- | ------------- |
-| POST   | `/api/v1/Auth/Login`        | anonymous     |
-| POST   | `/api/v1/Auth/RefreshToken` | anonymous (refresh token required) |
+| Method | Route                       | Access                                    |
+| ------ | --------------------------- | ----------------------------------------- |
+| POST   | `/api/v1/Auth/Login`        | anonymous                                 |
+| POST   | `/api/v1/Auth/RefreshToken` | anonymous (refresh token required)        |
 | POST   | `/api/v1/Auth/RevokeToken`  | anonymous (refresh token in request body) |
-| POST   | `/api/v1/Auth/Register`     | Admin         |
-| POST   | `/api/v1/Auth/CookieLogin`  | anonymous     |
-| POST   | `/api/v1/Auth/CookieLogout` | authenticated |
+| POST   | `/api/v1/Auth/Register`     | Admin                                     |
+| POST   | `/api/v1/Auth/CookieLogin`  | anonymous                                 |
+| POST   | `/api/v1/Auth/CookieLogout` | authenticated                             |
 
 ### Access Matrix
 
-| Capability                                     | Admin | User |
-| ---------------------------------------------- | :---: | :--: |
-| Dashboards, VLAN search, clients, tariff plans |  ✅   |  ✅  |
-| Viewing network devices                        |  ✅   |  ✅  |
-| Creating / deleting network devices            |  ✅   |  ❌  |
-| Gates: view / create / update / delete         |  ✅   |  ❌  |
-| Billing sync and cleanup                       |  ✅   |  ❌  |
-| Registering users                              |  ✅   |  ❌  |
+| Capability                                      | Admin | User |
+| ----------------------------------------------- | :---: | :--: |
+| Dashboards, VLAN search, clients, tariff plans  |  ✅   |  ✅  |
+| Viewing network devices                         |  ✅   |  ✅  |
+| Creating / deleting network devices             |  ✅   |  ❌  |
+| Gates: view / create / update / delete          |  ✅   |  ❌  |
+| Billing sync and cleanup                        |  ✅   |  ❌  |
+| Registering users                               |  ✅   |  ❌  |
 | Managing user profiles, roles and active status |  ✅   |  ❌  |
-| SNMP Get / Walk                                |  ✅   |  ❌  |
+| SNMP Get / Walk                                 |  ✅   |  ❌  |
 | Workflow graphs: create / update / delete / run |  ✅   |  ❌  |
 
 ---
@@ -178,13 +188,13 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 - 🖥️ **Dashboards** — filters, sorting, server-side pagination
 - 🚪 **Gate management** — create, update, delete with duplicate checks
 - 🛡️ **Admin panel** — billing data refresh and cleanup
-- 🖥️ **Web frontend** — React SPA with protected routes, dashboards, detail pages, gate forms, user management, and a visual workflow designer
+- 🖥️ **Web frontend** — responsive engineering workspace with protected routes, searchable interface tables, diagnostic detail panels, customer tabs, gate forms, user management, and a visual workflow designer
 - 🔐 **Role-based access** — Admin / User with protected routes and API
 - 🧬 **Workflow engine** — node/edge graphs (`Start`/`End`/`Decision`/`Join`/`SetVariable`/`SnmpGet`/`SnmpWalk`/`Script`/`SaveNetworkDevice`) routed by priority/condition matching, run against a device over SNMP; `Script` nodes execute sandboxed JavaScript (Jint, `function execute(input, context)` contract) for vendor-specific data transforms, with `console.log` output captured per step; `Draft → Published → Archived` lifecycle (a Published graph is immutable); full CRUD + Publish/Archive via `WorkflowsController`, editable end-to-end from the SPA's canvas designer (Admin → Workflows). The vendor-specific SNMP discovery logic (Juniper/Huawei/Extreme port, VLAN and link-aggregation parsing) that used to be a ~900-line hand-coded handler is now the seeded "Network device discovery" workflow itself — `POST /NetworkDevices/CreateNetworkDevice` just runs it
 - 🧵 **Correlation ID** — per-request ID threaded through Serilog's log context (controller → MediatR → repositories) and echoed back on the response
 - 🏥 **Health checks** — `/health/live`, `/health/ready`, `/health` (see above)
 - 🔢 **API versioning** — all routes under `/api/v1`
-- 🐳 **Docker Compose** — API + PostgreSQL, migrations and identity seeding run automatically on startup (see [Quick Start](#-quick-start))
+- 🐳 **Docker Compose** — web client + API + PostgreSQL, migrations and identity seeding run automatically on startup (see [Quick Start](#-quick-start))
 
 ### Planned
 
@@ -194,14 +204,16 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 
 ## ⚙️ Configuration
 
-| Variable                                | Description                                    |
-| --------------------------------------- | ---------------------------------------------- |
-| `ConnectionStrings__DefaultConnection`  | PostgreSQL connection string                   |
-| `ConnectionStrings__DefaultConnection2` | remote MySQL billing database                  |
-| `JwtSettings__Key`                      | JWT signing key (min. 32 characters, required) |
-| `IdentitySeed__AdminEmail`              | default administrator email                    |
-| `IdentitySeed__AdminPassword`           | administrator password (empty — do not create) |
-| `Database__AutoMigrate`                 | apply EF Core migrations on startup (default `true`) |
+| Variable                                | Description                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------- |
+| `ConnectionStrings__DefaultConnection`  | PostgreSQL connection string                                                          |
+| `ConnectionStrings__DefaultConnection2` | remote MySQL billing database                                                         |
+| `JwtSettings__Key`                      | JWT signing key (min. 32 characters, required)                                        |
+| `IdentitySeed__AdminEmail`              | default administrator email                                                           |
+| `IdentitySeed__AdminPassword`           | administrator password (empty — do not create)                                        |
+| `Database__AutoMigrate`                 | apply EF Core migrations on startup (default `true`)                                  |
+| `Cors__AllowedOrigins__0`               | allowed browser origin when serving the client separately from the API                |
+| `VITE_API_URL`                          | frontend API base URL, read by Vite during development/build; unset means same-origin |
 
 Secrets are provided via user-secrets or environment variables:
 
@@ -252,7 +264,7 @@ The Persistence project doubles as its own startup project via `ApplicationDbCon
 dotnet test Tests/Tests.csproj
 ```
 
-582 unit tests across Domain, Application, Infrastructure, Persistence, and API — mocks, EF Core InMemory, and SQLite standing in for MySQL. No external services required.
+Unit tests across Domain, Application, Infrastructure, Persistence, and API use mocks, EF Core InMemory, and SQLite standing in for MySQL. No external services required. Use the test runner's summary for the current test count.
 
 ### Frontend checks
 
@@ -260,9 +272,14 @@ dotnet test Tests/Tests.csproj
 cd client
 npm ci
 npm run check
+npm run test:coverage
 ```
 
-Runs Prettier, ESLint, 21 Vitest regression tests, TypeScript checking, and the Vite production build. The command stops at the first failing stage. Run `npm run format` to apply formatting fixes, then rerun `npm run check`.
+`npm run check` runs Prettier, ESLint, TypeScript checks for application and tests, the complete Vitest suite, and the Vite production build. It stops at the first failing stage. Run `npm run format` to apply formatting fixes, then rerun `npm run check`.
+
+The frontend tests cover authentication and roles, registration and account management, VLAN search, directories and detail pages, administrative operations, workflow editing/execution, and HTTP/query-cache behavior. Engineering-workspace tests exercise interface selection, diagnostic tabs, status filtering, clipboard success/failure, and VLAN URL restoration. UI tests mock API boundaries and do not require a running backend or database.
+
+`npm run test:coverage` generates an HTML report at `client/coverage/index.html` and a machine-readable summary. `npm run test:watch` reruns tests during development. These are unit and component/integration suites; they do not replace browser end-to-end checks against a deployed backend. See [frontend testing details](client/README.md#frontend-tests).
 
 ### Integration tests
 
@@ -270,7 +287,7 @@ Runs Prettier, ESLint, 21 Vitest regression tests, TypeScript checking, and the 
 dotnet test Tests.Integration/Tests.Integration.csproj
 ```
 
-21 tests that boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
+These tests boot the real API pipeline (the same startup sequence as `Program.cs` — migrations, identity seeding, the full middleware pipeline) against **ephemeral PostgreSQL and MySQL containers** started via [Testcontainers](https://testcontainers.com/) — entirely separate from any database already running on the machine, torn down after the run. Requires **Docker** to be running; otherwise these fail to start the containers. Kept in a separate project (and out of plain `dotnet test` at the repo root) so the fast unit suite stays Docker-free.
 
 Covers what the unit suite structurally cannot: real EF Core migrations actually applying to Postgres, `ILIKE` filtering executing against a real Npgsql provider, the JWT/cookie/role-authorization pipeline end-to-end over real HTTP, health checks against live dependencies, `SET SESSION TRANSACTION READ ONLY` genuinely rejecting a write on the MySQL connection, and a full workflow round-trip (create → update → execute with a real Jint script → publish → archive → delete).
 

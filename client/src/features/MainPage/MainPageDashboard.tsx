@@ -1,18 +1,13 @@
-import { Grid2, Box, Button, Paper, Stack, Typography } from "@mui/material";
-import {
-  ArrowForward,
-  DnsOutlined,
-  GroupOutlined,
-  HubOutlined,
-} from "@mui/icons-material";
-import { Link } from "react-router";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Search } from "@mui/icons-material";
+import { Link, useSearchParams } from "react-router";
+import { useState } from "react";
 import { routes } from "../../app/router/paths";
 import MainPageListFilter from "./MainPageListFilter";
 import MainPageList from "./MainPageList";
-import { useState } from "react";
 import { useRouterSearchQuery } from "./api/routerSearchQueries";
 import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
-import SearchIcon from "@mui/icons-material/Search";
+import { isValidVlanId } from "../../lib/utils";
 import PageHeader from "../../app/shared/components/PageHeader";
 import EmptyPage from "../../app/shared/components/EmptyPage";
 import {
@@ -21,112 +16,82 @@ import {
 } from "../../app/shared/components/PageFeedback";
 
 export default function MainPageDashboard() {
-  const [filters, setFilters] = useState<RouterFilter>({});
-  const [isEnabled, setEnabled] = useState(false);
-
-  const routerSearchQuery = useRouterSearchQuery(
-    filters.IdVlan?.value,
-    isEnabled
+  const [params, setParams] = useSearchParams();
+  const value = Number(params.get("vlan"));
+  const initialVlan = isValidVlanId(value) ? value : undefined;
+  return (
+    <SearchWorkspace
+      key={initialVlan ?? "empty"}
+      initialVlan={initialVlan}
+      onChange={(vlan) => setParams(vlan ? { vlan: String(vlan) } : {})}
+    />
   );
-  const compoundObject = routerSearchQuery.data;
-
-  const handleApplyFilters = (newFilters: RouterFilter) => {
-    setFilters(newFilters);
-    setEnabled(false);
-  };
-
-  const handleSearch = () => {
-    routerSearchQuery.clear();
-    setEnabled(true);
-  };
-
+}
+function SearchWorkspace({
+  initialVlan,
+  onChange,
+}: {
+  initialVlan?: number;
+  onChange: (vlan?: number) => void;
+}) {
+  const [filters, setFilters] = useState<RouterFilter>(
+    initialVlan ? { IdVlan: { op: "==", value: initialVlan } } : {}
+  );
+  const [enabled, setEnabled] = useState(!!initialVlan);
+  const query = useRouterSearchQuery(filters.IdVlan?.value, enabled);
   return (
     <Box>
       <PageHeader
         title="Network search"
-        description="Find customer and network-device details by VLAN ID"
-        icon={SearchIcon}
+        description="Find customers and interfaces by VLAN. Inspect a port without leaving your results."
+        icon={Search}
       />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-          gap: 2,
-          mb: 3,
-        }}
+      <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <MainPageListFilter
+          initialVlan={initialVlan}
+          onApplyFilters={(next) => {
+            setFilters(next);
+            setEnabled(false);
+            onChange(next.IdVlan?.value);
+          }}
+          onSearch={() => {
+            query.clear();
+            setEnabled(true);
+          }}
+        />
+      </Paper>
+      {query.isLoading ? (
+        <PageLoading message="Searching for devices…" />
+      ) : query.isError ? (
+        <PageError title="Unable to complete the search" error={query.error} />
+      ) : query.data ? (
+        <MainPageList data={query.data} />
+      ) : (
+        <EmptyPage
+          input="Start a VLAN search"
+          description="Enter a VLAN ID above to find devices, interfaces and customer details."
+        />
+      )}
+      <Stack
+        direction="row"
+        alignItems="center"
+        gap={1}
+        flexWrap="wrap"
+        sx={{ mt: 3 }}
       >
-        {[
-          {
-            title: "Network devices",
-            text: "Explore your infrastructure",
-            to: routes.networkDevices,
-            icon: DnsOutlined,
-          },
-          {
-            title: "Customer directory",
-            text: "Find connected customers",
-            to: routes.clients,
-            icon: GroupOutlined,
-          },
-          {
-            title: "VLAN inventory",
-            text: "Browse network segments",
-            to: routes.sprVlans,
-            icon: HubOutlined,
-          },
-        ].map(({ title, text, to, icon: Icon }) => (
-          <Paper key={to} variant="outlined" sx={{ p: 2.5 }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
-              <Icon color="primary" />
-              <Button
-                component={Link}
-                to={to}
-                aria-label={`Open ${title}`}
-                sx={{ minWidth: 36, p: 0.5 }}
-              >
-                <ArrowForward fontSize="small" />
-              </Button>
-            </Stack>
-            <Typography fontWeight={650} mb={0.5}>
-              {title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {text}
-            </Typography>
-          </Paper>
-        ))}
-      </Box>
-      <Grid2 container spacing={3}>
-        <Grid2 size={{ xs: 12, md: 9 }} order={{ xs: 2, md: 1 }}>
-          {routerSearchQuery.isLoading ? (
-            <PageLoading message="Searching for devices…" />
-          ) : routerSearchQuery.isError ? (
-            <PageError
-              title="Unable to complete the search"
-              error={routerSearchQuery.error}
-            />
-          ) : compoundObject ? (
-            <MainPageList data={compoundObject} />
-          ) : (
-            <EmptyPage
-              input="Start a VLAN search"
-              description="Enter a VLAN ID in the filter panel to find connected devices and customer details."
-            />
-          )}
-        </Grid2>
-
-        <Grid2 size={{ xs: 12, md: 3 }} order={{ xs: 1, md: 2 }}>
-          <MainPageListFilter
-            onApplyFilters={handleApplyFilters}
-            onSearch={handleSearch}
-          />
-        </Grid2>
-      </Grid2>
+        <Typography variant="caption" color="text.secondary">
+          Browse directories
+        </Typography>
+        <Button size="small" component={Link} to={routes.networkDevices}>
+          Network devices
+        </Button>
+        <Button size="small" component={Link} to={routes.clients}>
+          Customers
+        </Button>
+        <Button size="small" component={Link} to={routes.sprVlans}>
+          VLAN inventory
+        </Button>
+      </Stack>
     </Box>
   );
 }

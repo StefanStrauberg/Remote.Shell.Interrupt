@@ -57,9 +57,12 @@ describe("client detail page", () => {
     expect(get).toHaveBeenCalledExactlyOnceWith("customer-1");
     await act(async () => pending.resolve(client));
     expect(await screen.findByText("Example customer")).toBeVisible();
-    expect(screen.getByText(/noc@example.com/)).toBeVisible();
-    expect(screen.getByText("Service enabled")).toBeVisible();
     expect(screen.getByText(/Дата начала: Нет информации/)).toBeVisible();
+    await userEvent.click(screen.getByRole("tab", { name: "Contacts" }));
+    expect(screen.getByText(/noc@example.com/)).toBeVisible();
+    await userEvent.click(screen.getByRole("tab", { name: "Notes & history" }));
+    expect(screen.getByText("Service enabled")).toBeVisible();
+    await userEvent.click(screen.getByRole("tab", { name: "Network & plan" }));
     expect(screen.getByText(/ID Влана: Нет информации/)).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Back to clients" })
@@ -112,8 +115,12 @@ describe("network device detail page", () => {
     );
     expect(screen.getByText("Loading device details…")).toBeVisible();
     await act(async () => pending.resolve(device));
-    expect(await screen.findByText("Core router")).toBeVisible();
-    expect(screen.getByText("ae0")).toBeVisible();
+    expect(
+      await screen.findByRole("link", { name: "Core router" })
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Inspect ae0 on Core router" })
+    ).toBeVisible();
     expect(get).toHaveBeenCalledExactlyOnceWith("router-1");
     expect(
       screen.getByRole("link", { name: /Back to devices/i })

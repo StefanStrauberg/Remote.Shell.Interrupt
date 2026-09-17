@@ -8,9 +8,9 @@ import {
   HubOutlined,
   Logout,
   Menu,
-  Search,
   Terminal,
   Close,
+  Search,
 } from "@mui/icons-material";
 import {
   Avatar,
@@ -21,6 +21,7 @@ import {
   Drawer,
   IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { NavLink, useLocation, useNavigate } from "react-router";
@@ -28,7 +29,7 @@ import { useState } from "react";
 import { useAuth } from "../../lib/auth/useAuth";
 import { routes } from "../router/paths";
 
-export const sidebarWidth = 248;
+export const sidebarWidth = 104;
 
 export default function NavBar() {
   const { pathname } = useLocation();
@@ -37,22 +38,51 @@ export default function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const items = [
-    { to: routes.main, label: "Network search", icon: Search },
-    { to: routes.networkDevices, label: "Devices", icon: DnsOutlined },
-    { to: routes.clients, label: "Clients", icon: GroupOutlined },
-    { to: routes.sprVlans, label: "VLANs", icon: HubOutlined },
-    { to: routes.tariffPlans, label: "Tariff plans", icon: CreditCardOutlined },
-    { to: routes.gates, label: "Gates", icon: ArrowOutward, admin: true },
+    { to: routes.main, label: "Network search", short: "Search", icon: Search },
+    {
+      to: routes.networkDevices,
+      label: "Devices",
+      short: "Devices",
+      icon: DnsOutlined,
+    },
+    {
+      to: routes.clients,
+      label: "Clients",
+      short: "Clients",
+      icon: GroupOutlined,
+    },
+    { to: routes.sprVlans, label: "VLANs", short: "VLANs", icon: HubOutlined },
+    {
+      to: routes.tariffPlans,
+      label: "Tariff plans",
+      short: "Tariffs",
+      icon: CreditCardOutlined,
+    },
+    {
+      to: routes.gates,
+      label: "Gates",
+      short: "Gates",
+      icon: ArrowOutward,
+      admin: true,
+    },
     {
       to: routes.adminWorkflows,
       label: "Workflows",
+      short: "Workflows",
       icon: AccountTreeOutlined,
       admin: true,
     },
-    { to: routes.adminUsers, label: "Users", icon: GroupOutlined, admin: true },
+    {
+      to: routes.adminUsers,
+      label: "Users",
+      short: "Users",
+      icon: GroupOutlined,
+      admin: true,
+    },
     {
       to: routes.admin,
       label: "Administration",
+      short: "Admin",
       icon: AdminPanelSettingsOutlined,
       admin: true,
     },
@@ -71,179 +101,108 @@ export default function NavBar() {
       setIsSigningOut(false);
     }
   };
-  const navigation = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        p: 2.5,
-        color: "#b6c4c8",
-      }}
-    >
-      <Stack
+  const navigation = (expanded: boolean) => (
+    <Stack sx={{ height: "100%", p: 1.25, gap: 1 }}>
+      <Button
         component={NavLink}
         to={routes.home}
-        direction="row"
-        gap={1.5}
-        alignItems="center"
-        sx={{ textDecoration: "none", color: "white", py: 1, mb: 5 }}
+        aria-label="Remote Shell home"
+        sx={{ gap: 1, minHeight: 56, mb: 1 }}
       >
         <Box
           sx={{
             display: "grid",
             placeItems: "center",
-            width: 38,
-            height: 38,
-            bgcolor: "#45d6b0",
-            color: "#102c2c",
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            width: 36,
+            height: 36,
             borderRadius: 2,
           }}
         >
           <Terminal />
         </Box>
-        <Box>
-          <Typography fontWeight={750} letterSpacing="-.03em">
-            Remote Shell
-          </Typography>
-          <Typography fontSize={10} letterSpacing=".19em" color="#8da6a8">
-            INTERRUPT
-          </Typography>
-        </Box>
-      </Stack>
-      <Typography
-        variant="overline"
-        sx={{
-          color: "#81999d",
-          fontSize: 10,
-          letterSpacing: ".16em",
-          mb: 1.5,
-          px: 1.5,
-        }}
-      >
-        Workspace
-      </Typography>
-      <Stack component="nav" aria-label="Main navigation" gap={0.6}>
-        {items.map(({ to, label, icon: Icon }) => (
-          <Button
-            key={to}
-            component={NavLink}
-            to={to}
-            end={to === routes.admin}
-            onClick={() => setMobileOpen(false)}
-            aria-current={active(to) ? "page" : undefined}
-            startIcon={<Icon sx={{ fontSize: "20px !important" }} />}
-            sx={{
-              justifyContent: "flex-start",
-              px: 1.5,
-              minHeight: 44,
-              fontWeight: active(to) ? 650 : 450,
-              color: active(to) ? "#76edcb" : "#b6c4c8",
-              bgcolor: active(to) ? "#213e3e" : "transparent",
-              "&:hover": { bgcolor: "#253a3e", color: "white" },
-            }}
-          >
-            {label}
-          </Button>
-        ))}
-      </Stack>
-      <Box sx={{ mt: "auto", pt: 4 }}>
-        <Box
-          sx={{ border: "1px solid #30464a", borderRadius: 2.5, p: 2, mb: 2.5 }}
-        >
-          <HubOutlined sx={{ color: "#6dd8bb", mb: 1 }} />
-          <Typography color="#e2ebed" variant="body2" fontWeight={600}>
-            Your network. Connected.
-          </Typography>
-          <Typography
-            fontSize={12}
-            sx={{ mt: 0.75, lineHeight: 1.7, color: "#98acb0" }}
-          >
-            Infrastructure, customers and automation in one workspace.
-          </Typography>
-        </Box>
-        <Divider sx={{ borderColor: "#30464a", mb: 2 }} />
-        {isAuthenticated ? (
-          <Stack direction="row" gap={1} alignItems="center">
-            <Avatar
+        {expanded && <Typography fontWeight={700}>Remote Shell</Typography>}
+      </Button>
+      <Stack component="nav" aria-label="Main navigation" gap={0.5}>
+        {items.map(({ to, label, short, icon: Icon, admin }, index) => (
+          <Box key={to}>
+            {admin && !items[index - 1]?.admin && <Divider sx={{ my: 1.5 }} />}
+            <Button
+              component={NavLink}
+              to={to}
+              end={to === routes.admin}
+              aria-label={label}
+              aria-current={active(to) ? "page" : undefined}
+              onClick={() => setMobileOpen(false)}
               sx={{
-                width: 34,
-                height: 34,
-                bgcolor: "#304b50",
-                color: "#b8eadd",
-                fontSize: 14,
+                width: "100%",
+                minWidth: 0,
+                minHeight: 54,
+                px: 1,
+                gap: 0.5,
+                flexDirection: expanded ? "row" : "column",
+                justifyContent: expanded ? "flex-start" : "center",
+                fontSize: expanded ? 13 : 11,
+                color: active(to) ? "primary.main" : "text.secondary",
+                bgcolor: active(to) ? "primary.light" : "transparent",
+                "&:hover": { bgcolor: "action.hover" },
               }}
             >
-              {user?.email?.[0]?.toUpperCase() ?? "U"}
-            </Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography noWrap fontSize={12} color="#e2ebed">
-                {user?.email}
-              </Typography>
-              <Typography fontSize={11} color="#98acb0">
-                {isAdmin ? "Administrator" : "User"}
-              </Typography>
-            </Box>
-            <IconButton
-              aria-label="Sign out"
-              disabled={isSigningOut}
-              onClick={() => void handleLogout()}
-              sx={{ color: "#b6c4c8" }}
-            >
-              {isSigningOut ? (
-                <CircularProgress size={18} />
-              ) : (
-                <Logout fontSize="small" />
-              )}
-            </IconButton>
-          </Stack>
-        ) : (
-          <Button component={NavLink} to={routes.login}>
-            Sign in
-          </Button>
-        )}
+              <Icon fontSize="small" />
+              {expanded ? label : short}
+            </Button>
+          </Box>
+        ))}
+      </Stack>
+      <Box sx={{ mt: "auto", pt: 2, textAlign: "center" }}>
+        <Typography variant="caption" color="text.secondary">
+          {isAdmin ? "Admin" : "Workspace"}
+        </Typography>
       </Box>
-    </Box>
+    </Stack>
   );
   return (
     <>
       <Box
         component="aside"
         sx={{
-          display: { xs: "none", lg: "block" },
+          display: { xs: "none", md: "block" },
           position: "fixed",
           inset: "0 auto 0 0",
           width: sidebarWidth,
-          bgcolor: "#14292e",
+          bgcolor: "background.paper",
+          borderRight: 1,
+          borderColor: "divider",
           overflowY: "auto",
         }}
       >
-        {navigation}
+        {navigation(false)}
       </Box>
       <Drawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        PaperProps={{ sx: { width: sidebarWidth + 24, bgcolor: "#14292e" } }}
+        PaperProps={{ sx: { width: 264 } }}
       >
         <IconButton
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
-          sx={{ position: "absolute", right: 6, top: 6, color: "#b6c4c8" }}
+          sx={{ position: "absolute", right: 4, top: 4 }}
         >
           <Close fontSize="small" />
         </IconButton>
-        {navigation}
+        {navigation(true)}
       </Drawer>
       <Box
         component="header"
         sx={{
-          ml: { lg: `${sidebarWidth}px` },
-          px: { xs: 2, md: 4 },
-          height: 76,
+          ml: { md: `${sidebarWidth}px` },
+          px: { xs: 2, md: 3 },
+          minHeight: 64,
           display: "flex",
           alignItems: "center",
-          gap: 2,
-          borderBottom: "1px solid",
+          gap: 1.5,
+          borderBottom: 1,
           borderColor: "divider",
           bgcolor: "background.paper",
         }}
@@ -251,30 +210,58 @@ export default function NavBar() {
         <IconButton
           aria-label="Open menu"
           onClick={() => setMobileOpen(true)}
-          sx={{ display: { lg: "none" } }}
+          sx={{ display: { md: "none" } }}
         >
           <Menu />
         </IconButton>
-        <Typography variant="body2" color="text.secondary">
-          Workspace{" "}
-          <Box component="span" sx={{ mx: 1.5, color: "#b4bfc2" }}>
-            /
+        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            Engineering workspace /{" "}
           </Box>
-          <Box component="span" sx={{ color: "text.primary", fontWeight: 550 }}>
+          <Box component="span" sx={{ color: "text.primary", fontWeight: 600 }}>
             {current?.label ?? "Overview"}
           </Box>
         </Typography>
         <Box sx={{ flex: 1 }} />
-        <Typography
-          sx={{
-            display: { xs: "none", sm: "block" },
-            fontSize: 11,
-            letterSpacing: ".12em",
-            color: "text.secondary",
-          }}
-        >
-          NETWORK OPERATIONS
-        </Typography>
+        {isAuthenticated ? (
+          <Stack direction="row" alignItems="center" gap={1}>
+            <Avatar
+              sx={{
+                width: 30,
+                height: 30,
+                fontSize: 13,
+                bgcolor: "primary.light",
+                color: "primary.main",
+              }}
+            >
+              {user?.email?.[0]?.toUpperCase() ?? "U"}
+            </Avatar>
+            <Typography
+              variant="caption"
+              noWrap
+              sx={{ display: { xs: "none", sm: "block" }, maxWidth: 210 }}
+            >
+              {user?.email}
+            </Typography>
+            <Tooltip title="Sign out">
+              <IconButton
+                aria-label="Sign out"
+                disabled={isSigningOut}
+                onClick={() => void handleLogout()}
+              >
+                {isSigningOut ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <Logout fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ) : (
+          <Button component={NavLink} to={routes.login}>
+            Sign in
+          </Button>
+        )}
       </Box>
     </>
   );

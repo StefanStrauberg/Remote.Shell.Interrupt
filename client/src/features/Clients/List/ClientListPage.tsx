@@ -8,7 +8,16 @@ import {
   Typography,
   CircularProgress,
   Chip,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableContainer,
+  Paper,
 } from "@mui/material";
+import { Link } from "react-router";
+import { routes } from "@/app/router/paths";
 import ClientCard from "./ClientCard";
 import { ClientShort } from "../../../lib/types/Clients/ClientShort";
 import { PaginationMetadata } from "../../../lib/types/Common/PaginationMetadata";
@@ -19,6 +28,7 @@ import {
   Sort,
   GridView,
   ViewList,
+  TableRowsOutlined,
 } from "@mui/icons-material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -40,7 +50,7 @@ const SORTABLE_FIELDS = [
   { id: "nrDogovor", label: "Contract Number" },
 ];
 
-type ViewMode = "grid" | "list";
+type ViewMode = "grid" | "list" | "table";
 
 export default function ClientListPage({
   clients,
@@ -53,7 +63,7 @@ export default function ClientListPage({
   onSort,
 }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const open = Boolean(anchorEl);
 
   const handlePageChange = (
@@ -121,6 +131,9 @@ export default function ClientListPage({
             aria-label="view mode"
             size="small"
           >
+            <ToggleButton value="table" aria-label="table view">
+              <TableRowsOutlined />
+            </ToggleButton>
             <ToggleButton value="grid" aria-label="grid view">
               <GridView />
             </ToggleButton>
@@ -171,25 +184,87 @@ export default function ClientListPage({
       </Box>
 
       {/* Client cards grid/list */}
-      <Box
-        sx={{
-          display: viewMode === "grid" ? "grid" : "flex",
-          gridTemplateColumns:
-            viewMode === "grid"
-              ? { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }
-              : "1fr",
-          flexDirection: viewMode === "list" ? "column" : undefined,
-          gap: 2,
-        }}
-      >
-        {clients.map((client) => (
-          <ClientCard
-            key={client.idClient}
-            client={client}
-            viewMode={viewMode}
-          />
-        ))}
-      </Box>
+      {viewMode === "table" ? (
+        <TableContainer component={Paper} variant="outlined">
+          <Table aria-label="Customer directory">
+            <TableHead>
+              <TableRow>
+                <TableCell>Customer / ID</TableCell>
+                <TableCell>Contract</TableCell>
+                <TableCell>Services</TableCell>
+                <TableCell>Technical contact</TableCell>
+                <TableCell>Details</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {clients.map((client) => (
+                <TableRow key={client.id} hover>
+                  <TableCell>
+                    <Typography variant="subtitle2">{client.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {client.idClient}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{client.nrDogovor}</TableCell>
+                  <TableCell>
+                    <Stack gap={0.5} alignItems="flex-start">
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={client.working ? "Active" : "Inactive"}
+                        color={client.working ? "success" : "default"}
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {client.antiDDOS ? "AntiDDOS" : "No AntiDDOS"}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {client.contactT || "Not available"}
+                    </Typography>
+                    <Typography variant="caption" display="block">
+                      {client.emailT}
+                    </Typography>
+                    <Typography variant="caption">
+                      {client.telephoneT}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      component={Link}
+                      to={routes.client(client.id)}
+                      size="small"
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <Box
+          sx={{
+            display: viewMode === "grid" ? "grid" : "flex",
+            gridTemplateColumns:
+              viewMode === "grid"
+                ? { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }
+                : "1fr",
+            flexDirection: viewMode === "list" ? "column" : undefined,
+            gap: 2,
+          }}
+        >
+          {clients.map((client) => (
+            <ClientCard
+              key={client.idClient}
+              client={client}
+              viewMode={viewMode}
+            />
+          ))}
+        </Box>
+      )}
 
       {/* Pagination */}
       {pagination.TotalPages > 1 && (

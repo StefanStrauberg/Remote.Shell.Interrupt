@@ -32,11 +32,11 @@ export default function App() {
             component="main"
             id="main-content"
             tabIndex={-1}
-            sx={{ ml: { lg: `${sidebarWidth}px` }, minWidth: 0 }}
+            sx={{ ml: { md: `${sidebarWidth}px` }, minWidth: 0 }}
           >
             <Container
-              maxWidth="xl"
-              sx={{ py: { xs: 3, md: 4.5 }, px: { xs: 2, md: 4 } }}
+              maxWidth={false}
+              sx={{ py: { xs: 2, md: 3 }, px: { xs: 2, md: 3 } }}
             >
               <Outlet />
             </Container>

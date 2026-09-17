@@ -1,14 +1,5 @@
-import { FilterList } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  TextField,
-  Chip,
-} from "@mui/material";
+import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Search, RestartAlt } from "@mui/icons-material";
 import { RouterFilter } from "../../lib/types/NetworkDevices/RouterFilter";
 import { useState } from "react";
 import { isValidVlanId } from "../../lib/utils";
@@ -16,132 +7,81 @@ import { isValidVlanId } from "../../lib/utils";
 type Props = {
   onApplyFilters: (filters: RouterFilter) => void;
   onSearch: () => void;
+  initialVlan?: number;
 };
-
 export default function MainPageListFilter({
   onApplyFilters,
   onSearch,
+  initialVlan,
 }: Props) {
-  const [idVlan, setIdVlan] = useState<number | null>(null);
-  const [error, setError] = useState<string>("");
-
-  const handleApplyClick = () => {
-    setError("");
-
+  const [idVlan, setIdVlan] = useState<number | null>(initialVlan ?? null);
+  const [error, setError] = useState("");
+  const apply = () => {
     if (!isValidVlanId(idVlan)) {
       setError("VLAN ID must be a whole number from 1 to 4094");
       return;
     }
-
-    const filters: RouterFilter = {
-      IdVlan: { op: "==", value: idVlan },
-    };
-
-    onApplyFilters(filters);
+    setError("");
+    onApplyFilters({ IdVlan: { op: "==", value: idVlan } });
     onSearch();
   };
-
-  const handleReset = () => {
-    setIdVlan(null);
-    setError("");
-    onApplyFilters({});
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === "") {
-      setIdVlan(null);
-      setError("");
-    } else {
-      const parsedValue = Number(value);
-      setIdVlan(Number.isFinite(parsedValue) ? parsedValue : null);
-      setError(
-        isValidVlanId(parsedValue)
-          ? ""
-          : "VLAN ID must be a whole number from 1 to 4094"
-      );
-    }
-  };
-
   return (
-    <Card
-      sx={{
-        borderRadius: 2,
-        overflow: "hidden",
-        position: "sticky",
-        top: 20,
+    <Box
+      component="form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        apply();
       }}
     >
-      <CardHeader
-        title={
-          <Box display="flex" alignItems="center">
-            <FilterList color="primary" sx={{ mr: 1 }} />
-            <span>Search Filters</span>
-          </Box>
-        }
-        sx={{
-          bgcolor: "grey.50",
-          borderBottom: 1,
-          borderColor: "divider",
-          py: 1.5,
-        }}
-      />
-
-      <CardContent sx={{ p: 2 }}>
-        <Box
-          component="form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleApplyClick();
+      <Stack direction="row" alignItems="flex-start" gap={1.5} flexWrap="wrap">
+        <TextField
+          label="VLAN ID"
+          type="number"
+          size="small"
+          value={idVlan ?? ""}
+          inputProps={{ min: 1, max: 4094 }}
+          placeholder="e.g., 120"
+          error={!!error}
+          helperText={error || "VLAN range: 1–4094"}
+          sx={{ width: { xs: "100%", sm: 240 } }}
+          onChange={(e) => {
+            const value = e.target.value === "" ? null : Number(e.target.value);
+            setIdVlan(value);
+            setError(
+              value !== null && !isValidVlanId(value)
+                ? "VLAN ID must be a whole number from 1 to 4094"
+                : ""
+            );
           }}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        />
+        <Button
+          variant="contained"
+          type="submit"
+          disabled={!isValidVlanId(idVlan)}
+          startIcon={<Search />}
         >
-          <TextField
-            label="VLAN ID"
-            value={idVlan?.toString() || ""}
-            onChange={handleInputChange}
-            variant="outlined"
-            fullWidth
-            size="small"
-            type="number"
-            inputProps={{ min: 1, max: 4094 }}
-            error={!!error}
-            helperText={error || "Enter VLAN ID to search (1-4094)"}
-            placeholder="e.g., 100"
-          />
-
-          <Divider />
-
-          <Box display="flex" gap={1}>
-            <Button
-              variant="outlined"
-              onClick={handleReset}
-              fullWidth
-              disabled={!idVlan}
-            >
-              Reset
-            </Button>
-
-            <Button
-              variant="contained"
-              type="submit"
-              fullWidth
-              disabled={!isValidVlanId(idVlan)}
-            >
-              Search
-            </Button>
-          </Box>
-
-          {idVlan && (
-            <Chip
-              label={`Searching VLAN: ${idVlan}`}
-              color="primary"
-              variant="outlined"
-              size="small"
-            />
-          )}
-        </Box>
-      </CardContent>
-    </Card>
+          Search
+        </Button>
+        <Button
+          variant="outlined"
+          disabled={idVlan === null}
+          startIcon={<RestartAlt />}
+          onClick={() => {
+            setIdVlan(null);
+            setError("");
+            onApplyFilters({});
+          }}
+        >
+          Reset
+        </Button>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ ml: { sm: "auto" }, pt: 1 }}
+        >
+          Search clients and collected device data
+        </Typography>
+      </Stack>
+    </Box>
   );
 }

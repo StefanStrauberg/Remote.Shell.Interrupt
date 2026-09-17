@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Chip,
+  Collapse,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -91,6 +92,8 @@ function Editor({ persisted }: { persisted: boolean }) {
   const navigate = useNavigate();
   const cache = useQueryClient();
   const [tab, setTab] = useState(0);
+  const [moreActions, setMoreActions] = useState(false);
+  const [focusCanvas, setFocusCanvas] = useState(false);
   const [error, setError] = useState("");
   const [issues, setIssues] = useState<string[] | null>(null);
   const [confirmation, setConfirmation] = useState<
@@ -288,39 +291,66 @@ function Editor({ persisted }: { persisted: boolean }) {
             Auto layout
           </Button>
           <Button onClick={d.clearSelection}>Workflow properties</Button>
-          <Button disabled={d.busy} onClick={exportGraph}>
-            Export JSON
+          <Button
+            aria-pressed={focusCanvas}
+            onClick={() => setFocusCanvas(!focusCanvas)}
+          >
+            {focusCanvas ? "Show panels" : "Focus canvas"}
           </Button>
-          <Button disabled={d.busy} onClick={() => fileInput.current?.click()}>
-            Import as draft
+          <Button
+            aria-expanded={moreActions}
+            onClick={() => setMoreActions(!moreActions)}
+            sx={{ ml: "auto" }}
+          >
+            More actions
           </Button>
-          <Button disabled={d.busy} onClick={copy}>
-            Create draft copy
-          </Button>
-          {persisted && (
-            <>
-              <Button
-                disabled={d.busy || d.dirty || d.workflow.status !== "Draft"}
-                onClick={() => setConfirmation("publish")}
-              >
-                Publish
-              </Button>
-              <Button
-                disabled={d.busy || d.dirty || d.workflow.status === "Archived"}
-                onClick={() => setConfirmation("archive")}
-              >
-                Archive
-              </Button>
-              <Button
-                color="error"
-                disabled={d.busy}
-                onClick={() => setConfirmation("remove")}
-              >
-                Delete
-              </Button>
-            </>
-          )}
         </Stack>
+        <Collapse in={moreActions}>
+          <Stack
+            direction="row"
+            gap={0.5}
+            flexWrap="wrap"
+            sx={{ pt: 1, mt: 1, borderTop: 1, borderColor: "divider" }}
+          >
+            <Button disabled={d.busy} onClick={exportGraph}>
+              Export JSON
+            </Button>
+            <Button
+              disabled={d.busy}
+              onClick={() => fileInput.current?.click()}
+            >
+              Import as draft
+            </Button>
+            <Button disabled={d.busy} onClick={copy}>
+              Create draft copy
+            </Button>
+            {persisted && (
+              <>
+                <Button
+                  disabled={d.busy || d.dirty || d.workflow.status !== "Draft"}
+                  onClick={() => setConfirmation("publish")}
+                >
+                  Publish
+                </Button>
+                <Button
+                  disabled={
+                    d.busy || d.dirty || d.workflow.status === "Archived"
+                  }
+                  onClick={() => setConfirmation("archive")}
+                >
+                  Archive
+                </Button>
+                <Button
+                  color="error"
+                  disabled={d.busy}
+                  onClick={() => setConfirmation("remove")}
+                >
+                  Delete
+                </Button>
+              </>
+            )}
+          </Stack>
+        </Collapse>
         <input
           ref={fileInput}
           type="file"
@@ -363,6 +393,11 @@ function Editor({ persisted }: { persisted: boolean }) {
           hidden={tab !== 0}
           className="workflow-designer"
           sx={(theme) => ({
+            display: tab === 0 ? "grid" : "none",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              xl: focusCanvas ? "minmax(0, 1fr)" : "208px minmax(0, 1fr)",
+            },
             "--wf-paper": theme.palette.background.paper,
             "--wf-bg": theme.palette.background.default,
             "--wf-line": theme.palette.divider,
@@ -383,6 +418,13 @@ function Editor({ persisted }: { persisted: boolean }) {
             p={1.5}
             borderBottom={1}
             borderColor="divider"
+            sx={{
+              display: focusCanvas ? "none" : "flex",
+              flexDirection: { xs: "row", xl: "column" },
+              alignContent: "flex-start",
+              borderRight: { xl: 1 },
+              borderColor: "divider",
+            }}
           >
             {nodeTypes.map((type) => (
               <Button
@@ -415,11 +457,17 @@ function Editor({ persisted }: { persisted: boolean }) {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 340px" },
+              minWidth: 0,
+              gridTemplateColumns: {
+                xs: "minmax(0, 1fr)",
+                lg: focusCanvas ? "minmax(0, 1fr)" : "minmax(0, 1fr) 300px",
+              },
             }}
           >
             <WorkflowCanvas />
-            <Inspector />
+            <Box sx={{ display: focusCanvas ? "none" : "block", minWidth: 0 }}>
+              <Inspector />
+            </Box>
           </Box>
         </Box>
         <Box hidden={tab !== 1} p={2}>

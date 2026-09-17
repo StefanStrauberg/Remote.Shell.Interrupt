@@ -34,6 +34,26 @@ function renderEditor() {
 }
 
 describe("ExecutionPanel identity across graph edits", () => {
+  it("focuses the canvas without changing the graph or losing access to tools", () => {
+    renderEditor();
+    expect(screen.getByRole("button", { name: "+ Script" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Focus canvas" }));
+    expect(
+      screen.queryByRole("button", { name: "+ Script" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show panels" }));
+    expect(screen.getByRole("button", { name: "+ Script" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+    expect(screen.getByRole("button", { name: "Export JSON" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Import as draft" })
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Create draft copy" })
+    ).toBeVisible();
+  });
+
   it("keeps its local form state after an edit elsewhere in the designer", () => {
     renderEditor();
 

@@ -1,7 +1,7 @@
 import { Typography, Box } from "@mui/material";
 import { CompoundObject } from "../../lib/types/NetworkDevices/CompoundObject";
 import ClientBox from "./ClientPart/ClientBox";
-import RouterBox from "./RouterPart/RouterBox";
+import NetworkWorkspace from "../NetworkDevices/Detail/NetworkWorkspace";
 import EmptyPage from "../../app/shared/components/EmptyPage";
 
 type Props = {
@@ -52,11 +52,7 @@ export default function MainPageList({ data }: Props) {
           <Typography variant="h6" gutterBottom color="primary">
             Network Devices ({data.networkDevices.length})
           </Typography>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {data.networkDevices.map((networkDevice) => (
-              <RouterBox key={networkDevice.id} networkDevice={networkDevice} />
-            ))}
-          </Box>
+          <NetworkWorkspace devices={data.networkDevices} />
         </Box>
       )}
     </Box>
