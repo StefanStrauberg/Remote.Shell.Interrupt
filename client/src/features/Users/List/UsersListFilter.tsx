@@ -102,7 +102,7 @@ export default function UsersListFilter({
           </Box>
         }
         sx={{
-          bgcolor: "grey.50",
+          bgcolor: "action.hover",
           borderBottom: 1,
           borderColor: "divider",
           py: 1.5,

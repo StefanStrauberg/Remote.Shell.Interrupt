@@ -7,7 +7,7 @@ type Props = {
 
 export default function NetworkDeviceMACTable({ macTable }: Props) {
   return (
-    <Paper elevation={1} sx={{ p: 2, backgroundColor: "grey.50" }}>
+    <Paper elevation={1} sx={{ p: 2, backgroundColor: "action.hover" }}>
       <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
         MAC Addresses:
       </Typography>

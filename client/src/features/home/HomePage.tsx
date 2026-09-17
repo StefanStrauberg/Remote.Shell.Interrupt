@@ -12,7 +12,7 @@ import { routes } from "../../app/router/paths";
 
 export default function HomePage() {
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f7f6" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Container maxWidth="lg">
         <Stack
           component="header"

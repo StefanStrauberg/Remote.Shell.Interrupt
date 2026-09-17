@@ -24,6 +24,7 @@ Remote.Shell.Interrupt/
 │   ├── Persistence/                    # EF Core (PostgreSQL), Identity, Dapper (MySQL)
 │   └── Remote.Shell.Interrupt.Storehouse.API/  # ASP.NET Core 9 — API host
 ├── client/                             # React 19 + TypeScript + Vite SPA (see Frontend, client/README.md)
+├── scripts/                            # Dev utilities (see Test data export/import below)
 ├── Tests/                              # xUnit unit tests (mocks/InMemory/SQLite, no external services)
 └── Tests.Integration/                  # xUnit tests against real PostgreSQL/MySQL (Testcontainers, needs Docker)
 ```
@@ -71,6 +72,7 @@ The UI is organized as an **engineering workspace**:
 - Customer details are grouped into Overview, Network & plan, Contacts, and Notes & history.
 - Tariff plans, VLANs, gates, billing synchronization, account provisioning and user administration remain available according to the user's role.
 - The visual workflow designer (Admin → Workflows) supports drag/drop, undo/redo, validation, JSON import/export, draft copies and lifecycle actions. **Focus canvas** hides editing panels; **More actions** groups less frequent commands. The execution panel runs a saved graph and displays its trace after completion. Read-only states, unsaved-change protection and request cancellation are retained.
+- Light/dark theme toggle (top-right, on any authenticated page) — defaults to the OS color-scheme preference, persisted per-browser in `localStorage`.
 
 Logout clears the local session and cached business data. A protected API request returning HTTP 401 clears the expired session and returns the user to sign-in. JWT login, refresh and revocation remain separate API capabilities for API clients; the SPA uses the cookie flow.
 
@@ -255,6 +257,25 @@ dotnet ef migrations add <DescriptiveName> \
 ```
 
 The Persistence project doubles as its own startup project via `ApplicationDbContextFactory` (an `IDesignTimeDbContextFactory<ApplicationDbContext>`), so `migrations add` needs no database connection and no runtime secrets (JWT key, etc.) — those only matter for actually running the API. Commit the generated migration, and the next application start (or a manual `dotnet ef database update` with `ConnectionStrings__DefaultConnection` set) applies it.
+
+---
+
+## 🧰 Test data export/import
+
+`scripts/export_test_data.py` dumps `Clients` / `TfPlans` / `SPRVlans` (optionally `CODs`) rows out of a running PostgreSQL container as plain-SQL, data-only files — handy for seeding a separate local/test database with real-shaped data without a live billing sync.
+
+```bash
+python scripts/export_test_data.py                        # from this repo's own `docker compose` postgres service
+python scripts/export_test_data.py --container my-test-db --db testing --user admin --password secret
+```
+
+The `--container` form talks to any standalone `docker run` PostgreSQL container (bypassing `docker compose` entirely) — use it when the source data lives outside this repo's Compose stack. Dumps land in `db_export/` (**gitignored** — they contain real customer data, never commit them) using `--data-only --disable-triggers`, ready to pipe into another Postgres container:
+
+```bash
+Get-Content db_export/Clients_*.sql | docker exec -i <target-container> psql -U postgres -d remote_shell_interrupt
+```
+
+Run `python scripts/export_test_data.py --help` (or read the script's own docstring) for every flag, including `--tables`, `--combined` and `--readable`.
 
 ---
 

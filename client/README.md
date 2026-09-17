@@ -75,6 +75,7 @@ src/
 ├── main.tsx              # Minimal application bootstrap
 ├── app/
 │   ├── AppProviders.tsx  # Root composition: errors, query, router, toasts
+│   ├── theme.ts + ThemeModeContext.tsx  # MUI light/dark design tokens; mode toggle persisted in localStorage
 │   ├── layout/           # App shell: NavBar, global busy indicator, styles
 │   ├── router/           # Route table, guards and centralized paths
 │   └── shared/           # Cross-feature presentational components
@@ -115,6 +116,7 @@ Conventions:
   both using one observability integration point.
 - **Quality gate** — `npm run check` is the single local/CI command for format,
   lint, regression tests, type checking and the optimized production bundle.
+- **Theming** — `ThemeModeProvider` (wraps `ThemeProvider`/`CssBaseline`) builds a light or dark MUI theme from `app/theme.ts`'s shared design tokens. It defaults to the OS `prefers-color-scheme`, and the NavBar's toggle persists the chosen mode in `localStorage` per browser. Components should read colors from theme tokens (`text.secondary`, `action.hover`, etc.) rather than hardcoded hex, so they render correctly in both modes.
 - **Pagination** — list endpoints return the page body plus an `X-Pagination`
   header (PascalCase JSON, produced by a plain `JsonSerializer.Serialize` on
   the backend). `fetchPaged` merges both into a `PagedResponse<T>`.

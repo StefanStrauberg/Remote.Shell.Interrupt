@@ -12,19 +12,24 @@ Usage:
   python scripts/export_test_data.py
   python scripts/export_test_data.py --combined
   python scripts/export_test_data.py --readable
-  python scripts/export_test_data.py --tables Clients TfPlans SPRVlans COD
+  python scripts/export_test_data.py --tables Clients TfPlans SPRVlans CODs
   python scripts/export_test_data.py --service postgres --output-dir db_export
+  python scripts/export_test_data.py --container testing --db testing --user admin --password '!QAZxsw2'
+
+  The last form targets a plain `docker run` container (not part of this
+  repo's `docker compose` stack) directly via `docker exec`, e.g. a
+  standalone test-data container named "testing".
 
 Notes:
   - Dumps are DATA-ONLY (`--data-only`), plain SQL, `--disable-triggers`
     (so INSERT/COPY statements bypass FK-check triggers on load, avoiding
     table-order problems) and `--no-owner --no-privileges` (portable across
     environments with different role names).
-  - `Clients.Id_COD` is a required (non-nullable) foreign key into the `COD`
+  - `Clients.Id_COD` is a required (non-nullable) foreign key into the `CODs`
     table, which is NOT one of the three requested tables. If your test
-    database does not already have matching COD rows, either:
-      * seed/copy COD data into the test DB first, or
-      * re-run with `--tables Clients TfPlans SPRVlans COD` to include it.
+    database does not already have matching CODs rows, either:
+      * seed/copy CODs data into the test DB first, or
+      * re-run with `--tables Clients TfPlans SPRVlans CODs` to include it.
     `Clients.Id_TfPlan` (nullable FK to TfPlans) is covered since TfPlans is
     already part of the default export.
 """
@@ -73,8 +78,17 @@ def compose_service_container_id(service: str) -> str | None:
     return container_id or None
 
 
+def container_is_running(container: str) -> bool:
+    result = subprocess.run(
+        ["docker", "inspect", "-f", "{{.State.Running}}", container],
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0 and result.stdout.strip() == "true"
+
+
 def run_pg_dump(
-    service: str,
+    exec_cmd: list[str],
     db: str,
     user: str,
     tables: list[str],
@@ -82,7 +96,7 @@ def run_pg_dump(
     readable: bool,
 ) -> None:
     cmd = [
-        "docker", "compose", "exec", "-T", service,
+        *exec_cmd,
         "pg_dump",
         "-U", user,
         "-d", db,
@@ -120,7 +134,27 @@ def main() -> None:
     )
     parser.add_argument(
         "--service", default="postgres",
-        help="docker-compose service name for PostgreSQL (default: postgres)",
+        help="docker-compose service name for PostgreSQL (default: postgres). "
+             "Ignored if --container is given.",
+    )
+    parser.add_argument(
+        "--container",
+        help="Name/ID of a plain `docker run` PostgreSQL container to export from "
+             "directly via `docker exec`, bypassing `docker compose` entirely "
+             "(use this for a standalone test-data container that isn't part of "
+             "this repo's compose stack, e.g. --container testing).",
+    )
+    parser.add_argument(
+        "--db", help="Database name (overrides POSTGRES_DB from .env/defaults)",
+    )
+    parser.add_argument(
+        "--user", help="Database user (overrides POSTGRES_USER from .env/defaults)",
+    )
+    parser.add_argument(
+        "--password",
+        help="Database password (overrides POSTGRES_PASSWORD from .env/defaults). "
+             "Only needed if pg_dump inside the container requires it interactively; "
+             "usually the container's own POSTGRES_PASSWORD env var already covers this.",
     )
     parser.add_argument(
         "--combined", action="store_true",
@@ -134,17 +168,37 @@ def main() -> None:
     args = parser.parse_args()
 
     env = load_env_defaults()
+    if args.db:
+        env["POSTGRES_DB"] = args.db
+    if args.user:
+        env["POSTGRES_USER"] = args.user
+    if args.password:
+        env["POSTGRES_PASSWORD"] = args.password
+
     out_dir = REPO_ROOT / args.output_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    container_id = compose_service_container_id(args.service)
-    if not container_id:
-        print(
-            f"Postgres service '{args.service}' is not running.\n"
-            f"Start it first:\n  docker compose up -d {args.service}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    if args.container:
+        if not container_is_running(args.container):
+            print(
+                f"Container '{args.container}' is not running.\n"
+                f"Start it first:\n  docker start {args.container}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        exec_cmd = ["docker", "exec", args.container]
+    else:
+        container_id = compose_service_container_id(args.service)
+        if not container_id:
+            print(
+                f"Postgres service '{args.service}' is not running.\n"
+                f"Start it first:\n  docker compose up -d {args.service}\n"
+                f"(If your test data lives in a standalone container instead of this "
+                f"repo's compose stack, use --container <name> instead of --service.)",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        exec_cmd = ["docker", "compose", "exec", "-T", args.service]
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     written: list[Path] = []
@@ -152,12 +206,12 @@ def main() -> None:
     try:
         if args.combined:
             out_file = out_dir / f"export_{timestamp}.sql"
-            run_pg_dump(args.service, env["POSTGRES_DB"], env["POSTGRES_USER"], args.tables, out_file, args.readable)
+            run_pg_dump(exec_cmd, env["POSTGRES_DB"], env["POSTGRES_USER"], args.tables, out_file, args.readable)
             written.append(out_file)
         else:
             for table in args.tables:
                 out_file = out_dir / f"{table}_{timestamp}.sql"
-                run_pg_dump(args.service, env["POSTGRES_DB"], env["POSTGRES_USER"], [table], out_file, args.readable)
+                run_pg_dump(exec_cmd, env["POSTGRES_DB"], env["POSTGRES_USER"], [table], out_file, args.readable)
                 written.append(out_file)
     except RuntimeError as exc:
         print(f"pg_dump failed:\n{exc}", file=sys.stderr)
@@ -177,11 +231,11 @@ def main() -> None:
             f"docker exec -i <test-container-name> psql -U {env['POSTGRES_USER']} -d {env['POSTGRES_DB']}"
         )
     print()
-    if "COD" not in args.tables and "Clients" in args.tables:
+    if "CODs" not in args.tables and "Clients" in args.tables:
         print(
-            "NOTE: Clients.Id_COD is a required FK into the COD table (not exported here).\n"
-            "If the test DB has no matching COD rows, either seed COD there first, or re-run with:\n"
-            "  python scripts/export_test_data.py --tables Clients TfPlans SPRVlans COD"
+            "NOTE: Clients.Id_COD is a required FK into the CODs table (not exported here).\n"
+            "If the test DB has no matching CODs rows, either seed CODs there first, or re-run with:\n"
+            "  python scripts/export_test_data.py --tables Clients TfPlans SPRVlans CODs"
         )
 
 

@@ -1,5 +1,5 @@
 import { SearchOff } from "@mui/icons-material";
-import { Box, Paper, Typography } from "@mui/material";
+import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
 
 type Props = {
   input: string;
@@ -7,6 +7,7 @@ type Props = {
 };
 
 export default function EmptyPage({ input, description }: Props) {
+  const theme = useTheme();
   return (
     <Paper
       variant="outlined"
@@ -15,8 +16,10 @@ export default function EmptyPage({ input, description }: Props) {
         display: "grid",
         placeItems: "center",
         p: 4,
-        backgroundImage:
-          "radial-gradient(ellipse at 50% 40%, #eef7f3 0%, transparent 65%)",
+        backgroundImage: `radial-gradient(ellipse at 50% 40%, ${alpha(
+          theme.palette.primary.main,
+          theme.palette.mode === "dark" ? 0.12 : 0.06
+        )} 0%, transparent 65%)`,
       }}
     >
       <Box

@@ -3,9 +3,11 @@ import {
   AdminPanelSettingsOutlined,
   ArrowOutward,
   CreditCardOutlined,
+  DarkModeOutlined,
   DnsOutlined,
   GroupOutlined,
   HubOutlined,
+  LightModeOutlined,
   Logout,
   Menu,
   Terminal,
@@ -28,6 +30,7 @@ import { NavLink, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import { useAuth } from "../../lib/auth/useAuth";
 import { routes } from "../router/paths";
+import { useThemeMode } from "../ThemeModeContext";
 
 export const sidebarWidth = 104;
 
@@ -35,6 +38,7 @@ export default function NavBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { mode, toggleMode } = useThemeMode();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const items = [
@@ -223,6 +227,22 @@ export default function NavBar() {
           </Box>
         </Typography>
         <Box sx={{ flex: 1 }} />
+        <Tooltip
+          title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          <IconButton
+            aria-label={
+              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            onClick={toggleMode}
+          >
+            {mode === "dark" ? (
+              <LightModeOutlined fontSize="small" />
+            ) : (
+              <DarkModeOutlined fontSize="small" />
+            )}
+          </IconButton>
+        </Tooltip>
         {isAuthenticated ? (
           <Stack direction="row" alignItems="center" gap={1}>
             <Avatar

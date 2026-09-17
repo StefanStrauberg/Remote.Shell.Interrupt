@@ -20,7 +20,7 @@ export default function NetworkDeviceSubPort({ port }: Props) {
   };
 
   return (
-    <Paper elevation={1} sx={{ p: 2, mb: 1, backgroundColor: "grey.50" }}>
+    <Paper elevation={1} sx={{ p: 2, mb: 1, backgroundColor: "action.hover" }}>
       <Box display="flex" alignItems="center" flexWrap="wrap" gap={2}>
         {/* Interface Name */}
         <Box display="flex" alignItems="center">

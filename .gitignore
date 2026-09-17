@@ -360,3 +360,6 @@ obj/
 
 # Docker Compose secrets (real values, unlike .env.example)
 .env
+
+# scripts/export_test_data.py output - real exported data (customer PII, etc.), never commit
+db_export/
