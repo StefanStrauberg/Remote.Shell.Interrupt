@@ -214,6 +214,7 @@ For use as liveness/readiness probes behind a load balancer or orchestrator. All
 | `IdentitySeed__AdminEmail`              | default administrator email                                                           |
 | `IdentitySeed__AdminPassword`           | administrator password (empty — do not create)                                        |
 | `Database__AutoMigrate`                 | apply EF Core migrations on startup (default `true`)                                  |
+| `Cookie__RequireHttps`                  | require HTTPS for the auth cookie outside Development (default `true`; set `false` for the stock HTTP-only offline deployment - see `deploy/api.env.example`) |
 | `Cors__AllowedOrigins__0`               | allowed browser origin when serving the client separately from the API                |
 | `VITE_API_URL`                          | frontend API base URL, read by Vite during development/build; unset means same-origin |
 
@@ -276,10 +277,12 @@ deploy/
 │                         # API publish + frontend build -> deploy/dist/<tag>/
 ├── deploy.sh             # run on a connected workstation: rsync the release to the
 │                         # server, swap the `current` symlink, restart rsi-api
+├── deploy-scp.sh         # same as deploy.sh, but uploads via scp+tar instead of
+│                         # rsync, for when rsync isn't available/working for you
 └── deploy.conf.example   # copy to deploy.conf (gitignored) - SERVER_HOST/SERVER_USER
 ```
 
-Releases land in `/opt/rsi/releases/<tag>/` with `/opt/rsi/current` symlinked to the active one — `deploy.sh` repoints the symlink and restarts the service, so a rollback (`deploy/deploy.sh --rollback`) is just relinking to the previous release, no rebuild needed. EF Core migrations still apply automatically on API startup (see [Database](#-database) above), so there's no separate migration step in the deploy flow. Secrets live in `/opt/rsi/shared/api.env` (the systemd `EnvironmentFile`), outside `releases/`, so deploys never touch them.
+Releases land in `/opt/rsi/releases/<tag>/` with `/opt/rsi/current` symlinked to the active one — `deploy.sh` (or `deploy-scp.sh`) repoints the symlink and restarts the service, so a rollback (`deploy/deploy.sh --rollback`) is just relinking to the previous release, no rebuild needed. EF Core migrations still apply automatically on API startup (see [Database](#-database) above), so there's no separate migration step in the deploy flow. Secrets live in `/opt/rsi/shared/api.env` (the systemd `EnvironmentFile`), outside `releases/`, so deploys never touch them.
 
 First-time setup: `scp -r deploy/ admin@server:/tmp/rsi-deploy && ssh admin@server 'cd /tmp/rsi-deploy && sudo ./server-setup.sh'`, edit `/opt/rsi/shared/api.env`'s secrets, then run `deploy/publish.sh && deploy/deploy.sh` from the workstation. See each script's header comment for details.
 

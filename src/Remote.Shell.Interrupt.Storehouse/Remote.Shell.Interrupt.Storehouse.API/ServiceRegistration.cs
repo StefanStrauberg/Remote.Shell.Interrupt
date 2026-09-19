@@ -281,12 +281,23 @@ public static class ServiceRegistration
       })
       .AddCookie(IdentityConstants.ApplicationScheme, options =>
       {
+        // A Secure cookie is never stored/sent by the browser over a plain-HTTP connection,
+        // so CookieSecurePolicy.Always silently breaks login on any deployment that isn't
+        // behind TLS (e.g. the offline/air-gapped systemd+nginx target under deploy/, which
+        // ships nginx-rsi.conf listening on plain :80 with no certbot step, since an
+        // air-gapped server can't reach a public CA to issue one). Default stays secure
+        // (Always) outside Development; Cookie:RequireHttps=false is the explicit,
+        // documented opt-out for HTTP-only deployments - set it back to true (or remove it)
+        // once TLS is added in front of the app.
+        var requireHttpsCookie = !isDevelopment
+          && configuration.GetValue("Cookie:RequireHttps", defaultValue: true);
+
         options.Cookie.Name = "rsi.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = isDevelopment
-          ? CookieSecurePolicy.SameAsRequest
-          : CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = requireHttpsCookie
+          ? CookieSecurePolicy.Always
+          : CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromDays(jwtSettings.CookieExpiryDays);
         options.SlidingExpiration = true;
 

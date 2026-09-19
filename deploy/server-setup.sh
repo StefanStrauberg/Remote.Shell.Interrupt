@@ -6,8 +6,12 @@
 # does not start) the systemd unit and nginx site.
 #
 # After this script, no further step here needs internet: ongoing deploys
-# (deploy/deploy.sh from a connected workstation) only ever `rsync` a
-# self-contained .NET publish + static frontend build over SSH.
+# from a connected workstation only ever ship a self-contained .NET publish +
+# static frontend build over SSH - via `deploy/deploy.sh` (rsync) or, if
+# rsync isn't available/working for you, `deploy/deploy-scp.sh` (scp a
+# tarball, then untar it on the server). Both need this script's `rsync`
+# package installed below only for the first one; the second only needs
+# `tar`, already part of the base Debian install.
 #
 # Run as root (or via sudo) on the target server:
 #   scp -r deploy/ admin@server:/tmp/rsi-deploy
